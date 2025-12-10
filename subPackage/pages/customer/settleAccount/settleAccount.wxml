@@ -1,0 +1,83 @@
+
+	<import src='../../../../template/billPay/billPay.wxml' />
+
+  
+  <view class="bg-white flex-column with-margin-bottom">
+
+    <back-navbar style="height: {{navBarHeight}}rpx;" title="单据详细" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+ 
+
+   <view class="flex-column" style="margin-top: {{navBarHeight}}rpx;">
+   <view wx:for="{{accountBillArr}}" wx:for-item="month" wx:for-index="monthIndex">
+    <view class="flex-row p-20" wx:if="{{month.arr.length > 0}}">
+     
+        <text>{{month.month}}月</text>
+    </view>
+		<view class="flex-row-between border-bottom p-20" wx:for="{{month.arr}}" wx:for-item="item" wx:for-index="index" style="width:{{windowWidth - 40}}rpx; ">
+			<view class="flex-row-default ">
+				<view class="body-view mr-20">
+					<switch type="checkbox" checked="{{item.isSelect}}" bindchange="selectBill" data-index="{{index}}"  data-monthindex="{{monthIndex}}"/>
+				</view>
+
+				<view class="flex-column">
+					<view class="flex-row">
+						<text class="mr-20">{{item.nxDbDate}}</text>
+						<text>{{item.nxDbWeek}}</text>
+					</view>
+					<view class="flex-row font-xs text-secondary">
+						<text>单号:</text>
+						<text>{{item.nxDbTradeNo}}</text>
+					</view>
+					<view class="flex-row font-xs text-secondary">
+						<text>打印:</text>
+						<text>{{item.nxDbTime}}</text>
+					</view>
+				</view>
+			</view>
+
+			<view class=" with-mr-20">
+				<text class="big">{{item.nxDbTotal}}</text>
+				<text class="small">元</text>
+			</view>
+		</view>
+  </view>
+	</view>
+
+  <view style="height: 200rpx;"></view>
+	</view>
+
+
+
+<view class="overlay {{isTishi ? 'show' : ''}}">
+
+	<view class="body  flex-column" style="width: {{windowWidth - 100}}rpx;">
+		<view class="margin_bottom center-content flex-column">
+
+			<view class="tishiView" style="width:{{windowWidth/5}}rpx; height:{{windowWidth/5}}rpx; margin-top:-{{windowWidth/10 + 10}}rpx; z-index: 9999;border-radius: 50%;">
+				<image src="../../../../images/xiuxi.png" class="tishi_icon" style="width:{{windowWidth/5 -80}}rpx; height:{{windowWidth/5 - 80}}rpx;  border-radius: 50%; margin-top:40rpx; margin-left: 40rpx;"></image>
+			</view>
+
+			<view class="flex-column-center sentence">
+			   <text class="small">客户已完成付款，结账确认以后</text>
+					<text class="font-lg">订单状态不可修改！</text>
+			</view>
+				<view class="p-20 flex-row-between "  style="width:{{windowWidth - 200}}rpx; " >
+				  <view class="third-row center-content p-10 hover">
+					 <text class="" bindtap="cancleSettle">取消</text>
+					</view>
+				  <view class="third-row center-content p-10 btn-primary">
+					 <text class="border_btn"  bindtap="settleAccount">确定</text>
+					</view>
+				</view>
+
+		</view>
+	
+	</view>
+</view>
+
+
+
+
+
+
+	<template is="billPay" data='{{selAmount:selAmount, total: total}}'></template>

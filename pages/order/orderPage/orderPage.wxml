@@ -1,0 +1,440 @@
+<wxs src="../../../utils/fn.wxs" module="tool" />
+
+<view class="page-root1 flex flex-column">
+
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="{{name}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+  <view class="flex flex-end bg-white p-20 border-bottom">
+
+ 
+    <view class="flex flex-row mr-30"  bind:tap="toOpenOrder" wx:if="{{disInfo.nxDistributerAppId != -1}}">
+      <view class="button-container">
+        <image src="../../../images/robot-solid.png" class="icon"></image>
+      </view>
+    </view>
+
+ <view class="flex flex-row mr-30"  bind:tap="toChangeKg" >
+
+
+      <view class="button-container">
+        <image src="{{isKgMode ? '../../../images/qianke.png' : '../../../images/changeorder.png'}}" class="icon"></image>
+      </view>
+    </view>
+
+   
+
+    <view class="flex flex-row mr-30" bindtap="printPick" data-type="paste" data-id="-1">
+      <view class="button-container">
+        <image src="../../../images/print-4.png" class="icon"></image>
+      </view>
+    </view>
+    <!-- <view class="flex flex-row mr-30" bindtap="toDriver" >
+      <view class="button-container">
+        <image src="../../../images/car.png" class="icon"></image>
+      </view>
+    </view> -->
+
+    <view class="flex flex-row mr-30" bindtap="toAddOrder" data-type="paste" data-id="-1">
+      <view class="button-container">
+        <image src="../../../images/paste-2.png" class="icon"></image>
+      </view>
+    </view>
+ 
+
+    <view class="flex flex-row mr-30" bindtap="toAddOrder" data-type="resGoods">
+      <view class="button-container">
+        <image src="../../../images/edit-main.png" class="icon"></image>
+      </view>
+    </view>
+
+  </view>
+
+  <view class="content flex-1 flex-column">
+    <scroll-view scroll-y="true" class="scroll-content "   show-scrollbar="true" >
+      <!-- 订单数据 -->
+
+      <block wx:if="{{depHasSubs == 0}}">
+
+        <view class="flex flex-row-between  border-bottom p-10 {{order.nxDoPurchaseStatus == 4 ? 'bg-white' :'liziBack'}}  {{order.nxDoPurchaseStatus == 5 ? 'liziDelivery' : ''}} {{order.nxDoPurchaseStatus == 3 ? 'liziClock' : ''}}" wx:for="{{applyArr}}" wx:for-item="order" wx:key="nxDepartmentOrdersId" wx:for-index="applyIndex">
+
+          <block wx:if="{{order.nxDoStatus  >  -2}}">
+            <view class="flex flex font-md">
+              <text class="mr-10">{{applyIndex + 1}}.</text>
+              <view class="flex-cloumn" style="width: {{windowWidth - 140}}rpx; ">
+                <view class="flex-row-wrap align-center">
+                  <text class="brand" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsBrand !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0}}">{{order.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
+                  <text class="font-bold mr-10">{{order.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
+                  <text class="font-xs"  wx:if="{{order.nxDepartmentDisGoodsEntity !== null && order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName !== order.nxDistributerGoodsEntity.nxDgGoodsName && order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName !== order.nxDoGoodsName}}">({{order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName}})</text>
+                  <text class="font-xs ml-10 mr-10"  wx:if="{{order.nxDoGoodsName !== '' && order.nxDoGoodsName !== order.nxDistributerGoodsEntity.nxDgGoodsName}}">({{order.nxDoGoodsName}})</text>
+                  <text class="font-sm" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsPlace !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsPlace.length > 0}}">({{order.nxDistributerGoodsEntity.nxDgGoodsPlace}})</text>
+
+                  <text class="font-sm" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsDetail.length > 0 && order.nxDistributerGoodsEntity.nxDgGoodsDetail !==  'null'}}">{{order.nxDistributerGoodsEntity.nxDgGoodsDetail}}</text>
+                  <block wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0}}">
+					<text class="mr-20" style="font-size: 30rpx;" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname !== '斤'}}">({{order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight}}/{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+				</block>
+				<!-- <block wx:else>
+					<text style="font-size: 30rpx;"  wx:if="{{item.nxDgGoodsStandardname !== '斤'}}">({{item.nxDgGoodsStandardname}})</text>
+				</block> -->
+
+                  <text class="mr-20" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname !== order.nxDoPrintStandard}}">({{order.nxDoPrintStandard}})</text>
+               
+                  <text class="">订:{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+                  <text class="text-danger font-sl" wx:if="{{order.nxDoRemark !== null  && order.nxDoRemark.length > 0}}">({{order.nxDoRemark}})</text>
+                </view>
+               
+
+                <view class="flex flex-row font-sl">
+                  <view class="third-row">
+                    <text class="text-secondary">出货:</text>
+                    <text class="" wx:if="{{order.nxDoWeight !== null}}">{{order.nxDoWeight}}{{order.nxDoPrintStandard}}</text>
+                  </view>
+
+                  <view class="third-row" bind:tap="showPrintStandardTip" data-order="{{order}}" data-index="{{applyIndex}}" style="position: relative;">
+                    <text class=" text-secondary">单价:</text>
+                    <text class="{{order.nxDoPrice == '0.1'   ||  order.nxDoPrice == '' ? 'text-danger' : ''}}" wx:if="{{order.nxDoPrice !== null}}">{{order.nxDoPrice == 0.1 ||  order.nxDoPrice == ''  ?  '-' : order.nxDoPrice }}/{{order.nxDoPrintStandard}}</text>
+                   
+                  </view>
+
+                  <view   class="third-row" wx:if="{{order.nxDoSubtotal !== null || order.nxDoSubtotal == '' }}">
+                    <text class="text-secondary">小计:</text>
+                    <text class="{{order.nxDoPrice == '0.1' ||  order.nxDoPrice == ''  ? 'text-danger' : ''}}">{{order.nxDoPrice == 0.1  ?  '-' : order.nxDoSubtotal}}元</text>
+                  </view>
+                </view>
+
+              </view>
+            </view>
+
+            <view wx:if="{{order.nxDoStatus == -1}}" bindtap="haveReceive" data-status="2" data-index="{{applyIndex}}">
+              退货
+            </view>
+            <view wx:else="" class="button-container-white" bindtap="openOperation" data-order="{{order}}" data-subname="" data-id="{{order.nxDistributerGoodsEntity.nxDistributerGoodsId}}" data-name="{{order.nxDistributerGoodsEntity.nxDgGoodsName}}" data-type="goods" data-color="{{order.nxDistributerGoodsEntity.nxDgNxGoodsFatherColor}}" data-goods="{{order.nxDistributerGoodsEntity}}" data-depid="{{depFatherId}}" hover-class="hover">
+              <image src="../../../images/points.png" class="icon"></image>
+            </view>
+
+          </block>
+
+          <block wx:else="">
+            <view class="flex flex-row">
+              <view class="flex-row p-10" style="width: {{windowWidth - 100}}rpx; ">
+                <text class="">{{applyIndex + 1}}.</text>
+                <view class="flex-cloumn">
+                  <view class="flex-row-wrap">
+                    <text class="font-sl text-danger">(未完成)</text>
+                    <text class="mr-20 ">{{order.nxDoGoodsName}}</text>
+                    <text class="">订:{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+                    <text class="text-danger font-sl" wx:if="{{order.nxDoRemark !== null  && order.nxDoRemark.length > 0}}">({{order.nxDoRemark}})</text>
+                  </view>
+                </view>
+              </view>
+              <view class="btnClick" bindtap="openOperationLinshi" data-id="{{order.nxDepartmentOrdersId}}" data-item="{{order}}" data-name="{{order.nxDoGoodsName}}" data-dep="{{depInfo}}" data-depid="{{depId}}" hover-class="hover">
+                <image src="../../../images/points.png" class="icon"></image>
+              </view>
+            </view>
+          </block>
+
+          <!-- ../arrow -->
+        </view>
+      </block>
+
+      <block wx:else="">
+        <view class="flex-column" wx:for="{{depArr}}" wx:for-item="dep">
+          <view class="flex flex-row-between p-20 font-md-2">
+            <text class=" text-primary">#{{dep.depName}}</text>
+            <text>¥:{{dep.depSubtotal}}元</text>
+          </view>
+
+          <view class="flex flex-row border-bottom  p-10 {{order.nxDoPurchaseStatus == 4 ? 'bg-white' :'liziBack'}} {{order.nxDoPurchaseStatus  == 5 ? 'liziDelivery' : ''}} {{order.nxDoPurchaseStatus  == 3 ? 'liziClock' : ''}}" wx:for="{{dep.depOrders}}" wx:for-item="order" wx:key="nxDepartmentOrdersId" wx:for-index="applyIndex">
+            <block wx:if="{{order.nxDoStatus  >  -2}}">
+              <view class="flex-row-default font-md">
+                <text class="mr-10">{{applyIndex + 1}}.</text>
+                <view class="flex-cloumn" style="width: {{windowWidth - 160}}rpx; ">
+                  <view class="flex-row-wrap align-center">
+                    <text class="brand" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsBrand !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0}}">{{order.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
+                    <text class="font-bold ">{{order.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
+                    <text class="font-xs"  wx:if="{{order.nxDepartmentDisGoodsEntity !== null && order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName !== order.nxDistributerGoodsEntity.nxDgGoodsName}}">({{order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName}})</text>
+                    <text class="font-xs ml-10 mr-10"  wx:if="{{order.nxDoGoodsName !== '' && order.nxDoGoodsName !== order.nxDistributerGoodsEntity.nxDgGoodsName}}">({{order.nxDoGoodsName}})</text>
+                    <text class="" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsPlace !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsPlace.length > 0}}">{{order.nxDistributerGoodsEntity.nxDgGoodsPlace}}</text>
+                    <text class="" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsDetail.length > 0 && order.nxDistributerGoodsEntity.nxDgGoodsDetail !==  'null'}}">{{order.nxDistributerGoodsEntity.nxDgGoodsDetail}}</text>
+                    <text class="mr-20">({{order.nxDoPrintStandard}})</text>
+                    <text class="">订:{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+                    <text class="text-danger font-sl" wx:if="{{order.nxDoRemark !== null  && order.nxDoRemark.length > 0}}">({{order.nxDoRemark}})</text>
+                  </view>
+                  <!-- <block wx:if="{{order.purchaseGoodsEntity !== null && order.purchaseGoodsEntity.nxDpgBatchId !== null}}">
+                    <view class="flex-row font-xs">
+                      <view class="flex-row third-row">
+                        <text class="text-secondary">进价:</text>
+                        <text>{{order.nxDoCostPrice}}</text>
+                      </view>
+                      <view class="flex-row third-row">
+                        <text class="text-secondary">利润:</text>
+                        <text>{{order.nxDoProfitSubtotal}}</text>
+                      </view>
+                      <view class="flex-row third-row">
+                        <text class="text-tertiary">利润率:</text>
+                        <text>{{order.nxDoProfitScale}}%</text>
+                      </view>
+
+                    </view>
+                  </block> -->
+
+                  <view class="flex flex-row font-sl">
+                    <view class="third-row">
+                      <text class="text-secondary">出货:</text>
+                      <text class="{{order.nxDoWeight == ''  ? 'text-danger' : ''}}" wx:if="{{order.nxDoWeight !== null}}">{{order.nxDoWeight == '' ?  '-' : order.nxDoWeight }}{{order.nxDoPrintStandard}}</text>
+                    </view>
+
+                    <view class="third-row"  bind:tap="showPrintStandardTip" data-order="{{order}}" data-index="{{depIndex}}_{{applyIndex}}" style="position: relative;">
+                    <text class=" text-secondary">单价:</text>
+                    <text class="{{order.nxDoPrice == '0.1' ||  order.nxDoPrice == ''  ? 'text-danger' : ''}}" wx:if="{{order.nxDoPrice !== null}}">{{order.nxDoPrice == 0.1  ||  order.nxDoPrice == '' ?  '-' : order.nxDoPrice }}/{{order.nxDoPrintStandard}}</text>
+                  
+                  </view>
+
+                  <view class="third-row" wx:if="{{order.nxDoSubtotal !== null || order.nxDoSubtotal == '' }}">
+                    <text class="text-secondary">小计:</text>
+                    <text class="{{order.nxDoPrice == '0.1' ||  order.nxDoPrice == ''  ? 'text-danger' : ''}}">{{order.nxDoPrice == 0.1  ?  '-' : order.nxDoSubtotal}}元</text>
+                  </view>
+                  </view>
+                </view>
+              </view>
+              <view class="button-container-white" bindtap="openOperation" data-subname="{{dep.depName}}" data-order="{{order}}" data-id="{{order.nxDistributerGoodsEntity.nxDistributerGoodsId}}" data-name="{{order.nxDistributerGoodsEntity.nxDgGoodsName}}" data-goods="{{order.nxDistributerGoodsEntity}}" data-type="goods" data-color="{{order.nxDistributerGoodsEntity.nxDgNxGoodsFatherColor}}" hover-class="hover" data-depid="{{dep.depId}}">
+                <image src="../../../images/points.png" class="icon"></image>
+              </view>
+            </block>
+
+            <block wx:else="">
+              <view class="flex-row-between  mainColor with-tb-padding text-secondaryBack flex-row">
+                <view class="flex-row p-10" style="width: {{windowWidth - 100}}rpx; ">
+                  <text class="">{{applyIndex + 1}}.</text>
+                  <view class="flex-cloumn">
+                    <view class="flex-row-wrap">
+                      <text class="font-sl text-danger">(未完成)</text>
+                      <text class="mr-20">{{order.nxDoGoodsName}}</text>
+                      <text class="">订:{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+                      <text class="text-danger font-sl" wx:if="{{order.nxDoRemark !== null  && order.nxDoRemark.length > 0}}">({{order.nxDoRemark}})</text>
+                    </view>
+                  </view>
+                </view>
+                <view class="btnClick" bindtap="openOperationLinshi" data-id="{{order.nxDepartmentOrdersId}}" data-item="{{order}}" data-name="{{order.nxDoGoodsName}}" data-dep="{{dep}}" data-depid="{{dep.depId}}" hover-class="hover">
+                  <image src="../../../images/points.png" class="icon"></image>
+                </view>
+              </view>
+            </block>
+            <!-- ../arrow -->
+          </view>
+
+        </view>
+
+      </block>
+
+      <view class="p-20"  style="height: 200rpx;">
+        <view class="p-20 text-secondary font-sl" style="text-align:center;">没有数据啦！</view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="flex flex-row-between" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 140rpx; border-top: 1px solid lightgray; background-color: white;">
+
+    <view class="flex flex-row">
+      <view class="icon-button ml-20" hover-class="hover" bindtap="toWeightPage">
+        <image src="{{hasWeightCount == hasWeightCount ? '../../../images/icons/icon_stock_active.png' : '../../../images/icons/icon_stock.png'}}" class="iconB"></image>
+        <text class="button-text">出库</text>
+      </view>
+      <view class="icon-button" hover-class="hover" bindtap="toInputNumber">
+        <image src="{{applyArr.length > priceCount > 0 ? '../../../images/money-2.png' : '../../../images/money.png'}}" class="iconB"></image>
+        <text class="button-text">写价格</text>
+      </view>
+      <!--  -->
+      <view class="icon-button" hover-class="hover" bindtap="saveBill">
+        <image src="{{finishCount == totalCount? '../../../images/save-active.png' :'../../../images/save.png'  }}" class="iconB"></image>
+        <text class="button-text">保存</text>
+      </view>
+
+      <view class="icon-button" hover-class="hover" bindtap="toOpenPrint" wx:if="{{depInfo.nxDepartmentPrintName == 'feiEPrint'}}">
+        <image src="../../../images/print-4.png" class="icon"></image>
+        <text class="button-text">送货单</text>
+      </view>
+
+      <!--  -->
+      <view class="icon-button" hover-class="hover" bindtap="toPrintOrder" wx:elif="{{depInfo.nxDepartmentPrintName == 'BlueToothPrint'}}">
+        <image src="../../../images/To_Do.png" class="iconB"></image>
+        <text class="button-text {{!printOk ? 'text-secondary' : ''}} ">结账单</text>
+      </view>
+
+    </view>
+
+    <view class="flex-column">
+      <view class="flex-row p-20">
+        <text class="">总计:</text>
+        <text class="font-bold" style="font-size: 42rpx;">{{total}}</text>
+        <text>元</text>
+      </view>
+      <!-- <text class="text-secondary font-xs flex-row-reverse">利润率:{{scale > 0 ? scale: '0'}}%</text> -->
+    </view>
+
+  </view>
+
+</view>
+
+
+
+
+
+<!-- goodsOperation -->
+<view class='overlay {{showOperationGoods ? "show" : ""}}' catchtouchmove='ture' catchtap="hideMaskGoods">
+  <view class="flex-column nnn bg-white font-md" wx:if="{{chooseSize}}" animation='{{animationData}}'>
+
+    <view class="p-30 center-content font-sl font-bolder">
+      <text class="mr-30">{{applyItem.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
+      <text>{{applyItem.nxDoQuantity}}{{applyItem.nxDoStandard}}</text>
+    </view>
+
+    <view class="flex-row p-30 border-bottom" bindtap="toEditApply" hover-class="hover" wx:if="{{applyItem.nxDoPurchaseStatus < 4}}">
+      <image src="../../../images/edit.png" class="icon mr-20 ml-20"></image>
+      <text class="">修改订货</text>
+    </view>
+
+    <view class="flex-row p-30" catchtap="editDepApplyGoods" hover-class="hover" data-type="exchange" wx:if="{{applyItem.nxDoPurchaseStatus < 4}}">
+      <image src="/images/exchange.png" class="icon mr-20  ml-20"></image>
+      <text class="">替换订货商品</text>
+    </view>
+
+    <view class="flex flex-row p-30 border-bottom" catchtap="cancleDeliveryOrder" hover-class="hover" wx:if="{{applyItem.nxDoPurchaseStatus == 5}}">
+      <image src="../../../images/del-6.png" class="icon mr-20 ml-20"></image>
+      <text class="text-danger">送货失败</text>
+    </view>
+
+    <view class="flex flex-row p-30 border-bottom" catchtap="cancleOutOrder" hover-class="hover" wx:if="{{applyItem.nxDoPurchaseStatus == 4}}">
+      <image src="../../../images/edit-main.png" class="icon mr-20 ml-20"></image>
+      <text class="">重新出库</text>
+    </view>
+
+    <view class="flex flex-row p-30 border-bottom" wx:if="{{applyItem.nxDoPurchaseStatus == 4}}" catchtap="finishDelivery" hover-class="hover">
+      <image src="../../../images/car.png" class="icon mr-20 ml-20"></image>
+      <text class="text-primary">完成送货(待保存打印)</text>
+    </view>
+
+    <view class="flex flex-row p-30 border-bottom" catchtap="toResGoods" hover-class="hover" data-id="{{applyItem.nxDepartmentOrdersId}}">
+      <image src="../../../images/add.png" class="icon mr-20 ml-20"></image>
+      <text class="">(在之前) 添加新订单</text>
+    </view>
+
+    
+    <view class="flex flex-row p-30 border-bottom" wx:if="{{applyItem.nxDoPurchaseStatus < 4}}" catchtap="showIsOut" hover-class="hover">
+      <image src="../../../images/checkboxchecked.png" class="icon mr-20 ml-20"></image>
+      <text class=" {{applyItem.nxDoPurchaseStatus < 4 ? '' : 'is-text-secondary'}}">完成出库</text>
+    </view>
+
+    <view class="flex flex-row p-20" bindtap="toDgGoods" data-type="order">
+      <image src="../../../images/icon_goods.png" class="icon mr-20 ml-20"></image>
+      <text class="">"{{goodsName}}"商品详细</text>
+    </view>
+    <view style="height: 20rpx;"></view>
+  </view>
+
+</view>
+<!-- ../goodsOperation -->
+
+
+
+<!-- 采购员链接打开页面之前判断是否有子部门 -->
+<view class='overlay {{showChoice ? "show" : ""}}' catchtap="hideChoiceMask">
+  <view class='popup' style="width:{{windowWidth/3 * 2}}rpx; ">
+    <!-- 分店列表 -->
+    <view class="flex-column p-20 p-20 bg-white">
+      <view class="flex flex-row border-bottom p-20 {{depInfo.nxDepartmentEntities.length -1 == index ? 'is-last' : ''}} flex-row-default" wx:for="{{depInfo.nxDepartmentEntities}}" wx:key="nxDepartmentId" wx:for-item="dep" bindtap="selectDepartment" data-item="{{dep}}" hover-class="hover">
+        <text class=''>{{dep.nxDepartmentName}}</text>
+      </view>
+    </view>
+  </view>
+</view>
+
+
+<!-- goodsOperation -->
+<view class='overlay {{showOperation ? "show" : ""}}' catchtouchmove='ture' catchtap="hideOperation">
+  <view class="flex-column nnn bg-white font-md">
+
+    <block wx:if="{{environment == 'wxwork'}}">
+      <view class="flex flex-row p-30 border-bottom" catchtap="toRecord" hover-class="hover">
+        <image src="/images/voice-2.png" class="icon"></image>
+        <text class="">语音下单</text>
+      </view>
+    </block>
+
+    <view class="flex flex-row p-30 border-bottom" catchtap="toPaste" hover-class="hover">
+      <image src="/images/paste.png" class="icon mr-20 ml-20"></image>
+      <text class="">粘贴下单</text>
+    </view>
+
+    <view class="flex flex-row p-30 border-bottom" catchtap="toResGoods" hover-class="hover" data-id="-1">
+      <image src="../../../images/add.png" class="icon mr-20 ml-20"></image>
+      <text class="">添加订单</text>
+    </view>
+    <view class="flex flex-row p-30" catchtap="toOpenMini" hover-class="hover" data-id="{{applyItem.nxDepartmentOrdersId}}">
+      <image src="../../../images/cg.png" class="icon mr-20 ml-20"></image>
+      <text class="">客户订货端</text>
+    </view>
+
+    <view style="height: 20rpx;"></view>
+
+  </view>
+
+</view>
+<!-- ../goodsOperation -->
+
+<!-- goodsOperation -->
+<view class='overlay {{showOperationLinshi ? "show" : ""}}' catchtouchmove='ture' catchtap="hideMaskLinshi">
+  <view class="flex-column nnn bg-white font-lg">
+
+    <view class="flex-row p-30 border-bottom" catchtap="toPasteFromGoods" hover-class="hover"  wx:if="{{applyItem.nxDoIsAgent !== 1}}">
+      <image src="/images/paste.png" class="icon mr-20"></image>
+      <text class="">修改粘贴</text>
+    </view>
+
+    <view class="flex-row p-30" catchtap="editDepApplyGoods" hover-class="hover" data-type="edit" wx:if="{{applyItem.nxDoIsAgent == 1}}">
+      <image src="/images/edit.png" class="icon mr-20"></image>
+      <text class="">搜索已有商品</text>
+    </view>
+
+    <view class="flex-row p-30" catchtap="confirmDepApplyGoods" hover-class="hover"  wx:if="{{applyItem.nxDoIsAgent == 1}}">
+      <image src="/images/add.png" class="icon mr-20"></image>
+      <text class="">添加为新商品</text>
+    </view>
+
+    <view class="flex-row p-30" catchtap="delApplyPaste" hover-class="hover">
+      <image src="/images/del.png" class="icon mr-20"></image>
+      <text class="">删除订单</text>
+    </view>
+    <view style="height: 20rpx;"></view>
+
+  </view>
+
+</view>
+<!-- ../goodsOperation -->
+
+
+<addOrder visible="{{show}}" bindconfirm="confirm" bindcancle="cancle" binddelApply="delApply" binddelStandard="delStandard" applyStandardName="{{applyStandardName}}" bindconfirmStandard="confirmStandard" applyNumber="{{applyNumber}}" applyRemark="{{applyRemark}}" editApply="{{editApply}}" bindchangeStandard="changeStandard" applyGoodsName="{{applyGoodsName}}" applyGoodsId="{{applyGoodsId}}" item="{{itemDis}}" windowWidth="{{windowWidth}}" newStandardName="{{newStandardName}}" />
+
+<saveSubBillModal wx:if="{{showPopupSaveSub}}" type="{{popupType}}" warnContent="{{warnContent}}" bind:closeSaveBillSub="closeSaveBillSub" bind:confirmSaveBillSub="confirmSaveBillSub" />
+
+<saveBillModal wx:if="{{showPopupSave}}" type="{{popupType}}" warnContent="{{warnContent}}" bind:closeSaveBill="closeSaveBill" bind:confirmSaveBill="confirmSaveBill" />
+
+<delWarnModal wx:if="{{showPopupWarn}}" type="{{popupType}}" warnContent="{{warnContent}}" bind:closeWarn="closeWarn" bind:confirmWarn="confirmWarn" />
+
+<myDismodalCashSingle show="{{showCash}}" bindconfirm="confirmCash" bindcancle="cancle" binddelApply="delApply" bindconfirmStandard="confirmStandard" applyStandardName="{{applyStandardName}}" applyNumber="{{applyNumber}}" applySubtotal="{{applySubtotal}}" applyRemark="{{applyRemark}}" editApply="{{editApply}}" expectPrice="{{expectPrice}}" bindchangeStandard="changeStandard" applyGoodsName="{{applyGoodsName}}" applyGoodsId="{{applyGoodsId}}" item="{{itemDis}}" applyStandardName="{{applyStandardName}}" windowWidth="{{windowWidth}}" windowHeight="{{windowHeight}}" statusBarHeight="{{statusBarHeight}}" />
+
+
+<editDriver wx:if="{{editDriverShow}}" type="{{popupType}}"  warnContent="{{warnContent}}"  depItem="{{depItem}}" bind:closeRouteName="closeRouteName" bind:confirmRouteName="confirmRouteName" />
+
+
+<stockOutGoods show="{{showDisOutGoods}}" bindconfirm="confirmStock" bindconfirmSave="confirmSave" bindneednot="confirmNeedNotPurchse" bindcancle="cancle" item="{{item}}" bindgetFocus="getFocus" bindcancle="cancle" windowHeight="{{windowHeight}}" windowWidth="{{windowWidth}}" ids="{{ids}}" statusBarHeight="{{statusBarHeight}}" />
+
+
+ <!-- 打印规格修改 tip 弹窗组件 -->
+ <editPrintStandard 
+                      wx:if="{{showPrintTip}}"
+                      show="{{true}}"
+                      order="{{currentEditOrder}}"
+                      printStandard="{{editPrintStandard}}"
+                      bind:confirm="onPrintStandardConfirm"
+                      bind:cancel="cancelEditPrintStandard"
+                    />

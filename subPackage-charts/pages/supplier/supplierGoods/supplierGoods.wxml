@@ -1,0 +1,78 @@
+<wxs src="../../../../utils/fn.wxs" module="tool" />
+
+
+ <view class="flex flex-column">
+<back-navbar style="height: {{navBarHeight}}rpx;"  title="自动订货商品" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+
+<view class="flex-column center-content">
+<image src="{{supplier.jrdhUserEntity !== null ? url + supplier.jrdhUserEntity.nxJrdhWxAvartraUrl : '../../../../images/logo.png'}}" style="width: {{windowWidth / 4}}rpx; height: {{windowWidth / 4}}rpx; border-radius: 50%;"></image>
+<view class="big five-weight pt-20 pb-20">{{supplier.nxJrdhsSupplierName}}</view>
+
+</view>
+
+<view class="{{goodsList.length == 0  ? 'show' : 'hide'}}" style="height: {{windowHeight /3}}rpx; text-align:center;">
+    <view class="flex-column center-content" style="margin-top: 20rpx;">
+      <image class="empty_image" src="/images/cart-Empty.png"></image>
+      <text class="big">暂无自动订货商品</text>
+      <text class="font-sm text-secondary" >适合稳定供货关系的供货商</text>
+    </view>
+  </view>
+
+<view class="flex-row-between border-bottom bg-white p-20 "  wx:if="{{goodsList.length > 0}}"  wx:for="{{goodsList}}" wx:for-item="goods" wx:for-index="goodsIndex" >
+    <view class="flex-column" style="width: {{windowWidth- 120}}rpx;">
+      <view class="font-lg flex-row">
+        <text class="mr-20">{{goodsIndex + 1}}.</text>
+        <view class="flex-row-wrap">
+          <text class="brand" wx:if="{{goods.gbDgGoodsBrand !== 'null' && goods.gbDgGoodsBrand.length > 0}}">{{goods.gbDgGoodsBrand}}</text>
+          <text class=" " wx:if="{{goods.gbDgPullOff == 1}}">{{goods.gbDgGoodsName}}(停止订货)</text>
+          <text class=" mr-10" wx:else> {{goods.gbDgGoodsName}}</text>
+          <text class="" wx:if="{{goods.gbCommunityAliasEntities.length > 0}}" wx:for="{{goods.gbCommunityAliasEntities}}" wx:for-item="alias">@{{alias.gbCaAliasName}}</text>
+
+          <text class=" mr-10 " >({{goods.gbDgGoodsStandardname}})</text>
+          <text class=" mr-10 " wx:if="{{goods.gbDgGoodsPlace !== 'null' && goods.gbDgGoodsPlace.length > 0}}">产地:{{goods.gbDgGoodsPlace}}</text>
+          <text class="  mr-10" wx:if="{{goods.gbDgGoodsDetail.length > 0 && goods.gbDgGoodsDetail !==  'null'}}">{{goods.gbDgGoodsDetail}}</text>
+        </view>
+      </view>
+
+     
+
+
+      <block wx:if="{{goods.gbDgControlFresh == 1}}">
+        <view class="flex-row middle   ">
+          <text class="mr-10 empty">{{goodsIndex}}.</text>
+          <view class="flex-row" style="width:{{windowWidth - 140}}rpx;">
+            <view class="flex-row half-row">
+              <text class=" mr-10 gray">报警:</text>
+              <text class="">{{goods.gbDgFreshWarnHour}}小时</text>
+            </view>
+            <view class="flex-row half-row">
+              <text class="mr-10 gray">废弃:</text>
+              <text class="">{{goods.gbDgFreshWasteHour}}小时</text>
+            </view>
+          </view>
+        </view>
+      </block>
+
+      <block wx:if="{{goods.gbDgControlPrice == 1}}">
+        <view class="flex-row middle    ">
+          <text class="mr-10 empty">{{goodsIndex}}.</text>
+          <view class="flex-row">
+            <text class=" mr-10 gray">采购价:</text>
+            <view class="flex-row" style="width:{{windowWidth - 260}}rpx; ">
+              <text class="third-row">{{goods.gbDgGoodsPrice}}元</text>
+              <text class="third-row">{{goods.gbDgGoodsLowestPrice}}元</text>
+              <text class="third-row">{{goods.gbDgGoodsHighestPrice}}元</text>
+            </view>
+          </view>
+        </view>
+      </block>
+
+    </view>
+    <view class="flex-row">
+      <image src="../../../../images/del.png" bindtap="choiceGoods" data-id="{{goods.gbDistributerGoodsId}}" mode="aspectFill" class="icon"/>
+    </view>
+
+  </view>
+
+</view>

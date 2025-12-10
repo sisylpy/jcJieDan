@@ -1,0 +1,27 @@
+<view class="popup-overlay " wx:if="{{showPopup}}">
+
+  <view class="popup flex-column-center font-lg" bindtap="stopPropagation">
+    <text class="popup-title">{{item.nxDgGoodsName}}({{item.nxDgGoodsStandardname}})</text>
+
+    <view class="flex-row p-10 ">
+      <text class="mr-20 text-secondary">采购数量:</text>
+      <input class="numberInput" value="{{planOrder}}" bindinput="getPlanOrder" type="digit"></input>
+    </view>
+  
+
+    <view class="flex-row  p-10">
+      <text class="mr-20 text-secondary">采购单位:</text>
+      <input class="numberInput" value="{{applyStandardName}}" bindinput="getStandard"></input>
+    </view>
+
+    <view class="flex  flex-row-between p-20" style="width: 100%;margin-top: 40rpx;margin-bottom: 20rpx;">
+
+      <view class='btn'>
+        <text class="cancleBtn" bindtap="onCancel" hover-class="hover">取消</text>
+      </view>
+      <view class='btn'>
+        <text class="sureBtn {{!canConfirm ? 'disabled' : ''}}" catchtap='confirmEdit' hover-class="{{canConfirm ? 'hover' : ''}}">确定</text>
+      </view>
+    </view>
+  </view>
+</view>

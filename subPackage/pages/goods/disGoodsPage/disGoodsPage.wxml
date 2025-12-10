@@ -1,0 +1,457 @@
+<wxs src="../../../../utils/fn.wxs" module="tool" />
+
+
+<view class="flex flex-column height-100 font-md">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="{{goods.nxDgGoodsName}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+  
+  <view class="flex-column" id="mjltest">
+  
+    <view class="flex-row-between p-20 bg-white" >
+    <view class="flex-column width-100">
+      <view class="flex flex-row p-20 " >
+        <view class="half-row">
+          <text class="text-secondary">单位:</text>
+          <text >{{goods.nxDgGoodsStandardname}}</text>
+        </view>
+
+        <view class="half-row">
+          <text class="text-secondary">单位重量:</text>
+          <text wx:if="{{goods.nxDgGoodsStandardWeight !==  null && goods.nxDgGoodsStandardWeight.length > 0}}">{{goods.nxDgGoodsStandardWeight}}</text>
+        </view>
+      </view>
+
+      <view class="flex flex-row p-20 ">
+        <view class="half-row">
+          <text class="text-secondary">品牌:</text>
+          <text wx:if="{{goods.nxDgGoodsBrand !==  null && goods.nxDgGoodsBrand.length > 0}}">{{goods.nxDgGoodsBrand}}</text>
+        </view>
+
+        <view class="half-row">
+          <text class="text-secondary">产地:</text>
+          <text wx:if="{{goods.nxDgGoodsPlace !==  null && goods.nxDgGoodsPlace.length > 0}}">{{goods.nxDgGoodsPlace}}</text>
+        </view>
+      </view>
+
+      <view class=" flex flex-row p-20 ">
+        <view class="half-row">
+          <text class="text-secondary">详细:</text>
+          <text  wx:if="{{goods.nxDgGoodsDetail !==  null && goods.nxDgGoodsDetail.length > 0}}">{{goods.nxDgGoodsDetail}}</text>
+        </view>
+      </view>
+
+
+      <!--  supplier -->
+      <block wx:if="{{goods.nxDgSupplierId !== null}}">
+        <view class="flex flex-row p-20 ">
+          <text class="text-secondary">供货商:</text>
+          <view>{{goods.nxJrdhSupplierEntity.nxJrdhsSupplierName}}</view>
+        </view>
+      </block>
+
+      <!-- <view class="flex-row-between " wx:if="{{goods.nxDnxuyingPriceIsGrade == 0}}">
+        <view class="flex-row half-row">
+          <text >进价:</text>
+          <text>{{goods.nxDnxuyingPrice}}元/{{goods.nxDgGoodsStandardname}}</text>
+        </view>
+        <view class="flex-row half-row">
+          <text >时间:</text>
+          <text>{{goods.nxDnxuyingPriceUpdate}}</text>
+        </view>
+      </view>
+
+      <view wx:else class="flex-column">
+        <view class="flex-row-between ">
+          <view class="flex-row half-row">
+            <text >普通进价:</text>
+            <text>{{goods.nxDnxuyingPriceThree}}元/{{goods.nxDgGoodsStandardname}}</text>
+          </view>
+          <view class="flex-row half-row">
+            <text >时间:</text>
+            <text>{{goods.nxDnxuyingPriceThreeUpdate}}</text>
+          </view>
+        </view>
+        <view class="flex-row-between ">
+          <view class="flex-row half-row">
+            <text >优选进价:</text>
+            <text>{{goods.nxDnxuyingPriceTwo}}元/{{goods.nxDgGoodsStandardname}}</text>
+          </view>
+          <view class="flex-row half-row">
+            <text >时间:</text>
+            <text>{{goods.nxDnxuyingPriceTwoUpdate}}</text>
+          </view>
+
+        </view>
+        <view class="flex-row-between ">
+          <view class="flex-row half-row">
+            <text >精选进价:</text>
+            <text>{{goods.nxDnxuyingPriceOne}}元/{{goods.nxDgGoodsStandardname}}</text>
+          </view>
+          <view class="flex-row half-row">
+            <text >时间:</text>
+            <text>{{goods.nxDnxuyingPriceOneUpdate}}</text>
+          </view>
+        </view>
+
+      </view> -->
+
+
+      <view class="flex flex-row p-20 " wx:if="{{goods.nxDgPurchaseAuto !== null}}">
+        <view class="half-row">
+          <text class="text-secondary">出货方式:</text>
+          <text class="" wx:if="{{goods.nxDgPurchaseAuto == -1}}">出库 </text>
+          <text class="" wx:elif="{{goods.nxDgPurchaseAuto == 0}}">自采 </text>
+          <text class="" wx:elif="{{goods.nxDgPurchaseAuto == 1}}">订货 </text>
+          <text class="" wx:elif="{{goods.nxDgPurchaseAuto == 2}}">指定供货 </text>
+        </view>
+       
+        <view class="half-row"  wx:if="{{disInfo.nxDistributerAppId !== null}}">
+          <text class="text-secondary">采购周期(天):</text>
+          <text>{{goods.nxDgQuantityDays}}</text>
+        </view>
+      </view>
+
+    </view>
+
+    <view class="btnClick" hover-class="hover" bindtap="openOperation">
+      <image src="../../../../images/points.png" class="icon"></image>
+    </view>
+  </view>
+
+  <view class='navbar  border-bottom-main'>
+    <block wx:for="{{tabs}}">
+      <view id="{{index}}" class="navbar-item {{tab1Index==index?'bar-item-on':''}}" data-index='{{index}}' wx:key="item" bindtap='onTab1Click'>
+        <view class='navbar-title'>{{item}}</view>
+      </view>
+    </block>
+    <!-- left: {{sliderLeft}}px; -->
+    <view class="navbar-slider" style=" width:{{windowWidth / 4}}rpx; transform: translateX({{sliderOffset}}px); -webkit-transform: translateX({{sliderOffset}}px);">
+    </view>
+  </view>
+
+  </view>
+ 
+
+
+  <swiper class="bg-white" style="height: {{windowHeight - navBarHeight - topViewHeight}}rpx;  "  current="{{itemIndex}}" bindchange='swiperChange' data-index='{{itemIndex}}'>
+    <!-- Part-one -->
+    <swiper-item>
+      <scroll-view  class="p-10" scroll-y style="height:{{windowHeight - navBarHeight - topViewHeight}}rpx;">
+
+        <view class="p-20 border-bottom flex-column">
+          <text class="text-secondary font-sl">订货端显示</text>
+          <view class="flex-row-between ">
+            <text class="">暂无库存</text>
+            <switch checked="{{goods.nxDgPullOff == 1 ? 'checked' : ''}}" bindchange="switchChange" data-type="pull" />
+          </view>
+        </view>
+        <view class="p-20 border-bottom flex-column">
+          <text class="text-secondary font-sl">订货端不显示</text>
+          <view class="flex-row-between ">
+            <text class="">停止配送</text>
+            <switch checked="{{goods.nxDgGoodsIsHidden == 1 ? 'checked' : ''}}" bindchange="switchChange" data-type="hidden" />
+          </view>
+        </view>
+       
+
+        <view class="flex-column p-20">
+          <text class="mr-10 text-secondary">订货单位</text>
+          <view class="pt-10 flex-row-wrap font-md">
+            <text class="standard">{{goods.nxDgGoodsStandardname}}</text>
+            <text class="standard" wx:if="{{goods.nxDistributerStandardEntities.length > 0}}" wx:for="{{goods.nxDistributerStandardEntities}}" wx:for-item="standard"  wx:key="nxDistributerStandardId" wx:for-index="standandIndex" bindtap="clickItem" data-itemstandard="{{standard}}" data-index="{{standandIndex}}" data-type="standard" wx:key="nxDistributerStandardId">{{standard.nxDsStandardName}}</text>
+            <text class="standard" bindtap="addStandard" >+</text>
+          </view>
+        </view>
+
+        <view class="flex-column p-20">
+          <text class="mr-10 text-secondary">别名</text>
+          <view class="flex-row-wrap pt-10">
+            <text class="standard" wx:for="{{goods.nxDistributerAliasEntities}}" wx:for-item="alias" wx:for-index="aliasIndex" bindtap="clickItem" data-itemalias="{{alias}}" data-type="alias" data-index="{{aliasIndex}}" wx:key="nxDistributerAliasId">{{alias.nxDaAliasName}}</text>
+            <text class="standard" bindtap="addDisAlias" data-name="{{goods.nxGoodsEntity.nxGoodsName}}">+</text>
+          </view>
+        </view>
+      </scroll-view>
+
+    </swiper-item>
+
+    <!-- 2 -->
+    <!-- orders -->
+    <swiper-item>
+      <view class="flex-column p-10 customerPage" id="mjltest1">
+        <view class="flex-row-between p-20">
+          <text>显示3日内订货</text>
+          <!-- <view class="flex-row" bindtap="toOut" data-type="dep">
+            <text class="extremefont-md underLine">查看更早订单</text>
+          </view> -->
+        </view>
+        <view class="flex-column p-20 ">
+          <view class="form_sub">
+            <view class="flex-row out_header xia_soild ten_bottome_line font-xs">
+              <view class="out_time you_soild p-10 hidden_out_header text-white">
+                a
+              </view>
+              <view class="out_dep you_soild   p-10 five-weight">
+                门店
+              </view>
+
+              <view class="out_dep you_soild p-10 five-weight ">
+                订货
+              </view>
+              <view class=" out_dep  p-10 five-weight" style="text-align: right;">
+                出货
+              </view>
+            </view>
+            <view class="flex-column ten_bottome_line " wx:for="{{orderArr}}" >
+              <view class="flex-row out_header xia_soild" wx:if="{{item.order.length > 0}}">
+                <view class="flex-column  out_time you_soild p-10">
+
+                  <!-- <text class="font-xs  five-weight">时间:</text> -->
+                  <text class="five-weight"> {{item.date}}</text>
+                </view>
+                <view class="flex-column  out_dep you_soild p-10 hidden_out_header">
+
+                  <text class="font-xs  five-weight">时间:</text>
+                  <text class="five-weight"> {{tool.transferDateString(item.date)}}</text>
+                </view>
+
+                <view class="flex-column  out_dep you_soild p-10 hidden_out_header">
+
+                  <text class="font-xs  five-weight">时间:</text>
+                  <text class="five-weight"> {{tool.transferDateString(item.date)}}</text>
+                </view>
+                <view class="flex-column  out_dep  p-10 five-weight">
+                  <text class="font-xs " style="text-align: right;">总数量:</text>
+                  <view style="text-align: right;">
+                    {{item.total}}{{goods.nxDgGoodsStandardname}}
+                  </view>
+                </view>
+              </view>
+
+              <view class="flex-row out_header xia_soild" wx:for="{{item.order}}" wx:for-item="order">
+                <view class="out_time you_soild hidden_out_header p-10" wx:key="nxDepartmentOrdersId">
+                  a
+                </view>
+                <view class="out_dep you_soild   bg-white p-10">
+                  <text>{{order.nxDepartmentEntity.nxDepartmentAttrName}}</text>
+                </view>
+                <view class=" out_dep you_soild bg-white p-10">
+                  <text>{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+                </view>
+                <view class="out_dep  bg-white p-10" style="text-align: right; ">
+                  <view class="mainColor" wx:if="{{order.nxDoWeight !== null}}">{{order.nxDoWeight}}{{goods.nxDgGoodsStandardname}}</view>
+                  <text wx:else>0</text>
+                </view>
+              </view>
+
+
+            </view>
+          </view>
+        </view>
+      </view>
+    </swiper-item>
+    <!-- ./orders -->
+    <!-- 2. -->
+
+    <!-- 3 -->
+    <swiper-item>
+      <scroll-view scroll-y style="height:{{windowHeight - 120}}rpx">
+        <view class="flex-column">
+          <view class="flex-row-between p-20 customerPage">
+          <view class="extremefont-md">
+            显示3日内采购
+          </view>
+          <view class="flex-row">
+            <!-- <view class="flex-row extremefont-md underLine  mr-20" bindtap="toLine" data-type="price">
+              <text>查询单价</text>
+            </view> -->
+            <!-- <view class="flex-row  extremefont-md underLine margin-left" bindtap="toOut" data-type="purchaseWeight">
+              <text>查询更多入库</text>
+            </view> -->
+          </view>
+
+        </view>
+          <view class="flex-row-between font-md p-20 border-bottom withBack" wx:for="{{purchaseArr}}" wx:for-item="purGoods" wx:key="nxDistributerPurchaseGoodsId">
+            
+            <view class="flex-column">
+              <view class="flex-row" style=" width: {{windowWidth - 140}}rpx;">
+              <text  class="half-row">{{tool.transferDateTimeString(purGoods.nxDpgApplyDate)}}</text>
+              <view class="flex-row third-row">
+                <text>数量:</text>
+                <text>{{purGoods.nxDpgBuyQuantity}}{{goods.nxDgGoodsStandardname}}</text>
+              </view>
+            </view>
+            <view class="flex-row" >
+              
+              <view class="flex-row half-row">
+                <text>单价:</text>
+                <text>{{purGoods.nxDpgBuyPrice}}元/{{goods.nxDgGoodsStandardname}} </text>
+              </view>
+              <view class="flex-row half-row">
+                <text>小计:</text>
+                <text>{{purGoods.nxDpgBuySubtotal}}元</text>
+              </view>
+            </view>
+            </view>
+
+           <block wx:if="{{purGoods.nxDpgInputType == 1}}">
+            <view class="flex-column-center" style="width: 100rpx;" >
+            <image src="{{url + purGoods.sellerUserEntity.nxJrdhWxAvartraUrl}}" mode="aspectFill" class="url"/>
+              <text >{{purGoods.sellerUserEntity.nxJrdhWxNickName}}</text>
+            </view>
+           </block>
+           <view class="flex-column-center" wx:else="" style="width: 100rpx;" >
+              <text >自采</text>
+            </view>
+           
+           
+          </view>
+
+        </view>
+      </scroll-view>
+    </swiper-item>
+    <!-- 3. -->
+
+
+
+    <swiper-item>
+      <scroll-view scroll-y style="height:{{windowHeight - 640}}rpx; ">
+        
+        <view wx:if="{{departmentArr.length > 0}}" class="flex-column border-bottom p-20 bg-white font-md" wx:for="{{departmentArr}}" wx:for-item="dep" wx:key="nxDepartmentId">
+          <view class="flex-row-between mb-10">
+            <text class="">{{index + 1}}. {{dep.nxDepartmentName}}</text>
+            <view>
+              <text>单价:</text>
+              <text>{{dep.nxDepartmentDisGoodsEntity.nxDdgOrderPrice}}元/{{goods.nxDgGoodsStandardname}}</text>
+            </view>
+          </view>
+          <view class="flex-row-between">
+            <view class="flex-row">
+              <text class="text-secondary font-sl mr-10">客名:</text>
+              <text class="font-sl">{{dep.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName}}</text>
+            </view>
+            <view class="flex-row">
+              <view class="edit-btn-small" bindtap="selDepartment" data-depgoods="{{dep.nxDepartmentDisGoodsEntity}}">
+                <image src="../../../../images/edit.png" class="icon-small mr-5"></image>
+                <text class="font-sl">编辑</text>
+              </view>
+            </view>
+          </view>
+          <view wx:if="{{dep.nxDepartmentDisGoodsEntity.nxDdgPickDetail}}" class="flex-row mt-10">
+            <text class="text-secondary font-sl mr-10">出货要求:</text>
+            <text class="font-sl">{{dep.nxDepartmentDisGoodsEntity.nxDdgPickDetail}}</text>
+          </view>
+        </view>
+
+         <view class="flex-column-center text-secondary font-xs" style="height: 200rpx;"> 没有数据了啦！</view>
+      </scroll-view>
+    </swiper-item>
+
+  </swiper>
+
+
+</view>
+
+
+
+
+<!-- mask -->
+<view class='overlay {{showOperation ? "show" : ""}}' catchtap="hideMask" >
+  <!-- + scrollViewTop -->
+  <view class="popup" wx:if="{{showChoice}}">
+    <view class="p-20 mb-20 border-bottom" bindtap="edit">
+      编辑
+    </view>
+    <view class="p-20" bindtap="delete">删除</view>
+  </view>
+
+  <view class="flex-column nnn bg-white font-md" wx:else>
+
+    <view class=" flex-row p-20 border-bottom" bindtap="toOpenDetail">
+      <image src="../../../../images/edit.png" class="icon mr-20 ml-20"></image>
+      <text class="text_operation mr-20">修改商品</text>
+    </view>
+
+    <view class=" flex-row p-20 border-bottom" bindtap="toSupplier">
+      <image src="../../../../images/supplier.png" class="icon mr-20 ml-20"></image>
+      <text class="text_operation mr-20">指定供货商</text>
+    </view>
+    <view class=" flex-row p-20 border-bottom" bindtap="exchangeGoods">
+      <image src="../../../../images/del.png" class="icon mr-20 ml-20"></image>
+      <text class="text_operation mr-20">转商品</text>
+    </view>
+
+    <!-- <view class=" flex-row p-20 border-bottom" bindtap="addBrotherGoods">
+      <image src="../../../../images/del.png" class="icon mr-20 ml-20"></image>
+      <text class="text_operation mr-20">添加兄弟商品</text>
+    </view> -->
+
+
+    <!-- <view class=" flex-row p-20 border-bottom" bindtap="toCustomerServicePages" hover-class="hoverIcon">
+      <image src="../../../../images/kefu.png" class="icon mr-20 ml-20"></image>
+      <text class="text_operation mr-20">找客服协助</text>
+    </view> -->
+
+    <view class="flex-row p-20 border-bottom" bindtap="deleteDisGoods">
+      <image src="../../../../images/ashbin.png" class="icon mr-20 ml-20"></image>
+      <text class="text_operation mr-20">删除商品</text>
+    </view>
+
+    <view style="height: 20rpx;"></view>
+
+  </view>
+</view>
+<!-- ./mask -->
+
+
+<addStandard show="{{showAdd}}" bindgetFocus="getFocus" bindconfirm="confirmStandard" bindcancle="cancle" depGoodsName="{{depGoodsName}}" standardName="{{standardName}}" edit="{{editStandard}}" itemStandard="{{itemStandard}}" modalHeight="{{maskHeight > windowHeight ? maskHeight : windowHeight}}" scrollViewTop="{{scrollViewTop}}" modalContentHeight="{{modalContentHeight}}" />
+
+
+<addDisAlias show="{{showAddAlias}}" bindgetFocus="getFocus" bindconfirm="confirmAlias" bindcancle="cancle" depGoodsName="{{depGoodsName}}" standardName="{{standardName}}" edit="{{editAlias}}" standardName="{{standardName}}" modalHeight="{{windowHeight > maskHeight ? windowHeight : maskHeight }}" scrollViewTop="{{scrollViewTop}}" modalContentHeight="{{modalContentHeight}}" itemAlias="{{itemAlias}}" />
+
+
+<!-- 编辑客户商品价格弹窗 -->
+<view class='overlay {{showOperationPrice ? "show" : ""}}' catchtouchmove='true'>
+  <view class="edit-popup">
+    <view class="popup-header">
+      <text class="popup-title">编辑客户商品信息</text>
+    </view>
+    
+    <view class="popup-content">
+      <view class="goods-info-header">
+        <text class="goods-name">{{goods.nxDgGoodsName}}</text>
+        <text class="goods-detail" wx:if="{{goods.nxDgGoodsDetail != null && goods.nxDgGoodsDetail.length > 0}}">
+          {{goods.nxDgGoodsDetail}}
+        </text>
+      </view>
+
+      <view class="input-group">
+        <view class="input-item">
+          <text class="input-label">配送单价:</text>
+          <view class="input-wrapper">
+            <input wx:if="{{showOperationPrice}}" type="digit" class="input-field" bindinput="inputSellingPrice" value="{{sellingPrice}}" placeholder="请输入价格" />
+            <text class="input-unit">元/{{goods.nxDgGoodsStandardname}}</text>
+          </view>
+        </view>
+
+        <view class="input-item">
+          <text class="input-label">出货要求:</text>
+          <input wx:if="{{showOperationPrice}}" type="text" class="input-field" bindinput="inputPickDetail" value="{{pickDetail}}" placeholder="请输入出货要求" />
+        </view>
+
+        <view class="input-item">
+          <text class="input-label">订货商品名称:</text>
+          <input wx:if="{{showOperationPrice}}" type="text" class="input-field" bindinput="inputOrderName" value="{{orderName}}" placeholder="请输入商品名称" />
+        </view>
+      </view>
+    </view>
+
+    <view class="popup-actions">
+      <view class="popup-btn cancel-btn" catchtap="hideMaskPrice">
+        <text class="btn-text">取消</text>
+      </view>
+      <view class="popup-btn confirm-btn" catchtap="_updateDepGoods">
+        <text class="btn-text">保存</text>
+      </view>
+    </view>
+  </view>
+</view>

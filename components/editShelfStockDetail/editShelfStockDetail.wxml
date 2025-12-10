@@ -1,0 +1,128 @@
+<wxs src="../../utils/fn.wxs" module="tool" />
+
+<!-- 批次列表弹窗 -->
+<view class='modal-overlay {{showStockList ? "show" : ""}}' catchtouchmove='true' catchtap="closeStockList">
+  <view class='modal-content' catchtap='preventClose'>
+
+    <!-- 商品信息 -->
+    <view class="goods-header flex-row-between">
+      <view class="flex-row"> 
+        <text class="goods-name">{{goodsInfo.nxDgGoodsName}}</text>
+      <block wx:if="{{goodsInfo.gbDgGoodsStandardWeight !== 'null' && goodsInfov.gbDgGoodsStandardWeight.length > 0}}">
+        <text >({{goodsInfo.nxDgGoodsStandardname}}/{{goodsInfo.gbDgGoodsStandardWeight}})</text>
+      </block>
+      <block wx:else>
+        <text>({{goodsInfo.nxDgGoodsStandardname}})</text>
+      </block>
+      </view>
+     
+      <view class="" bindtap="closeStockList">
+        <image src="/images/del.png" mode="aspectFill" class="icon"/>
+      </view>
+    </view>
+
+    <!-- 批次列表 -->
+    <scroll-view class="stock-list" scroll-y="true">
+      <view style="text-align: left; font: 18rpx; color: gray; padding: 20rpx 20rpx;">修改库存:</view>
+      <view class="stock-item" wx:for="{{stockList}}" wx:key="index" bindtap="selectStock" data-index="{{index}}">
+        <view class="stock-content-row">
+          <view class="stock-content-half">
+            <text class="stock-text" wx:if="{{item.nxDistributerPurchaseGoodsEntity.nxDpgPurchaseType == -1}}">录入员: <text class="stock-number">{{item.nxDistributerPurchaseGoodsEntity.nxPurchaserEntity.nxDiuWxNickName}}</text></text>
+            <text class="stock-text" wx:else="">采购员: <text class="stock-number">{{item.nxDistributerPurchaseGoodsEntity.nxPurchaserEntity.nxDiuWxNickName}}</text></text>
+          </view>
+          <view class="stock-content-half">
+            <text class="stock-text" wx:if="{{item.nxDgssDate}}">入库日期 <text class="stock-number">{{tool.getAttrDate(item.nxDgssDate)}}</text></text>
+          </view>
+        </view>
+
+        <view class="stock-content-row">
+          <view class="stock-content-half">
+            <text class="stock-text">入库: <text class="stock-number" wx:if="{{goodsInfo.nxDgCartonUnit && goodsInfo.nxDgCartonUnit !== '' && goodsInfo.nxDgCartonUnit !== 'null' && goodsInfo.nxDgItemsPerCarton > 0}}">{{tool.formatQuantityDisplay(item.nxDgssWeight, goodsInfo.nxDgCartonUnit, goodsInfo.nxDgItemsPerCarton, goodsInfo.nxDgGoodsStandardname)}}
+              </text>
+              <text wx:else>{{goodsInfo.nxDgGoodsStandardname}}</text>
+            </text>
+            <text class="">¥{{item.nxDgssSubtotal}}</text>
+          </view>
+          <view class="stock-content-half">
+            <text class="stock-text">剩余 <text class="stock-number">
+              <text wx:if="{{goodsInfo.nxDgCartonUnit && goodsInfo.nxDgCartonUnit !== '' && goodsInfo.nxDgCartonUnit !== 'null' && goodsInfo.nxDgItemsPerCarton > 0}}">{{tool.formatQuantityDisplay(item.nxDgssRestWeight, goodsInfo.nxDgCartonUnit, goodsInfo.nxDgItemsPerCarton, goodsInfo.nxDgGoodsStandardname)}}
+              </text>
+              <text wx:else>{{item.nxDgssRestWeight}}{{goodsInfo.nxDgGoodsStandardname}}</text>
+            </text></text>
+            <text class="">¥{{item.nxDgssRestSubtotal}}</text>
+          </view>
+        </view>
+        <view class="stock-content-row">
+          <view class="stock-content-half">
+            <text class="stock-text">单价 <text class="stock-number">¥{{item.nxDgssPrice}}</text></text>
+          </view>
+          <view class="stock-content-half">
+            <text class="stock-text">建议售价 <text class="stock-number">¥{{item.nxDgssSellingPrice}}</text></text>
+          </view>
+        </view>
+      </view>
+     
+    </scroll-view>
+
+  </view>
+</view>
+
+<!-- 修改批次弹窗 -->
+<view class='modal-overlay {{showEditModal ? "show" : ""}}' catchtouchmove='true' catchtap="closeEditModal">
+  <view class='modal-content modal-edit' catchtap='preventClose'>
+
+    <!-- 商品信息 -->
+    <view class="goods-header">
+      <text class="goods-name">{{goodsInfo.nxDgGoodsName}}</text>
+      
+    </view>
+
+    <!-- 批次信息 -->
+    <view class="stock-info-display" wx:if="{{selectedStock}}">
+      <view class="info-row">
+        <text class="label">批次编号：</text>
+        <text class="value">{{selectedStock.nxDgssBatch || selectedStock.nxDgssId || '--'}}</text>
+      </view>
+      <view class="info-row">
+        <text class="label">入库日期：</text>
+        <text class="value">{{selectedStock.nxDgssDate ? tool.getAttrDate(selectedStock.nxDgssDate) : '--'}}</text>
+      </view>
+    </view>
+
+    <!-- 输入区域 -->
+    <view class="input-section" wx:if="{{selectedStock}}">
+      <view class="input-row">
+        <text class="label">剩余数量：</text>
+        <view class="input-wrapper">
+          <input class="input" type="digit" placeholder="请输入剩余数量" value="{{editRestWeight}}" bindinput="onRestWeightInput" />
+          <text class="unit">{{goodsInfo.nxDgGoodsStandardname}}</text>
+        </view>
+      </view>
+
+      <view class="input-row">
+        <text class="label">采购单价：</text>
+        <view class="input-wrapper readonly">
+          <text class="value">¥{{selectedStock.nxDgssPrice}}</text>
+        </view>
+      </view>
+
+      <view class="input-row">
+        <text class="label">建议售价：</text>
+        <view class="input-wrapper">
+          <input class="input" type="digit" placeholder="请输入建议售价" value="{{editSellingPrice}}" bindinput="onSellingPriceInput" />
+          <text class="unit">元</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 按钮 -->
+    <view class="modal-footer">
+      <view class="btn cancel" bindtap="closeEditModal">
+        <text>取消</text>
+      </view>
+      <view class="btn confirm {{canSubmit ? '' : 'disabled'}}" catchtap="submit">
+        <text>确定</text>
+      </view>
+    </view>
+  </view>
+</view>

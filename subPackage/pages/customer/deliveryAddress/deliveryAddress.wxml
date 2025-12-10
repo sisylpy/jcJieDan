@@ -1,0 +1,28 @@
+<!--pages/map/map.wxml-->
+ 
+<!-- 这是地图部分 -->
+ 
+<back-navbar style="height: {{navBarHeight}}rpx;" title="{{editDepAttrName}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+
+<view class="map_container" style="margin-top: {{}}rpx;">
+  <map class='map' longitude='{{longitude}}' latitude='{{latitude}}' scale='{{scale}}' markers='{{markers}}' controls="{{controls}}" bindcontroltap="bindcontroltap" polyline='{{polyline}}' circles="{{circles}}" bindmarkertap='bindmarkertap' bindcontroltap='bindcontroltap'
+    show-location></map>
+</view>
+ 
+ 
+<!-- 以下是导航部分 -->
+ 
+<view class='list-guide'>
+<!-- 这里的坐标本应该是从服务器获取数据的,这时丈先写死在页面上了 -->
+  <view bindtap="onGuideTap">
+    <image src='/images/logo.jpg' class='list-guide-imgae'></image>
+    <text class='list-guide-text'>导航</text>
+  </view>
+  <view bindtap='onbankTap' data-bankId="{{item.BANK_ID}}">
+    <image src='/images/logo.jpg' class='list-guide-imgae'></image>
+    <text class='list-guide-text'>详情</text>
+  </view>
+ 
+</view>
+

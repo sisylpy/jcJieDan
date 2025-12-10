@@ -1,0 +1,273 @@
+<wxs src="../../../../utils/fn.wxs" module="tool" />
+
+
+<view class="flex-column height-100 ">
+
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="处理临时商品" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+  <view class="flex-column" style="margin-top: {{navBarHeight}}rpx;">
+    <view class="flex-row-between p-20 font-xl bg-white">
+      <view class="flex-row">
+        <text class="mr-20 flex-fixed">临时商品:</text>
+        <text>{{name}}</text>
+      </view>
+      <view class="flex-row">
+        <text>规格:</text>
+        <block wx:if="{{linshiGoods.nxDgGoodsStandardWeight !== 'null' && linshiGoods.nxDgGoodsStandardWeight.length > 0}}">
+          <text class="">{{linshiGoods.nxDgGoodsStandardWeight}}/{{linshiGoods.nxDgGoodsStandardname}}</text>
+        </block>
+        <block wx:else>
+          <text class="">{{linshiGoods.nxDgGoodsStandardname}}</text>
+        </block>
+      </view>
+    </view>
+
+
+    <view class="flex-row p-20 bg-white">
+
+      <view class="half-row bg-danger p-10 radius-10 text-center mr-30" bindtap="del" wx:if="{{linshiGoods.nxDepartmentOrdersEntities.length == 0}}">
+        <text class="">删除商品</text>
+      </view>
+
+      <view class="third-row bg-warning p-10 radius-10 text-center" bind:tap="helpAdd">
+        <text class="">补充说明</text>
+      </view>
+
+      <!-- <view class="half-row bg-success p-10 radius-10 text-center" bindtap="toAddGoods">
+        <text class="">添加新商品</text>
+      </view> -->
+
+
+    </view>
+
+
+    <view class="flex-column p-20 bg-white">
+      <!-- <view class="flex-row pt-10 pb-10">搜索商品:</view> -->
+
+      <view class="flex-row top_search">
+        <!-- <text>商品名称:</text> -->
+        <input class="inputGoods"  style="width: {{windowWidth - 60}}rpx" bindconfirm="_searchGoods" confirm-type="search" value="{{searchStr}}" placeholder="搜索商品名称、简拼" />
+      </view>
+    </view>
+
+
+
+    <view class=" flex-column">
+
+      <view class='navbarSearch' wx:if="{{searchStr.length > 0}}">
+        <block wx:for="{{tabsSearch}}" wx:for-item="tabsSearch" wx:key="id">
+          <view id="{{index}}" class="navbar-item {{tab1IndexSearch==index?'bar-item-on':''}}" data-index='{{index}}' bindtap='onTab1ClickSearch' hover-class="hover">
+            <view class='navbar-title'>{{tabsSearch.words}}
+              <text>({{tabsSearch.amount}})</text>
+            </view>
+          </view>
+        </block>
+
+        <view class="navbar-slider" style="left: {{sliderLeftSearch}}px; width:{{sliderWidthSearch}}px; transform: translateX({{sliderOffsetSearch}}px); -webkit-transform: translateX({{sliderOffsetSearch}}px);">
+        </view>
+      </view>
+
+      <swiper style="height: {{windowHeight - navBarHeight * 3}}rpx;" bindchange='swiperChangeSearch' current="{{itemIndexSearch}}" data-index='{{itemIndexSearch}}'>
+
+        <!-- nxGoodsArr -->
+        <swiper-item>
+
+          <scroll-view scroll-y style="height:{{windowHeight - navBarHeight * 3}}rpx; ">
+            <!-- empty -->
+            <view class="flex {{strArr.length == 0  && searchStr.length > 0? 'show' : 'hide'}}">
+              <view class="center-content  flex-column " style="margin-top: 200rpx;">
+                <image class="empty_image" src="../../../../images/xiuxi.png"></image>
+                <text class="text-secondary font-md p-30">没有搜索到订购商品</text>
+              </view>
+            </view>
+            <!-- ./empty -->
+
+            <view class="flex-column  p-20 bg-white" wx:for="{{strArr}}" wx:for-item="goods" wx:for-index="index" wx:key="nxDistributerGoodsId">
+              <view class="font-md flex-row-wrap" bindtap="toExchange" data-id="{{goods.nxDistributerGoodsId}}" data-item="{{goods}}" hover-class="hover">
+                <text class="mr-10">{{index + 1}}.</text>
+                <view class="flex-row-wrap">
+                  <text>{{goods.nxDistributerFatherGoodsEntity.nxDistributerFatherGoodsEntity.nxDfgFatherGoodsName}}></text>
+                  <text>{{goods.nxDistributerFatherGoodsEntity.nxDfgFatherGoodsName}}></text>
+                  <text class="brand" wx:if="{{goods.nxDgGoodsBrand.length > 0 && goods.nxDgGoodsBrand !==  'null'}}">{{goods.nxDgGoodsBrand}}</text>
+                  <text class=" text-secondary" wx:if="{{goods.nxDgPullOff == 1}}">(下架) {{goods.nxDgGoodsName}}</text>
+                  <text class=" mr-20" wx:else>{{goods.nxDgGoodsName}}</text>
+
+                  <text class="" wx:if="{{goods.nxDistributerAliasEntities.length > 0}}" wx:for="{{goods.nxDistributerAliasEntities}}" wx:key="nxDistributerAliasId" wx:for-item="alias">@{{alias.nxDaAliasName}}</text>
+
+                  <block wx:if="{{goods.nxDgGoodsStandardWeight !== 'null' && goods.nxDgGoodsStandardWeight !== ''}}">
+                    <text class=" mr-10" >({{goods.nxDgGoodsStandardWeight}}/{{goods.nxDgGoodsStandardname}})</text>
+                  </block>
+                  <block wx:else>
+                    <text class="mr-10">({{goods.nxDgGoodsStandardname}})</text>
+                  </block>
+                  <block wx:if="{{goods.nxDgCartonUnit !== null && goods.nxDgCartonUnit !== ''}}">
+                    <text>{{goods.nxDgItemsPerCarton}}{{goods.nxDgGoodsStandardname}}/{{goods.nxDgCartonUnit}}</text>
+                  </block>
+
+                  <text class="small mr-20 text-secondary" wx:if="{{goods.nxDgGoodsPlace !== null && goods.nxDgGoodsPlace.length > 0}}">产地:{{goods.nxDgGoodsPlace}}</text>
+
+                  <text class="small text-secondary" wx:if="{{goods.nxDgGoodsDetail.length > 0 && goods.nxDgGoodsDetail !==  'null'}}">{{goods.nxDgGoodsDetail}}</text>
+                </view>
+              </view>
+              <view class="flex-row-between p-20">
+                <view class="half-row bg-primary p-10 radius-10 text-center mr-30" bindtap="addAlias" data-id="{{goods.nxDistributerGoodsId}}">
+                  <text class="">加别名</text>
+                </view>
+
+                <view class="half-row bg-mainColor p-10 radius-10 text-center  mr-30" bindtap="toExchange" data-id="{{goods.nxDistributerGoodsId}}">
+                  <text class="">等于这个</text>
+                </view>
+                <!-- <view class="third-row bg-success p-10 radius-10 text-center" bindtap="toAddSub" data-id="{{goods.nxDistributerGoodsId}}">
+                  <text class="">添加兄弟商品</text>
+                </view> -->
+              </view>
+            </view>
+
+          </scroll-view>
+        </swiper-item>
+
+
+        <swiper-item>
+
+          <scroll-view scroll-y style="height:{{windowHeight - navBarHeight* 3}}rpx;">
+
+            <view class="flex-row-between border-bottom p-20 bg-white" wx:for="{{nxArr}}" wx:for-item="goods" wx:for-index="index" wx:key="nxGoodsId">
+              <view class="flex-row-default font-md">
+                <text class="mr-10">{{strArr.length + index + 1}}.</text>
+                <view class="flex-row-wrap" style="width:{{windowWidth - 240}}rpx; ">
+                  <text>{{goods.grandGoods.fatherGoods.nxGoodsName}}></text>
+                  <text>{{goods.grandGoods.nxGoodsName}}></text>
+                  <text class="brand" wx:if="{{goods.nxGoodsBrand.length > 0 && goods.nxGoodsBrand !==  'null'}}">{{goods.nxGoodsBrand}}</text>
+
+                  <text class="font-lgmr-20">{{goods.nxGoodsName}}</text>
+                  <text class="" wx:if="{{goods.nxDistributerAliasEntities.length > 0}}" wx:for="{{goods.nxDistributerAliasEntities}}" wx:for-item="alias">@{{alias.nxDaAliasName}}</text>
+                  <block wx:if="{{goods.nxGoodsStandardWeight !== 'null' && goods.nxGoodsStandardWeight.length > 0}}">
+                    <text class="font-slmr-10" wx:if="{{goods.nxGoodsStandardname !== '斤'}}">({{goods.nxGoodsStandardname}}/{{goods.nxGoodsStandardWeight}})</text>
+                  </block>
+                  <block wx:else>
+                    <text class="font-lgmr-10">({{goods.nxGoodsStandardname}})</text>
+                  </block>
+
+                  <text class="font-slmr-20text-secondary" wx:if="{{goods.nxGoodsPlace !== 'null' && goods.nxGoodsPlace.length > 0}}">产地:{{goods.nxGoodsPlace}}</text>
+
+                  <text class="font-sltext-secondary" wx:if="{{goods.nxGoodsDetail.length > 0 && goods.nxGoodsDetail !==  'null'}}">{{goods.nxGoodsDetail}}</text>
+                </view>
+              </view>
+
+              <view class="button-container-white"  bindtap="downLoadGoods" data-item="{{goods}}">
+                <image src="/images/download.png" mode="aspectFill" class="icon" />
+              </view>
+
+            </view>
+
+            <!-- <view class="flex-column-center" style="margin-top: 100rpx;">
+              <view class="" catchtap="toAddGoods" style="width: 200rpx;height: 70rpx;line-height: 70rpx; background-color: rgb(3, 106, 240); border-radius: 20rpx;text-align: center;  padding: 10rpx 20rpx; color: #fff; font-size: 32rpx; font-weight: 500;">
+                <text>nxArr添加新商品</text>
+              </view>
+            </view> -->
+
+          </scroll-view>
+        </swiper-item>
+
+        <!-- 货架商品 -->
+        <swiper-item>
+          <scroll-view scroll-y style="height:{{windowHeight - navBarHeight * 3}}rpx;">
+            <!-- empty -->
+            <view class="flex {{shelfSearchArr.length == 0 && unShelfGoodsList.length == 0 && searchStr.length > 0 ? 'show' : 'hide'}}">
+              <view class="center-content  flex-column " style="margin-top: 200rpx;">
+                <image class="empty_image" src="../../../../images/xiuxi.png"></image>
+                <text class="text-secondary font-md p-30">没有搜索到货架商品</text>
+              </view>
+            </view>
+            <!-- ./empty -->
+
+            <!-- 货架商品列表 -->
+            <view class="flex-column border-bottom bg-white  font-md mt-10 p-20" wx:for="{{shelfSearchArr}}" wx:key="nxDepartmentDisGoodsId" wx:for-item="shelf" wx:for-index="index">
+              <view class="flex-row  p-20 ">
+                <text class="mr-10">货架:</text>
+                <text> {{shelf.nxDistributerGoodsShelfName}}</text>
+              </view>
+
+              <view class="flex-row-default  border-bottom p-10 font-lg" wx:for="{{shelf.nxDisGoodsShelfGoodsEntities}}" wx:for-item="shelfGoods" wx:for-index="shelfIndex" wx:key="nxDistributerGoodsShelfGoodsId">
+                <view class="shelf-list-item" bindtap="toExchange1" data-id="{{shelfGoods.nxDistributerGoodsEntity.nxDistributerGoodsId}}" data-item="{{shelfGoods.nxDistributerGoodsEntity}}" hover-class="hover">
+                  <view class="shelf-list-thumb">
+                    <image wx:if="{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFileLarge && shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFileLarge !== 'null'}}" src="{{url + shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFileLarge}}" mode="aspectFill" class="shelf-list-img" />
+                    <image wx:elif="{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFile && shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFile !== 'null'}}" src="{{url + shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFile}}" mode="aspectFill" class="shelf-list-img" />
+                    <view wx:else class="shelf-list-img placeholder">
+                      <image src="/images/photozhaoxiang.png" mode="aspectFill" class="icon-lg" />
+                    </view>
+                  </view>
+                  <view class="shelf-list-info">
+                    <view class="shelf-list-title">
+                      <text class="shelf-list-brand" wx:if="{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsBrand !== 'null' && shelfGoods.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0}}">{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
+                      <view class="shelf-list-title-text">
+                        <text class="shelf-list-name">{{shelfIndex + 1}}.{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
+                        <text class="shelf-list-spec" wx:if="{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}}">规格：{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0 ? shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardWeight + '/' : ''}}{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+                      </view>
+                    </view>
+                    <view class="shelf-list-stock">
+                      <text class="shelf-list-stock-label">位置：</text>
+                      <view class="shelf-card-stock mainColor font-bold">第{{shelfGoods.nxDgsgSort}}个</view>
+                    </view>
+                    <view class="shelf-list-stock">
+                      <text class="shelf-list-stock-label">库存：</text>
+                      <view class="shelf-card-stock">
+                        <block wx:if="{{shelfGoods.nxDisGoodsShelfStockEntities !== null && shelfGoods.nxDisGoodsShelfStockEntities.length > 0}}">
+                          <text class="stock-chip" wx:for="{{shelfGoods.nxDisGoodsShelfStockEntities}}" wx:for-item="stock" wx:key="index">{{stock.nxDgssRestWeight}}{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+                        </block>
+                        <block wx:else>
+                          <text class="shelf-card-empty">暂无库存</text>
+                        </block>
+                      </view>
+                    </view>
+                  </view>
+                </view>
+              </view>
+            </view>
+
+            <!-- 非货架商品列表 -->
+            <view class="shelf-list-wrap" wx:if="{{unShelfGoodsList.length > 0}}">
+              <view class="bg-light p-20 text-secondary">非货架商品</view>
+              <block wx:for="{{unShelfGoodsList}}" wx:for-item="disGoods" wx:key="nxDistributerGoodsId">
+                <view class="shelf-list-item" bindtap="toExchange1" data-id="{{disGoods.nxDistributerGoodsId}}" data-item="{{disGoods}}" hover-class="hover">
+                  <view class="shelf-list-thumb">
+                    <image wx:if="{{disGoods.nxDgGoodsFileLarge && disGoods.nxDgGoodsFileLarge !== 'null'}}" src="{{url + disGoods.nxDgGoodsFileLarge}}" mode="aspectFill" class="shelf-list-img" />
+                    <image wx:elif="{{disGoods.nxDgGoodsFile && disGoods.nxDgGoodsFile !== 'null'}}" src="{{url + disGoods.nxDgGoodsFile}}" mode="aspectFill" class="shelf-list-img" />
+                    <view wx:else class="shelf-list-img placeholder">
+                      <image src="/images/photozhaoxiang.png" mode="aspectFill" class="icon-lg" />
+                    </view>
+                  </view>
+                  <view class="shelf-list-info">
+                    <view class="shelf-list-title">
+                      <text class="shelf-list-brand" wx:if="{{disGoods.nxDgGoodsBrand !== 'null' && disGoods.nxDgGoodsBrand && disGoods.nxDgGoodsBrand.length > 0}}">{{disGoods.nxDgGoodsBrand}}</text>
+                      <view class="shelf-list-title-text">
+                        <text class="shelf-list-name">{{disGoods.displayIndex}}.{{disGoods.nxDgGoodsName}}</text>
+                        <text class="shelf-list-spec" wx:if="{{disGoods.nxDgGoodsStandardname}}">规格：{{disGoods.nxDgGoodsStandardWeight !== 'null' && disGoods.nxDgGoodsStandardWeight && disGoods.nxDgGoodsStandardWeight.length > 0 ? disGoods.nxDgGoodsStandardWeight + '/' : ''}}{{disGoods.nxDgGoodsStandardname}}</text>
+                      </view>
+                    </view>
+                    <view class="shelf-list-stock">
+                      <text class="shelf-list-stock-label">库存：</text>
+                      <view class="shelf-card-stock">
+                        <block wx:if="{{disGoods.stockList && disGoods.stockList.length > 0}}">
+                          <text class="stock-chip" wx:for="{{disGoods.stockList}}" wx:for-item="stock" wx:key="index">{{stock.nxDgssRestWeight}}{{disGoods.nxDgGoodsStandardname}}</text>
+                        </block>
+                        <block wx:else>
+                          <text class="stock-empty">暂无库存</text>
+                        </block>
+                      </view>
+                    </view>
+                  </view>
+                </view>
+              </block>
+            </view>
+          </scroll-view>
+        </swiper-item>
+
+      </swiper>
+
+    </view>
+
+  </view>
+
+
+</view>

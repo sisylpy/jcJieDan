@@ -1,0 +1,12 @@
+
+
+/*  */
+.searchInput{
+ 
+  height: 80rpx;
+  background: #fff;
+  border-radius: 40rpx;
+  padding-left: 20rpx;
+
+}
+

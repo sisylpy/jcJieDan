@@ -1,0 +1,49 @@
+
+<view class='flex-column '>
+
+	<view class="flex-row border-bottom" style=" padding-top: {{statusBarHeight}}rpx;" >
+    <view class="flex-column p-30">
+      <text class="font-lg font-bold">注册-{{disName}}</text>
+    </view>
+  </view>
+	<view class='flex-column' style="margin-top: {{statusBarHeight}}rpx;">
+		<!-- 文字 -->
+		<view class="flex-column center-content">
+			<image src="../../../images/logo.jpg" class="url"></image>
+			<view class="top flex-column-center">
+				<text class="first_row">这个小程序将专门完成每日配送商品和自采购商品申请的订货申请。</text>
+				<text class="second_row"></text>
+			</view>
+
+		</view>
+
+       <view class="flex-row normal five-weight" style="padding: 20rpx 40rpx; " >
+         <text class="margin-right shrink_fix">用户名:</text>
+         <input type="text" value="{{nickName}}" bindinput="getNickName" class="input" style="border-bottom: 1px solid gray;"/>
+
+       </view>
+       <view class="flex-row normal five-weight" style="padding: 20rpx 40rpx; " >
+         <text class="margin-right shrink_fix">手机号码:</text>
+         <input type="number" value="{{phone}}" bindinput="getPhone" bindblur="validatePhone" class="input" style="border-bottom: 1px solid gray;" placeholder="请输入手机号码"/>
+
+       </view>
+
+    <view class="flex-column-center " style="margin-top:40rpx;" >
+			<button  wx:if="{{nickName.length > 0 && phoneValid}}" class="addBtn next" open-type="chooseAvatar"   bind:chooseavatar="onChooseAvatar" plain='true' style="width: {{windowWidth - 80}}rpx;">注册专业配送商用户开发版</button>
+      <button wx:else="" class="addBtn"  bindtap="tishi" plain='true' style="width: {{windowWidth - 80}}rpx;">注册专业配送商用户开发版</button>
+		</view>
+   
+
+		<view class='log_btn'>
+			<button class='' bindtap="_login" plain='true' 
+			 style="width: {{windowWidth - 80}}rpx;">登陆</button>
+		</view>
+
+	</view>
+
+
+
+
+
+
+</view>

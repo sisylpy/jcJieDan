@@ -1,0 +1,97 @@
+<view class="flex flex-column">
+
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="账户管理" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+  <view class="flex-column">
+
+    <!-- zero -->
+    <view class="flex-row-between p-20">
+      <text>京采接单用户</text>
+      <view class="flex-row  text-center">
+        <!-- <image src="../../../../images/adduser.png" class="icon mr-20"></image> -->
+        <button class=""  open-type="share"  data-admin="0">邀请小程序用户注册</button>
+      </view>
+    </view>
+    
+    <view class="flex-row-between border-bottom bg-white p-20" wx:for="{{zeroUserArr}}" wx:key="nxDistributerUserId">
+
+      <view class="flex-row">
+        <image src='{{url + item.nxDiuWxAvartraUrl}}' class="member_url mr-20"></image>
+
+        <view class="flex-column">
+          <view class="flex-row">
+            <text class="font-md">{{item.nxDiuWxNickName}}</text>
+            <text wx:if="{{item.nxDistributerUserId == userInfo.nxDistributerUserId}}">(你自己)</text>
+          </view>
+          <view class="flex-row">
+            <text class="font-md">{{item.nxDiuWxPhone}}</text>
+          </view>
+          
+          <view class="flex-row">
+            <text class="mr-20">管理员:</text>
+            <switch checked="{{item.nxDiuAdmin == 0 ? 'true' :''}}" bindchange="changeAdmin" data-item="{{item}}" />
+          </view>
+        </view>
+
+      </view>
+
+      <view class="btnClick plr-20" bindtap="openOperation" data-id="{{item.nxDistributerUserId}}" hover-class="hover" data-type="dis" data-item="{{item}}">
+        <image src="../../../../images/points.png" class="icon"></image>
+      </view>
+
+    </view>
+
+    <view class="flex-row-between p-20">
+      <text>京采称重用户</text>
+      <view class="flex-row  text-center">
+        <!-- <button class=""  open-type="share"  data-admin="3">邀请称重员注册</button> -->
+        <view class="mainBack_new_btn" bind:tap="toOpenOrder">邀请称重员注册</view>
+      </view>
+    </view>
+    
+    <view class="flex-row-between border-bottom bg-white p-20" wx:for="{{oneUserArr}}" wx:key="nxDistributerUserId">
+
+      <view class="flex-row">
+        <image src='{{item.nxDiuUrlChange == 1 ?  url + item.nxDiuWxAvartraUrl : item.nxDiuWxAvartraUrl}}' class="member_url mr-20"></image>
+
+        <view class="flex-column">
+          <view class="flex-row">
+            <text class="font-md">{{item.nxDiuWxNickName}}</text>
+          </view>
+          <view class="flex-row">
+            <text class="font-lg">{{item.nxDiuWxPhone}}</text>
+            <text class="font-md text-secondary">（登录手机号）</text>
+
+          </view>
+
+        </view>
+
+      </view>
+
+      <view class="btnClick plr-20" bindtap="openOperation" data-id="{{item.nxDistributerUserId}}" hover-class="hover" data-type="dis" data-item="{{item}}">
+        <image src="../../../../images/points.png" class="icon"></image>
+      </view>
+
+    </view>
+    <view style="height: 100rpx;"></view>
+
+  </view>
+
+</view>
+
+
+<view class='overlay {{showOperation ? "show" : ""}}' catchtouchmove='ture' catchtap="hideMask">
+  <view class="flex-column nnn bg-white ">
+
+    <view  class="flex-row p-30" bindtap="editUser">
+      <image src="../../../../images/edit.png" class="icon ml-20 mr-20"></image>
+      <text class="">修改用户信息</text>
+    </view>
+
+    <view  class="flex-row p-30" bindtap="delUser">
+      <image src="../../../../images/del.png" class="icon ml-20 mr-20"></image>
+      <text class="">删除用户</text>
+    </view>
+    <view style="height: 40rpx;"></view>
+  </view>
+</view>

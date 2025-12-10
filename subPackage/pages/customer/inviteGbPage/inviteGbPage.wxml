@@ -1,0 +1,17 @@
+
+
+
+<back-navbar style="height: {{navBarHeight}}rpx;" title="发送邀请码" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+
+
+ <view class="" style="padding-left: 40rpx; padding-right: 40rpx;">  
+  <canvas id='qrcode' type="2d"  style="width: {{windowWidth / 4}}rpx;height: {{windowWidth / 4}}rpx;margin-left: 100rpx; top: -500rpx;  "></canvas>
+  <canvas canvas-id="positionPoster" style="width: {{windowWidth - 80}}rpx; height: {{windowHeight - 400}}rpx; margin: 0; padding: 0; background-color:#fff" ></canvas>
+  
+<!-- v-if="isCanvas" -->
+  
+</view>
+ <view class="p-20" style="margin-top: 30rpx; ">
+  <button class="mainButton" bindtap="share" style=" width: {{windowWidth - 100}}rpx;"> 转发微信客户,邀请注册</button>
+ </view>

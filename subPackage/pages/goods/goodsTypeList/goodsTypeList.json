@@ -1,0 +1,9 @@
+{
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 50,
+  "backgroundTextStyle": "dark",
+  "usingComponents": {
+    "back-navbar": "/components/back-navbar/back-navbar",
+    "goodsWillPirce": "/components/goodsWillPirce/goodsWillPirce"
+  }
+}

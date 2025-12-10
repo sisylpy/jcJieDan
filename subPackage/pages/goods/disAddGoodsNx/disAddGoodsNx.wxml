@@ -1,0 +1,59 @@
+<view class="flex flex-column ">
+  <!-- bar -->
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="添加兄弟商品" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+	<view class="flex-column mb-20 font-lg"   >
+		<view class="bg-white p-20">
+
+				<view class=" flex-row pb-10 p-20">
+				<view class="flex-row flex-fixed ">
+				  <!-- <image src="../../../../images/Star.png" class="icon"></image> -->
+					<text class="text-secondary">商品名称</text>
+          <text class="font-sl text-warning  mr-10">(必填项)</text>
+				</view>
+				<input class="inputAddGoods with-tb-padding  " bindinput="getDisGoodsContent" data-type="3" focus="true" value="{{name !== 'undefined' ? name : ''}}"></input>
+			</view>
+
+			<view class=" flex-row pb-10 p-20">
+				<view class="flex-row flex-fixed ">
+				  <!-- <image src="../../../../images/Star.png" class="icon"></image> -->
+					<text class="text-secondary">规格</text>
+          <text class="font-sl text-warning mr-10">(必填项)</text>
+				</view>
+				<input class="inputAddGoods " bindinput="getDisGoodsContent" data-type="4" ></input>
+			</view>
+			<view class=" flex-row pb-10 p-20">
+				<view class="flex-row flex-fixed ">
+				  <!-- <image src="../../../../images/Star.png" class="icon"></image> -->
+					<text class="icon"> </text>
+					<text class="text-secondary  mr-10">规格重量</text>
+				</view>
+				<input class="inputAddGoods with-tb-padding" bindinput="getDisGoodsContent" data-type="5"></input>
+			</view>
+
+			<view class=" flex-row p-20">
+			<text class="icon"> </text>
+				<text class="text-secondary flex-fixed  mr-10">品牌</text>
+				<input class="inputAddGoods with-tbl-padding"  bindinput="getDisGoodsContent" data-type="0"></input>
+			</view>
+			<view class=" flex-row p-20">
+						<text class="icon"> </text>
+				<text class="text-secondary flex-fixed  mr-10">产地</text>
+				<input class="inputAddGoods with-tb-padding"  bindinput="getDisGoodsContent" data-type="1"></input>
+			</view>
+			<view class=" flex-row p-20">
+        <text class="icon"> </text>
+				<text class="text-secondary flex-fixed  mr-10">详细</text>
+				<input class="inputAddGoods with-tb-padding"  bindinput="getDisGoodsContent" data-type="2"></input>
+			</view>
+		</view>
+	</view>
+	<view class=" flex-column-center center-content mt-10">
+		  <view class="addBtn {{canSave ? 'is-active' : ''}}" bindtap="saveDisGoods" style="width:{{windowWidth / 2}}rpx;">添加</view>
+	</view>
+	
+</view> 
+
+
+
+

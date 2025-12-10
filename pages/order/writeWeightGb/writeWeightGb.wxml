@@ -1,0 +1,250 @@
+<wxs src="../../../utils/fn.wxs" module="tool" />
+
+
+<view class="flex flex-column height-100">
+
+
+<back-navbar style="height: {{navBarHeight}}rpx;" title="{{name}}-出库" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+ 
+
+<view class="flex-column" wx:if="{{applyArr.length > 0}}">
+
+  <view class="section">
+ 
+    <!-- 单部门 -->
+    <view wx:if="{{depHasSubs  == 0}}">
+      <view class="maodianPrice" style="height:{{windowHeight - 580 - statusBarHeight}}rpx;">
+        <view id="NAV{{index}}" wx:for="{{applyArr.length}}" wx:key="index">NAV{{index}}</view>
+      </view>
+
+      <view class="section_body bg-white" style="top: 10rpx; ">
+        <scroll-view class="tui-city-scroll-y" scroll-y="true" scroll-into-view="NAV{{focusIndex}}" scroll-with-animation="true">
+
+          <!-- single bumen -->
+          <view class="flex-column border-bottom font-md p-10" wx:for="{{applyArr}}" wx:key="nxDepartmentOrdersId" wx:for-index="index" data-id="{{item.nxDepartmentOrdersId}}">
+            <view class="flex flex-row" id="NAV{{index}}">
+              <view class="flex-column">
+
+                <view class="flex flex-row" style="width: {{windowWidth - 140}}rpx; ">
+                   <view class="p-20" bind:tap="selectOrder" data-index="{{index}}">
+                   <image src="{{item.purSelected && item.nxDoWeight !== null && item.nxDoWeight !== '-1'? '/images/selected-2.png' : '/images/mti-fenping-1fenping.png'}}" mode="aspectFill" class="icon"/>
+                   </view>
+                  <text class="">{{index + 1}}.</text>
+                  <view class="flex-row-wrap  align-center" bindtap="toGoodsDetail" data-item="{{item.nxDistributerGoodsEntity}}">
+                    <text class="brand" wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsBrand !== 'null' && item.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0}}">{{item.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
+                    <text class="mr-10 font-lg font-bold">{{item.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
+                    <block wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0}}">
+                      <text class="" wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname !== '斤'}}">({{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight}})</text>
+                    </block>
+                    <block wx:else>
+                      <text class="">({{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+                    </block>
+
+                    <text class="text-secondary mr-20" wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsPlace !== 'null' && item.nxDistributerGoodsEntity.nxDgGoodsPlace.length > 0}}">{{item.nxDistributerGoodsEntity.nxDgGoodsPlace}}</text>
+
+                    <text class="text-secondary" wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsDetail.length > 0 && item.nxDistributerGoodsEntity.nxDgGoodsDetail !==  'null'}}">{{item.nxDistributerGoodsEntity.nxDgGoodsDetail}}</text>
+
+                  </view>
+                </view>
+
+                <view class="flex flex-row">
+                  <text class="text-white">{{index + 1}}.</text>
+                  <view class="flex-column">
+                    <view class="flex-row-between" style="width: {{windowWidth / 3 * 2 }}rpx; ">
+                      <view class="flex half-row">
+                        <text class="flex-fixed  text-secondary">订货:</text>
+                          <text class="">{{item.nxDoQuantity}}{{item.nxDoStandard}}</text>
+                      </view>
+                      <view class="flex half-row">
+                        <text class="flex-fixed text-secondary ">单价:</text>
+                        <view class="flex flex-row" wx:if="{{item.nxDoPrice !== null}}">
+                          <text class="">{{item.nxDoPrice}}</text>
+                        </view>
+                        <view wx:else="" class="text-warning">-</view>
+                      </view>
+                    </view>
+                    <view class="flex flex-row">
+                      <text class="red " wx:if="{{item.nxDoRemark.length > 0}}">({{item.nxDoRemark}})</text>
+                    </view>
+                    <block wx:if="{{item.nxDoPurchaseGoodsId !== -1}}">
+                         <view class="flex flex-row" wx:if="{{item.nxDoCostPrice !== null}}" >
+                        <view class="half-row">
+                          <text class="text-secondary">进货:</text>
+                          <text class="">{{tool.transferDateString(item.nxDoCostPriceUpdate)}}</text>
+                        </view>
+                        <view class="half-row">
+                          <text class="text-secondary">进价:</text>
+                          <text>{{item.nxDoCostPrice}}</text>
+                          <text class="">元/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+                        </view>
+        
+                      </view> 
+                      </block>
+                  </view>
+               
+                    <view class="flex flex-row ">
+                      <view class=" weightInput flex flex-row {{index == focusIndex ? 'is-active' : ''}}" bindtap="changeFocusIndexPrice" data-index="{{index}}" style="width: {{windowWidth / 3 - 140}}rpx;">
+                        <text class="input_number" wx:if="{{item.nxDoWeight !== null && item.nxDoWeight !== '-1'}}">{{item.nxDoWeight}}</text>
+                        <view class='analog_cursor {{index == focusIndex ? "is-active" : "" }}'></view>
+                      </view>
+                      <view>{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</view>
+
+                    </view>
+                   
+                </view>
+
+              </view>
+            </view>
+
+          </view>
+          <!-- ./single bumen -->
+          <view class="bottom_place"></view>
+        </scroll-view>
+      </view>
+
+    </view>
+
+    <!-- 多部门 -->
+
+    <view wx:else="">
+      <view class="maodianSubsPrice" style="height:{{windowHeight - 580 - statusBarHeight}}rpx;">
+        <view wx:for="{{applyArr}}" wx:key="" wx:for-index="parentIndex" wx:for-item="dep" wx:key="depId">
+          <view id="NAV_{{parentIndex}}_{{index}}" wx:for="{{dep.list.length}}">NAV_{{parentIndex}}_{{index}}</view>
+        </view>
+      </view>
+
+      <view class="section_body bg-white" style="top: 40rpx; ">
+        <scroll-view class="tui-city-scroll-y" scroll-y="true" scroll-into-view="NAV_{{focusParentIndex}}_{{focusIndex}}" scroll-with-animation="true">
+
+          <view class="flex-column border-bottom font-md" wx:for="{{applyArr}}" wx:for-index="parentIndex" wx:for-item="dep" wx:key="depId">
+            <text class="text-secondary p-20">#{{dep.depName}}</text>
+            <view class="flex-column">
+              <view class="flex flex-row border-bottom  p-20 " wx:for="{{dep.list}}" wx:for-item="order" id="NAV_{{parentIndex}}_{{index}}" data-id="{{order.nxDepartmentOrdersId}}">
+
+                <view class="flex-column">
+                  <view class="flex flex-row ">
+                    <view class="p-20" bind:tap="selectOrder" data-index="{{index}}" data-depindex="{{parentIndex}}">
+                   <image src="{{order.purSelected && order.nxDoWeight !== null && order.nxDoWeight !== '-1' ? '/images/selected-2.png' : '/images/mti-fenping-1fenping.png'}}" mode="aspectFill" class="icon"/>
+                   </view>
+                    <text class="">{{index + 1}}.</text>
+                    <view class="flex-row-wrap  align-center" >
+                      <text class="brand" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsBrand !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0}}">{{order.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
+                      <text class="mr-10 font-lg font-bold">{{order.nxDistributerGoodsEntity.nxDgGoodsName}} </text>
+                      <block wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0}}">
+                        <text class=" " wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname !== '斤'}}">({{order.nxDistributerGoodsEntity.nxDgGoodsStandardname}}/{{order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight}})</text>
+                      </block>
+                      <block wx:else>
+                        <text class=" ">({{order.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+                      </block>
+
+                      <text class="text-secondary mr-10" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsPlace !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsPlace.length > 0}}">产地:{{order.nxDistributerGoodsEntity.nxDgGoodsPlace}}</text>
+
+                      <text class="text-secondary" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsDetail.length > 0 && order.nxDistributerGoodsEntity.nxDgGoodsDetail !==  'null'}}">{{order.nxDistributerGoodsEntity.nxDgGoodsDetail}}</text>
+                    </view>
+                  </view>
+
+                  <view class="flex flex-row">
+                    <text class="text-white">{{index + 1}}.</text>
+                    <view class="flex-column">
+                    <view class="flex-row-between small" style="width: {{windowWidth / 3 * 2 }}rpx; ">
+                      <view class="flex-row half-row ">
+                        <text class="text-secondary flex-fixed ">订货:</text>
+                          <text class="">{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+                      </view>
+                      <view class="flex flex-row half-row">
+                        <text class="flex-fixed text-secondary ">单价:</text>
+                        <view class="flex-row " wx:if="{{order.nxDoPrice !== null}}">
+                          <text class="">{{order.nxDoPrice}}</text>
+                        </view>
+                        <view wx:else="" class="red">-</view>
+                      </view>
+                    </view>
+                    <view class="flex flex-row">
+                      <text class="red " wx:if="{{order.nxDoRemark.length > 0}}">({{order.nxDoRemark}})</text>
+                    </view>
+                  </view>
+               
+                    <view class="flex flex-row" >
+                      <view class="flex weightInput  flex-row {{index == focusIndex &&  focusParentIndex == parentIndex ? 'is-active' : ''}}" bindtap="changeFocusIndexPrice" data-parentindex="{{parentIndex}}" data-index="{{index}}" style="width: {{windowWidth / 3 - 140}}rpx;">
+                        <text class="input_number" wx:if="{{order.nxDoWeight !== null && order.nxDoWeight !== '-1'}}">{{order.nxDoWeight}}</text>
+                        <view class='analog_cursor {{index == focusIndex && parentIndex == focusParentIndex ? "is-active" : "" }}'></view>
+                      </view>
+                      <view class="" style="line-height: 60rpx;">{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</view>
+                    </view>
+                  
+
+                  </view>
+
+                </view>
+
+            
+              </view>
+            </view>
+
+          </view>
+
+          <view class="bottom_place"></view>
+
+        </scroll-view>
+      </view>
+
+    </view>
+
+  </view>
+
+  
+
+  <view class="nnn flex-column center-content" bind:tap="saveStock">
+  <view class="p-30 {{canSave ? 'bg-success' : 'bg-gray'}}  " style="width: {{windowWidth - 120}}rpx;text-align: center; border-radius: 10rpx;">批量出库</view>
+ </view>
+
+
+</view>
+
+<view wx:else="" style="height: {{windowHeight / 3}}rpx;margin-top: 200rpx;">
+<!-- empty -->
+<view class="flex {{applyArr.length == 0 ? 'show' : 'hide'}}">
+      <view class="center-content  flex-column " >
+        <image class="empty_image" src="../../../../images/xiuxi.png"></image>
+        <text class="text-secondary font-md p-30">没有未出库的订单</text>
+      </view>
+    </view>
+    <!-- ./empty -->
+
+</view>
+
+</view>
+
+<view class='customize_key_board liziBack flex  flex-row {{focusIndex == -1 ? "hidden" : ""}}'>
+
+  <view class="flex-row-wrap" style="width: {{windowWidth/4 * 3 }}rpx;">
+    <view class="num border-bottom border-right border-top" style="width:{{windowWidth/4}}rpx; height:120rpx; line-height:120rpx;" bindtap="inputValue" data-value="7" hover-class="hoverKey"> 7</view>
+    <view class="num border-bottom border-right border-top" style="width:{{windowWidth/4}}rpx; height:120rpx; line-height:120rpx;" bindtap="inputValue" data-value="8" hover-class="hoverKey"> 8</view>
+    <view class="num border-bottom border-top" style="width:{{windowWidth/4}}rpx; height:120rpx; line-height:120rpx;" bindtap="inputValue" data-value="9" hover-class="hoverKey"> 9</view>
+    <view class="num border-bottom border-right" style="width:{{windowWidth/4}}rpx; height:120rpx; line-height:120rpx;" bindtap="inputValue" data-value="4" hover-class="hoverKey"> 4</view>
+    <view class="num border-bottom border-right" style="width:{{windowWidth/4}}rpx; height:120rpx; line-height:120rpx;" bindtap="inputValue" data-value="5" hover-class="hoverKey"> 5</view>
+    <view class="num border-bottom " style="width:{{windowWidth/4}}rpx; height:120rpx; line-height:120rpx;" bindtap="inputValue" data-value="6" hover-class="hoverKey"> 6</view>
+    <view class="num border-bottom border-right border-top" style="width:{{windowWidth/4}}rpx; height:120rpx; line-height:120rpx;" bindtap="inputValue" data-value="1" hover-class="hoverKey"> 1</view>
+    <view class="num border-bottom border-right border-top" style="width:{{windowWidth/4}}rpx; height:120rpx; line-height:120rpx;" bindtap="inputValue" data-value="2" hover-class="hoverKey"> 2</view>
+    <view class="num border-bottom  border-top" style="width:{{windowWidth/4}}rpx; height:120rpx; line-height:120rpx;" bindtap="inputValue" data-value="3" hover-class="hoverKey"> 3</view>
+    <view class="num border-right" style="width:{{windowWidth/4}}rpx; height:120rpx; line-height:120rpx;" bindtap="inputValue" data-value="del" hover-class="hoverKey"> X</view>
+    <view class="num border-right" style="width:{{windowWidth/4}}rpx; height:120rpx; line-height:120rpx;" bindtap="inputValue" data-value="0" hover-class="hoverKey"> 0</view>
+    <view class="num " style="width:{{windowWidth/4}}rpx; height:120rpx; line-height:120rpx;" bindtap="inputValue" data-value="." hover-class="hoverKey">.</view>
+  </view>
+
+  <view class="input_operation_part flex-column" style="width: {{windowWidth - (windowWidth / 4 * 3)}}rpx;">
+    <view class="double_num border-bottom border-top border-left" style="width:100%; height:240rpx;line-height:240rpx;" bindtap="inputValue" data-value="close" hover-class="hoverKey">关闭</view>
+    <!-- 0 -->
+    <view wx:if="{{depHasSubs == 0}}">
+      <view class="double_num border-left" style="height:240rpx;line-height:240rpx;" bindtap="inputValue" data-value="next" hover-class="hoverKey" wx:if='{{focusIndex == applyArr.length - 1}}'> 完成</view>
+      <view class="double_num border-left" style=" height:240rpx;line-height:240rpx;" bindtap="inputValue" data-value="next" hover-class="hoverKey" wx:else>保存</view>
+    </view>
+    <!-- 1 -->
+    <view wx:if="{{depHasSubs > 0}}">
+      <view class="double_num border-left" style="height:240rpx;line-height:240rpx;" bindtap="inputValue" data-value="next" hover-class="hoverKey" wx:if='{{focusParentIndex == applyArr.length - 1 && focusIndex == applyArr[focusParentIndex].list.length - 1}}'> 完成</view>
+      <view class="double_num border-left" style="height:240rpx;line-height:240rpx;" bindtap="inputValue" data-value="next" hover-class="hoverKey" wx:else>保存</view>
+    </view>
+  </view>
+
+
+</view>

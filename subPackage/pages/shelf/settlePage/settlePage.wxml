@@ -1,0 +1,55 @@
+<view class="flex flex-column height-100">
+  
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="设置员工 - {{shelfName}}" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+
+  <view class="container" style="margin-top: {{navBarHeight}}rpx;">
+   
+
+    <!-- 员工列表 -->
+    <scroll-view scroll-y="true" class="staff-list" style="height: calc(100vh - {{navBarHeight}}rpx - 140rpx);">
+      <view class="bg-white">
+        <view class="staff-item flex-row-between p-30 border-bottom" 
+              wx:for="{{staffList}}" 
+              wx:key="nxDistributerUserId"
+              hover-class="hover"
+              bindtap="toggleStaff"
+              data-staff="{{item}}">
+          <view class="flex-row">
+            <view class="staff-avatar mr-20">
+              <image src="{{item.nxDiuUrlChange == 1 ? url + item.nxDiuWxAvartraUrl : (item.nxDiuWxAvartraUrl || '/images/user-group.png')}}" mode="aspectFill" class="avatar"></image>
+            </view>
+            <view class="flex-column">
+              <view class="flex-row">
+                <text class="font-md">{{item.nxDiuWxNickName}}</text>
+                <text class="font-xs text-secondary ml-10" wx:if="{{item.nxDiuAdmin == 0}}">(管理员)</text>
+              </view>
+              <text class="font-sm text-secondary mt-10">{{item.nxDiuWxPhone}}</text>
+              <text class="font-xs text-secondary mt-10">{{item.roleName}}</text>
+            </view>
+          </view>
+          <view class="checkbox-container">
+            <image src="{{item.selected ? '/images/selected.png' : '/images/radiobuttonunselect-2.png'}}" 
+                   class="checkbox-icon"></image>
+          </view>
+        </view>
+
+        <!-- 空状态 -->
+        <view class="empty-state flex-column center-content" wx:if="{{staffList.length == 0}}">
+          <image src="/images/paste.png" class="empty-image"></image>
+          <text class="font-md text-secondary mt-20">暂无员工数据</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- 底部操作栏 -->
+    <view class="bottom-bar bg-white flex-row-between p-30">
+      <text class="font-md">{{selectedStaffName ? '已选择: ' + selectedStaffName : '请选择员工'}}</text>
+      <view class="flex-row">
+        <button class="btn-cancel mr-20" bindtap="cancelSelection">取消</button>
+        <button class="btn-confirm" bindtap="confirmSelection">确定</button>
+      </view>
+    </view>
+
+  </view>
+</view>
+

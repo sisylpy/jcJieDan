@@ -1,0 +1,79 @@
+<!-- pages/your_page/your_page.wxml -->
+
+<view class="flex-column height-100">
+
+<back-navbar style="height: {{navBarHeight}}rpx;" title="修改临时商品" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+<view class="flex-column p-20 bg-white" style="margin-top: {{navBarHeight}}rpx;">
+
+  <view class="flex-row-default p-20 font-xl" >
+    <text class="mr-20">商品名称:</text>
+    <input class="group_input normal" disabled="true" value="{{editItem.nxDgGoodsName}}"> </input>
+  </view>
+  
+  <view class="flex-row p-20">
+    <text class="label-text">规格:</text>
+    <input class="input-field" type="text" placeholder="请输入商品规格" value="{{editItem.nxDgGoodsStandardname}}" bindinput="onStandardInput"/>
+  </view>
+  
+  <view class="flex-row p-20">
+    <text class="label-text">说明:</text>
+    <textarea class="textarea-field" placeholder="请输入商品详细说明" value="{{editItem.nxDgGoodsDeatil}}" bindinput="onDetailInput" maxlength="200"></textarea>
+  </view>
+
+  <!-- 大图片上传区域 -->
+  <view class="image-upload-section">
+    <view class="section-title">商品大图</view>
+    <view class="image-container">
+      <view class="image-preview" wx:if="{{largeImagePath}}">
+        <image src="{{largeImagePath}}" mode="aspectFit" class="preview-image"></image>
+        <view class="image-actions">
+          <button class="action-btn small" bindtap="chooseLargeImage">重新上传</button>
+          <button class="action-btn small delete" bindtap="deleteLargeImage">删除</button>
+        </view>
+      </view>
+      <view class="upload-placeholder" wx:else bindtap="chooseLargeImage">
+        <text class="add-icon">+</text>
+        <text class="upload-text">点击上传大图</text>
+        <text class="upload-hint">建议尺寸: 800x800px</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 小图片上传区域 -->
+  <view class="image-upload-section">
+    <view class="section-title">商品小图</view>
+    <view class="image-container">
+      <view class="image-preview" wx:if="{{thumbnailPath}}">
+        <image src="{{thumbnailPath}}" mode="aspectFit" class="preview-image"></image>
+        <view class="image-actions">
+          <button class="action-btn small" bindtap="chooseThumbnailImage">重新上传</button>
+          <button class="action-btn small delete" bindtap="deleteThumbnailImage">删除</button>
+        </view>
+      </view>
+      <view class="upload-placeholder" wx:else bindtap="chooseThumbnailImage">
+        <text class="add-icon">+</text>
+        <text class="upload-text">点击上传小图</text>
+        <text class="upload-hint">建议尺寸: 200x200px</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 加载状态 -->
+  <view class="loading-container" wx:if="{{loading}}">
+    <view class="loading-text">图片处理中，请稍候...</view>
+  </view>
+
+  <!-- 保存按钮 -->
+  <view class="p-20">
+    <button class="save-btn" bind:tap="updateGoods" disabled="{{loading}}">
+      {{loading ? '处理中...' : '保存修改'}}
+    </button>
+  </view>
+
+</view>
+
+<!-- Canvas 用于图片处理 -->
+<canvas type="2d" id="myCanvas" style="position: fixed; top: -9999px; left: -9999px;"></canvas>
+
+</view>

@@ -1,0 +1,97 @@
+<view class="page">
+
+  <view class="flex-row top border-bottom-text-secondary" >
+    <image src="../../../../images/back-text-secondary.png" class="icon" bindtap="toBack"></image>
+   
+
+    <view class="flex-column">
+
+      <!-- top-scroll -->
+      <view class="flex-row border-bottom " >
+
+        <scroll-view scroll-x="true" show-scrollbar class="flex-row" style="width: 60vmax ;height: 5vmax; padding-left: 3vmin; padding-right: 3vmin;">
+          <view class="flex-row" >
+            <view class="flex-row" wx:for="{{goodsList}}" wx:for-item="greatGrand" wx:for-index="greagGrandIndex" style="margin-right: 3vmin; " bindtap="changeGreatGrand" data-id="{{greatGrand.nxDistributerFatherGoodsId}}" data-id="{{greatGrand.nxDistributerFatherGoodsId}}" data-index="{{greagGrandIndex}}">
+              <view class="{{showGreatGrandId == greatGrand.nxDistributerFatherGoodsId ? 'mainColor' : ''}}" hover-class="hover">
+                <view style="height: 5vmax; line-height: 5vmax; width: 10vmax; text-align: center; ">{{greatGrand.nxDfgFatherGoodsName}}</view>
+              </view>
+            </view>
+          </view>
+        </scroll-view>
+
+      </view>
+      <!-- ../top-scroll -->
+
+    </view>
+    <block wx:if="{{outNxDepNames.length > 0}}">
+    <view class="flex-column-center  ">
+       <view class="flex-row filterMy"  >
+        <text class="" wx:for="{{outNxDepNames}}">{{item}}</text>
+        <text>{{depOrdersWait}}</text>
+       </view>
+  </view>
+  </block>
+  </view>
+
+
+
+
+
+  
+  <view class="flex-row-default">
+   
+
+    <view class=" ">
+      <scroll-view class="customerPage " scroll-y="true" scroll-into-view="{{toView}}" scroll-top="0" bindscroll="scrollTo" scroll-with-animation style="width: 80vmax; height: 35vmax; padding-left: 5vmin; padding-top: 5vmin;">
+          <view class="out_goods_list " wx:for="{{grandList}}" wx:for-item="grand" id="position{{index}}" >
+                <view class="flex-row out_goods  bg-white" style="width: 48vmin; " bindtap="showIsOut" data-item="{{sons}}" hover-class="hover" wx:for="{{grand.nxDistributerGoodsEntities}}" wx:for-item="sons" >
+                <view class="flex-column">
+                  <text class="five-weight font-lg-2">{{sons.nxDgGoodsName}}</text>
+                <view class="flex-column">
+                  <view class="flex-row font-md" wx:for="{{sons.neetNotPurOrders}}" wx:for-item="orders">
+                     <text class="longword">{{orders.nxDepartmentEntity.nxDepartmentName}}</text>
+                    <view class="flex-row">
+                      <view class="flex-row ">
+                        <text>订:</text>
+                        <text>{{orders.nxDoQuantity}}{{orders.nxDoStandard}}</text>
+                      </view>
+                      <view class="flex-row ">
+                        <text class="{{orders.nxDoWeight == null ? 'red' : ''}}">出:</text>
+                        <text wx:if="{{orders.nxDoWeight !== null}}">{{orders.nxDoWeight}}{{sons.nxDgGoodsStandardname}}</text>
+                      </view>
+                    </view>
+                  </view>
+                </view>
+                </view>
+               
+
+              </view>
+             
+
+          </view>
+
+          <view class="flex-column-center  text-secondary" style="height: 20vmin; font-size: 5vmin;">
+           没有数据啦!
+        </view>
+      </scroll-view>
+
+    </view>
+    <view class="leftS">
+      <scroll-view scroll-y="true" style="height: 35vmax; " scroll-top="{{scrollTopLeft}}">
+        <view class="left-item {{selectedSub == leftIndex ? 'left-active' : ''}}" wx:for="{{grandList}}" wx:for-item="grand" bindtap="toScrollView" data-index="{{leftIndex}}" wx:for-index="leftIndex">
+          <text style="font-size: 4vmin; ">{{grand.nxDfgFatherGoodsName}}</text>
+        </view>
+      </scroll-view>
+    </view>
+    <view>
+
+
+    </view>
+
+  </view>
+
+</view>
+
+
+
+<stockOutGoodsLand show="{{showDisOutGoodsStock}}" bindconfirm="confirm" bindconfirmSave="confirmSave" bindneednot="confirmNeedNotPurchse" bindcancle="cancle" item="{{item}}" bindgetFocus="getFocus" bindcancle="cancle" modalHeight="{{windowHeight > maskHeight ? windowHeight : maskHeight }}" scrollViewTop="{{scrollViewTop}}" modalContentHeight="{{modalContentHeight}}" windowHeight="{{windowHeight}}" windowWidth="{{windowWidth}}" ids="{{ids}}"  />

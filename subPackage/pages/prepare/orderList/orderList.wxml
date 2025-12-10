@@ -1,0 +1,108 @@
+<view class="flex-column height-100">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="打印订单" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+  <!-- here -->
+  <view class="flex-column " style="margin-top: {{navBarHeight}}rpx;">
+    <view class="flex flex-row border-bottom p-30 bg-white" wx:for='{{purGoodsArr}}' wx:for-item="item" wx:for-index='goodsIndex' wx:key='nxDistributerPurchaseGoodsId'>
+
+      <view class=" flex-column" >
+        <view class="flex flex-row-between">
+           <text>{{goodsIndex + 1}}.</text>
+          <view class="flex-row-wrap" style="width: {{windowWidth / 3 * 2 - 40}}rpx;">
+            <!-- 适配简化DTO：使用扁平化字段（数据已在js中统一格式化） -->
+            <text class="brand" wx:if="{{item.nxDgGoodsBrand && item.nxDgGoodsBrand !== 'null' && item.nxDgGoodsBrand.length > 0}}">{{item.nxDgGoodsBrand}}</text>
+            <text class=" font-lg font-bold">{{item.nxDgGoodsName}}</text>
+            <text class="" wx:if="{{item.nxDgGoodsStandardWeight && item.nxDgGoodsStandardWeight !== 'null' && item.nxDgGoodsStandardWeight.length > 0}}">({{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}})</text>
+            <text class="" wx:else>({{item.nxDgGoodsStandardname}})</text>
+            <text class="text-secondary" wx:if="{{item.nxDgGoodsPlace && item.nxDgGoodsPlace !== null && item.nxDgGoodsPlace.length > 0}}">{{item.nxDgGoodsPlace}}</text>
+            <text class="text-secondary  text-secondary" wx:if="{{item.nxDgGoodsDetail && item.nxDgGoodsDetail.length > 0 && item.nxDgGoodsDetail !== 'null'}}">{{item.nxDgGoodsDetail}}</text>
+          </view>
+          <view class="center-content" style="width: {{windowWidth / 3 - 20}}rpx;" bindtap="toEditPurchaseGoods" data-item="{{item}}" data-index="{{goodsIndex}}">
+          <text class="font-md mr-10">采购:</text>
+            <image src="/images/add.png" mode="aspectFill" class="icon-lg" wx:if="{{item.nxDpgQuantity == 'null'}}"/>
+            <view class="flex-row-default" wx:else="">   
+              <text class="mr-10 font-lg">{{item.nxDpgQuantity}}{{item.nxDpgStandard}}</text>
+              <image src="/images/edit-main.png" mode="aspectFill" class="icon"/>
+            </view> 
+          </view>
+        </view>
+        <!-- <view class="flex-column" wx:if="{{haveOrder}}"> -->
+          <!-- 适配简化DTO：使用 orders 字段（数据已在js中统一格式化） -->
+          <view class="flex flex-row font-md" wx:for="{{item.orders}}" wx:for-item="order" wx:key="nxDepartmentOrdersId" wx:for-index="orderIndex" data-orderindex="{{orderIndex}}" data-parentindex="{{parentIndex}}" data-goodsindex="{{goodsIndex}}" bindtap="choiceStockOrders">
+            <!-- 适配简化DTO：使用扁平化的 isSelected 字段 -->
+            <view class="flex-column-center" wx:if="{{item.isSelected}}">
+              <image src="{{!order.purSelected ? '../../../images/checkbox-noselected.png' : '../../../images/selected-2.png'}}" class="icon "></image>
+            </view>
+
+            <view class="circle_default mr-10" wx:else=""></view>
+
+            <!-- 适配简化DTO：使用扁平化字段（数据已在js中统一格式化） -->
+            <block wx:if="{{order.gbDepName}}">
+              <view class="flex-row ">
+                <text>{{order.gbDepName}}</text>
+              </view>
+            </block>
+
+            <block wx:elif="{{order.restrauntName}}">
+              <view class="flex-row ">
+                <text>{{order.restrauntName}}</text>
+              </view>
+            </block>
+
+            <block wx:else>
+              <view class="flex-row ">
+                <text wx:if="{{order.depName}}">{{order.depName}}</text>
+                <text class="" wx:else>{{order.nxDepartmentOrderCode}}</text>
+              </view>
+            </block>
+
+            <text class="ml-20">{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+            <text wx:if="{{order.nxDoRemark !== 'null' && order.nxDoRemark && order.nxDoRemark.length > 0}}" class="red">({{order.nxDoRemark}})</text>
+          </view>
+        <!-- </view> -->
+
+      </view>
+
+
+    </view>
+  </view>
+  <!-- ../here -->
+</view>
+
+
+
+<view  class="flex-row bottom-button-container p-10 ">
+  <view class="flex flex-row ">
+    <!-- <view class="flex-row" bindtap="changeHaveOrder" style="width:{{windowWidth /3 -20 }}rpx;">
+      <label>带订单内容</label> <checkbox checked="{{haveOrder}}" />
+    </view> -->
+    <view class="btn {{canSave ? 'is-active' : ''}}" bind:tap="saveBatch"  style="width: {{windowWidth - 80}}rpx; line-height: 60rpx;text-align: center;border-radius: 20rpx; ">
+      <text class="font-lg-2">{{isPrintMode ? '打印采购单' : '复制订货'}}</text>
+    </view>
+    
+  </view>
+
+</view>
+
+<!-- 确认弹窗 -->
+<view class="modal-overlay" wx:if="{{showConfirmModal}}" bindtap="closeConfirmModal">
+  <view class="modal-content" catchtap="stopPropagation">
+    <view class="modal-header">
+      <text class="modal-title">复制内容预览：</text>
+      <view class="modal-close" bindtap="closeConfirmModal">×</view>
+    </view>
+    <view class="modal-body">
+      <view class="content-preview">
+        <view class="preview-content">
+          <text>{{pasteContent}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="modal-footer">
+      <view class="modal-btn cancel-btn" bindtap="closeConfirmModal">取消</view>
+      <view class="modal-btn confirm-btn" bindtap="confirmSaveBatch">确认保存</view>
+    </view>
+  </view>
+</view>
+
+<editPurGoodsModal showPopup="{{showEditPurchase}}" bindconfirmEditGoods="confirmEditPurGoods" item="{{item}}" bindcloseEditPurGoods="closeEditPurGoods" applyStandardName="{{applyStandardName}}" planOrder="{{planOrder}}" />

@@ -1,0 +1,12 @@
+
+
+.dep_item{
+  border: 1px solid lightgray;
+  border-radius: 40rpx;
+  
+}
+
+.dep_item.is-active{
+  border: 1px solid lightgreen;
+  
+}

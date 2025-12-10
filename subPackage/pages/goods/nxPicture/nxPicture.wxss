@@ -1,0 +1,28 @@
+
+
+.class_img{
+  border: 1px solid lightgray;
+  border-radius: 10rpx;
+}
+
+.group_input{
+  border-bottom: 1px solid lightgray;
+  line-height: 70rpx;
+  padding: 4rpx 10rpx;
+}
+
+.saveButton{
+  background: #606161;
+  color: #fff;
+  border-radius: 20rpx;
+  padding: 10rpx 30rpx;
+  font-size: 34rpx;
+  font-weight: 500;
+
+}
+
+.saveButton.is-active{
+  background: #187e6e;
+  color: #fff;
+  
+}

@@ -1,0 +1,24 @@
+<view class="print-standard-tip {{show ? 'show' : ''}}" wx:if="{{show}}" catchtouchmove="true" catchtap="cancel">
+  <view class="tip-content" catchtap="stopPropagation">
+    <view class="tip-title">修改打印规格</view>
+    <view class="tip-goods-info" wx:if="{{order && order.nxDoGoodsName}}">
+      <view class="tip-goods-name">{{order.nxDoGoodsName}}</view>
+      <view class="tip-goods-quantity" wx:if="{{order.nxDoQuantity || order.nxDoStandard}}">
+        订: {{order.nxDoQuantity || ''}}{{order.nxDoStandard || ''}}
+      </view>
+    </view>
+    <input 
+      class="tip-input" 
+      type="text" 
+      value="{{editPrintStandard}}" 
+      bindinput="onInput"
+      focus="{{show}}"
+      placeholder="请输入打印规格"
+    />
+    <view class="tip-buttons">
+      <view class="tip-btn tip-btn-cancel" bindtap="cancel">取消</view>
+      <view class="tip-btn tip-btn-confirm" bindtap="confirm">确定</view>
+    </view>
+  </view>
+</view>
+

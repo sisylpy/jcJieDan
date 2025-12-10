@@ -1,0 +1,47 @@
+<template name="resGroup">
+
+
+	<view class="flex-row-between border-bottom"  wx:for="{{userArr}}" wx:key="nxDepartmentUserId">
+		<view class="flex-column  bg-white">
+			<view class="flex-row-between p-20 " 
+			style="width:{{windowWidth - 40}}rpx;">
+				<view class="flex-row dep_icon">
+					<image src="{{item.nxDuAdmin == 1 ? '/images/cg.png' : '/images/dh.png'}}" class=" dep_img">
+					</image>
+					<image src='{{url + item.nxDuWxAvartraUrl}}'
+						class="member_url mr-20"></image>
+				</view>
+				<view class="p-20flex-column small" >
+				<view class="flex-row-between ">
+					<text class="text-secondary shrink_fix m-10">管理员</text>
+					<switch checked="{{item.nxDuAdmin == 1 ? 'checked' : ''}}" bindchange="switchChange"  data-index="{{index}}" />
+				</view>
+       
+			</view>
+			</view>
+
+      <view class="flex-row-between">
+        <view class="flex-column dep">
+				<view class="flex-row">
+					<text class="font-md">{{item.nxDuWxNickName}}</text>
+				</view>
+				<view class="flex-row">
+					<text>{{item.nxDuJoinDate}} </text>
+					<text>加入</text>
+				</view>
+			</view>
+      <view class="flex-column-center p-20" bindtap="showUser" data-id="{{item.nxDepartmentUserId}}">
+         <image src="/images/ashbin.png" mode="aspectFill" class="icon"/>
+        </view>
+
+      </view>
+
+		
+		</view>
+	
+	
+	</view>
+
+
+
+</template>

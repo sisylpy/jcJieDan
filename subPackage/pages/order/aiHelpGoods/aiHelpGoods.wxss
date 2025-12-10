@@ -1,0 +1,313 @@
+/* 对话容器 */
+.chat-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f5f5f5;
+}
+
+/* 对话消息区域 */
+.chat-messages {
+  flex: 1;
+  padding: 20rpx;
+  background-color: #f5f5f5;
+}
+
+.message-list {
+  padding-bottom: 20rpx;
+}
+
+/* 消息项 */
+.message-item {
+  display: flex;
+  margin-bottom: 30rpx;
+  align-items: flex-start;
+}
+
+.ai-message {
+  justify-content: flex-start;
+}
+
+.user-message {
+  justify-content: flex-end;
+}
+
+/* 头像 */
+.message-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  margin: 0 20rpx;
+  flex-shrink: 0;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+}
+
+/* 消息内容 */
+.message-content {
+  max-width: 70%;
+  flex: 1;
+}
+
+/* 消息气泡 */
+.message-bubble {
+  padding: 20rpx 30rpx;
+  border-radius: 20rpx;
+  position: relative;
+  word-wrap: break-word;
+  font-size: 28rpx;
+  line-height: 1.5;
+}
+
+.ai-bubble {
+  background-color: #ffffff;
+  border: 1rpx solid #e0e0e0;
+  margin-left: 0;
+}
+
+.user-bubble {
+  background-color: #007aff;
+  color: #ffffff;
+  margin-right: 0;
+}
+
+/* 订单信息样式 */
+.order-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.order-label {
+  font-weight: bold;
+  color: #666;
+  margin-bottom: 10rpx;
+  font-size: 24rpx;
+}
+
+.order-content {
+  font-size: 32rpx;
+  color: #333;
+  padding: 20rpx;
+  background-color: #f8f9fa;
+  border-radius: 10rpx;
+  border-left: 4rpx solid #007aff;
+}
+
+/* 商品推荐样式 */
+.goods-intro {
+  display: block;
+  margin-bottom: 20rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.goods-list {
+  margin-top: 20rpx;
+}
+
+.goods-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx;
+  margin-bottom: 15rpx;
+  background-color: #f8f9fa;
+  border-radius: 15rpx;
+  border: 1rpx solid #e9ecef;
+}
+
+.goods-info {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+}
+
+.goods-index {
+  font-weight: bold;
+  color: #007aff;
+  margin-right: 15rpx;
+  font-size: 28rpx;
+}
+
+.goods-details {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.goods-category {
+  color: #666;
+  font-size: 24rpx;
+  margin-right: 10rpx;
+}
+
+.goods-name {
+  font-weight: bold;
+  color: #333;
+  font-size: 30rpx;
+  margin-right: 10rpx;
+}
+
+.goods-spec {
+  color: #999;
+  font-size: 24rpx;
+  margin-right: 10rpx;
+}
+
+.goods-place {
+  color: #999;
+  font-size: 22rpx;
+}
+
+.goods-actions {
+  margin-left: 20rpx;
+}
+
+.select-btn {
+  background-color: #007aff;
+  color: #ffffff;
+  border: none;
+  border-radius: 20rpx;
+  padding: 10rpx 20rpx;
+  font-size: 24rpx;
+  min-width: 120rpx;
+}
+
+.select-btn:active {
+  background-color: #0056cc;
+}
+
+/* 快速操作按钮 */
+.quick-actions {
+  margin-top: 20rpx;
+  text-align: center;
+}
+
+.quick-btn {
+  background-color: #ff6b6b;
+  color: #ffffff;
+  border: none;
+  border-radius: 20rpx;
+  padding: 15rpx 30rpx;
+  font-size: 26rpx;
+  margin: 0 10rpx;
+}
+
+.quick-btn:active {
+  background-color: #ff5252;
+}
+
+/* 快速建议 */
+.quick-suggestions {
+  background-color: #ffffff;
+  border-top: 1rpx solid #e0e0e0;
+  padding: 15rpx 20rpx;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+
+/* 群功能测试区域 */
+.test-section {
+  background-color: #ffffff;
+  border-top: 1rpx solid #e0e0e0;
+  padding: 15rpx 20rpx;
+  text-align: center;
+}
+
+.test-group-btn {
+  background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+  color: #ffffff;
+  border: none;
+  border-radius: 25rpx;
+  padding: 15rpx 30rpx;
+  font-size: 26rpx;
+  font-weight: 500;
+  min-width: 200rpx;
+}
+
+.test-group-btn:active {
+  opacity: 0.8;
+}
+
+.suggestion-item {
+  background-color: #f0f8ff;
+  color: #007aff;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+  font-size: 24rpx;
+  border: 1rpx solid #007aff;
+  cursor: pointer;
+}
+
+.suggestion-item:active {
+  background-color: #007aff;
+  color: #ffffff;
+}
+
+/* 输入区域 */
+.input-area {
+  background-color: #ffffff;
+  border-top: 1rpx solid #e0e0e0;
+  padding: 20rpx;
+}
+
+.input-container {
+  display: flex;
+  align-items: center;
+  background-color: #f8f9fa;
+  border-radius: 50rpx;
+  padding: 10rpx 20rpx;
+}
+
+.message-input {
+  flex: 1;
+  padding: 15rpx 20rpx;
+  font-size: 28rpx;
+  background-color: transparent;
+  border: none;
+  outline: none;
+}
+
+.send-btn {
+  background-color: #007aff;
+  color: #ffffff;
+  border: none;
+  border-radius: 50rpx;
+  padding: 15rpx 30rpx;
+  font-size: 28rpx;
+  margin-left: 20rpx;
+  min-width: 100rpx;
+}
+
+.send-btn:active {
+  background-color: #0056cc;
+}
+
+.send-btn:disabled {
+  background-color: #cccccc;
+  color: #999999;
+}
+
+/* 响应式调整 */
+@media (max-width: 750rpx) {
+  .message-content {
+    max-width: 85%;
+  }
+  
+  .goods-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .goods-actions {
+    margin-left: 0;
+    margin-top: 15rpx;
+    align-self: flex-end;
+  }
+}

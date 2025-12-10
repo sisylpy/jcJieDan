@@ -1,0 +1,9 @@
+{
+  "navigationBarTitleText": "出库",
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark",
+  "usingComponents": {
+    "custom-navbar": "/components/custom-navbar/custom-navbar",
+    "stockOutGoods": "/components/stockOutGoods/stockOutGoods"
+  }
+}

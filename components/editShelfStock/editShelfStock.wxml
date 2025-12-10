@@ -1,0 +1,176 @@
+<wxs src="../../utils/fn.wxs" module="tool" />
+
+<!-- 批次列表弹窗 -->
+<view class='modal-overlay {{showStockList ? "show" : ""}}' catchtouchmove='true' catchtap="closeStockList">
+  <view class='modal-content' catchtap='preventClose'>
+
+    <!-- 商品信息 -->
+    <view class="goods-header flex-row-between">
+      <view class="flex-row"> 
+        <text class="goods-name">{{goodsInfo.nxDgGoodsName}}</text>
+      <block wx:if="{{goodsInfo.gbDgGoodsStandardWeight !== 'null' && goodsInfov.gbDgGoodsStandardWeight.length > 0}}">
+        <text wx:if="{{goodsInfo.gbDdgShowStandardName !== '斤'}}">({{goodsInfo.nxDgGoodsStandardname}}/{{goodsInfo.gbDgGoodsStandardWeight}})</text>
+      </block>
+      <block wx:else>
+        <text>({{goodsInfo.nxDgGoodsStandardname}})</text>
+      </block>
+      </view>
+     
+      <view class="" bindtap="closeStockList">
+        <image src="/images/del.png" mode="aspectFill" class="icon"/>
+      </view>
+    </view>
+
+    <!-- 批次列表 -->
+    <scroll-view class="stock-list" scroll-y="true">
+      <view style="text-align: left; font: 18rpx; color: gray; padding: 20rpx 20rpx;">修改库存:</view>
+      <view class="stock-item"   wx:for="{{stockList}}" wx:key="index" bindtap="selectStock" data-index="{{index}}">
+        <view class="stock-content">
+          <text class="stock-text" wx:if="{{item.nxDgssDate}}">入库日期 <text class="stock-number">{{tool.getAttrDate(item.nxDgssDate)}}</text></text>
+          <text class="stock-divider" wx:if="{{item.nxDgssDate}}">·</text>
+          <text class="stock-text">入库</text>
+          <text wx:if="{{goodsInfo.nxDgCartonUnit && goodsInfo.nxDgCartonUnit !== '' && goodsInfo.nxDgCartonUnit !== 'null' && goodsInfo.nxDgItemsPerCarton > 0}}">{{tool.formatQuantityDisplay(item.nxDgssWeight, goodsInfo.nxDgCartonUnit, goodsInfo.nxDgItemsPerCarton, goodsInfo.nxDgGoodsStandardname)}}
+            </text>
+            <text wx:else>{{item.nxDgssWeight}}{{goodsInfo.nxDgGoodsStandardname}}</text>
+
+          <text class="stock-divider">·</text>
+          <text class="stock-text">剩余 <text class="stock-number">
+            <text wx:if="{{goodsInfo.nxDgCartonUnit && goodsInfo.nxDgCartonUnit !== '' && goodsInfo.nxDgCartonUnit !== 'null' && goodsInfo.nxDgItemsPerCarton > 0}}">{{tool.formatQuantityDisplay(item.nxDgssRestWeight, goodsInfo.nxDgCartonUnit, goodsInfo.nxDgItemsPerCarton, goodsInfo.nxDgGoodsStandardname)}}
+            </text>
+            <text wx:else>{{item.nxDgssRestWeight}}{{goodsInfo.nxDgGoodsStandardname}}</text>
+          </text></text>
+        </view>
+        <view class="stock-content">
+          <text class="stock-text" >入库金额<text class="stock-number">{{item.nxDgssSubtotal}}</text></text>
+          <text class="stock-divider" wx:if="{{item.nxDgssDate}}">·</text>
+          <text class="stock-text">单价 <text class="stock-number">¥{{item.nxDgssPrice}}</text></text>
+
+          <text class="stock-divider">·</text>
+          <text class="stock-text">建议售价 <text class="stock-number">¥{{item.nxDgssSellingPrice}}</text></text>
+        </view>
+      </view>
+     
+    </scroll-view>
+
+  </view>
+</view>
+
+<!-- 修改批次弹窗 -->
+<view class='modal-overlay {{showEditModal ? "show" : ""}}' catchtouchmove='true' catchtap="closeEditModal">
+  <view class='modal-content modal-edit' catchtap='preventClose'>
+
+    <!-- 商品信息 -->
+    <view class="goods-header">
+      <text class="goods-name">{{goodsInfo.nxDgGoodsName}}</text>
+    </view>
+
+    <!-- 批次信息 -->
+    <view class="stock-info-display">
+      <view class="info-row">
+        <text class="label">总剩余数量：</text>
+        <text class="value">
+          <text wx:if="{{goodsInfo.nxDgCartonUnit && goodsInfo.nxDgCartonUnit !== '' && goodsInfo.nxDgCartonUnit !== 'null' && goodsInfo.nxDgItemsPerCarton > 0}}">{{tool.formatQuantityDisplay(totalRestWeightDisplay, goodsInfo.nxDgCartonUnit, goodsInfo.nxDgItemsPerCarton, goodsInfo.nxDgGoodsStandardname)}}
+          </text>
+          <text wx:else>{{totalRestWeightDisplay}}{{goodsInfo.nxDgGoodsStandardname}}</text>
+        </text>
+      </view>
+      
+      <!-- 调出操作但未选择批次时的提示 -->
+      <view wx:if="{{operationType == 5 && !selectedStock}}" class="info-row" style="color: #ff4444; padding: 20rpx 0;">
+        <text>调出操作需要先选择库存批次，请返回选择批次</text>
+      </view>
+      
+      <block wx:if="{{selectedStock}}">
+      <view class="info-row">
+        <text class="label">批次剩余：</text>
+        <text class="value">
+          <text wx:if="{{goodsInfo.nxDgCartonUnit && goodsInfo.nxDgCartonUnit !== '' && goodsInfo.nxDgCartonUnit !== 'null' && goodsInfo.nxDgItemsPerCarton > 0}}">{{tool.formatQuantityDisplay(selectedStock.nxDgssRestWeight, goodsInfo.nxDgCartonUnit, goodsInfo.nxDgItemsPerCarton, goodsInfo.nxDgGoodsStandardname)}}
+          </text>
+          <text wx:else>{{selectedStock.nxDgssRestWeight}}{{goodsInfo.nxDgGoodsStandardname}}</text>
+        </text>
+      </view>
+      <view class="info-row">
+        <text class="label">采购单价：</text>
+        <text class="value" wx:if="{{goodsInfo.nxDgCartonUnit && goodsInfo.nxDgCartonUnit !== '' && goodsInfo.nxDgCartonUnit !== 'null' && goodsInfo.nxDgItemsPerCarton > 0}}">¥{{selectedStock.nxDistributerPurchaseGoodsEntity.nxDpgBuyPrice}}</text>
+          <text wx:else="" class="value">¥{{selectedStock.nxDgssPrice}}</text>
+
+      </view>
+      <!-- 调出操作时显示选中批次提示 -->
+      <view wx:if="{{operationType == 5}}" class="info-row" style="color: #666; font-size: 24rpx; padding-top: 10rpx;">
+        <text>将从此批次调出库存</text>
+      </view>
+      </block>
+    </view>
+
+    <!-- 操作类型选择 -->
+    <view class="operation-type">
+      <text class="title">操作类型：</text>
+      <radio-group bindchange="typeChange">
+      <label class="radio-label">
+          <radio value="1" checked="{{operationType == 1}}" />使用
+        </label>
+        <label class="radio-label">
+          <radio value="3" checked="{{operationType == 3}}" />损耗
+        </label>
+        <label class="radio-label">
+          <radio value="4" checked="{{operationType == 4}}" />退货
+        </label>
+        <label class="radio-label">
+          <radio value="2" checked="{{operationType == 2}}" />盘库
+        </label>
+         <label class="radio-label">
+          <radio value="5" checked="{{operationType == 5}}" />调出
+        </label>
+      </radio-group>
+    </view>
+
+    <!-- 输入区域 -->
+    <view class="input-section">
+      <view class="input-row">
+        <text class="label">操作数量：</text>
+        <view class="input-wrapper">
+          <input class="input" type="digit" placeholder="请输入数量" value="{{inputWeight}}" bindinput="onWeightInput" />
+          <text class="unit">{{goodsInfo.nxDgGoodsStandardname}}</text>
+        </view>
+      </view>
+      
+      <!-- 调出时显示目标货架选择 -->
+      <view class="input-row" wx:if="{{operationType == 5 && sameShelfGoods && sameShelfGoods.length > 0}}">
+        <text class="label">调入货架：</text>
+        <view class="input-wrapper">
+          <picker mode="selector" range="{{sameShelfGoods}}" range-key="shelfName" value="{{targetShelfIndex}}" bindchange="selectTargetShelf">
+            <view class="picker-view">
+              <text wx:if="{{targetShelfGoodsName}}">{{targetShelfGoodsName}}</text>
+              <text wx:else class="placeholder" style="color: #999;">请选择目标货架</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+      <view class="input-row" wx:if="{{operationType == 5 && (!sameShelfGoods || sameShelfGoods.length == 0)}}">
+        <text class="label" style="color: #ff4444;">调入货架：</text>
+        <text style="color: #999; font-size: 28rpx;">暂无其他货架</text>
+      </view>
+      
+      <!-- <view class="input-row">
+        <text class="label">说明：</text>
+        <view class="input-wrapper">
+          <input class="input" placeholder="请输入说明" value="{{reason}}" bindinput="onReasonInput" />
+        </view>
+      </view> -->
+    </view>
+
+    <!-- 按钮 -->
+    <view class="modal-footer">
+      <view class="btn cancel" bindtap="closeEditModal">
+        <text>取消</text>
+      </view>
+      <!-- 调出操作但未选择批次时，显示"选择批次"按钮 -->
+      <view wx:if="{{operationType == 5 && !selectedStock}}" class="btn confirm" catchtap="backToStockList">
+        <text>选择批次</text>
+      </view>
+      <view wx:else class="btn confirm {{canSubmit ? '' : 'disabled'}}" catchtap="submit">
+        <text>确定</text>
+      </view>
+    </view>
+  </view>
+</view>

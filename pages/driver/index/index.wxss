@@ -1,0 +1,517 @@
+
+.page-root {
+  height: 100vh;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+}
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.scroll-content {
+  flex: 1;
+  min-height: 0;
+}
+
+/* 出发坐标设置样式 */
+.start-location-section {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  margin: 20rpx;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  color: white;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: bold;
+}
+
+.location-info {
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+}
+
+.location-text {
+  font-size: 34rpx;
+  opacity: 0.9;
+}
+
+.location-address {
+  font-size: 22rpx;
+  opacity: 0.8;
+  /* color: #e0e0e0; */
+  margin-top: 5rpx;
+}
+
+.location-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  padding: 10rpx 20rpx;
+  border-radius: 20rpx;
+  font-size: 34rpx;
+}
+
+/* 多司机路线优化样式 */
+.route-optimization-section {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  margin: 20rpx;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  color: white;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+}
+
+.route-header {
+  margin-bottom: 30rpx;
+}
+
+.route-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 20rpx;
+}
+
+.route-summary {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.summary-item {
+  font-size: 34rpx;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 10rpx 20rpx;
+  border-radius: 20rpx;
+  margin: 5rpx;
+}
+
+.drivers-container {
+  margin-bottom: 30rpx;
+}
+
+.driver-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16rpx;
+  padding: 34rpx;
+  margin-bottom: 20rpx;
+  backdrop-filter: blur(10rpx);
+}
+
+.driver-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20rpx;
+  padding-bottom: 15rpx;
+  border-bottom: 1rpx solid rgba(255, 255, 255, 0.3);
+}
+
+.driver-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #fff;
+}
+
+.driver-stats {
+  display: flex;
+  gap: 15rpx;
+}
+
+.stat-item {
+  font-size: 22rpx;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 6rpx 12rpx;
+  border-radius: 12rpx;
+}
+
+.driver-timeline {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+  font-size: 34rpx;
+  opacity: 0.9;
+}
+
+.timeline-text {
+  background: rgba(255, 255, 255, 0.15);
+  padding: 8rpx 16rpx;
+  border-radius: 12rpx;
+}
+
+.route-stops {
+  display: flex;
+  flex-direction: column;
+  gap: 15rpx;
+}
+
+.stop-item {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12rpx;
+  padding: 16rpx;
+  border-left: 4rpx solid #4CAF50;
+}
+
+.stop-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10rpx;
+}
+
+.stop-number {
+  background: #4CAF50;
+  color: white;
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30rpx;
+  font-weight: bold;
+  margin-right: 15rpx;
+}
+
+.stop-name {
+  font-size: 34rpx;
+  font-weight: bold;
+  flex: 1;
+}
+
+.stop-time {
+  font-size: 34rpx;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 6rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+.stop-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+  font-size: 32rpx;
+  opacity: 0.8;
+}
+
+.stop-address {
+  color: #e0e0e0;
+}
+
+.stop-window {
+  color: #bdebbe;
+  font-weight: 500;
+}
+
+.stop-distance {
+  color: #FFC107;
+  font-weight: 500;
+}
+
+.stop-unload {
+  color: #FF9800;
+  font-weight: 500;
+}
+
+.route-recommendations {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16rpx;
+  padding: 20rpx;
+}
+
+.recommendations-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 15rpx;
+}
+
+.recommendation-item {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8rpx;
+  padding: 12rpx;
+  margin-bottom: 10rpx;
+}
+
+.recommendation-text {
+  font-size: 34rpx;
+  line-height: 1.4;
+}
+
+/* 未分配客户样式 */
+.unallocated-section {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 16rpx;
+  padding: 34rpx;
+  margin-top: 20rpx;
+  backdrop-filter: blur(10rpx);
+}
+
+.unallocated-title {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #ff6b6b;
+  display: block;
+  margin-bottom: 20rpx;
+}
+
+.unallocated-customer {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12rpx;
+  padding: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.customer-header {
+  margin-bottom: 12rpx;
+}
+
+.customer-name {
+  font-size: 26rpx;
+  font-weight: bold;
+  color: #fff;
+  display: block;
+  margin-bottom: 6rpx;
+}
+
+.customer-address {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.8);
+  display: block;
+}
+
+.customer-unload {
+  font-size: 22rpx;
+  color: #FF9800;
+  font-weight: 500;
+  display: block;
+  margin-top: 4rpx;
+}
+
+.failure-reasons {
+  border-top: 1rpx solid rgba(255, 255, 255, 0.2);
+  padding-top: 12rpx;
+}
+
+.reason-title {
+  font-size: 34rpx;
+  color: #ff6b6b;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 8rpx;
+}
+
+.reason-item {
+  margin-bottom: 6rpx;
+}
+
+.reason-text {
+  font-size: 22rpx;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.3;
+}
+
+/* 智能排单参数配置样式 */
+.smart-order-config {
+  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+  margin: 20rpx;
+  border-radius: 20rpx;
+  padding: 30rpx;
+  color: white;
+  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.1);
+}
+
+/* 坐标设置区域样式 */
+.location-config-section {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.config-section-title {
+  font-size: 30rpx;
+  color: #fff;
+  font-weight: bold;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.location-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.location-text {
+  font-size: 26rpx;
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8rpx 12rpx;
+  border-radius: 6rpx;
+}
+
+.location-address {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 8rpx 12rpx;
+  border-radius: 6rpx;
+}
+
+.location-buttons {
+  display: flex;
+  gap: 12rpx;
+  margin-top: 8rpx;
+}
+
+.location-btn {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: 1rpx solid rgba(255, 255, 255, 0.3);
+  border-radius: 6rpx;
+  padding: 12rpx 16rpx;
+  font-size: 24rpx;
+  text-align: center;
+}
+
+.location-btn:active {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* 智能排单参数区域样式 */
+.smart-order-params-section {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12rpx;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.config-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20rpx;
+  margin: 20rpx 0;
+}
+
+.config-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.config-label {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+}
+
+.config-input {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1rpx solid rgba(255, 255, 255, 0.2);
+  border-radius: 8rpx;
+  padding: 12rpx 16rpx;
+  color: #fff;
+  font-size: 28rpx;
+}
+
+.config-input::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.config-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 20rpx;
+}
+
+.config-btn {
+  flex: 1;
+  padding: 16rpx 24rpx;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  border: none;
+}
+
+.cancel-btn {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+.confirm-btn {
+  background: #07c160;
+  color: #fff;
+}
+
+/* 路线优化按钮样式 */
+.route-btn-container {
+  position: relative;
+  width: 120rpx;
+  height: 80rpx;
+  border-radius: 40rpx;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(102, 126, 234, 0.3);
+}
+
+.route-btn-text {
+  font-size: 20rpx;
+  color: #fff;
+  font-weight: 500;
+  margin-top: 4rpx;
+}
+
+/* 参数配置按钮样式 */
+.config-btn-container {
+  position: relative;
+  width: 120rpx;
+  height: 80rpx;
+  border-radius: 40rpx;
+  background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4rpx 16rpx rgba(255, 154, 158, 0.3);
+}
+
+.config-btn-text {
+  font-size: 20rpx;
+  color: #fff;
+  font-weight: 500;
+  margin-top: 4rpx;
+}
+
+/* 司机人数徽章样式 */
+.driver-count-badge {
+  position: absolute;
+  top: -8rpx;
+  right: -8rpx;
+  background: #ff4757;
+  color: white;
+  font-size: 16rpx;
+  font-weight: bold;
+  width: 32rpx;
+  height: 32rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2rpx 8rpx rgba(255, 71, 87, 0.3);
+}

@@ -1,0 +1,85 @@
+page {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* 周期选择器 */
+.period-selector {
+  padding: 20rpx;
+}
+
+.picker-text {
+  font-size: 28rpx;
+  color: #333;
+  padding: 10rpx 20rpx;
+  border: 1px solid #ddd;
+  border-radius: 8rpx;
+}
+
+.mt-20 {
+  margin-top: 20rpx;
+}
+
+/* 网格布局样式 */
+.goods-grid {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 20rpx;
+  gap: 20rpx;
+}
+
+.goods-item {
+  width: calc((100% - 40rpx) / 3);
+  background: white;
+  border-radius: 12rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.goods-item:active {
+  transform: scale(0.95);
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.15);
+}
+
+.goods-content {
+  padding: 20rpx;
+  flex: 1;
+}
+
+.goods-name {
+  font-size: 28rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.goods-standard {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 8rpx;
+}
+
+.goods-stock {
+  font-size: 24rpx;
+  color: #999;
+  margin-top: 8rpx;
+}
+
+.stock-label {
+  color: #666;
+}
+
+.stock-value {
+  color: #333;
+  font-weight: 500;
+}
+

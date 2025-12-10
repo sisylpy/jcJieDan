@@ -1,0 +1,14 @@
+
+
+.column{
+  height: 40rpx;
+  width: 1px;
+  background-color: gray;
+  margin:  0 30rpx;
+}
+
+.face_img{
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+}

@@ -1,0 +1,226 @@
+<view class='overlay' wx:if='{{show}}'>
+  <view class='popup ' >
+    <view class="top">
+      <view class='goodsTitle flex-row'>
+        <text class="brand" wx:if="{{item.nxDgGoodsBrand.length > 0 && item.nxDgGoodsBrand !== 'null'}}">{{item.nxDgGoodsBrand}}</text>
+        <text>{{item.nxDgGoodsName}}</text>
+        <!-- <text wx:if="{{item.nxDpgCostLevel == 1}}">[精选]</text>
+        <text wx:if="{{item.nxDpgCostLevel == 2}}">[优选]</text>
+        <text wx:if="{{item.nxDpgCostLevel == 3}}">[普通]</text> -->
+        <block wx:if="{{item.nxDgGoodsStandardWeight !== 'null' && item.nxDgGoodsStandardWeight.length > 0}}">
+          <text class="" wx:if="{{item.nxDgGoodsStandardname !== '斤'}}">({{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}})</text>
+        </block>
+        <block wx:else>
+          <text class="" wx:if="{{item.nxDgGoodsStandardname !== '斤' }}">({{item.nxDgGoodsStandardname}})</text>
+        </block>
+      </view>
+    </view>
+
+    <view class="flex-row-between" style="padding: 30rpx 20rpx;">
+
+      <text class="">今日进价:(元/{{item.nxDgGoodsStandardname}})</text>
+      <view class="flex-row">
+        <view class="add_btn" hover-class="hover" bindtap="changePrice" data-type="reduce">
+          <image src="/images/reduce.png" class="add_btn_icon"></image>
+        </view>
+        <view class="inputView" style="width: {{windowWidth / 5}}rpx; margin-right: 10rpx; ">
+          
+          <input class='input' type='digit' value="{{item.nxDgBuyingPrice}}" bindinput="getBuyingPrice" hold-keyboard='true'></input>
+        </view>
+        <view class="add_btn" hover-class="hover" bindtap="changePrice" data-type="add">
+          <image src="/images/add.png" class="add_btn_icon"></image>
+        </view>
+      </view>
+    </view>
+
+
+    <view class="flex-column">
+
+      <radio-group class="radio-group flex-row-between p-20" bindchange="radioChange">
+        <label class="radio">
+          <radio value="1" checked="{{level == 1}}" /> 一级数量
+        </label>
+
+        <label class="radio">
+          <radio value="2" checked="{{level == 2}}" />二级数量
+        </label>
+        <label class="radio">
+          <radio value="3" checked="{{level == 3}}" />三级数量
+        </label>
+      </radio-group>
+
+      <view class="flex-column">
+
+        <!-- leve-----one -->
+        <view class="body" wx:if="{{level == 1}}">
+
+          <!-- level == 1 -->
+          <view class='goods_contents'>
+
+            <view class="flex-row-between" style="padding: 30rpx 20rpx;">
+              <text class="">一级数量:</text>
+              <view class="flex-row">
+                <view class="inputView" style="width: {{windowWidth / 3}}rpx; margin-right: 10rpx;">
+                  <input class='input' type='digit' value="{{item.nxDgWillPriceOneWeight}}" bindinput="getWeight" hold-keyboard='true'></input>
+                </view>
+                ({{item.nxDgGoodsStandardname}})
+              </view>
+            </view>
+
+
+            <view class="flex-row-between" style="padding: 30rpx 20rpx;">
+
+              <text class="m-10">平台价:(元/{{item.nxDgGoodsStandardname}})</text>
+              <view class="flex-row">
+                <view class="add_btn" hover-class="hover" bindtap="changeWillPrice" data-type="reduce">
+                  <image src="../../images/reduce 2.png" class="add_btn_icon"></image>
+                </view>
+                <view class="inputView" style="width: {{windowWidth / 5}}rpx; margin-right: 10rpx;">
+                  <input class='input' type='digit' value="{{item.nxDgWillPriceOne}}" bindinput="getWillPrice" hold-keyboard='true'></input>
+                </view>
+                <view class="add_btn" hover-class="hover" bindtap="changeWillPrice" data-type="add">
+                  <image src="../../images/add-5.png" class="add_btn_icon"></image>
+                </view>
+              </view>
+            </view>
+
+          </view>
+
+          <view class='flex-row'>
+
+            <view class="btn_row">
+              <view class="finish-btn1  flex-row">
+                <view class="flex-row p-20">
+                  <view class="">
+                    <text class="text-secondary m-10">利润率:</text>
+                    <text>{{item.nxDgPriceProfitOne}}%</text>
+                  </view>
+                </view>
+              </view>
+              <view class="btn_row_finish" style="width: {{windowWidth - 460}}rpx; ">
+                <text class='cancel-btn' bindtap="cancle" hover-class="hoverBtn">关闭</text>
+                <text class='confirm-btn' catchtap='confirm' hover-class="hoverBtn">完成</text>
+              </view>
+
+            </view>
+
+          </view>
+        </view>
+
+
+        <!-- leve-----two -->
+        <view class="body" wx:elif="{{level == 2}}">
+
+          <view class='goods_contents'>
+
+            <view class="flex-row-between" style="padding: 30rpx 20rpx;">
+              <text class="">二级数量:</text>
+              <view class="flex-row">
+                <view class="inputView" style="width: {{windowWidth / 3}}rpx; margin-right: 10rpx;">
+                  <input class='input' type='digit' value="{{item.nxDgWillPriceTwoWeight}}" bindinput="getWeight" hold-keyboard='true'></input>
+                </view>
+                ({{item.nxDgGoodsStandardname}})
+              </view>
+            </view>
+
+            <view class="flex-row-between" style="padding: 30rpx 20rpx;">
+
+              <text class="m-10">平台价:(元/{{item.nxDgGoodsStandardname}})</text>
+              <view class="flex-row">
+                <view class="add_btn" hover-class="hover" bindtap="changeWillPrice" data-type="reduce">
+                  <image src="../../images/reduce 2.png" class="add_btn_icon"></image>
+                </view>
+                <view class="inputView" style="width: {{windowWidth / 5}}rpx; margin-right: 10rpx;">
+                  <input class='input' type='digit' value="{{item.nxDgWillPriceTwo}}" bindinput="getWillPrice" hold-keyboard='true'></input>
+                </view>
+                <view class="add_btn" hover-class="hover" bindtap="changeWillPrice" data-type="add">
+                  <image src="../../images/add-5.png" class="add_btn_icon"></image>
+                </view>
+              </view>
+            </view>
+
+          </view>
+
+
+          <view class='flex-row'>
+
+            <view class="btn_row">
+              <view class="finish-btn1  flex-row">
+                <view class="flex-row p-20">
+                  <view class="">
+                    <text class="text-secondary m-10">利润率:</text>
+                    <text>{{item.nxDgPriceProfitTwo}}%</text>
+                  </view>
+                </view>
+              </view>
+              <view class="btn_row_finish" style="width: {{windowWidth - 460}}rpx; ">
+                <text class='cancel-btn' bindtap="cancle" hover-class="hoverBtn">关闭</text>
+                <text class='confirm-btn' catchtap='confirm' hover-class="hoverBtn">完成</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <!-- leve-----three -->
+        <view class="body" wx:elif="{{level == 3}}">
+
+          <view class='goods_contents'>
+
+            <view class="flex-row-between" style="padding: 30rpx 20rpx;">
+              <text class="">三级数量:</text>
+              <view class="flex-row">
+                <view class="inputView" style="width: {{windowWidth / 3}}rpx; margin-right: 10rpx; ">
+                  <input class='input' type='digit' value="{{item.nxDgWillPriceThreeWeight}}" bindinput="getWeight" hold-keyboard='true'></input>
+                </view>
+                ({{item.nxDgGoodsStandardname}})
+              </view>
+            </view>
+
+
+            <view class="flex-row-between" style="padding: 30rpx 20rpx;">
+
+              <text class="m-10">平台价:(元/{{item.nxDgGoodsStandardname}})</text>
+              <view class="flex-row">
+                <view class="add_btn" hover-class="hover" bindtap="changeWillPrice" data-type="reduce">
+                  <image src="../../images/reduce 2.png" class="add_btn_icon"></image>
+                </view>
+                <view class="inputView" style="width: {{windowWidth / 5}}rpx; margin-right: 10rpx;">
+                  <input class='input' type='digit' value="{{item.nxDgWillPriceThree}}" bindinput="getWillPrice" hold-keyboard='true'></input>
+                </view>
+                <view class="add_btn" hover-class="hover" bindtap="changeWillPrice" data-type="add">
+                  <image src="../../images/add-5.png" class="add_btn_icon"></image>
+                </view>
+              </view>
+            </view>
+
+          </view>
+
+          <view class='flex-row'>
+            <view class="btn_row">
+              <view class="finish-btn1  flex-row">
+                <view class="flex-row p-20">
+                  <view class="">
+                    <text class="text-secondary m-10">利润率:</text>
+                    <text>{{item.nxDgPriceProfitThree}}%</text>
+                  </view>
+                </view>
+              </view>
+              <view class="btn_row_finish" style="width: {{windowWidth - 460}}rpx; ">
+                <text class='cancel-btn' bindtap="cancle" hover-class="hoverBtn">关闭</text>
+                <text class='confirm-btn' catchtap='confirm' hover-class="hoverBtn">完成</text>
+              </view>
+
+            </view>
+          </view>
+        </view>
+
+
+      </view>
+
+    </view>
+
+
+
+
+  </view>
+</view>

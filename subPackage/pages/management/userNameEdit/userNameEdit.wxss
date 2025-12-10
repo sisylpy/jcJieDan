@@ -1,0 +1,7 @@
+
+.standardInput{
+  width: 100%;
+  border-bottom: 1px solid #cecece;
+  padding: 20rpx 0 ;
+  font-size: 34rpx;
+}

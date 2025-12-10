@@ -1,0 +1,252 @@
+<view class="flex flex-colum height-100">
+
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="搜索货架商品" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+  <view class="flex-column" style="margin-top: {{navBarHeight}}rpx;">
+
+    <view class="search-container">
+      <view class="search-wrapper" style="width: {{windowWidth - 40}}rpx;">
+        <view class="searchInput flex-row">
+          <input class="inputView" placeholder="{{placeHolder}}" bindconfirm="getSearchString" value="{{searchString}}" placeholder-class="holderClass" bindinput="getString" confirm-type='search' focus="{{isSearching ? 'true':''}}"></input>
+          <view class="delSearch {{searchString.length > 0 ? 'is-show' : ''}}" bindtap="delSearch" hover-class="hover">
+            <image src="/images/close.png" class="close_icon"></image>
+          </view>
+        </view>
+      </view>
+    </view>
+
+
+    <view class="flex-column border-bottom bg-white  font-md mt-10 p-20" wx:for="{{disSearchArr}}" wx:key="nxDepartmentDisGoodsId" wx:for-item="shelf" wx:for-index="index">
+      <view class="flex-row  p-20 ">
+        <text class="mr-10">货架:</text>
+        <text> {{shelf.nxDistributerGoodsShelfName}}</text>
+      </view>
+
+      <view class="flex-row-default  border-bottom p-10 font-lg" wx:for="{{shelf.nxDisGoodsShelfGoodsEntities}}" wx:for-item="shelfGoods" wx:for-index="shelfIndex">
+
+        <view class="shelf-list-item" bindtap="showChoice" data-arr="{{shelfGoods.nxDisGoodsShelfStockEntities}}" data-goods="{{shelfGoods.nxDistributerGoodsEntity}}" data-item="{{shelf}}" data-shelfgoods="{{shelfGoods}}">
+          <view class="shelf-list-thumb">
+            <image wx:if="{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFileLarge && shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFileLarge !== 'null'}}" src="{{url + shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFileLarge}}" mode="aspectFill" class="shelf-list-img" />
+            <image wx:elif="{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFile && shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFile !== 'null'}}" src="{{url + shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFile}}" mode="aspectFill" class="shelf-list-img" />
+            <view wx:else class="shelf-list-img placeholder">
+              <image src="/images/photozhaoxiang.png" mode="aspectFill" class="icon-lg" />
+            </view>
+          </view>
+          <view class="shelf-list-info">
+            <view class="shelf-list-title">
+              <text class="shelf-list-brand" wx:if="{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsBrand !== 'null' && shelfGoods.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0}}">{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
+              <view class="shelf-list-title-text">
+                <text class="shelf-list-name">{{shelfIndex + 1}}.{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
+                <text class="shelf-list-spec" wx:if="{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}}">规格：{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0 ? shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardWeight + '/' : ''}}{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+              </view>
+            </view>
+            <view class="shelf-list-stock">
+              <text class="shelf-list-stock-label">位置：</text>
+              <view class="shelf-card-stock mainColor font-bold">第{{shelfGoods.nxDgsgSort}}个</view>
+            </view>
+            <view class="shelf-list-stock">
+              <text class="shelf-list-stock-label">库存：</text>
+              <view class="shelf-card-stock">
+                <block wx:if="{{shelfGoods.nxDisGoodsShelfStockEntities !== null && shelfGoods.nxDisGoodsShelfStockEntities.length > 0}}">
+                  <text class="stock-chip" wx:for="{{shelfGoods.nxDisGoodsShelfStockEntities}}" wx:for-item="stock" wx:key="index">{{stock.nxDgssRestWeight}}{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+                </block>
+                <block wx:else>
+                  <text class="shelf-card-empty">暂无库存</text>
+                </block>
+              </view>
+            </view>
+          </view>
+          <view class="shelf-list-tag" wx:if="{{shelfGoods.shelfPurGoods !== null}}">
+            <view class="circle_list {{shelfGoods.shelfPurGoods.nxDpgStatus > 1 ? 'gray' :''}} center-content">
+              <view class="flex-row">
+                <text>{{shelfGoods.shelfPurGoods.nxDpgQuantity}}</text>
+                <text>{{shelfGoods.shelfPurGoods.nxDpgStandard}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+      </view>
+    </view>
+
+    <view class="shelf-list-wrap" wx:if="{{unShelfGoodsList.length  > 0}}">
+      <view class="bg-light p-20 text-secondary">非货架商品</view>
+      <block wx:for="{{unShelfGoodsList}}" wx:for-item="disGoods" wx:key="nxDistributerGoodsId">
+        <view class="shelf-list-item" bindtap="showChoiceUn" data-goods="{{disGoods}}">
+          <view class="shelf-list-thumb">
+            <image wx:if="{{disGoods.nxDgGoodsFileLarge && disGoods.nxDgGoodsFileLarge !== 'null'}}" src="{{url + disGoods.nxDgGoodsFileLarge}}" mode="aspectFill" class="shelf-list-img" />
+            <image wx:elif="{{disGoods.nxDgGoodsFile && disGoods.nxDgGoodsFile !== 'null'}}" src="{{url + disGoods.nxDgGoodsFile}}" mode="aspectFill" class="shelf-list-img" />
+            <view wx:else class="shelf-list-img placeholder">
+              <image src="/images/photozhaoxiang.png" mode="aspectFill" class="icon-lg" />
+            </view>
+          </view>
+
+          <view class="shelf-list-info">
+
+            <view class="shelf-list-title">
+              <text class="shelf-list-brand" wx:if="{{disGoods.nxDgGoodsBrand !== 'null' && disGoods.nxDgGoodsBrand && disGoods.nxDgGoodsBrand.length > 0}}">{{disGoods.nxDgGoodsBrand}}</text>
+              <view class="shelf-list-title-text">
+                <text class="shelf-list-name">{{disGoods.nxDgGoodsName}}</text>
+                <text class="shelf-list-spec" wx:if="{{disGoods.nxDgGoodsStandardname}}">规格：{{disGoods.nxDgGoodsStandardWeight !== 'null' && disGoods.nxDgGoodsStandardWeight && disGoods.nxDgGoodsStandardWeight.length > 0 ? disGoods.nxDgGoodsStandardWeight + '/' : ''}}{{disGoods.nxDgGoodsStandardname}}</text>
+              </view>
+            </view>
+            <view class="shelf-list-stock">
+              <text class="shelf-list-stock-label">库存：</text>
+              <view class="shelf-card-stock">
+                <block wx:if="{{disGoods.stockList && disGoods.stockList.length > 0}}">
+                  <text class="stock-chip" wx:for="{{disGoods.stockList}}" wx:for-item="stock" wx:key="index">{{stock.nxDgssRestWeight}}{{disGoods.nxDgGoodsStandardname}}</text>
+                </block>
+                <block wx:else>
+                  <text class="stock-empty">暂无库存</text>
+                </block>
+              </view>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+    
+
+  </view>
+</view>
+
+<!-- 弹窗组件 -->
+<dis-plan-purchase show="{{showPlanPurchase}}" restWeight="{{restWeight}}" maxRestWeight="{{maxRestWeight}}" bindconfirm="confirm" bindcancle="canclePlanPurchase" bindgetFocus="getFocus" item="{{item}}" applyStandardName="{{applyStandardName}}" windowHeight="{{windowHeight}}" />
+
+<input-pur-goods show="{{showInputPurGoods}}" bindconfirm="confirmInputPurGoods" bindcancle="cancleInputPurGoods" bindfinish="cancleInputPurGoods" item="{{item}}" windowHeight="{{windowHeight}}" windowWidth="{{windowWidth}}" />
+
+<input-pur-stock show="{{showInputPurStock}}" bindconfirm="confirmInputPurStock" bindcancle="cancleInputPurStock" item="{{item}}" windowHeight="{{windowHeight}}" windowWidth="{{windowWidth}}" />
+
+<disEditPurchase show="{{showEditPurGoods}}" item="{{item}}" planOrder="{{planOrder}}" applyStandardName="{{applyStandardName}}" purchaseGoods="{{purchaseGoods}}" priceLevel="{{priceLevel}}" bindconfirmEditGoods="confirmEditPurGoods" bindcancle="closeEditPurGoods" binddelPurGoods="deletePurGoods" />
+
+<editShelfStock show="{{showStock}}" shelfGoods="{{shelfGoods}}" disId="{{disId}}" userId="{{userId}}" totalRestWeight="{{stockRestWeightTotal}}" bindclose="closeStockModal" bindsuccess="refreshAfterStockOperation" />
+<editShelfStockDetail show="{{showStockDetail}}" shelfGoods="{{shelfGoods}}" disId="{{disId}}" userId="{{userId}}" bindclose="closeStockDetailModal" bindconfirm="confirmStockDetail" />
+
+<!-- 操作弹窗 -->
+<view class='overlay {{showOperation ? "show" : ""}}' catchtap="hideChoice">
+  <view class="popup font-sm flex-column  {{isEditGoods ? 'is-active' : ''}}">
+
+    <block wx:if="{{isUnshelfSelected}}">
+      <view class="flex-column-center p-30 border-bottom font-bold font-lg ">
+        <view class="flex-row">
+          <text class="mr-10">{{disGoods.nxDgGoodsName}}</text>
+          <text>({{disGoods.nxDgGoodsStandardname}})</text>
+        </view>
+      </view>
+
+      <view class="p-30 flex-row border-bottom" catchtap="toOpenDisPlanPurchase" hover-class="hover">
+        <image src="/images/add-active.png" mode="aspectFill" class="icon mr-20" />
+        <text> 订货</text>
+      </view>
+
+      <view class="popup-item flex-row" catchtap="editPurchaseGoods" hover-class="popup-item-hover" wx:if="{{shelfGoods.shelfPurGoods !== null && shelfGoods.shelfPurGoods.nxDpgStatus < 2}}">
+        <image src="/images/edit-3.png" class="popup-item-icon"></image>
+        <view class="popup-item-text">
+          <text class="popup-item-title">修改采购信息</text>
+        </view>
+      </view>
+
+      <view class="p-30 flex-row border-bottom" catchtap="toOpenInputPurSock" hover-class="hover">
+        <image src="/images/gouwuche-4.png" mode="aspectFill" class="icon mr-20" />
+        <text> 采购入库</text>
+      </view>
+
+      <block wx:if="{{disGoods.stockList && disGoods.stockList.length > 0}}">
+        <view class="p-30 flex-row border-bottom" catchtap="showStockDetail" hover-class="hover">
+          <image src="/images/Focus-Auto.png" mode="aspectFill" class="icon mr-20" />
+          <text>库存详细</text>
+        </view>
+
+        <view class="p-30 flex-row border-bottom" catchtap="showStock" hover-class="hover">
+          <image src="/images/tab_classification-2.png" mode="aspectFill" class="icon mr-20" />
+          <text> 修改库存数量</text>
+        </view>
+      </block>
+
+      <view class="p-30 flex-row border-bottom" catchtap="toGoodsDetail" hover-class="hover">
+        <image src="/images/icon_goods.png" mode="aspectFill" class="icon mr-20" />
+        <text> 打开详细</text>
+      </view>
+
+      <view class="p-30 flex-row border-bottom" catchtap="changeShelf" hover-class="hover">
+        <image src="/images/exchange.png" mode="aspectFill" class="icon mr-20" />
+        <text> 添加到货架</text>
+      </view>
+    </block>
+
+    <block wx:else="">
+
+      <view class="flex-column-center p-30 border-bottom font-bold font-lg ">
+        <view class="flex-row">
+          <text class="mr-10">{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
+          <text>({{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+        </view>
+      </view>
+      <block wx:if="{{shelfGoods.shelfPurGoods  == null}}">
+
+        <view class="p-30 flex-row border-bottom" catchtap="toOpenDisPlanPurchase" hover-class="hover">
+          <image src="/images/add-active.png" mode="aspectFill" class="icon mr-20" />
+          <text> 订货</text>
+        </view>
+      </block>
+
+      <block wx:else="">
+
+        <view class="p-30 flex-row border-bottom" catchtap="editPurchaseGoods" hover-class="popup-item-hover" wx:if="{{shelfGoods.shelfPurGoods !== null && shelfGoods.shelfPurGoods.nxDpgStatus == 0}}" hover-class="hover">
+          <image src="/images/icon_goods.png" mode="aspectFill" class="icon mr-20" />
+          <text> 修改订货</text>
+        </view>
+      </block>
+
+      <view class="p-30 flex-row border-bottom" catchtap="toOpenInputPurSock" hover-class="hover">
+        <image src="/images/gouwuche-4.png" mode="aspectFill" class="icon mr-20" />
+        <text>采购入库</text>
+      </view>
+
+      <block wx:if="{{shelfGoods.nxDisGoodsShelfStockEntities.length > 0}}">
+
+        <view class="p-30 flex-row border-bottom" catchtap="showStockDetail" hover-class="hover">
+          <image src="/images/Focus-Auto.png" mode="aspectFill" class="icon mr-20" />
+          <text>库存详细</text>
+        </view>
+
+        <view class="p-30 flex-row border-bottom" catchtap="showStock" hover-class="hover">
+          <image src="/images/tab_classification-2.png" mode="aspectFill" class="icon mr-20" />
+          <text> 修改库存数量</text>
+        </view>
+      </block>
+
+      <view class="bg-light" style="height: 10px;"></view>
+
+      <view class="p-30 flex-row border-bottom" catchtap="toGoodsDetail" hover-class="hover">
+        <image src="/images/icon_goods.png" mode="aspectFill" class="icon mr-20" />
+        <text> 打开详细</text>
+      </view>
+
+      <view class="p-30 flex-row border-bottom" catchtap="changeShelf" hover-class="hover">
+        <image src="/images/exchange.png" mode="aspectFill" class="icon mr-20" />
+        <text> 修改到其它货架</text>
+      </view>
+
+      <view class="p-30 flex-row border-bottom" catchtap="setShelfLayer" hover-class="hover" wx:if="{{!(shelfGoods.nxDgsgShelfLayer > 0)}}">
+        <image src="/images/add-bold-2.png" mode="aspectFill" class="icon mr-20" />
+        <text> 设置层架 </text>
+      </view>
+      <view class="p-30 flex-row border-bottom" catchtap="clearShelfLayer" hover-class="hover" wx:else>
+        <image src="/images/del.png" mode="aspectFill" class="icon mr-20" />
+        <text> 取消层架 </text>
+      </view>
+
+      <view class="p-30 flex-row border-bottom" catchtap="toAddShelfGoodsSort" data-type="before" hover-class="hover">
+        <image src="/images/add-bold-2.png" mode="aspectFill" class="icon mr-20" />
+        <text> 在前面添加新商品</text>
+      </view>
+
+      <view class="p-30 flex-row border-bottom" catchtap="deleteGoods" hover-class="hover">
+        <image src="/images/del.png" mode="aspectFill" class="icon mr-20" />
+        <text>删除货架商品</text>
+      </view>
+    </block>
+
+  </view>
+</view>

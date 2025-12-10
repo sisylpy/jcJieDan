@@ -1,0 +1,279 @@
+
+.top_search{
+  background-color: rgb(238, 238, 238);
+  border: 1px solid lightgray;
+  border-radius: 20rpx;
+
+ }
+ 
+ 
+.inputGoods{
+  padding-left: 20rpx;
+  line-height: 80rpx;
+  height: 80rpx;
+  padding: 10rpx 10rpx;
+  /* border-bottom: 1px solid gray; */
+}
+
+
+
+
+/*  */
+
+.navbar {
+  display: flex;
+  position: relative;
+  z-index: 500;
+  top: 105rpx;
+  width: 100%;
+  /* border-bottom: 1rpx solid #e5e5e5; */
+  /* background-color: #0d4d43; */
+  height: 100rpx;
+
+}
+
+
+.navbar .navbar-item {
+  position: relative;
+  display: block;
+  flex: 1;
+  text-align: center;
+  line-height: 100rpx;
+  color: #4e5253;
+}
+
+.navbar .bar-item-on {
+  color: #147062;
+  
+}
+
+.navbar .navbar-title {
+  display: inline-block;
+  font-size: 34rpx;
+  width: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-wrap: normal;
+}
+
+.navbar .bar-item-on .navbar-title {
+  color: #147062;
+}
+
+.navbar .navbar-slider {
+  position: absolute;
+  content: " ";
+  left: 0;
+  bottom: 0;
+  width: 100rpx;
+  height: 5rpx;
+  background-color: #147062;
+  -webkit-transition: -webkit-transform 0.3s;
+  transition: -webkit-transform 0.3s;
+  transition: transform 0.3s, -webkit-transform 0.3s;
+}
+
+
+/*  */
+.navbarSearch {
+  display: flex;
+  position: relative;
+  /* z-index: 500; */
+  /* top: 1rpx; */
+  /* width: 100%; */
+  height: 60rpx;
+  margin-bottom: 20rpx;
+}
+
+.navbarSearch .navbar-item {
+  position: relative;
+  display: block;
+  flex: 1;
+  text-align: center;
+  line-height: 60rpx;
+  color: #4e5253;
+}
+
+.navbarSearch .bar-item-on {
+  color: #147062;
+  
+}
+
+.navbarSearch .navbar-title {
+  display: inline-block;
+  font-size: 34rpx;
+  width: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-wrap: normal;
+}
+
+.navbarSearch .bar-item-on .navbar-title {
+  color: #147062;
+}
+
+.navbarSearch .navbar-slider {
+  position: absolute;
+  content: " ";
+  left: 0;
+  bottom: 0;
+  /* width 由内联样式动态设置，根据 tab 数量计算 */
+  height: 5rpx;
+  background-color: #147062;
+  -webkit-transition: -webkit-transform 0.3s;
+  transition: -webkit-transform 0.3s;
+  transition: transform 0.3s, -webkit-transform 0.3s;
+}
+
+/* 货架商品列表样式 - 参考 shelfGoodsSearch */
+.shelf-list-wrap {
+  padding: 20rpx;
+}
+
+/* 确保商品行容器占满全行 */
+.flex-row-default {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.shelf-list-item {
+  display: flex;
+  align-items: flex-start;
+  background-color: #fff;
+  border-radius: 24rpx;
+  border: 1px solid #e5e5e5;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.shelf-list-thumb {
+  width: 160rpx;
+  height: 160rpx;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+  border-radius: 16rpx;
+  overflow: hidden;
+  background-color: #f5f5f5;
+}
+
+.shelf-list-img {
+  width: 100%;
+  height: 100%;
+}
+
+.shelf-list-img.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shelf-list-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.shelf-list-title {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.shelf-list-brand {
+  font-size: 26rpx;
+  color: #0a8a72;
+  padding: 0 14rpx;
+  background-color: rgba(10, 138, 114, 0.12);
+  border-radius: 12rpx;
+}
+
+.shelf-list-title-text {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+.shelf-list-name {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.shelf-list-spec {
+  font-size: 26rpx;
+  color: #7a8594;
+}
+
+.shelf-list-stock {
+  display: flex;
+  align-items: flex-start;
+  font-size: 26rpx;
+  color: #666;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.shelf-list-stock-label {
+  color: #666;
+}
+
+.stock-num {
+  color: #147062;
+  font-weight: 600;
+}
+
+.stock-empty {
+  color: #999;
+}
+
+.shelf-list-tag {
+  margin-left: 20rpx;
+  display: flex;
+  align-items: center;
+}
+
+.circle_list {
+  background: #04328c;
+  border-radius: 20rpx;
+  width: 80rpx;
+  height: 50rpx;
+  line-height: 50rpx;
+  font-size: 26rpx;
+  color: #fff;
+}
+
+.circle_list.gray {
+  background: #9ca3af;
+}
+
+.shelf-card-stock {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  flex: 1;
+  align-items: flex-start;
+}
+
+.stock-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e9efff;
+  color: #3171ff;
+  padding: 8rpx 22rpx;
+  border-radius: 20rpx;
+  font-size: 28rpx;
+  line-height: 1.2;
+}
+
+.shelf-card-empty {
+  color: #b0b7c3;
+  font-size: 26rpx;
+}
+

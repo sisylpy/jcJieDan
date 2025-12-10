@@ -1,0 +1,21 @@
+<!-- components/custom-navbar/custom-navbar.wxml -->
+<view class="custom-navbar" style="height: {{statusBarHeight + navBarContentHeight}}rpx;">
+  <!-- 状态栏区域（透明） -->
+  <view style="height: {{statusBarHeight}}rpx; background-color: transparent;"></view>
+  <!-- 导航栏内容区域 -->
+  <view class="nav-container" style="height: {{navBarContentHeight}}rpx;  ">
+    <!-- 左侧区域 -->
+    <view class="nav-left"  bindtap="navbuttontap" style="width: {{leftWidth}}rpx; height: {{navBarContentHeight}}rpx;">
+      <image src="{{avatar}}" mode="aspectFill" class="user-avatar"/>
+    </view>
+    <!-- 中间标题 -->
+    <view class="nav-title">{{title}}</view>
+    <!-- 右侧区域 -->
+    <view class="nav-right" style="width: {{rightWidth}}rpx; ">
+      <!-- 右侧内容 -->
+      <!-- 如果需要添加右侧按钮，可以放在这里 -->
+
+      
+    </view>
+  </view>
+</view>

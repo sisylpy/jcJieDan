@@ -1,0 +1,20 @@
+<view class="flex flex-column height-100">
+
+
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="标签打印机" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+
+  <view class="flex-column bg-white font-lg mt-10">
+
+    <!-- <view class="flex-row p-20 border-bottom" bind:tap="toPrint">
+      <text class="mr-10 text-secondary">选择打印机:</text>
+      <view class="flex-row font-sl">
+        <text>{{disInfo.nxDistributerLan}}</text>
+      </view>
+    </view> -->
+
+    <!-- 打印机设置功能已移至 pages/stock/index/index.wxml -->
+
+  </view>
+
+</view>

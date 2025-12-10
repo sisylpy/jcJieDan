@@ -1,0 +1,34 @@
+
+
+<view class='flex-column'>
+
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="{{type == 'edit' ? '修改' : '添加'}}供货商" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+<!--  -->
+	<scroll-view scroll-y  class='p-30' style='margin-top: {{navBarHeight}}rpx; background:white;' >
+		<view class='flex-column p-20' wx:if="{{type == 'edit'}}">
+			<view class="pt-10 text-secondary normal">修改供货商名称:</view>
+			<view class=" flex-column mt-10">
+				<input  class="numInput mainColor" style="width:{{windowWidth/2}}rpx; font-size: 40rpx;  height: 80rpx; line-height: 80rpx;padding-left: 10rpx; margin-bottom:10rpx;" bindinput="editName" bindblur="chechUpdate" value="{{supplier.nxJrdhsSupplierName}}" 	></input>
+			</view>
+		</view>
+
+    <view class='flex-column p-20' wx:else="">
+			<view class="tb-20" style="font-size: 40rpx; font-weight: 500;">供货商名称:</view>
+			<view class=" flex-column">
+				<input  class="numInput mainColor" style="width:{{windowWidth/2}}rpx; font-size: 40rpx;  height: 80rpx; line-height: 80rpx;padding-left: 10rpx; margin-bottom:10rpx;" bindinput="getRestrauntName"  value="{{supplierName}}" 	></input>
+			</view>
+		</view>
+
+	</scroll-view>
+
+
+	<view class="flex-column text-center p-30">
+  <view   wx:if="{{type !== 'edit' }}" class='big_button p-10 {{addFinished ? "is-active" : ""}}'  
+	catchtap="{{addFinished ? 'saveDepartment' : '' }}" >保存新供货商</view>
+
+
+	<view  wx:else=""  class='big_button p-10 {{addFinished ? "is-active" : ""}}'  
+	catchtap="{{addFinished ? 'saveUpdate' : '' }}">保存修改</view>
+
+</view>
+</view>

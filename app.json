@@ -1,0 +1,234 @@
+{
+  "pages": [
+    "pages/order/index/index",
+    "pages/doing/index/index",
+    "pages/purchase/index/index",
+    "pages/stock/index/index",
+    "pages/login/login",
+    "pages/printLogin/printLogin",
+    "pages/order/orderPrint/orderPrint",
+    "pages/order/searchOrder/searchOrder",
+    "pages/order/writePrice/writePrice",
+    "pages/order/writeWeight/writeWeight",
+    "pages/order/orderPage/orderPage",
+    "pages/order/depList/depList",
+    "pages/order/paste/paste",
+    "pages/goods/goods",
+    "pages/order/ailasGoodsList/ailasGoodsList",
+    "pages/order/pSearchPrinter/pSearchPrinter",
+    "pages/order/linshiOrderPage/linshiOrderPage",
+    "pages/order/resGoodsList/resGoodsList"
+  
+  
+  ],
+  "subPackages": [{
+    "root": "subPackage/",
+    "pages": [
+    
+    "pages/loginPay/loginPay",
+    "pages/loginInvite/loginInvite", 
+    "pages/inviteAdmin/inviteAdmin",
+    "pages/downLoadApp/downLoadApp",
+    "pages/inviteLogin/inviteLogin",
+    
+      "pages/customer/index/index",
+      "pages/customer/choiceDep/choiceDep",
+      "pages/customer/chefAi/chefAi", 
+      "pages/customer/chefOrder/chefOrder", 
+      "pages/customer/jrdhGoodsStars/jrdhGoodsStars",
+      "pages/customer/customerPage/customerPage",
+      "pages/customer/customerGoods/customerGoods",
+      "pages/customer/customerGoodsPrice/customerGoodsPrice",
+      "pages/customer/customerGoodsGb/customerGoodsGb",
+      "pages/customer/customerUsers/customerUsers",
+      "pages/customer/customerPageGb/customerPageGb",
+      "pages/customer/customerDetail/customerDetail",
+      "pages/customer/customerDetailGb/customerDetailGb",
+      "pages/customer/settleAccount/settleAccount",
+      "pages/customer/settleAccountGb/settleAccountGb",
+      "pages/customer/issuePage/issuePage",
+      "pages/customer/issuePageGb/issuePageGb",
+      "pages/customer/issuePageGbReturn/issuePageGbReturn",
+      "pages/customer/cashPage/cashPage",
+      "pages/customer/addCustomer/addCustomer",
+      "pages/customer/editCustomer/editCustomer",
+      "pages/customer/unPayBills/unPayBills",
+      "pages/customer/unPayBillsGb/unPayBillsGb",
+      "pages/customer/invitePage/invitePage",
+      "pages/customer/invitePageCash/invitePageCash",
+      "pages/customer/inviteGbPage/inviteGbPage",
+      "pages/customer/gbAndBusiness/gbAndBusiness",
+      "pages/customer/deliveryAddress/deliveryAddress",
+      "pages/customer/customerPdf/customerPdf",
+      "pages/customer/webview/webview",
+      "pages/order/writeWeightGb/writeWeightGb",
+      "pages/order/orderPageGb/orderPageGb",
+      "pages/order/writePriceGb/writePriceGb",
+      "pages/shelf/index/index",
+      "pages/shelf/editShelf/editShelf",
+      "pages/shelf/resGoodsListShelf/resGoodsListShelf",
+      "pages/shelf/shelfGoodsSort/shelfGoodsSort",
+      "pages/shelf/changeShelf/changeShelf",
+      "pages/shelf/disAddGoodsShelf/disAddGoodsShelf",
+      "pages/shelf/shelfGoodsSearch/shelfGoodsSearch",
+      "pages/shelf/voiceAddGoods/voiceAddGoods",
+      "pages/shelf/inventory/inventory",
+    
+
+      "pages/shelf/settlePage/settlePage",
+
+      "pages/management/homePage/homePage",
+      "pages/management/homeEdit/homeEdit",
+      "pages/management/userNameEdit/userNameEdit",
+      "pages/management/myBills/myBills",
+      "pages/management/invitePage/invitePage",
+  
+      "pages/management/printerSet/printerSet",
+      "pages/management/labelPrinter/labelPrinter",
+
+      "pages/management/staff/staff",
+    
+      "pages/management/payList/payList",
+      "pages/management/disUserEdit/disUserEdit",
+      "pages/management/payPage/payPage",
+      "pages/management/payPageMarket/payPageMarket",
+      "pages/management/payDetail/payDetail",
+      "pages/supplier/supplierList/supplierList",
+      "pages/supplier/addSupplier/addSupplier",
+      "pages/supplier/appointSupplierList/appointSupplierList",
+      "pages/supplier/buyerCheckUnPay/buyerCheckUnPay",
+      "pages/supplier/batchDetail/batchDetail",
+      "pages/supplier/goodsIndex/goodsIndex",
+      "pages/supplier/supplierGoods/supplierGoods",
+      "pages/trans/fromOrderPageGb/fromOrderPageGb",
+      "pages/trans/login/login",
+      "pages/trans/supplierBills/supplierBills",
+      "pages/trans/myPurchaseDetail/myPurchaseDetail",
+      "pages/trans/settlePageGb/settlePageGb",
+
+      "pages/prepare/orderDepList/orderDepList",
+      "pages/prepare/land/land",
+      "pages/prepare/depOutOrder/depOutOrder",
+      "pages/prepare/orderList/orderList",
+      "pages/prepare/printWeightOrders/printWeightOrders",
+      "pages/goods/disGoodsDetail/disGoodsDetail",
+      "pages/goods/disGoodsPage/disGoodsPage",
+      "pages/goods/searchGoods/searchGoods",
+      "pages/goods/nxGoodsPicture/nxGoodsPicture",
+      "pages/goods/linshiGoodsDis/linshiGoodsDis",
+      "pages/goods/linshiGoodsList/linshiGoodsList",
+      "pages/goods/disAddGoods/disAddGoods",
+      "pages/goods/disAddGoods/greatGrandGoods/greatGrandGoods",
+      "pages/goods/disAddGoods/fatherGoods/fatherGoods",
+      "pages/goods/ailasGoodsList/ailasGoodsList",
+      "pages/goods/disAddGoodsLinshi/disAddGoodsLinshi",
+      "pages/goods/disUpdateGoodsLinshi/disUpdateGoodsLinshi",
+      "pages/goods/goodsListExchange/goodsListExchange",
+      "pages/goods/appointSupplierList/appointSupplierList",
+      "pages/goods/updatePriceGoods/updatePriceGoods",
+      "pages/goods/greatGrandGoods/greatGrandGoods",
+      "pages/goods/grandGoods/grandGoods",
+      "pages/goods/goodsList/goodsList",
+      "pages/goods/goodsTypeList/goodsTypeList",
+      "pages/goods/disAddGoodsNx/disAddGoodsNx",
+      "pages/goods/nxPicture/nxPicture",
+      "pages/order/editDepApplyGoods/editDepApplyGoods",
+      "pages/order/purGoods/purGoods",
+      "pages/order/aiHelpGoods/aiHelpGoods",
+      "pages/route/mapNxDep/mapNxDep",
+      "pages/route/driver/driver",
+      "pages/route/deliveryRoute/deliveryRoute"
+    ]
+    }, {
+    "root": "subPackage-charts/",
+    "name": "charts",
+    "pages": [
+      "pages/statistic/index/index",
+      "pages/statistic/costGoodsByDate/costGoodsByDate",
+      "pages/statistic/indexGoods/indexGoods",
+      "pages/statistic/purchaseDeatil/purchaseDeatil",
+      "pages/statistic/purGoodsByDate/purGoodsByDate",
+      "pages/statistic/stockPurGoods/stockPurGoods",
+
+      "pages/supplier/index/index",
+      "pages/supplier/supplierDetail/supplierDetail",
+      "pages/supplier/supplierBills/supplierBills",
+
+
+      "pages/sel/date/date",
+      "pages/sel/searchDate/searchDate",
+      
+      "pages/stock/index/index",
+        "pages/stock/stockList/stockList",
+        "pages/stock/stockListOneDay/stockListOneDay",
+
+      
+      "pages/mangement/costGoodsFenxi/costGoodsFenxi",
+      "pages/mangement/purGoodsFenxi/purGoodsFenxi",
+      "pages/mangement/goodsFenxiCost/goodsFenxiCost",
+      "pages/mangement/goodsFenxiPurchase/goodsFenxiPurchase"
+
+
+    ]
+    }],
+  "tabBar": {
+    "custom": true,
+    "color": "#999999",
+    "selectedColor": "#ff0000",
+    "list": [
+      
+      {
+        "pagePath": "pages/order/index/index",
+        "text": "订单",     
+         "iconPath": "/images/icons/icon_orders.png",
+        "selectedIconPath": "/images/icons/icon_orders_active.png"
+      },
+     
+      {
+        "pagePath": "pages/stock/index/index",
+        "text": "出库中",
+        "iconPath": "/images/icons/icon_goods.png",
+        "selectedIconPath": "/images/icons/icon_goods_active.png"
+      }, {
+        "pagePath": "pages/purchase/index/index",
+        "text": "未采购",
+        "iconPath": "/images/icons/icon_goods.png",
+        "selectedIconPath": "/images/icons/icon_goods_active.png"
+      }, {
+        "pagePath": "pages/doing/index/index",
+        "text": "采购中",
+        "iconPath": "/images/icons/icon_goods.png",
+        "selectedIconPath": "/images/icons/icon_goods_active.png"
+      }
+    ]
+  },
+  "window": {
+    "backgroundTextStyle": "light",
+    "navigationBarTitleText": "WeChat",
+    "navigationBarTextStyle": "black",
+    "navigationStyle": "custom"
+  },
+  
+  "requiredBackgroundModes": ["audio"],
+  
+  "requiredPrivateInfos": [
+    "chooseLocation",
+    "onLocationChange",
+    "startLocationUpdate",
+    "startLocationUpdateBackground"
+    
+  ],
+  
+  "permission": {
+    "scope.userLocation": {
+      "desc": "你的位置信息将用于小程序位置接口的效果展示"
+    }
+  },
+  "plugins": {
+    "QCloudAIVoice": {
+      "version": "2.3.12",
+      "provider": "wx3e17776051baf153"
+    }
+  },
+  "lazyCodeLoading": "requiredComponents"
+}

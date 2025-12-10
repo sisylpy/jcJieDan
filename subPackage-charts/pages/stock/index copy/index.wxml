@@ -1,0 +1,500 @@
+
+<view class="flex flex-column ">
+
+  <back-navbar title="库存" style="height: {{navBarHeight}}rpx;" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+  <!-- 顶部标签栏 -->
+  <view class=" flex-row-between bg-white border-bottom">
+    <view class="flex-row ">
+      <scroll-view scroll-x="true" show-scrollbar="false" enhanced="true" class="nav" scroll-with-animation="{{true}}" scroll-left="{{leftWidth}}" style="width: {{windowWidth - 40 }}rpx; padding: 0 16rpx;">
+        <view class="swiper1_top_item flex-column {{itemIndex == 0 ? 'on' : ''}} " data-index='0' data-which="99" data-total="{{total}}" data-days="所有库存" bindtap="onTab1Click" style="width: {{windowWidth / 4}}rpx; min-width: 140rpx; padding: 16rpx 12rpx; margin: 0 4rpx; box-sizing: border-box;">
+          <view class="flex-row">
+            <view class="time-icon all-stock">总</view>
+            <text class="">所有库存</text>
+          </view>
+          <view class="font-md">{{total}}元</view>
+        </view>
+        <view class="swiper1_top_item flex-column {{itemIndex==1 ? 'on' : ''}}" data-index='1' data-which="0" data-total="{{zeroTotal}}" data-days="今天" bindtap="onTab1Click" style="width: {{windowWidth / 4}}rpx; min-width: 140rpx; padding: 16rpx 12rpx; margin: 0 4rpx; box-sizing: border-box;">
+          <view class="flex-row">
+            <view class="time-icon today">今</view>
+            <text class="">今天</text>
+          </view>
+          <view class="font-md">{{zeroTotal}}元</view>
+        </view>
+        <view class="swiper1_top_item  flex-column {{itemIndex==2 ? 'on' : ''}}" data-index='2' data-which="-1" data-total="{{oneTotal}}" data-days="1天" bindtap="onTab1Click" style="width: {{windowWidth / 4}}rpx; min-width: 140rpx; padding: 16rpx 12rpx; margin: 0 4rpx; box-sizing: border-box;">
+          <view class="flex-row">
+            <view class="time-icon one-day">1</view>
+            <text class="">1天</text>
+          </view>
+          <view class="font-md">{{oneTotal}}元</view>
+        </view>
+        <view class="swiper1_top_item  flex-column {{itemIndex==3 ? 'on' : ''}}" data-index='3' data-which="-2" data-total="{{twoTotal}}" data-days="2天" bindtap="onTab1Click" style="width: {{windowWidth / 4}}rpx; min-width: 140rpx; padding: 16rpx 12rpx; margin: 0 4rpx; box-sizing: border-box;">
+          <view class="flex-row">
+            <view class="time-icon two-days">2</view>
+            <text class="font-md">2天</text>
+          </view>
+          <view class="font-md">{{twoTotal}}元</view>
+        </view>
+        <view class="swiper1_top_item   flex-column {{itemIndex==4 ? 'on' : ''}}" data-index='4' data-which="-3" data-total="{{threeTotal}}" data-days="3天" bindtap="onTab1Click" style="width: {{windowWidth / 4}}rpx; min-width: 140rpx; padding: 16rpx 12rpx; margin: 0 4rpx; box-sizing: border-box;">
+          <view class="flex-row">
+            <view class="time-icon three-days">3</view>
+            <text class="">3天</text>
+          </view>
+          <view class="font-md">{{threeTotal}}元</view>
+        </view>
+        <view class="swiper1_top_item  flex-column {{itemIndex==5 ? 'on' : ''}}" data-index='5' data-which="-4" data-total="{{exceedThreeTotal}}" data-days="3天以上" bindtap="onTab1Click" style="width: {{windowWidth / 4}}rpx; min-width: 140rpx; padding: 16rpx 12rpx; margin: 0 4rpx; box-sizing: border-box;">
+          <view class="flex-row">
+            <view class="time-icon more-days">3+</view>
+            <text class="">3天以上</text>
+          </view>
+          <view class="font-md">{{exceedThreeTotal}}元</view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <swiper duration="300" bindanimationfinish="animationfinish" current="{{itemIndex}}" data-index='{{itemIndex}}' style="height: {{windowHeight - navBarHeight - 120}}rpx;  ">
+    <!-- all -->
+    <swiper-item style="height: 100%;">
+      <scroll-view scroll-y style="height:{{ windowHeight - navBarHeight - 120}}rpx;">
+
+        <view class="flex-column bg-light p-20" wx:if="{{total > 0 && itemIndex == 0}}">
+
+          <view class="bg-light flex-column" wx:if="{{totalArr.length > 0}}">
+            <view class="flex-column font-md  bg-white " wx:for="{{totalArr}}" wx:for-item="grand" wx:for-index="greatIndex" wx:key="gbDistributerGoodsFatherId">
+
+              <view class="flex-row-default" style="width: {{windowWidth - 80}}rpx;" bindtap="toStockPage" data-id="{{grand.gbDistributerFatherGoodsId}}" data-name="{{grand.gbDfgFatherGoodsName}}" data-dateduring="99" data-days="所有库存" data-color="{{grand.gbDfgFatherGoodsColor}}" data-total="{{grand.fatherStockTotalString}}" data-index="{{greatIndex}}" hover-class="hover">
+                <!-- 左侧：商品图片和名称 -->
+                <view class="p-20">
+                  <image src="{{url + grand.gbDfgFatherGoodsImg}}" mode="aspectFill" class="category-image" />
+                </view>
+                <!-- 右侧：库存信息 -->
+                <view class="flex-column p-20">
+                  <view class="flex-row-between " style="width: {{windowWidth - 240}}rpx;">
+                    <text class="category-name">{{grand.gbDfgFatherGoodsName}}</text>
+                    <!-- 百分比环形图 -->
+                    <view class="donut-chart-container">
+                      <view class="donut-chart" style="width: 80rpx; height: 80rpx; background: {{grand.stockConicGradient}};">
+                        <text class="donut-percent">{{grand.fatherStockTotalPercent}}%</text>
+                      </view>
+                    </view>
+                  </view>
+
+                  <view class="flex-column">
+                    <!-- 主要金额 -->
+                    <view class="stock-quantity">
+                      <text class="quantity-label">库存金额:</text>
+                      <view class="flex-column">
+                        <view class="quantity-value">{{grand.fatherStockTotalString}}元</view>
+                        <block wx:if="{{grand.fatherWasteTotalString > 0}}">
+                          <view class="waste-value">过期{{grand.fatherWasteTotalString}}元</view>
+                        </block>
+                      </view>
+                     
+                    </view>
+                    <!-- 商品数量 -->
+                    <view class="stock-quantity">
+                      <text class="quantity-label">商品:</text>
+                      <view class="flex-column">
+                        <view class="quantity-value">{{grand.fatherStockManyString}}个</view>
+                        <block wx:if="{{grand.fatherWasteTotalString > 0}}">
+                          <view class="waste-value">过期{{grand.fatherWasteRateString}}个</view>
+                        </block>
+                      </view>
+                    </view>
+
+                  </view>
+
+                </view>
+              </view>
+
+            </view>
+          </view>
+
+          <view style="height: 200rpx; "> </view>
+        </view>
+        <!-- emptyView -->
+        <view class="flex-column " wx:else style="height:{{windowHeight - navBarHeight}}rpx; margin-top: 300rpx; ">
+          <view class=" flex-column center-content">
+            <image class="icon-lg" src="../../../../images/file-common.png"></image>
+            <text class="p-20">暂无库存</text>
+          </view>
+        </view>
+      </scroll-view>
+
+
+    </swiper-item>
+
+    <!-- ininininininiinninininini -->
+    <swiper-item style="height: 100%;">
+      <scroll-view scroll-y style="height:{{ windowHeight - navBarHeight - 120}}rpx;">
+        <view class="flex-column bg-light p-20" wx:if="{{tab1Index  == 1 && zeroTotal > 0}}">
+
+          <view class="bg-light flex-column" wx:if="{{totalArr.length > 0}}">
+            <view class="flex-column font-md  bg-white " wx:for="{{totalArr}}" wx:for-item="grand" wx:for-index="greatIndex" wx:key="gbDistributerGoodsFatherId">
+
+              <view class="flex-row-default" style="width: {{windowWidth - 80}}rpx;" bindtap="toStockPage" data-id="{{grand.gbDistributerFatherGoodsId}}" data-name="{{grand.gbDfgFatherGoodsName}}" data-dateduring="0" data-days="所有库存" data-color="{{grand.gbDfgFatherGoodsColor}}" data-total="{{grand.fatherStockTotalString}}" data-index="{{greatIndex}}" hover-class="hover">
+                <!-- 左侧：商品图片和名称 -->
+                <view class="p-20">
+                  <image src="{{url + grand.gbDfgFatherGoodsImg}}" mode="aspectFill" class="category-image" />
+                </view>
+                <!-- 右侧：库存信息 -->
+                <view class="flex-column p-20">
+                  <view class="flex-row-between " style="width: {{windowWidth - 240}}rpx;">
+                    <text class="category-name">{{grand.gbDfgFatherGoodsName}}</text>
+                    <!-- 百分比环形图 -->
+                    <view class="donut-chart-container">
+                      <view class="donut-chart" style="width: 80rpx; height: 80rpx; background: {{grand.stockConicGradient}};">
+                        <text class="donut-percent">{{grand.fatherStockTotalPercent}}%</text>
+                      </view>
+                    </view>
+                  </view>
+
+                  <view class="flex-column">
+                    <!-- 主要金额 -->
+                    <view class="stock-quantity">
+                      <text class="quantity-label">库存金额:</text>
+                      <view class="flex-column">
+                        <view class="quantity-value">{{grand.fatherStockTotalString}}元</view>
+                        <block wx:if="{{grand.fatherWasteTotalString > 0}}">
+                          <view class="waste-value">过期{{grand.fatherWasteTotalString}}元</view>
+                        </block>
+                      </view>
+                     
+                    </view>
+                    <!-- 商品数量 -->
+                    <view class="stock-quantity">
+                      <text class="quantity-label">商品:</text>
+                      <view class="flex-column">
+                        <view class="quantity-value">{{grand.fatherStockManyString}}个</view>
+                        <block wx:if="{{grand.fatherWasteTotalString > 0}}">
+                          <view class="waste-value">过期{{grand.fatherWasteRateString}}个</view>
+                        </block>
+                      </view>
+                    </view>
+
+                  </view>
+
+                </view>
+              </view>
+
+            </view>
+          </view>
+
+          <view style="height: 200rpx; ">
+
+          </view>
+        </view>
+        <!-- emptyView -->
+        <view class="flex-column " wx:else style="height:{{windowHeight - navBarHeight}}rpx; margin-top: 300rpx; ">
+          <view class=" flex-column center-content">
+            <image class="icon-lg" src="../../../../images/file-common.png"></image>
+            <text class="p-20">暂无库存</text>
+          </view>
+        </view>
+      </scroll-view>
+
+
+    </swiper-item>
+
+    <!-- oneoneoneoeneoen -->
+    <swiper-item style="height: 100%;">
+      <scroll-view scroll-y style="height:{{ windowHeight - navBarHeight}}rpx;">
+        <view class="flex-column bg-light p-20" wx:if="{{tab1Index  == 2 && oneTotal > 0}}">
+
+
+          <view class="bg-light flex-column" wx:if="{{totalArr.length > 0}}">
+            <view class="flex-column font-md  bg-white " wx:for="{{totalArr}}" wx:for-item="grand" wx:for-index="greatIndex" wx:key="gbDistributerGoodsFatherId">
+
+              <view class="flex-row-default" style="width: {{windowWidth - 80}}rpx;" bindtap="toStockPage" data-id="{{grand.gbDistributerFatherGoodsId}}" data-name="{{grand.gbDfgFatherGoodsName}}" data-dateduring="1" data-days="所有库存" data-color="{{grand.gbDfgFatherGoodsColor}}" data-total="{{grand.fatherStockTotalString}}" data-index="{{greatIndex}}" hover-class="hover">
+                <!-- 左侧：商品图片和名称 -->
+                <view class="p-20">
+                  <image src="{{url + grand.gbDfgFatherGoodsImg}}" mode="aspectFill" class="category-image" />
+                </view>
+                <!-- 右侧：库存信息 -->
+                <view class="flex-column p-20">
+                  <view class="flex-row-between " style="width: {{windowWidth - 240}}rpx;">
+                    <text class="category-name">{{grand.gbDfgFatherGoodsName}}</text>
+                    <!-- 百分比环形图 -->
+                    <view class="donut-chart-container">
+                      <view class="donut-chart" style="width: 80rpx; height: 80rpx; background: {{grand.stockConicGradient}};">
+                        <text class="donut-percent">{{grand.fatherStockTotalPercent}}%</text>
+                      </view>
+                    </view>
+                  </view>
+
+                  <view class="flex-column">
+                    <!-- 主要金额 -->
+                    <view class="stock-quantity">
+                      <text class="quantity-label">库存金额:</text>
+                      <view class="flex-column">
+                        <view class="quantity-value">{{grand.fatherStockTotalString}}元</view>
+                        <block wx:if="{{grand.fatherWasteTotalString > 0}}">
+                          <view class="waste-value">过期{{grand.fatherWasteTotalString}}元</view>
+                        </block>
+                      </view>
+                     
+                    </view>
+                    <!-- 商品数量 -->
+                    <view class="stock-quantity">
+                      <text class="quantity-label">商品:</text>
+                      <view class="flex-column">
+                        <view class="quantity-value">{{grand.fatherStockManyString}}个</view>
+                        <block wx:if="{{grand.fatherWasteTotalString > 0}}">
+                          <view class="waste-value">过期{{grand.fatherWasteRateString}}个</view>
+                        </block>
+                      </view>
+                    </view>
+
+                  </view>
+
+                </view>
+              </view>
+
+            </view>
+          </view>
+
+          <view style="height: 200rpx; ">
+
+          </view>
+        </view>
+        <!-- emptyView -->
+        <view class="flex-column " wx:else style="height:{{windowHeight - navBarHeight}}rpx; margin-top: 300rpx; ">
+          <view class=" flex-column center-content">
+            <image class="icon-lg" src="../../../../images/file-common.png"></image>
+            <text class="p-20">暂无库存</text>
+          </view>
+        </view>
+      </scroll-view>
+
+
+    </swiper-item>
+
+
+
+    <!-- twowtwowowowoowo -->
+    <swiper-item style="height: 100%;">
+      <scroll-view scroll-y style="height:{{ windowHeight - navBarHeight}}rpx;">
+        <view class="flex-column bg-light p-20" wx:if="{{tab1Index  == 3 && twoTotal > 0}}">
+
+
+          <view class="bg-light flex-column" wx:if="{{totalArr.length > 0}}">
+            <view class="flex-column font-md  bg-white " wx:for="{{totalArr}}" wx:for-item="grand" wx:for-index="greatIndex" wx:key="gbDistributerGoodsFatherId">
+
+              <view class="flex-row-default" style="width: {{windowWidth - 80}}rpx;" bindtap="toStockPage" data-id="{{grand.gbDistributerFatherGoodsId}}" data-name="{{grand.gbDfgFatherGoodsName}}" data-dateduring="2" data-days="所有库存" data-color="{{grand.gbDfgFatherGoodsColor}}" data-total="{{grand.fatherStockTotalString}}" data-index="{{greatIndex}}" hover-class="hover">
+                <!-- 左侧：商品图片和名称 -->
+                <view class="p-20">
+                  <image src="{{url + grand.gbDfgFatherGoodsImg}}" mode="aspectFill" class="category-image" />
+                </view>
+                <!-- 右侧：库存信息 -->
+                <view class="flex-column p-20">
+                  <view class="flex-row-between " style="width: {{windowWidth - 240}}rpx;">
+                    <text class="category-name">{{grand.gbDfgFatherGoodsName}}</text>
+                    <!-- 百分比环形图 -->
+                    <view class="donut-chart-container">
+                      <view class="donut-chart" style="width: 80rpx; height: 80rpx; background: {{grand.stockConicGradient}};">
+                        <text class="donut-percent">{{grand.fatherStockTotalPercent}}%</text>
+                      </view>
+                    </view>
+                  </view>
+
+                  <view class="flex-column">
+                    <!-- 主要金额 -->
+                    <view class="stock-quantity">
+                      <text class="quantity-label">库存金额:</text>
+                      <view class="flex-column">
+                        <view class="quantity-value">{{grand.fatherStockTotalString}}元</view>
+                        <block wx:if="{{grand.fatherWasteTotalString > 0}}">
+                          <view class="waste-value">过期{{grand.fatherWasteTotalString}}元</view>
+                        </block>
+                      </view>
+                     
+                    </view>
+                    <!-- 商品数量 -->
+                    <view class="stock-quantity">
+                      <text class="quantity-label">商品:</text>
+                      <view class="flex-column">
+                        <view class="quantity-value">{{grand.fatherStockManyString}}个</view>
+                        <block wx:if="{{grand.fatherWasteTotalString > 0}}">
+                          <view class="waste-value">过期{{grand.fatherWasteRateString}}个</view>
+                        </block>
+                      </view>
+                    </view>
+
+                  </view>
+
+                </view>
+              </view>
+
+            </view>
+          </view>
+
+          <view style="height: 200rpx; ">
+
+          </view>
+        </view>
+        <!-- emptyView -->
+        <view class="flex-column " wx:else style="height:{{windowHeight - navBarHeight}}rpx; margin-top: 300rpx; ">
+          <view class=" flex-column center-content">
+            <image class="icon-lg" src="../../../../images/file-common.png"></image>
+            <text class="p-20">暂无库存</text>
+          </view>
+        </view>
+      </scroll-view>
+
+
+    </swiper-item>
+
+
+    <!-- threethrheeheheheeee -->
+    <swiper-item style="height: 100%;">
+      <scroll-view scroll-y style="height:{{ windowHeight - navBarHeight}}rpx;">
+        <view class="flex-column bg-light p-20" wx:if="{{tab1Index  == 4 && threeTotal > 0}}">
+
+
+          <view class="bg-light flex-column" wx:if="{{totalArr.length > 0}}">
+            <view class="flex-column font-md  bg-white " wx:for="{{totalArr}}" wx:for-item="grand" wx:for-index="greatIndex" wx:key="gbDistributerGoodsFatherId">
+
+              <view class="flex-row-default" style="width: {{windowWidth - 80}}rpx;" bindtap="toStockPage" data-id="{{grand.gbDistributerFatherGoodsId}}" data-name="{{grand.gbDfgFatherGoodsName}}" data-dateduring="3" data-days="所有库存" data-color="{{grand.gbDfgFatherGoodsColor}}" data-total="{{grand.fatherStockTotalString}}" data-index="{{greatIndex}}" hover-class="hover">
+                <!-- 左侧：商品图片和名称 -->
+                <view class="p-20">
+                  <image src="{{url + grand.gbDfgFatherGoodsImg}}" mode="aspectFill" class="category-image" />
+                </view>
+                <!-- 右侧：库存信息 -->
+                <view class="flex-column p-20">
+                  <view class="flex-row-between " style="width: {{windowWidth - 240}}rpx;">
+                    <text class="category-name">{{grand.gbDfgFatherGoodsName}}</text>
+                    <!-- 百分比环形图 -->
+                    <view class="donut-chart-container">
+                      <view class="donut-chart" style="width: 80rpx; height: 80rpx; background: {{grand.stockConicGradient}};">
+                        <text class="donut-percent">{{grand.fatherStockTotalPercent}}%</text>
+                      </view>
+                    </view>
+                  </view>
+
+                  <view class="flex-column">
+                    <!-- 主要金额 -->
+                    <view class="stock-quantity">
+                      <text class="quantity-label">库存金额:</text>
+                      <view class="flex-column">
+                        <view class="quantity-value">{{grand.fatherStockTotalString}}元</view>
+                        <block wx:if="{{grand.fatherWasteTotalString > 0}}">
+                          <view class="waste-value">过期{{grand.fatherWasteTotalString}}元</view>
+                        </block>
+                      </view>
+                     
+                    </view>
+                    <!-- 商品数量 -->
+                    <view class="stock-quantity">
+                      <text class="quantity-label">商品:</text>
+                      <view class="flex-column">
+                        <view class="quantity-value">{{grand.fatherStockManyString}}个</view>
+                        <block wx:if="{{grand.fatherWasteTotalString > 0}}">
+                          <view class="waste-value">过期{{grand.fatherWasteRateString}}个</view>
+                        </block>
+                      </view>
+                    </view>
+
+                  </view>
+
+                </view>
+              </view>
+
+            </view>
+          </view>
+
+          <view style="height: 200rpx; ">
+
+          </view>
+        </view>
+        <!-- emptyView -->
+        <view class="flex-column " wx:else style="height:{{windowHeight - navBarHeight}}rpx; margin-top: 300rpx; ">
+          <view class=" flex-column center-content">
+            <image class="icon-lg" src="../../../../images/file-common.png"></image>
+            <text class="p-20">暂无库存</text>
+          </view>
+        </view>
+      </scroll-view>
+
+
+    </swiper-item>
+
+
+    <!-- exceeed -->
+    <swiper-item style="height: 100%;">
+      <scroll-view scroll-y style="height:{{ windowHeight - navBarHeight}}rpx;">
+        <view class="flex-column bg-light p-20" wx:if="{{tab1Index  == 5 && exceedThreeTotal > 0}}">
+
+
+          <view class="bg-light flex-column" wx:if="{{totalArr.length > 0}}">
+            <view class="flex-column font-md  bg-white " wx:for="{{totalArr}}" wx:for-item="grand" wx:for-index="greatIndex" wx:key="gbDistributerGoodsFatherId">
+
+              <view class="flex-row-default" style="width: {{windowWidth - 80}}rpx;" bindtap="toStockPage" data-id="{{grand.gbDistributerFatherGoodsId}}" data-name="{{grand.gbDfgFatherGoodsName}}" data-dateduring="4" data-days="所有库存" data-color="{{grand.gbDfgFatherGoodsColor}}" data-total="{{grand.fatherStockTotalString}}" data-index="{{greatIndex}}" hover-class="hover">
+                <!-- 左侧：商品图片和名称 -->
+                <view class="p-20">
+                  <image src="{{url + grand.gbDfgFatherGoodsImg}}" mode="aspectFill" class="category-image" />
+                </view>
+                <!-- 右侧：库存信息 -->
+                <view class="flex-column p-20">
+                  <view class="flex-row-between " style="width: {{windowWidth - 240}}rpx;">
+                    <text class="category-name">{{grand.gbDfgFatherGoodsName}}</text>
+                    <!-- 百分比环形图 -->
+                    <view class="donut-chart-container">
+                      <view class="donut-chart" style="width: 80rpx; height: 80rpx; background: {{grand.stockConicGradient}};">
+                        <text class="donut-percent">{{grand.fatherStockTotalPercent}}%</text>
+                      </view>
+                    </view>
+                  </view>
+
+                  <view class="flex-column">
+                    <!-- 主要金额 -->
+                    <view class="stock-quantity">
+                      <text class="quantity-label">库存金额:</text>
+                      <view class="flex-column">
+                        <view class="quantity-value">{{grand.fatherStockTotalString}}元</view>
+                        <block wx:if="{{grand.fatherWasteTotalString > 0}}">
+                          <view class="waste-value">过期{{grand.fatherWasteTotalString}}元</view>
+                        </block>
+                      </view>
+                     
+                    </view>
+                    <!-- 商品数量 -->
+                    <view class="stock-quantity">
+                      <text class="quantity-label">商品:</text>
+                      <view class="flex-column">
+                        <view class="quantity-value">{{grand.fatherStockManyString}}个</view>
+                        <block wx:if="{{grand.fatherWasteTotalString > 0}}">
+                          <view class="waste-value">过期{{grand.fatherWasteRateString}}个</view>
+                        </block>
+                      </view>
+                    </view>
+
+                  </view>
+
+                </view>
+              </view>
+
+            </view>
+          </view>
+
+
+          <view style="height: 200rpx; ">
+
+          </view>
+        </view>
+        <!-- emptyView -->
+        <view class="flex-column " wx:else style="height:{{windowHeight - navBarHeight}}rpx; margin-top: 300rpx; ">
+          <view class=" flex-column center-content">
+            <image class="icon-lg" src="../../../../images/file-common.png"></image>
+            <text class="p-20">暂无库存</text>
+          </view>
+        </view>
+      </scroll-view>
+
+    </swiper-item>
+
+
+  </swiper>
+
+
+</view>

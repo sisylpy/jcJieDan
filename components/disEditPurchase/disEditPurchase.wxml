@@ -1,0 +1,43 @@
+<view class='aaa' wx:if='{{show}}' catchtouchmove='ture'>
+	<view class='body bg-white'>
+		<view class='flex-row goodsTitle p-20'>
+			<text class="brand"
+				wx:if="{{item.nxDgGoodsBrand !== 'null' && item.nxDgGoodsBrand.length > 0}}">{{item.nxDgGoodsBrand}}</text>
+			<text class="margin-right">{{item.nxDgGoodsName}}</text>
+			<block wx:if="{{item.nxDgGoodsStandardWeight !== 'null' && item.nxDgGoodsStandardWeight !== ''  && item.nxDgGoodsStandardWeight.length > 0}}">
+				<text class="middle"
+					wx:if="{{item.nxDgGoodsStandardname !== '斤'}}">({{item.nxDgGoodsStandardname}}/{{item.nxDgGoodsStandardWeight}})</text>
+			</block>
+
+			<block wx:else>
+				<text class="middle">({{item.nxDgGoodsStandardname}})</text>
+			</block>
+
+		</view>
+		<view class='flex-column font-lg p-20'>
+    
+
+			<view class="flex-row p-20" >
+				<text class="explain">数量:</text>
+				<input class="numberInput" value="{{planOrder}}" bindinput="getPlanOrder" ></input>
+				<input class="standardInput" type="text" bindinput="getStandard" value="{{applyStandardName}}" placeholder="{{item.nxDgGoodsStandardname}}"></input>
+			</view>
+		
+		</view>
+
+		<view class="flex-row  p-20 margin-top " style="margin-bottom: 40rpx;">
+    	<view class='btn'>
+				<text class="delteBtn" bindtap="delete" hover-class="hover">删除进货</text>
+			</view>
+			<view class='btn'>
+				<text class="cancleBtn" bindtap="cancle" hover-class="hover">取消</text>
+			</view>
+			<view class='btn'>
+				<text class="sureBtn" catchtap='confirmEdit' hover-class="hover">确定</text>
+			</view>
+
+		</view>
+
+	</view>
+
+</view>

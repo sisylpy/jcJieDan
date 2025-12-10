@@ -1,0 +1,192 @@
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+.popup {
+  width: 90%;
+  background-color: #fff;
+  border-radius: 10rpx;
+  overflow: hidden;
+  box-shadow: 0 0 20rpx rgba(0, 0, 0, 0.3);
+  position: absolute; /* 使用绝对定位 */
+  top: 20%; /* 使弹出窗口距离顶部30% */
+  left: 50%;
+  transform: translate(-50%, 0); /* 水平居中 */
+}
+
+.popup-title {
+  font-size: 42rpx;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 20rpx;
+  padding: 40rpx 0 ;
+  
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20rpx;
+}
+
+.cancel-button,
+.confirm-button {
+  font-size: 38rpx;
+  /* margin: 0 5rpx; */
+  padding: 10rpx;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 5px;
+  text-align: center;
+}
+
+.half-row{
+  width: 35%;
+
+}
+
+.mr-20{
+  margin-right: 20rpx;
+}
+
+.font-lg{
+  font-size: 36rpx;
+}
+
+
+.p-20{
+  padding:  20rpx 20rpx;
+}
+
+.p-10{
+  padding: 10rpx 10rpx;
+}
+
+.numberInput {
+  border-bottom: 1px solid lightgray;
+  line-height: 60rpx;
+  height: 60rpx;
+}
+
+.confirm-button {
+  background: #ff4d4f; /* 红色，代表删除 */
+  color: white;
+}
+
+
+
+.flex-row {
+  flex-direction: row;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: flex-start;
+  align-items: center; 
+}
+
+.flex{
+  display: flex;
+}
+.flex-column {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.align-center {
+  align-items: center;
+}
+.flex-column-center {
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: space-around;
+  align-items: center;
+}
+
+
+.btn{
+  width: 50%;
+  display: flex;
+  /* flex-flow: row nowrap;
+  align-items: center;
+  align-content: center; */
+ 
+
+}
+
+
+.sureBtn{
+  line-height: 70rpx;
+  border-radius: 20rpx;
+  width: 60%;
+  text-align: center;
+  margin-left: 20%;
+  background: #187e6e;
+  color: #fff;
+
+}
+
+.sureBtn.disabled{
+  background: #cccccc;
+  color: #999999;
+}
+.delteBtn{
+  line-height: 70rpx;
+  border-radius: 20rpx;
+  width: 80%;
+  text-align: center;
+  background-color: rgb(116, 55, 55);
+  color: #fff;
+  /* margin-left: 20%; */
+}
+.cancleBtn {
+  line-height: 70rpx;
+  border: 1px solid gray;
+  border-radius: 20rpx;
+  width: 60%;
+  text-align: center;
+  margin-left: 20%;
+
+}
+
+
+
+
+.flex-row-default {
+  display: flex;
+  flex-flow: row nowrap;
+}
+
+
+.standardName{
+  font-size: 32rpx;
+  padding: 10rpx 20rpx;
+  line-height: 60rpx;
+  background: rgb(234, 235, 235);
+  margin-left: 20rpx;
+  border-radius: 10rpx;
+  margin-bottom: 20rpx;
+  
+}
+.standardName.is-active{
+  background: #187e6e;
+  color: #fff;
+
+}
+
+
+.text-secondary {
+  color: #666666;
+}

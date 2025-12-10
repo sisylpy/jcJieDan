@@ -1,0 +1,245 @@
+
+ <back-navbar style="height: {{navBarHeight}}rpx;" title="{{goodsName}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+
+<view class="top_back flex-row " hidden="{{hide}}" style="padding-top: {{statusBarHeight}}rpx;">
+		<image src="../../../../images/back-text-secondary.png" class="icon" bindtap="toBack"></image>
+		<view class="flex-column">
+			<text class="top_bar_title">wodecaigou</text>
+		</view>
+	</view>
+<view class="flex-column" style=" height: {{windowHeight -  180}}rpx; margin-top: {{120 + statusBarHeight}}rpx; ">
+		
+    <view class="flex-row" >
+			<view class="flex-row p-20" style="width: {{windowWidth  - 40}}rpx; ">
+			<text class="m-10 text-secondary">日期:</text>
+			<view class="" >{{stopDate}}
+			</view>
+			<view class="p-20" bindtap="showCalender" >
+				<image src="../../../../images/add-3.png" class="icon-md"></image>
+			</view>
+		</view>
+	
+		</view>
+
+	<scroll-view style="height: {{windowHeight - 280}}rpx; ">
+		<view class="flex-column p-20">
+			<view class="flex-column main_background" style="padding: 80rpx 0;">
+				<!-- <view class="flex-column-center" style="padding: 40rpx 0;">
+					<text class="font-mdtext-secondary">采购总额</text>
+					<text class="excreambig">¥{{total}}</text>
+				</view> -->
+				<view class="flex-row" style="width: {{windowWidth - 40}}rpx;">
+					<view class="flex-column-center third-row">
+					  <view class="flex-row">
+							<text class="superBig m-10">{{batchBillTotal}}</text>
+							<text class="font-xs">元</text>
+						</view>
+						<text class="font-xs text-secondary">记账订货</text>
+					</view>
+					
+					<view class="center-content third-row">
+						<view class="flex-row">
+							<text class="superBig m-10">{{batchCashTotal}}</text>
+							<text class="font-xs">元</text>
+						</view>
+						<text class="font-xs text-secondary">现金订货</text>
+					</view>
+
+					<view class="flex-column-center third-row">
+						<view class="flex-row">
+							<text class="superBig m-10">{{maileTotal}}</text>
+							<text class="font-xs">元</text>
+						</view>
+						<text class="font-xs text-secondary">现金买了</text>
+					</view>
+
+				</view>
+
+			</view>
+
+			<view class="felx-row p-20">
+				<text class="font-lg five-weight">采购明细</text>
+			</view>
+			<view class="flex-row border-bottom p-20">
+				<text class="font-md {{showType == 1 ? '' : 'text-secondary'}}" bindtap="changeShow" data-type="1">记账订货</text>
+				<view class="column "></view>
+				<text class="font-md{{showType == 2 ? '' : 'text-secondary'}}" bindtap="changeShow" data-type="2">现金订货</text>
+				<view class="column "></view>
+				<text class="font-md{{showType == 3 ? '' : 'text-secondary'}}" bindtap="changeShow" data-type="3">现金买了</text>
+			</view>
+
+			<view class="flex-column" wx:if="{{showType == 1}}">
+
+				<!-- emptyView -->
+				<view class=" {{batchBillArr.length == 0   ? 'is-active' : ''}}" style="height: {{windowHeight / 3}}rpx; text-align:center;">
+					<view class="font-lg  empty_view">
+						<view class="flex-column-center">
+							<image class="empty_image" src="../../../../images/gouwucheicon-3.png"></image>
+							<text class="big">现在没有采购商品</text>
+							<text class="font-sltext-secondary with-tb-padding"></text>
+						</view>
+					</view>
+				</view>
+				<!-- ./emptyView -->
+
+					
+					<view class="flex-row-between border-bottom" wx:for="{{batchBillArr}}" wx:for-item="item"
+						style="width: {{windowWidth}}rpx;" hover-class="hover" bindtap="openBatchDetail"
+						data-id="{{item.gbDistributerPurchaseBatchId}}">
+
+						<view class="flex-row-default p-20">
+							<view class="flex-column mr-20 small">
+								<text class="">{{item.gbDpbDate}}</text>
+								<text>{{item.gbDpbPurchaseWeek}}</text>
+							</view>
+							<view class="flex-row-default">
+								<image src="{{item.gbSellSupplierUserEntity.gbDsuWxAvartraUrl}}" class="url mr-20"></image>
+							
+							</view>
+						</view>
+
+						<view class="flex-row with-mr-20">
+							<view class="flex-column">
+								<block wx:if="{{item.gbDpbUserAdminType == 7}}">
+									<view class="flex-row pink small">退货单</view>
+								</block>
+								<view></view>
+								<view class="flex-row">
+									<text class="big ">{{item.gbDpbSubtotal}}</text>
+									<text class="small">元</text>
+								</view>
+								<block wx:if="{{item.gbDpbPayType == 1}}">
+									<view class="flex-column">
+										<text wx:if="{{item.gbDpbStatus == 2}}" class=" font-xs red">待送货</text>
+										<text wx:elif="{{item.gbDpbStatus == 3}}" class="font-xs mainColor">待结账</text>
+										<text wx:elif="{{item.gbDpbStatus == 4}}" class="font-xs text-secondary">完成结账</text>
+									</view>
+								</block>
+							</view>
+							<view>
+								<image src="../../../../images/arrow-right-3.png" class="icon-md plr-20"></image>
+							</view>
+						</view>
+					</view>
+			</view>
+
+			<view class="flex-column" wx:elif="{{showType == 2}}">
+			<!-- emptyView -->
+			<view class="emptyView {{batchCashArr.length == 0   ? 'is-active' : ''}}" style="height: {{windowHeight / 3}}rpx; text-align:center;">
+					<view class="font-lg  empty_view">
+						<view class="flex-column-center">
+							<image class="empty_image" src="../../../../images/gouwucheicon-3.png"></image>
+							<text class="big">现在没有采购商品</text>
+							<text class="font-sltext-secondary with-tb-padding"></text>
+						</view>
+					</view>
+				</view>
+				<!-- ./emptyView -->
+
+					
+					<view class="flex-row-between border-bottom" wx:for="{{batchCashArr}}" wx:for-item="item"
+						style="width: {{windowWidth}}rpx;" hover-class="hover" bindtap="openBatchDetail"
+						data-id="{{item.gbDistributerPurchaseBatchId}}">
+
+						<view class="flex-row-default p-20">
+							<view class="flex-column mr-20 small">
+								<text class="">{{item.gbDpbDate}}</text>
+								<text>{{item.gbDpbPurchaseWeek}}</text>
+							</view>
+							<view class="flex-row-default">
+								<image src="{{item.gbSellSupplierUserEntity.gbDsuWxAvartraUrl}}" class="url mr-20"></image>
+							
+							</view>
+						</view>
+
+						<view class="flex-row with-mr-20">
+							<view class="flex-column">
+								<block wx:if="{{item.gbDpbUserAdminType == 7}}">
+									<view class="flex-row pink small">退货单</view>
+								</block>
+								<view></view>
+								<view class="flex-row">
+									<text class="big ">{{item.gbDpbSubtotal}}</text>
+									<text class="small">元</text>
+								</view>
+								<block wx:if="{{item.gbDpbPayType == 1}}">
+									<view class="flex-column">
+										<text wx:if="{{item.gbDpbStatus == 2}}" class=" font-xs red">待送货</text>
+										<text wx:elif="{{item.gbDpbStatus == 3}}" class="font-xs mainColor">待结账</text>
+										<text wx:elif="{{item.gbDpbStatus == 4}}" class="font-xs text-secondary">完成结账</text>
+									</view>
+								</block>
+							</view>
+							<view>
+								<image src="../../../../images/arrow-right-3.png" class="icon-md plr-20"></image>
+							</view>
+						</view>
+					</view>
+			</view>
+			<view class="flex-column" wx:elif="{{showType == 3}}">
+				<!-- emptyView -->
+				<view class="emptyView {{maileArr.length == 0   ? 'is-active' : ''}}" style="height: {{windowHeight /3}}rpx; text-align:center;">
+					<view class="font-lg  empty_view">
+						<view class="flex-column-center">
+							<image class="empty_image" src="../../../../images/gouwucheicon-3.png"></image>
+							<text class="big">现在没有采购商品</text>
+							<text class="font-sltext-secondary with-tb-padding"></text>
+						</view>
+					</view>
+				</view>
+				<!-- ./emptyView -->
+
+				<view class="flex-column border-bottom p-20 font-lg" wx:for="{{maileArr}}" >
+        <view class="flex-row">
+          <text class="mr-20">{{item.gbDistributerGoodsEntity.gbDgGoodsName}}</text>
+					<text>{{item.gbDpgBuySubtotal}}元</text>
+        </view>
+
+        <view class="flex-column small" wx:for="{{item.gbDepartmentOrdersEntities}}" wx:for-item="orders">
+         
+        <text>{{orders.gbDepartmentEntity.gbDepartmentName}} </text> 
+        <view class="flex-row">
+          <view class="flex-row third-row">
+        <text class="m-10">订货:</text>
+          <text>{{orders.gbDoQuantity}}</text>
+        <text>{{orders.gbDoStandard}}</text>
+        </view>
+        <view class="flex-row third-row">
+          <text class="m-10">采购:</text>
+          <text>{{orders.gbDoWeight}}</text>
+        <text class="m-10">{{orders.gbDoStandard}}</text>
+        </view>
+        <view class="third-row flex-row">
+          <text> 小计:{{orders.gbDoSubtotal}}元</text>
+        </view>
+        </view>
+       
+       
+        </view>
+     
+        <!-- </view> -->
+					
+				</view>
+			</view>
+		</view>
+
+	</scroll-view>
+</view>
+
+
+<view class='overlay {{showOperation ? "show" : ""}}' catchtouchmove='ture'
+	style="height:{{windowHeight}}rpx;">
+	<view class="  bg-white"
+		style="margin-top:{{scrollViewTop > 0 ? windowHeight / 5 - 100 + scrollViewTop : windowHeight / 5  - 100 }}rpx;margin-left: 50rpx; width:{{windowWidth - 100}}rpx;">
+		<view class="flex-row-between customerPage">
+		<view></view>
+		<view class="p-20" catchtap="hideMask">
+			<image src="../../../../images/Delete-2.png" class="icon"></image>
+		</view>
+
+		</view>
+		<calendar bindnextMonth="next" bindprevMonth="prev" binddateChange="dateChange" binddayClick="dayClick" header-style="header" 
+			days-color="{{dayStyle}}" weeks-type="cn" active-type="rounded" />
+	</view>
+</view>

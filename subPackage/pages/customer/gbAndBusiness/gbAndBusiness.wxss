@@ -1,0 +1,141 @@
+
+
+page{
+  background-color: #dddddd93;
+}
+
+/* 全局容器 */
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f9f9f9;
+  padding: 20rpx;
+  height: 60vh;
+  box-sizing: border-box;
+}
+
+/* 标题栏 */
+.header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 20rpx;
+  border-bottom: 1px solid #e6e6e6;
+}
+
+.title {
+  font-size: 36rpx;
+  font-weight: bold;
+}
+
+.back-button {
+  font-size: 28rpx;
+  color: #333;
+  background-color: transparent;
+  border: none;
+}
+
+/* 客户信息 */
+.customer-info {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  padding: 20rpx;
+  margin-top: 20rpx;
+  border-radius: 8rpx;
+  box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.customer-avatar {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 50%;
+  margin-right: 20rpx;
+}
+
+.customer-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.customer-name {
+  font-size: 32rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.customer-phone,
+.customer-area {
+  font-size: 28rpx;
+  color: #666666;
+}
+
+/* 邀请内容 */
+.invite-details {
+  width: 100%;
+  background-color: #ffffff;
+  margin-top: 20rpx;
+  padding: 20rpx;
+  border-radius: 8rpx;
+  box-shadow: 0 4rpx 10rpx rgba(0, 0, 0, 0.1);
+}
+
+.invite-title {
+  font-size: 30rpx;
+  font-weight: bold;
+  margin-bottom: 10rpx;
+}
+
+.invite-text {
+  font-size: 28rpx;
+  color: #333333;
+  line-height: 1.5;
+}
+
+/* 操作按钮 */
+.actions {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30rpx;
+}
+
+
+.invite-note {
+  font-size: 26rpx;
+  color: #555555;
+  line-height: 1.5;
+  background-color: #f7f7f7;
+  padding: 10rpx;
+  border-radius: 6rpx;
+  margin-top: 10rpx;
+}
+
+.accept-button,
+.reject-button {
+  flex: 1;
+  font-size: 28rpx;
+  color: #ffffff;
+  padding: 15rpx;
+  border-radius: 8rpx;
+  margin: 0 10rpx;
+}
+
+.accept-button {
+  background-color: #28a745; /* 绿色 */
+}
+
+.reject-button {
+  background-color: #777777; /* 红色 */
+}
+
+/* 温馨提示 */
+.tips {
+  margin-top: 30rpx;
+  font-size: 24rpx;
+  color: #888888;
+  text-align: center;
+}

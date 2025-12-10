@@ -1,0 +1,124 @@
+<view class="flex-column">
+  
+  <!-- 页面标题 -->
+  <view class="header flex-row">
+    <text class="title">企业微信会话存档测试</text>
+    <text class="subtitle">测试会话存档配置和基础群功能</text>
+  </view>
+
+  <!-- 功能说明 -->
+  <view class="info-card flex-row">
+    <view class="info-item">
+      <text class="label">📋 功能说明：</text>
+      <text class="value">本页面专注于会话存档功能测试</text>
+    </view>
+    <view class="info-item">
+      <text class="label">✅ 使用API：</text>
+      <text class="value">/cgi-bin/msgaudit/groupchat/get</text>
+    </view>
+    <view class="info-item">
+      <text class="label">❌ 不使用：</text>
+      <text class="value">客户联系API (/cgi-bin/externalcontact/...)</text>
+    </view>
+  </view>
+
+  <!-- 环境信息 -->
+  <view class="info-card flex-row">
+    <text class="card-title">环境信息</text>
+    <view class="info-item">
+      <text class="label">当前环境：</text>
+      <text class="value {{isEnterpriseWechat ? 'success' : 'error'}}">
+        {{isEnterpriseWechat ? '企业微信' : '普通微信'}}
+      </text>
+    </view>
+  </view>
+
+  <!-- 测试按钮区域 -->
+  <view class="button-section">
+    <button class="test-btn primary" bindtap="testAll">开始全面测试</button>
+    
+    <view class="test-section">
+      <text class="section-title">基础配置测试</text>
+      <button class="test-btn" bindtap="testBackendConfig">测试后台配置</button>
+      <button class="test-btn" bindtap="testDatabaseConfig">测试数据库配置</button>
+      <button class="test-btn" bindtap="testAccessToken">测试Access Token</button>
+    </view>
+    
+    <view class="test-section">
+      <text class="section-title">小程序端API测试</text>
+      <button class="test-btn" bindtap="testGetGroupInfo">测试获取群信息</button>
+      <button class="test-btn" bindtap="testGetGroupMembers">测试获取群成员</button>
+      <button class="test-btn" bindtap="testGetGroupMessages">测试获取群消息</button>
+      <button class="test-btn" bindtap="testShareToGroup">测试分享到群</button>
+    </view>
+    
+    <view class="test-section">
+      <text class="section-title">会话存档功能测试</text>
+      <button class="test-btn" bindtap="testMsgAudit">测试会话存档功能</button>
+      <button class="test-btn" bindtap="testSessionArchiveConfig">测试会话存档配置</button>
+      <button class="test-btn" bindtap="testDiscoveredGroups">获取已发现的群聊</button>
+      <button class="test-btn" bindtap="testSpringConfig">测试Spring配置</button>
+    </view>
+    
+    <button class="test-btn secondary" bindtap="clearResults">清空结果</button>
+  </view>
+
+  <!-- 群信息展示 -->
+  <view class="info-card" wx:if="{{groupInfo}}">
+    <text class="card-title">群信息</text>
+    <view class="info-item">
+      <text class="label">群名称：</text>
+      <text class="value">{{groupInfo.groupName}}</text>
+    </view>
+    <view class="info-item">
+      <text class="label">群ID：</text>
+      <text class="value">{{groupInfo.groupId}}</text>
+    </view>
+    <view class="info-item">
+      <text class="label">成员数：</text>
+      <text class="value">{{groupInfo.memberCount}}</text>
+    </view>
+  </view>
+
+  <!-- 群成员展示 -->
+  <view class="info-card" wx:if="{{groupMembers.length > 0}}">
+    <text class="card-title">群成员 ({{groupMembers.length}}人)</text>
+    <view class="member-list">
+      <view class="member-item" wx:for="{{groupMembers}}" wx:key="userid">
+        <text class="member-name">{{item.name || item.userid}}</text>
+        <text class="member-role">{{item.role || '成员'}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 群消息展示 -->
+  <view class="info-card" wx:if="{{groupMessages.length > 0}}">
+    <text class="card-title">群消息 ({{groupMessages.length}}条)</text>
+    <view class="message-list">
+      <view class="message-item" wx:for="{{groupMessages}}" wx:key="msgid">
+        <view class="message-header">
+          <text class="sender">{{item.sender || '未知'}}</text>
+          <text class="time">{{item.time}}</text>
+        </view>
+        <text class="message-content">{{item.content || item.msgtype}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 测试结果 -->
+  <view class="results-card">
+    <view class="card-header">
+      <text class="card-title">测试结果</text>
+      <text class="result-count">{{testResults.length}}条</text>
+    </view>
+    
+    <scroll-view class="results-list" scroll-y style="height: 400rpx;">
+      <view class="result-item {{item.type}}" 
+            wx:for="{{testResults}}" wx:key="id">
+        <text class="result-time">[{{item.time}}]</text>
+        <text class="result-message">{{item.message}}</text>
+      </view>
+    </scroll-view>
+  </view>
+
+</view>

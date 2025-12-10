@@ -1,0 +1,183 @@
+
+
+.purBtn {
+  border-radius: 40rpx;
+  font-size: 24rpx;
+  text-align: center;
+  padding: 10rpx 20rpx;
+  /* background-color: #ffd000; */
+  background-color: #059ad4;
+  color: #fff;
+}
+
+.purBtn.is-gray {
+  background-color: #9e9fa0;
+  color: #fff;
+}
+
+
+
+.ricai{
+  border: 1px solid green;
+  color: green;
+  border-radius: 6rpx;
+  font-size: 22rpx;
+  padding: 2rpx 6rpx;
+  margin-right: 20rpx;
+
+}
+
+
+
+
+.section_body {
+  width: 100%;
+  height: calc(100% - 96rpx);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+}
+
+
+.tui-city-scroll-y {
+  padding: 0 20rpx;
+  height: 100%;
+  box-sizing: border-box;
+  margin-top: 100rpx;
+}
+
+
+
+.quickBtn{
+  background-color: rgb(211, 212, 211);
+  font-size: 30rpx;
+  padding: 4rpx 10rpx;
+  border-radius: 10rpx;
+  border: 1px solid rgb(68, 78, 68);
+  width: 50rpx;
+  text-align: center;
+}
+
+/*  */
+
+.customize_key_board{
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 999;
+}
+.customize_key_board.hidden{
+  display: none;
+}
+
+.num{
+  text-align: center;
+  font-size: 50rpx;
+  box-sizing:border-box;
+
+  
+}
+.double_num{
+  text-align: center;
+  box-sizing:border-box;
+}
+
+.weightInput{
+   width: 80%;
+  border: 1px solid rgba(14, 14, 14, 0.575);
+  border-radius: 20rpx;
+  line-height: 60rpx;
+  height: 60rpx;
+  text-align: center;
+  font-size: 40rpx;
+  padding: 0 10rpx;
+  color: #187e6e;
+
+}
+
+.weightInput.is-active{
+  border: 1px solid #187e6e;
+}
+.input_number{
+  padding: 6rpx;
+}
+
+.analog_cursor{
+  height: 40rpx;
+  width: 4rpx;
+  margin-top: 10rpx;
+  background: #187e6e;
+  display: none;
+}
+
+.analog_cursor.is-active{
+  display: block;
+}
+
+/*  */
+.maodian{
+  /* position: absolute; */
+  top: 100rpx;
+  background: red;
+  width: 100%;
+  display: none;
+}
+
+
+
+/*  */
+.maodianPrice {
+  /* position: absolute; */
+  top: 200rpx;
+  background: red;
+  width: 100%;
+  display: none;
+}
+
+.maodianSubsPrice {
+  top: 100rpx;
+  /* background: blue; */
+  width: 100%;
+  color: blue;
+  display: none;
+}
+
+
+
+
+
+.bottom_place{
+  width: 100%;
+  height: 980rpx;
+
+  
+}
+
+
+.save_btn_container{
+ 
+  border-radius: 20rpx;
+  background-color: #dddddd;
+}
+
+.save_btn{
+  background-color: #147062;
+  color: #fff;
+  text-align: center;
+  font-size: 36rpx;
+  margin-top: 10rpx;
+  margin-left: 10rpx;
+  border-radius: 40rpx;
+   /* box-sizing:border-box; */
+  /* border-radius: 20rpx; */
+  
+}
+
+.save_btn.is-gray{
+  background-color: #727272;
+}
+
+
+.save_btn.is-edit{
+  background-color: #9c3d3d;
+}

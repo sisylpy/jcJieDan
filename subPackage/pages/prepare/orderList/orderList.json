@@ -1,0 +1,9 @@
+{
+  "usingComponents": {
+    "back-navbar": "/components/back-navbar/back-navbar",
+    "disPlanPurchase" : "/components/disPlanPurchase/disPlanPurchase",
+    "editPurGoodsModal" : "/components/editPurGoodsModal/editPurGoodsModal",
+    "disEditPurchase": "/components/disEditPurchase/disEditPurchase"
+
+  }
+}

@@ -1,0 +1,96 @@
+<view class="page">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="语音上架" avatar="/images/back-gray.png" button-text="返回" bindnavbuttontap="goBack" />
+
+  <scroll-view scroll-y="true" class="scroll" style="height: {{windowHeight}}rpx;">
+   
+
+    <view class="section">
+      <view class="record-status font-sm">
+        <text class="font-sm">录音时长：{{duration}}秒</text>
+        <text class="recording font-sm" wx:if="{{isRecording}}">录音中...</text>
+        <text class="recognition font-sm" wx:if="{{recognitionStatus}}">{{recognitionStatus}}</text>
+      </view>
+      <view class="record-actions">
+        <button class="primary" type="primary" bindtap="toggleRecord">{{isRecording ? '停止录音' : '开始录音'}}</button>
+        <button class="default" type="default" bindtap="aiRecognise">{{goodsList.length > 0 ? '重新解析' : 'AI解析'}}</button>
+        <button class="warn" type="warn" bindtap="clearSentence">清除内容</button>
+      </view>
+      <!-- <view class="live-log" wx:if="{{liveText}}">
+        <text class="live-label font-sm">实时识别：</text>
+        <text class="live-content font-sm">{{liveText}}</text>
+      </view> -->
+      <textarea class="sentence font-md" bindinput="onInput" value="{{sentence}}" placeholder="可手动粘贴或编辑识别文本" maxlength="-1" />
+    </view>
+
+    <view class="section" wx:if="{{goodsList.length > 0}}">
+      <view class="section-title font-lg">解析结果（保持语音顺序）</view>
+      <block wx:for="{{goodsList}}" wx:key="index" wx:for-index="index">
+        <view class="goods-card">
+          <view class="goods-header">
+            <text class="goods-index font-sm">{{index + 1}}.</text>
+            <view class="goods-ops">
+              <button class="ops-btn" size="mini" data-index="{{index}}" bindtap="insertParsedItemBefore">在前添加</button>
+              <button class="ops-btn danger" size="mini" data-index="{{index}}" bindtap="removeParsedItem">删除</button>
+            </view>
+          </view>
+          <view class="goods-fields font-md">
+            <view class="field">
+              <text class="label font-md">商品名称</text>
+              <input class="input font-md" data-index="{{index}}" data-field="nxDgGoodsName" bindinput="updateGoodsField" value="{{item.nxDgGoodsName}}" placeholder="请输入商品名称" />
+            </view>
+            <view class="field">
+              <text class="label font-md">规格名称</text>
+              <input class="input font-md" data-index="{{index}}" data-field="nxDgGoodsStandardname" bindinput="updateGoodsField" value="{{item.nxDgGoodsStandardname}}" placeholder="例如 规格斤 / 单位" />
+            </view>
+            <view class="field">
+              <text class="label font-md">规格重量</text>
+              <input class="input font-md" data-index="{{index}}" data-field="nxDgGoodsStandardWeight" bindinput="updateGoodsField" value="{{item.nxDgGoodsStandardWeight}}" placeholder="例如 10斤" />
+            </view>
+            <view class="field">
+              <text class="label font-md">品牌</text>
+              <input class="input font-md" data-index="{{index}}" data-field="nxDgGoodsBrand" bindinput="updateGoodsField" value="{{item.nxDgGoodsBrand}}" placeholder="无可留空" />
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+
+   
+
+    <view class="section" wx:if="{{savedItems.length > 0}}">
+      <view class="section-title font-lg">上架结果</view>
+      <block wx:for="{{savedItems}}" wx:key="index" wx:for-index="index">
+        <view class="result-card">
+          <view class="result-header">
+            <text class="result-name font-md">{{index + 1}}.</text>
+            <text class="result-status font-sm {{item.status == 'success' || item.status == 'created_temp'? 'success' : 'error'}}">{{item.message || ''}}</text>
+          </view>
+          <view class="result-line editable font-md">
+            <text class="result-label font-sm">名称</text>
+            <input class="result-input font-md" data-index="{{index}}" data-field="nxDgGoodsName" bindinput="updateSavedField" value="{{item.nxDgGoodsName}}" placeholder="输入名称" />
+          </view>
+          <view class="result-line editable font-md">
+            <text class="result-label font-sm">规格名</text>
+            <input class="result-input font-md" data-index="{{index}}" data-field="nxDgGoodsStandardname" bindinput="updateSavedField" value="{{item.nxDgGoodsStandardname}}" placeholder="规格提示词" />
+          </view>
+          <view class="result-line editable font-md">
+            <text class="result-label font-sm">规格量</text>
+            <input class="result-input font-md" data-index="{{index}}" data-field="nxDgGoodsStandardWeight" bindinput="updateSavedField" value="{{item.nxDgGoodsStandardWeight}}" placeholder="如 10斤" />
+          </view>
+          <view class="result-line editable font-md">
+            <text class="result-label font-sm">品牌</text>
+            <input class="result-input font-md" data-index="{{index}}" data-field="nxDgGoodsBrand" bindinput="updateSavedField" value="{{item.nxDgGoodsBrand}}" placeholder="无可留空" />
+          </view>
+        </view>
+      </block>
+      <button class="back" type="primary" bindtap="continueInput">继续录入商品</button>
+    </view>
+
+    <view class="section">
+      <button class="save" type="primary" bindtap="saveShelfGoods" disabled="{{goodsList.length == 0 || saving}}">{{saving ? '保存中...' : '保存到货架'}}</button>
+    </view>
+  </scroll-view>
+
+  <deepseek-loading show="{{showDeepSeekLoading}}" />
+</view>
+

@@ -1,0 +1,149 @@
+<view class="flex flex-column font-lg height-100">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="商品详细" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+
+  <view class="flex-column ">
+    <view class="p-20 flex-row-reverse border-bottom mr-20">
+      <view class="addBtn {{canSave ? 'is-active' : ''}} ml-20" bindtap="updateDisGoods">保存
+      </view>
+
+    </view>
+
+    <view class="flex-column bg-white">
+      <view class=" flex-row p-20 ">
+        <view class="flex-row flex-fixed ">
+          <text class="text-secondary m-10">商品名称:</text>
+        </view>
+        <input class="inputAddGoods with-tb-padding  " bindinput="getDisGoodsContent" data-type="0" value="{{goods.nxDgGoodsName}}"></input>
+      </view>
+
+      <view class=" flex-row p-20">
+        <view class="flex-row flex-fixed">
+          <text class="text-secondary  m-10">商品规格:</text>
+        </view>
+        <input class="inputAddGoods with-tb-padding" bindinput="getDisGoodsContent" value="{{goods.nxDgGoodsStandardname}}" data-type="1"></input>
+      </view>
+      <view class=" flex-row p-20">
+        <view class="flex-row flex-fixed">
+          <text class="text-secondary  m-10">质保天数:</text>
+        </view>
+        <input class="inputAddGoods with-tb-padding" bindinput="getDisGoodsContent" value="{{goods.nxDgQuantityDays}}" data-type="8"></input>
+      </view>
+
+      <view class='flex-row-default p-20 with-tb-padding'>
+        <text class="text-secondary  mr-20 flex-fixed">出货方式:</text>
+        <radio-group class="radio-group" bindchange="radioChangePurType">
+          <label class="radio mr-30" wx:for="{{items}}" wx:key="value">
+            <radio value="{{item.name}}" checked="{{goods.nxDgPurchaseAuto == item.name ? 'true' : ''}}" />{{item.value}}
+          </label>
+        </radio-group>
+      </view>
+      <block >
+        <view class="flex flex-row-between p-20 " wx:if="{{goods.nxDgPurchaseAuto == 1}}">
+           <view class="flex-row">
+            <text class="text-secondary mr-10">供货商:</text>
+          <view bind:tap="toSupplier" wx:if="{{goods.nxDgSupplierId !== null}}">{{goods.nxJrdhSupplierEntity.nxJrdhsSupplierName}}</view>
+          <view  class="inputAddGoods" bind:tap="toSupplier" wx:else="" style=" font-size: 22prx; width: 300rpx;color: rgb(170, 170, 170);">选择自动订货商</view>
+
+
+           </view>
+           
+           <view wx:if="{{goods.nxDgSupplierId !== null}}">
+           <image src="/images/del-6.png" mode="aspectFill" bind:tap="delSupplierId" class="icon" />
+           </view>
+          
+        </view>
+      </block>
+
+      <!-- 平台功能 -->
+      <view class="with-tb-padding flex-column " wx:if="{{disInfo.nxDistributerBusinessTypeId == 4}}">
+        <view class="bg-white">
+          <view class=" flex-column-center p-20">
+            <view class="flex-row with-tb-padding">
+              <radio-group class="radio-group flex-row-between" bindchange="radioChange">
+                <label class="radio ">
+                  <radio value="0" checked="{{goods.nxDgBuyingPriceIsGrade == 0 ? true : ''}}" />一级进货
+                </label>
+                <text style="width: 100rpx;"></text>
+                <label class="radio">
+                  <radio value="1" checked="{{goods.nxDgBuyingPriceIsGrade == 1 ? true : ''}}" />分级进货
+                </label>
+              </radio-group>
+            </view>
+          </view>
+
+          <view class="flex-column ">
+            <view class="flex-column" wx:if="{{goods.nxDgBuyingPriceIsGrade == 0}}">
+              <view class="flex-row plr-20">
+                <text class="m-10 flex-fixed">进货价格:</text>
+                <view class="out m-10">
+                  <input class="mainColor orderInput" type="digit" value="{{goods.nxDgBuyingPrice}}" bindinput="getBuyingPrice" data-type="0" />
+                </view>元
+              </view>
+            </view>
+
+            <view class="flex-column" wx:if="{{goods.nxDgBuyingPriceIsGrade == 1}}">
+              <view class="flex-column  ">
+                <view class="flex-row p-20">
+                  <text class="m-10 flex-fixed">普通进价(低):</text>
+                  <view class="out">
+                    <input class="orderInput" type="digit" value="{{goods.nxDgBuyingPriceThree}}" bindinput="getBuyingPrice" data-type="3" />
+                  </view>元
+                </view>
+                <view class="flex-row  p-20">
+                  <text class="m-10 flex-fixed">优选进价(中):</text>
+                  <view class="out">
+                    <input class="orderInput" type="digit" value="{{goods.nxDgBuyingPriceTwo}}" bindinput="getBuyingPrice" data-type="2" />
+                  </view>
+                  元
+                </view>
+                <view class="flex-row p-20">
+                  <text class="m-10 flex-fixed">精选进价(高):</text>
+                  <view class="out m-10">
+                    <input class="orderInput" type="digit" value="{{goods.nxDgBuyingPriceOne}}" bindinput="getBuyingPrice" data-type="1" />
+                  </view>元
+                </view>
+              </view>
+            </view>
+          </view>
+
+        </view>
+      </view>
+    </view>
+
+
+    <view class="text-secondary p-20">可填:</view>
+    <view class="bg-white flex-column">
+      <view class=" flex-row p-20">
+        <view class="flex-row flex-fixed">
+          <text class="text-secondary  m-10">单位重量</text>
+        </view>
+        <input value="{{goods.nxDgGoodsStandardWeight}}" class="inputAddGoods with-tb-padding" bindinput="getDisGoodsContent" data-type="2"></input>
+      </view>
+
+      <view class=" flex-row p-20">
+        <text class="text-secondary flex-fixed m-10">品牌</text>
+        <input class="inputAddGoods with-tb-padding" bindinput="getDisGoodsContent" data-type="3" value="{{goods.nxDgGoodsBrand}}"></input>
+      </view>
+
+      <view class=" flex-row p-20">
+        <text class="text-secondary flex-fixed m-10">产地</text>
+        <input class="inputAddGoods with-tb-padding" value="{{goods.nxDgGoodsPlace}}" bindinput="getDisGoodsContent" data-type="4"></input>
+      </view>
+      <view class=" flex-row p-20">
+        <text class="text-secondary flex-fixed m-10">详细</text>
+        <input class="inputAddGoods with-tb-padding" value="{{goods.nxDgGoodsDetail}}" bindinput="getDisGoodsContent" data-type="7"></input>
+      </view>
+      <view class=" flex-row p-20">
+        <text class="text-secondary flex-fixed m-10">外箱名称</text>
+        <input class="inputAddGoods with-tb-padding" value="{{goods.nxDgCartonUnit}}" bindinput="getDisGoodsContent" data-type="9"></input>
+      </view>
+      <view class=" flex-row p-20">
+        <text class="text-secondary flex-fixed m-10">外箱装数量</text>
+        <input class="inputAddGoods with-tb-padding" type="number" value="{{goods.nxDgItemsPerCarton}}" bindinput="getDisGoodsContent" data-type="10"></input>
+      </view>
+
+    </view>
+  </view>
+
+</view>

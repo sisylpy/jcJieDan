@@ -1,0 +1,579 @@
+<wxs src="../../../../utils/fn.wxs" module="tool" />
+
+
+<view class="flex flex-column">
+
+
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="日看板" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+  <!--  search-top -->
+  <view class=" flex-row-between pl-20 pr-20 border-bottom bg-white">
+
+    <view class="flex-row">
+      <view class="p-20" bindtap="toDatePageSearch">
+        <image src="../../../../../images/calender.png" class="icon"></image>
+      </view>
+      <view class="flex-column pt-10">
+        <view class="font-yuan">{{hanzi}}</view>
+        <view class="flex-row" wx:if="{{startDate == stopDate}}">
+          <view class=" font-md" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
+        </view>
+        <view class="flex-row" wx:else>
+          <view class="" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
+          <text class="plr-10">-</text>
+          <view class="" wx:if="{{stopDate}}">{{tool.transferDateString(stopDate)}}</view>
+        </view>
+      </view>
+    </view>
+
+    <!-- NX系统暂不支持筛选功能 -->
+  </view>
+
+
+  <!-- NX系统暂不支持部门筛选 -->
+
+  <swiper class="swiper-box" duration="300" bindanimationfinish="animationfinish" current="{{tab1Index}}" data-index='{{tab1Index}}' lazy-load="{{false}}">
+
+    <!-- 制作成本 -->
+    <swiper-item>
+      <scroll-view scroll-y="true" style="height: {{scrollViewHeight}}rpx;" bindscrolltolower="onReachBottom">
+
+        <!-- 成本统计卡片区域 -->
+        <view class="cost-stats-container">
+
+          <!-- 售出成本卡片 -->
+          <view class="cost-card {{tab1Index == 0 ? 'cost-card-active' : ''}}" data-index='0' bindtap='onTab1Click' data-type="sales">
+            <view class="cost-card-header  mt-10">
+              <view class="cost-icon sales-icon">
+                <image src="/images/money.png" class="icon-image"></image>
+              </view>
+              <view class="cost-title">售出成本</view>
+            </view>
+            <view class="cost-amount">{{salesTotal}}元</view>
+            <view class="cost-total">商品{{produceCount}}个</view>
+          </view>
+
+          <!-- 损耗成本卡片 -->
+          <view class="cost-card {{tab1Index == 1 ? 'cost-card-active' : ''}}" data-index='1' bindtap='onTab1Click' data-type="loss">
+            <view class="cost-card-header  mt-10">
+              <view class="cost-icon loss-icon">
+                <image src="/images/warning.png" class="icon-image"></image>
+              </view>
+              <view class="cost-title">损耗成本</view>
+            </view>
+            <view class="cost-amount">{{lossTotal}}元</view>
+            <view class="cost-total">商品{{lossCount}}个</view>
+          </view>
+
+          <!-- 废弃成本卡片 -->
+          <view class="cost-card {{tab1Index == 2 ? 'cost-card-active' : ''}}" data-index='2' bindtap='onTab1Click' data-type="waste">
+            <view class="cost-card-header mt-10">
+              <view class="cost-icon waste-icon">
+                <image src="/images/delete.png" class="icon-image"></image>
+              </view>
+              <view class="cost-title">退货成本</view>
+            </view>
+            <view class="cost-amount">{{returnTotal}}元</view>
+            <view class="cost-total">商品{{wasteCount}}个</view>
+          </view>
+
+        </view>
+
+        <!-- 今日总支出 -->
+        <view class="flex-column " wx:if="{{produceArr.length > 0}}">
+
+          <view id="goods-container-{{goodsIndex}}" class="flex-column p-20 bg-white border-bottom" wx:for="{{produceArr}}" wx:for-index="goodsIndex" wx:key="nxDistributerGoodsId">
+
+            <!-- 商品信息区域 -->
+            <view class="flex-row-between" bind:tap="showList" data-index="{{goodsIndex}}">
+              <view class="flex-row-default mb-20">
+                <image src="{{url + item.nxDgGoodsFile}}" mode="aspectFill" class="url_item mr-20" />
+                <view class="flex-column" style="flex: 1;">
+                  <view class="flex-row">
+                    <text class="font-sm">第{{goodsIndex + 1}}名/共{{totalCount}}个</text>
+                  </view>
+                  <view class="flex-row">
+                    <text class="font-bold mr-10">{{item.nxDgGoodsName}}</text>
+                    <block wx:if="{{item.nxDgGoodsStandardWeight && item.nxDgGoodsStandardWeight.length > 0}}">
+                      <text class="text-secondary font-xs">({{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}})</text>
+                    </block>
+                    <block wx:else>
+                      <text class="text-secondary font-xs">({{item.nxDgGoodsStandardname}})</text>
+                    </block>
+                  </view>
+                </view>
+
+              </view>
+
+              <!-- 右侧总计和按钮 -->
+              <view class="goods-price-section">
+                <view class="price-container {{itemIndex == 0 ? 'sales-type' : (itemIndex == 1 ? 'loss-type' : (itemIndex == 2 ? 'waste-type' : 'return-type'))}}">
+                  <text class="price-label">{{itemIndex == 0 ? '售出' : (itemIndex == 1 ? '损耗' : (itemIndex == 2 ? '废弃' : '退货'))}}</text>
+                  <text class="price-value">¥{{itemIndex == 0 ? item.goodsSalesTotal : (itemIndex == 1 ? item.goodsLossTotal : (itemIndex == 2 ? item.goodsWasteTotal : 0))}}</text>
+                </view>
+                <!-- 右侧箭头 -->
+                <view class="arrow-container {{item.showCostList ? 'expanded' : 'collapsed'}}">
+                  <image src="/images/arrow-right-3.png" mode="aspectFill" class="arrow-icon" style="width: 24rpx; height: 24rpx;" />
+                </view>
+              </view>
+            </view>
+
+
+            <!-- 第二行 -->
+            <!-- 部门信息区域 -->
+            <!-- 成本详情列表 - 默认隐藏，点击showList后显示 -->
+            <!-- 注意：NX系统返回的详情结构可能与GB不同，需要根据实际接口调整 -->
+            <view wx:if="{{item.nxDistributerGoodsShelfStockReduceEntities}}" class="flex-column" wx:for="{{item.nxDistributerGoodsShelfStockReduceEntities}}"  wx:for-item="reduceDay" wx:for-index="reduceIndex" wx:key="reduceIndex"  >
+             
+                <!-- 整体卡片容器 -->
+                <view class="unified-card-container {{expandedRows[goodsIndex + '_' + reduceIndex] ? 'unified-card-expanded' : 'unified-card-collapsed'}}">
+
+                  <!-- 默认显示--中间部分 -->
+                  <view id="src-{{goodsIndex}}-{{reduceIndex}}" class="stock-row-container" data-index="{{reduceIndex}}" data-item-index="{{goodsIndex}}" data-day-index="{{depIndex}}">
+                    <view class="stock-row {{expandedRows[goodsIndex + '_' + depIndex + '_' + reduceIndex] ? 'stock-row-active' : ''}}" bind:tap="showOne" data-index="{{reduceIndex}}" data-item-index="{{goodsIndex}}" data-day-index="{{depIndex}}">
+
+                      <!-- 左侧信息区域 -->
+                      <view class="stock-info-left">
+                        <view class="stock-department">{{reduceDay.departmentName}}</view>
+                        <view class="stock-date">{{tool.transferDateString(reduceDay.nxDgssrDate)}}</view>
+                      </view>
+
+                      <!-- 中间价格数量区域 -->
+                      <view class="stock-info-center">
+                        <block wx:if="{{reduceDay.nxDgssrType == 0}}">
+                          <view class="stock-amount">{{reduceDay.nxDgssrProduceSubtotal}}元</view>
+                          <view class="stock-quantity">{{reduceDay.nxDgssrProduceWeight}}{{item.nxDgGoodsStandardname}}</view>
+                          <view class="stock-type sales-type">售出</view>
+                        </block>
+                        <block wx:if="{{reduceDay.nxDgssrType == 2}}">
+                          <view class="stock-amount">{{reduceDay.nxDgssrWasteSubtotal}}元</view>
+                          <view class="stock-quantity">{{reduceDay.nxDgssrWasteWeight}}{{item.nxDgGoodsStandardname}}</view>
+                          <view class="stock-type waste-type">盘库损耗</view>
+                        </block>
+                        <block wx:if="{{reduceDay.nxDgssrType == 3}}">
+                          <view class="stock-amount">{{reduceDay.nxDgssrLossSubtotal}}元</view>
+                          <view class="stock-quantity">{{reduceDay.nxDgssrLossWeight}}{{item.nxDgGoodsStandardname}}</view>
+                          <view class="stock-type loss-type">损耗</view>
+                        </block>
+                        <block wx:if="{{reduceDay.nxDgssrType == 4}}">
+                          <view class="stock-amount">{{reduceDay.nxDgssrReturnSubtotal}}元</view>
+                          <view class="stock-quantity">{{reduceDay.nxDgssrReturnWeight}}{{item.nxDgGoodsStandardname}}</view>
+                          <view class="stock-type return-type">退货</view>
+                        </block>
+                      </view>
+
+                      <!-- 右侧箭头区域 -->
+                      <view class="stock-info-right">
+                        <view class="stock-arrow">
+                          <image src="/images/arrow-right-3.png" mode="aspectFill" class="arrow-icon {{expandedRows[goodsIndex + '_' + depIndex + '_' + reduceIndex] ? 'expanded' : 'collapsed'}}" />
+                        </view>
+                      </view>
+
+                    </view>
+                  </view>
+
+
+                </view>
+              <!-- </view> -->
+            </view>
+
+          </view>
+
+          <view class="flex-column center-content text-secondary" style="height: 100rpx;" wx:if="{{produceArr.length == 0}}">
+            <view class="empty_View flex-column-center" style="margin-top: 200rpx;">
+              <text class="empty-emoji">🌶️</text>
+              <text class="big">没有数据啦!</text>
+            </view>
+          </view>
+
+          <!-- 分页状态显示 -->
+          <view class="flex-column-center mt-30 text-secondary" wx:if="{{produceArr.length > 0}}">
+            <!-- 分页信息 -->
+            <view class="flex-row">
+              <text class="pagination-text">共{{totalCount}}条记录,第{{currentPage}}/{{totalPage}}页</text>
+            </view>
+
+            <!-- 加载中状态 -->
+            <view class="loading-more" wx:if="{{isLoading}}">
+              <text class="loading-text">加载中...</text>
+            </view>
+
+            <!-- 加载更多提示 -->
+            <view class="load-more-tip" wx:elif="{{currentPage < totalPage}}">
+              <text class="tip-text">上拉加载更多</text>
+            </view>
+
+            <!-- 已加载全部 -->
+            <view class="load-complete" wx:elif="{{currentPage >= totalPage && totalPage > 0}}">
+              <text class="complete-text">已加载全部数据</text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </swiper-item>
+
+     <!-- 制作成本 -->
+     <swiper-item>
+      <scroll-view scroll-y="true" style="height: {{scrollViewHeight}}rpx;" bindscrolltolower="onReachBottom">
+
+        <!-- 成本统计卡片区域 -->
+        <view class="cost-stats-container">
+
+          <!-- 售出成本卡片 -->
+          <view class="cost-card {{tab1Index == 0 ? 'cost-card-active' : ''}}" data-index='0' bindtap='onTab1Click' data-type="sales">
+            <view class="cost-card-header  mt-10">
+              <view class="cost-icon sales-icon">
+                <image src="/images/money.png" class="icon-image"></image>
+              </view>
+              <view class="cost-title">售出成本</view>
+            </view>
+            <view class="cost-amount">{{salesTotal}}元</view>
+            <view class="cost-total">商品{{produceCount}}个</view>
+          </view>
+
+          <!-- 损耗成本卡片 -->
+          <view class="cost-card {{tab1Index == 1 ? 'cost-card-active' : ''}}" data-index='1' bindtap='onTab1Click' data-type="loss">
+            <view class="cost-card-header  mt-10">
+              <view class="cost-icon loss-icon">
+                <image src="/images/warning.png" class="icon-image"></image>
+              </view>
+              <view class="cost-title">损耗成本</view>
+            </view>
+            <view class="cost-amount">{{lossTotal}}元</view>
+            <view class="cost-total">商品{{lossCount}}个</view>
+          </view>
+
+          <!-- 废弃成本卡片 -->
+          <view class="cost-card {{tab1Index == 2 ? 'cost-card-active' : ''}}" data-index='2' bindtap='onTab1Click' data-type="waste">
+            <view class="cost-card-header mt-10">
+              <view class="cost-icon waste-icon">
+                <image src="/images/delete.png" class="icon-image"></image>
+              </view>
+              <view class="cost-title">退货成本</view>
+            </view>
+            <view class="cost-amount">{{returnTotal}}元</view>
+            <view class="cost-total">商品{{wasteCount}}个</view>
+          </view>
+
+        </view>
+
+        <!-- 今日总支出 -->
+        <view class="flex-column " wx:if="{{produceArr.length > 0}}">
+
+          <view id="goods-container-{{goodsIndex}}" class="flex-column p-20 bg-white border-bottom" wx:for="{{produceArr}}" wx:for-index="goodsIndex" wx:key="nxDistributerGoodsId">
+
+            <!-- 商品信息区域 -->
+            <view class="flex-row-between" bind:tap="showList" data-index="{{goodsIndex}}">
+              <view class="flex-row-default mb-20">
+                <image src="{{url + item.nxDgGoodsFile}}" mode="aspectFill" class="url_item mr-20" />
+                <view class="flex-column" style="flex: 1;">
+                  <view class="flex-row">
+                    <text class="font-sm">第{{goodsIndex + 1}}名/共{{totalCount}}个</text>
+                  </view>
+                  <view class="flex-row">
+                    <text class="font-bold mr-10">{{item.nxDgGoodsName}}</text>
+                    <block wx:if="{{item.nxDgGoodsStandardWeight && item.nxDgGoodsStandardWeight.length > 0}}">
+                      <text class="text-secondary font-xs">({{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}})</text>
+                    </block>
+                    <block wx:else>
+                      <text class="text-secondary font-xs">({{item.nxDgGoodsStandardname}})</text>
+                    </block>
+                  </view>
+                </view>
+
+              </view>
+
+              <!-- 右侧总计和按钮 -->
+              <view class="goods-price-section">
+                <view class="price-container {{itemIndex == 0 ? 'sales-type' : (itemIndex == 1 ? 'loss-type' : (itemIndex == 2 ? 'waste-type' : 'return-type'))}}">
+                  <text class="price-label">{{itemIndex == 0 ? '售出' : (itemIndex == 1 ? '损耗' : (itemIndex == 2 ? '废弃' : '退货'))}}</text>
+                  <text class="price-value">¥{{itemIndex == 0 ? item.goodsSalesTotal : (itemIndex == 1 ? item.goodsLossTotal : (itemIndex == 2 ? item.goodsWasteTotal : 0))}}</text>
+                </view>
+                <!-- 右侧箭头 -->
+                <view class="arrow-container {{item.showCostList ? 'expanded' : 'collapsed'}}">
+                  <image src="/images/arrow-right-3.png" mode="aspectFill" class="arrow-icon" style="width: 24rpx; height: 24rpx;" />
+                </view>
+              </view>
+            </view>
+
+
+            <!-- 第二行 -->
+            <!-- 部门信息区域 -->
+            <!-- 成本详情列表 - 默认隐藏，点击showList后显示 -->
+            <!-- 注意：NX系统返回的详情结构可能与GB不同，需要根据实际接口调整 -->
+            <view wx:if="{{item.nxDistributerGoodsShelfStockReduceEntities}}" class="flex-column" wx:for="{{item.nxDistributerGoodsShelfStockReduceEntities}}"  wx:for-item="reduceDay" wx:for-index="reduceIndex" wx:key="reduceIndex"  >
+             
+                <!-- 整体卡片容器 -->
+                <view class="unified-card-container {{expandedRows[goodsIndex + '_' + reduceIndex] ? 'unified-card-expanded' : 'unified-card-collapsed'}}">
+
+                  <!-- 默认显示--中间部分 -->
+                  <view id="src-{{goodsIndex}}-{{reduceIndex}}" class="stock-row-container" data-index="{{reduceIndex}}" data-item-index="{{goodsIndex}}" data-day-index="{{depIndex}}">
+                    <view class="stock-row {{expandedRows[goodsIndex + '_' + depIndex + '_' + reduceIndex] ? 'stock-row-active' : ''}}" bind:tap="showOne" data-index="{{reduceIndex}}" data-item-index="{{goodsIndex}}" data-day-index="{{depIndex}}">
+
+                      <!-- 左侧信息区域 -->
+                      <view class="stock-info-left">
+                        <view class="stock-department">{{reduceDay.departmentName}}</view>
+                        <view class="stock-date">{{tool.transferDateString(reduceDay.nxDgssrDate)}}</view>
+                      </view>
+
+                      <!-- 中间价格数量区域 -->
+                      <view class="stock-info-center">
+                        <block wx:if="{{reduceDay.nxDgssrType == 0}}">
+                          <view class="stock-amount">{{reduceDay.nxDgssrProduceSubtotal}}元</view>
+                          <view class="stock-quantity">{{reduceDay.nxDgssrProduceWeight}}{{item.nxDgGoodsStandardname}}</view>
+                          <view class="stock-type sales-type">售出</view>
+                        </block>
+                        <block wx:if="{{reduceDay.nxDgssrType == 2}}">
+                          <view class="stock-amount">{{reduceDay.nxDgssrWasteSubtotal}}元</view>
+                          <view class="stock-quantity">{{reduceDay.nxDgssrWasteWeight}}{{item.nxDgGoodsStandardname}}</view>
+                          <view class="stock-type waste-type">盘库损耗</view>
+                        </block>
+                        <block wx:if="{{reduceDay.nxDgssrType == 3}}">
+                          <view class="stock-amount">{{reduceDay.nxDgssrLossSubtotal}}元</view>
+                          <view class="stock-quantity">{{reduceDay.nxDgssrLossWeight}}{{item.nxDgGoodsStandardname}}</view>
+                          <view class="stock-type loss-type">损耗</view>
+                        </block>
+                        <block wx:if="{{reduceDay.nxDgssrType == 4}}">
+                          <view class="stock-amount">{{reduceDay.nxDgssrReturnSubtotal}}元</view>
+                          <view class="stock-quantity">{{reduceDay.nxDgssrReturnWeight}}{{item.nxDgGoodsStandardname}}</view>
+                          <view class="stock-type return-type">退货</view>
+                        </block>
+                      </view>
+
+                      <!-- 右侧箭头区域 -->
+                      <view class="stock-info-right">
+                        <view class="stock-arrow">
+                          <image src="/images/arrow-right-3.png" mode="aspectFill" class="arrow-icon {{expandedRows[goodsIndex + '_' + depIndex + '_' + reduceIndex] ? 'expanded' : 'collapsed'}}" />
+                        </view>
+                      </view>
+
+                    </view>
+                  </view>
+
+
+                </view>
+              <!-- </view> -->
+            </view>
+
+          </view>
+
+          <view class="flex-column center-content text-secondary" style="height: 100rpx;" wx:if="{{produceArr.length == 0}}">
+            <view class="empty_View flex-column-center" style="margin-top: 200rpx;">
+              <text class="empty-emoji">🌶️</text>
+              <text class="big">没有数据啦!</text>
+            </view>
+          </view>
+
+          <!-- 分页状态显示 -->
+          <view class="flex-column-center mt-30 text-secondary" wx:if="{{produceArr.length > 0}}">
+            <!-- 分页信息 -->
+            <view class="flex-row">
+              <text class="pagination-text">共{{totalCount}}条记录,第{{currentPage}}/{{totalPage}}页</text>
+            </view>
+
+            <!-- 加载中状态 -->
+            <view class="loading-more" wx:if="{{isLoading}}">
+              <text class="loading-text">加载中...</text>
+            </view>
+
+            <!-- 加载更多提示 -->
+            <view class="load-more-tip" wx:elif="{{currentPage < totalPage}}">
+              <text class="tip-text">上拉加载更多</text>
+            </view>
+
+            <!-- 已加载全部 -->
+            <view class="load-complete" wx:elif="{{currentPage >= totalPage && totalPage > 0}}">
+              <text class="complete-text">已加载全部数据</text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </swiper-item>
+
+
+
+ <!-- 制作成本 -->
+ <swiper-item>
+      <scroll-view scroll-y="true" style="height: {{scrollViewHeight}}rpx;" bindscrolltolower="onReachBottom">
+
+        <!-- 成本统计卡片区域 -->
+        <view class="cost-stats-container">
+
+          <!-- 售出成本卡片 -->
+          <view class="cost-card {{tab1Index == 0 ? 'cost-card-active' : ''}}" data-index='0' bindtap='onTab1Click' data-type="sales">
+            <view class="cost-card-header  mt-10">
+              <view class="cost-icon sales-icon">
+                <image src="/images/money.png" class="icon-image"></image>
+              </view>
+              <view class="cost-title">售出成本</view>
+            </view>
+            <view class="cost-amount">{{salesTotal}}元</view>
+            <view class="cost-total">商品{{produceCount}}个</view>
+          </view>
+
+          <!-- 损耗成本卡片 -->
+          <view class="cost-card {{tab1Index == 1 ? 'cost-card-active' : ''}}" data-index='1' bindtap='onTab1Click' data-type="loss">
+            <view class="cost-card-header  mt-10">
+              <view class="cost-icon loss-icon">
+                <image src="/images/warning.png" class="icon-image"></image>
+              </view>
+              <view class="cost-title">损耗成本</view>
+            </view>
+            <view class="cost-amount">{{lossTotal}}元</view>
+            <view class="cost-total">商品{{lossCount}}个</view>
+          </view>
+
+          <!-- 废弃成本卡片 -->
+          <view class="cost-card {{tab1Index == 2 ? 'cost-card-active' : ''}}" data-index='2' bindtap='onTab1Click' data-type="waste">
+            <view class="cost-card-header mt-10">
+              <view class="cost-icon waste-icon">
+                <image src="/images/delete.png" class="icon-image"></image>
+              </view>
+              <view class="cost-title">退货成本</view>
+            </view>
+            <view class="cost-amount">{{returnTotal}}元</view>
+            <view class="cost-total">商品{{wasteCount}}个</view>
+          </view>
+
+        </view>
+
+        <!-- 今日总支出 -->
+        <view class="flex-column " wx:if="{{produceArr.length > 0}}">
+
+          <view id="goods-container-{{goodsIndex}}" class="flex-column p-20 bg-white border-bottom" wx:for="{{produceArr}}" wx:for-index="goodsIndex" wx:key="nxDistributerGoodsId">
+
+            <!-- 商品信息区域 -->
+            <view class="flex-row-between" bind:tap="showList" data-index="{{goodsIndex}}">
+              <view class="flex-row-default mb-20">
+                <image src="{{url + item.nxDgGoodsFile}}" mode="aspectFill" class="url_item mr-20" />
+                <view class="flex-column" style="flex: 1;">
+                  <view class="flex-row">
+                    <text class="font-sm">第{{goodsIndex + 1}}名/共{{totalCount}}个</text>
+                  </view>
+                  <view class="flex-row">
+                    <text class="font-bold mr-10">{{item.nxDgGoodsName}}</text>
+                    <block wx:if="{{item.nxDgGoodsStandardWeight && item.nxDgGoodsStandardWeight.length > 0}}">
+                      <text class="text-secondary font-xs">({{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}})</text>
+                    </block>
+                    <block wx:else>
+                      <text class="text-secondary font-xs">({{item.nxDgGoodsStandardname}})</text>
+                    </block>
+                  </view>
+                </view>
+
+              </view>
+
+              <!-- 右侧总计和按钮 -->
+              <view class="goods-price-section">
+                <view class="price-container {{itemIndex == 0 ? 'sales-type' : (itemIndex == 1 ? 'loss-type' : (itemIndex == 2 ? 'waste-type' : 'return-type'))}}">
+                  <text class="price-label">{{itemIndex == 0 ? '售出' : (itemIndex == 1 ? '损耗' : (itemIndex == 2 ? '废弃' : '退货'))}}</text>
+                  <text class="price-value">¥{{itemIndex == 0 ? item.goodsSalesTotal : (itemIndex == 1 ? item.goodsLossTotal : (itemIndex == 2 ? item.goodsWasteTotal : 0))}}</text>
+                </view>
+                <!-- 右侧箭头 -->
+                <view class="arrow-container {{item.showCostList ? 'expanded' : 'collapsed'}}">
+                  <image src="/images/arrow-right-3.png" mode="aspectFill" class="arrow-icon" style="width: 24rpx; height: 24rpx;" />
+                </view>
+              </view>
+            </view>
+
+
+            <!-- 第二行 -->
+            <!-- 部门信息区域 -->
+            <!-- 成本详情列表 - 默认隐藏，点击showList后显示 -->
+            <!-- 注意：NX系统返回的详情结构可能与GB不同，需要根据实际接口调整 -->
+            <view wx:if="{{item.nxDistributerGoodsShelfStockReduceEntities}}" class="flex-column" wx:for="{{item.nxDistributerGoodsShelfStockReduceEntities}}"  wx:for-item="reduceDay" wx:for-index="reduceIndex" wx:key="reduceIndex"  >
+             
+                <!-- 整体卡片容器 -->
+                <view class="unified-card-container {{expandedRows[goodsIndex + '_' + reduceIndex] ? 'unified-card-expanded' : 'unified-card-collapsed'}}">
+
+                  <!-- 默认显示--中间部分 -->
+                  <view id="src-{{goodsIndex}}-{{reduceIndex}}" class="stock-row-container" data-index="{{reduceIndex}}" data-item-index="{{goodsIndex}}" data-day-index="{{depIndex}}">
+                    <view class="stock-row {{expandedRows[goodsIndex + '_' + depIndex + '_' + reduceIndex] ? 'stock-row-active' : ''}}" bind:tap="showOne" data-index="{{reduceIndex}}" data-item-index="{{goodsIndex}}" data-day-index="{{depIndex}}">
+
+                      <!-- 左侧信息区域 -->
+                      <view class="stock-info-left">
+                        <view class="stock-department">{{reduceDay.departmentName}}</view>
+                        <view class="stock-date">{{tool.transferDateString(reduceDay.nxDgssrDate)}}</view>
+                      </view>
+
+                      <!-- 中间价格数量区域 -->
+                      <view class="stock-info-center">
+                        <block wx:if="{{reduceDay.nxDgssrType == 0}}">
+                          <view class="stock-amount">{{reduceDay.nxDgssrProduceSubtotal}}元</view>
+                          <view class="stock-quantity">{{reduceDay.nxDgssrProduceWeight}}{{item.nxDgGoodsStandardname}}</view>
+                          <view class="stock-type sales-type">售出</view>
+                        </block>
+                        <block wx:if="{{reduceDay.nxDgssrType == 2}}">
+                          <view class="stock-amount">{{reduceDay.nxDgssrWasteSubtotal}}元</view>
+                          <view class="stock-quantity">{{reduceDay.nxDgssrWasteWeight}}{{item.nxDgGoodsStandardname}}</view>
+                          <view class="stock-type waste-type">盘库损耗</view>
+                        </block>
+                        <block wx:if="{{reduceDay.nxDgssrType == 3}}">
+                          <view class="stock-amount">{{reduceDay.nxDgssrLossSubtotal}}元</view>
+                          <view class="stock-quantity">{{reduceDay.nxDgssrLossWeight}}{{item.nxDgGoodsStandardname}}</view>
+                          <view class="stock-type loss-type">损耗</view>
+                        </block>
+                        <block wx:if="{{reduceDay.nxDgssrType == 4}}">
+                          <view class="stock-amount">{{reduceDay.nxDgssrReturnSubtotal}}元</view>
+                          <view class="stock-quantity">{{reduceDay.nxDgssrReturnWeight}}{{item.nxDgGoodsStandardname}}</view>
+                          <view class="stock-type return-type">退货</view>
+                        </block>
+                      </view>
+
+                      <!-- 右侧箭头区域 -->
+                      <view class="stock-info-right">
+                        <view class="stock-arrow">
+                          <image src="/images/arrow-right-3.png" mode="aspectFill" class="arrow-icon {{expandedRows[goodsIndex + '_' + depIndex + '_' + reduceIndex] ? 'expanded' : 'collapsed'}}" />
+                        </view>
+                      </view>
+
+                    </view>
+                  </view>
+
+
+                </view>
+              <!-- </view> -->
+            </view>
+
+          </view>
+
+          <view class="flex-column center-content text-secondary" style="height: 100rpx;" wx:if="{{produceArr.length == 0}}">
+            <view class="empty_View flex-column-center" style="margin-top: 200rpx;">
+              <text class="empty-emoji">🌶️</text>
+              <text class="big">没有数据啦!</text>
+            </view>
+          </view>
+
+          <!-- 分页状态显示 -->
+          <view class="flex-column-center mt-30 text-secondary" wx:if="{{produceArr.length > 0}}">
+            <!-- 分页信息 -->
+            <view class="flex-row">
+              <text class="pagination-text">共{{totalCount}}条记录,第{{currentPage}}/{{totalPage}}页</text>
+            </view>
+
+            <!-- 加载中状态 -->
+            <view class="loading-more" wx:if="{{isLoading}}">
+              <text class="loading-text">加载中...</text>
+            </view>
+
+            <!-- 加载更多提示 -->
+            <view class="load-more-tip" wx:elif="{{currentPage < totalPage}}">
+              <text class="tip-text">上拉加载更多</text>
+            </view>
+
+            <!-- 已加载全部 -->
+            <view class="load-complete" wx:elif="{{currentPage >= totalPage && totalPage > 0}}">
+              <text class="complete-text">已加载全部数据</text>
+            </view>
+          </view>
+        </view>
+      </scroll-view>
+    </swiper-item>
+
+
+
+  </swiper>
+
+
+
+</view>

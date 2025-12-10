@@ -1,0 +1,52 @@
+<view class='overlay' wx:if='{{show}}'>
+  <view class='popup'>
+    <view class="top">
+      <view class='goodsTitle flex-row'>
+        <text class="brand" wx:if="{{item.nxDgGoodsBrand.length > 0 && item.nxDgGoodsBrand !== 'null'}}">{{item.nxDgGoodsBrand}}</text>
+        <text>{{item.nxDgGoodsName}}</text>
+        <block wx:if="{{item.nxDgGoodsStandardWeight !== 'null' && item.nxDgGoodsStandardWeight.length > 0}}">
+          <text class="" wx:if="{{item.nxDgGoodsStandardname !== '斤'}}">({{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}})</text>
+        </block>
+        <block wx:else>
+          <text class="" wx:if="{{item.nxDgGoodsStandardname !== '斤' }}">({{item.nxDgGoodsStandardname}})</text>
+        </block>
+      </view>
+    </view>
+
+
+
+    <view class="flex-column">
+      <view class="flex-row-between" style="padding: 30rpx 20rpx;">
+
+        <text class="label">售价:(元/{{item.nxDgGoodsStandardname}})</text>
+        <view class="flex-row">
+          <view class="add_btn" hover-class="hover" bindtap="changeWillPrice" data-type="reduce">
+            <image src="../../images/reduce.png" class="icon-lg"></image>
+          </view>
+          <view class="p-20" >
+            <input class='popInput ' type='digit' value="{{item.nxDgWillPrice}}" bindinput="getWillPrice" hold-keyboard='true'></input>
+          </view>
+          <view class="add_btn" hover-class="hover" bindtap="changeWillPrice" data-type="add">
+            <image src="../../images/add.png" class="icon-lg"></image>
+          </view>
+        </view>
+      </view>
+
+
+      <view class="btn_row">
+
+        <view class="" >
+          <text class='btn cancel-btn' bindtap="cancle" hover-class="hoverBtn">关闭</text>
+          <text class='btn confirm-btn' catchtap='confirm' hover-class="hoverBtn">完成</text>
+        </view>
+      </view>
+
+    </view>
+
+
+
+
+
+
+  </view>
+</view>

@@ -1,0 +1,84 @@
+
+
+<view class="flex-column flex">
+
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="{{depName}}-转到新客户" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+
+  <view class=" bg-white flex-row-reverse p-20  border-bottom-text-secondary">
+
+    <view class="mainBack_new_btn flex-column-center" wx:if="{{showChoice}}" bindtap="changeOldDepToNewDep">
+      
+      确定转换
+    </view>
+  </view>
+
+
+
+  <scroll-view scroll-y="true" style="height: {{windowHeight - 100 -navBarHeight}}rpx;">
+    <view class="flex-row-between p-20">
+      <view class="flex-row">
+        <image src="../../../../images/date.png" class="icon"></image>
+        <text class="ml-20small text-secondary ">记账客户</text>
+      </view>
+    </view>
+
+    <view bindtap="{{item.nxDepartmentEntities.length == 0 ? 'choiceDep' : ''}}"  data-index="{{index}}"  class="border-bottom flex-row-between  bg-white p-20 font-lg-2" wx:for="{{myCustomerArrTwo}}">
+      <view class="flex-row-default">
+        <text class="">{{index + 1}}.</text>
+        <block wx:if="{{item.nxDepartmentEntities.length == 0}}">
+          <text class=''>{{item.nxDepartmentName}}</text>
+        </block>
+        <block wx:else="" class="flex-column flex-row">
+          <view class="flex-column">
+            <view class="flex-row-between border-bottom flex-row-between  bg-white p-20 " style="width: {{windowWidth - 140}}rpx;" wx:for="{{item.nxDepartmentEntities}}" wx:for-item="sub" wx:for-index="subIndex" bind:tap="choiceDepSub" data-index="{{index}}" data-subindex="{{subIndex}}">
+
+              <view>{{item.nxDepartmentName}}.{{sub.nxDepartmentName}}</view>
+              <view class="flex-row" hover-class="hover">
+
+                <image src="{{sub.isSelected ? '/images/selected.png' : '/images/radiobuttonunselect-2.png'}}" mode="aspectFill" class="icon" />
+              </view>
+            </view>
+
+
+          </view>
+        </block>
+
+      </view>
+
+      <view class="flex-row" wx:if="{{item.nxDepartmentEntities.length == 0}}">
+
+        <image src="{{item.isSelected ? '/images/selected.png' : '/images/radiobuttonunselect-2.png'}}" mode="aspectFill" class="icon" />
+      </view>
+
+    </view>
+  </scroll-view>
+
+
+</view>
+
+
+
+
+
+<!-- operation -->
+<view class='overlay {{showOperation ? "show" : ""}}' catchtouchmove='ture'>
+  <view class="flex-column nnn bg-white">
+
+    <!-- -->
+    <view class="p-20 flex-row" bindtap="toCustomerPage">
+      <image src="../../../../images/BusinessIcons_DocPaper-.png" class="icon icon_operation"></image>
+      <text class="text_operation">客户详细</text>
+    </view>
+
+    <view class="p-20flex-row " bindtap="toOpenPrint">
+      <image src="../../../../images/weight-2.png" class="icon icon_operation"></image>
+      <text class="text_operation">生成订货单</text>
+    </view>
+
+
+
+  </view>
+</view>
+<!-- ../operation -->
+

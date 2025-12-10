@@ -1,0 +1,78 @@
+
+.page-root {
+  height: 100vh;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+}
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.scroll-content {
+  flex: 1;
+  min-height: 0;
+}
+
+
+.wx_part{
+  width: 100%;
+  padding: 20rpx 20rpx;
+  position: fixed;
+  bottom: 0;
+  background-color: rgb(2, 179, 96);
+  color: #fff;
+  z-index: 9999999;
+}
+
+.goodsBack{
+  background: rgb(235, 242, 245);
+ 
+  margin-right:30rpx;
+  border-radius: 20rpx;
+  margin-bottom: 30rpx;
+}
+
+.word_back{
+  background-color: rgba(46, 46, 46, 0.8);
+  height: 90rpx;
+  line-height: 90rpx;
+  color: rgb(216, 215, 215);
+  padding-left: 40rpx;
+  font-size: 34rpx;
+}
+
+.dot{
+  border: 1px solid gray;
+  /* border-radius: 50%; */
+  width: 40rpx;
+  height: 40rpx;
+  display: block;
+}
+
+/* 美化按钮容器 */
+.button-container {
+  position: relative;
+  width: 70rpx;
+  height: 70rpx;
+  border-radius: 50%;
+  background-color: #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+}
+
+.button-container:active {
+  background-color: #e0e0e0;
+  transform: scale(0.95);
+  box-shadow: 0 1rpx 4rpx rgba(0, 0, 0, 0.1);
+}
+
+.button-container .icon {
+  width: 40rpx;
+  height: 40rpx;
+}

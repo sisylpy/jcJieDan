@@ -1,0 +1,76 @@
+
+<wxs src="../../../../utils/fn.wxs" module="tool" />
+
+<view class="flex-column height-100">
+
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="商品转换记录" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+  <view class="flex-column goods-list-container" style="margin-top: {{navBarHeight}}rpx;">
+
+    <!-- 转换记录列表 -->
+    <view class="conversion-list-item" wx:for="{{goodsList}}" wx:for-item="item" wx:for-index="goodsIndex" wx:key="nxDistributerGoodsId">
+      
+      <!-- 转换流程 -->
+      <view class="conversion-flow">
+        
+        <!-- 临时商品 -->
+        <view class="goods-item temp-goods">
+          <view class="goods-image-small" bindtap="shwoIImage" data-goods="{{item}}" data-index="{{goodsIndex}}">
+            <image src="{{url + item.nxDgGoodsLsFileLarge}}" mode="aspectFill" class="goods-img" />
+            <view class="temp-badge">临时</view>
+          </view>
+          <view class="goods-info-compact">
+             <text class="font-xs">{{tool.transferDateString(item.nxDgApplyDate)}}</text>
+            <text class="goods-name-compact">{{item.nxDgGoodsLsName}}</text>
+            <text class="goods-brand-compact" wx:if="{{item.nxDgGoodsLsBrand !== null && item.nxDgGoodsLsBrand.length > 0}}">{{item.nxDgGoodsLsBrand}}</text>
+          </view>
+        </view>
+
+        <!-- 转换箭头 -->
+        <view class="flow-arrow">
+          <text class="arrow-symbol">→</text>
+        </view>
+
+        <!-- 正式商品 -->
+        <view class="goods-item formal-goods">
+          <view class="goods-image-small" bindtap="shwoIImage" data-goods="{{item.nxDistributerGoodsEntity}}" data-index="{{goodsIndex}}">
+            <image src="{{url + item.nxDistributerGoodsEntity.nxDgGoodsFileLarge}}" mode="aspectFill" class="goods-img" />
+            <view class="formal-badge">正式</view>
+          </view>
+          <view class="goods-info-compact">
+            <view class="goods-name-row">
+              <text class="goods-name-compact">{{item.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
+              <text class="goods-unit-compact">({{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+            </view>
+            <text class="goods-brand-compact" wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsBrand !== null && item.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0}}">{{item.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
+            <text class="category-compact">{{item.nxDistributerGoodsEntity.nxDistributerFatherGoodsEntity.nxDfgFatherGoodsName}} > {{item.nxDistributerGoodsEntity.nxDistributerFatherGoodsEntity.nxDistributerFatherGoodsEntity.nxDfgFatherGoodsName}}</text>
+          </view>
+        </view>
+
+      </view>
+
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty-state" wx:if="{{goodsList.length == 0}}">
+    <view class="empty-icon">📦</view>
+    <view class="empty-text">暂无商品转换记录<br/>所有临时商品都已成功转换</view>
+  </view>
+  <!-- 图片弹窗 -->
+  <view class="image-modal" wx:if="{{showImageModal}}" bindtap="hideImageModal">
+    <view class="modal-content" catchtap="stopPropagation">
+      <view class="modal-header">
+        <text class="modal-title">商品图片</text>
+        <view class="close-btn" bindtap="hideImageModal">×</view>
+      </view>
+      <view class="modal-body">
+        <image src="{{currentImage}}" mode="aspectFit" class="modal-image" bindload="onImageLoad" binderror="onImageError" />
+        <view class="image-info" wx:if="{{currentGoods}}">
+          <text class="goods-name">{{currentGoods.nxDgGoodsName}}</text>
+          <text class="goods-standard" wx:if="{{currentGoods.nxDgGoodsStandardname}}">规格: {{currentGoods.nxDgGoodsStandardname}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

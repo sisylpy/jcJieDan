@@ -1,0 +1,47 @@
+/* miniprogram/pages/signe1/enterprisetype.wxss */
+
+page {
+  background: #fff;
+  /* display: block; */
+  
+}
+
+/*  */
+button.addBtn{
+  padding: 0;
+  background: #707070;
+  line-height: 90rpx;
+  font-weight: 400;
+  color: #fff;
+}
+.addBtn.next{
+  background: #234b50;
+}
+
+
+.log_btn{
+  /* background: #187e6e; */
+  color: #fff;
+  margin-top: 40rpx;
+  /* border-radius: 10rpx; */
+
+}
+
+.log_btn button{
+  border: none;
+  /* background: #187e6e; */
+  color: #187e6e;
+
+  
+}
+
+.url{
+  width: 300rpx;
+  height: 200rpx;
+  padding: 40rpx 0;
+}
+
+.top{
+  padding: 40rpx 40rpx;
+  font-size: 38rpx;
+}

@@ -1,0 +1,207 @@
+<template name="resGoods">
+
+
+	<scroll-view scroll-y style="height:{{windowHeight - 220}}rpx;">
+				<!-- empty -->
+
+				<view class="emptyView {{fatherDep.length == 0 ? 'is-active' : ''}}"
+					style="height: {{windowHeight - 360}}rpx; text-align:center;">
+					<view class="font-lg empty_view">
+						<view class="flex-column-center">
+
+							<image class="empty_image" src="/images/cart-Empty.png"></image>
+							<text class="big">暂时无订购商品</text>
+							<view class="p-20flex-row">
+								<image src="/images/atm-away.png" class="show_icon"></image>
+								<view class="text-secondary small">显示3个月内订过的商品。</view>
+							</view>
+							<!-- <text class="font-sldarktext-secondary with-tb-padding">订购成功的商品将添加在这里！</text> -->
+						</view>
+					</view>
+				</view>
+				<!-- ./empty -->
+
+				<!-- hasSub > 0 -->
+      <block wx:if="{{depInfo.nxDepartmentSubAmount > 0}}">
+				<view class="p-20flex-column  margin_bottom font-lgwhiteBack" wx:for="{{fatherDep.nxSubDepartments}}" wx:for-item="dep" wx:for-index="depIndex">
+					<view class="p-20mainBack">
+						<text class=" white">{{dep.nxDepartmentName}}</text>
+					</view>
+					<!--  -->
+					<view class="item_father bg-white flex-column" wx:for="{{dep.nxDepartmentDisGoodsEntities}}"
+						wx:key="nxDepartmentDisGoodsId" wx:for-item="goods" 
+						 wx:for-index="goodsIndex">
+
+						<view class="item">
+							<!-- circle -->
+							<view class="circle" wx:if="{{goods.nxDepartmentOrdersEntity !== null}}"
+								style=" height: 60rpx; width: 100rpx;position: absolute; right: -30rpx; top: -30rpx;">
+										<view class="number">{{goods.nxDepartmentOrdersEntity.nxDoQuantity}}{{goods.nxDepartmentOrdersEntity.nxDoStandard}}</view>
+							</view>
+							<!-- ./circle -->
+
+							<!-- item -->
+							<view class="history_item {{goods.nxDepartmentOrdersEntity !== null ? 'select_border' : 'font-lg_border'}}"
+								style="width:{{(windowWidth - 100)}}rpx;">
+								<view class="flex-column  font-lg" style="padding: 30rpx  30rpx 15rpx 15rpx; ">
+										<view class="flex-row-wrap p-20big">
+											<text class="brand"
+												wx:if="{{goods.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0 && goods.nxDistributerGoodsEntity.nxDgGoodsBrand !==  'null'}}">{{goods.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
+											<text class="mr-10 text-secondary"
+												wx:if="{{goods.nxDistributerGoodsEntity.nxDgPullOff == 1}}">(下架){{goods.nxDdgDepGoodsName}}</text>
+											<text class="mr-10" wx:else>{{goods.nxDdgDepGoodsName}}</text>
+											<text class="mr-10"
+												wx:if="{{goods.nxDistributerGoodsEntity.nxAliasEntities.length > 0}}"
+												wx:for="{{goods.nxDistributerGoodsEntity.nxAliasEntities}}" wx:for-item="alias"
+												wx:key="nxDistributerAliasId">@{{alias.nxDaAliasName}}</text>
+								
+												<text class="mr-10"
+													wx:if="{{goods.nxDistributerGoodsEntity.nxDgGoodsStandardname !== '斤'}}">({{goods.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+											<text class="mr-10"
+												wx:if="{{goods.nxDistributerGoodsEntity.nxDgGoodsDetail.length > 0 && goods.nxDistributerGoodsEntity.nxDgGoodsDetail !==  'null'}}">{{goods.nxDistributerGoodsEntity.nxDgGoodsDetail}}</text>
+											<text class="font-sl mr-10 text-secontory"
+												wx:if="{{goods.nxDistributerGoodsEntity.nxDgGoodsPlace !== null && goods.nxDistributerGoodsEntity.nxDgGoodsPlace.length > 0}}">产地:{{goods.nxDistributerGoodsEntity.nxDgGoodsPlace}}</text>
+										</view>
+								
+									<view class="flex-row-default font-md" wx:if="{{goods.nxDepartmentOrdersEntity == null}}"
+										style="width:{{windowWidth - 80}}rpx; padding: 8rpx 8rpx 30rpx 20rpx; ">
+										<text class="mr-10flex-fixed">订货:</text>
+										<view class=" flex-row-wrap">
+											<view class="his_price" wx:for="{{goods.nxDepOrdersHistoryEntities}}" wx:for-item="history"
+												bindtap="applyHistory" data-item="{{goods.nxDistributerGoodsEntity}}" data-index="{{goodsIndex}}" data-depid="{{dep.nxDepartmentId}}"
+												data-depindex="{{depIndex}}" data-hasquantity="{{history.nxDohQuantity}}"  data-hasstandard="{{history.nxDohStandard}}" hover-class="hoaverHistory">{{history.nxDohQuantity}}{{history.nxDohStandard}}</view>
+
+											<view class="his_price" data-pulloff="{{goods.nxDistributerGoodsEntity.nxDgPullOff}}"
+												bindtap="applyGoods" data-item="{{goods.nxDistributerGoodsEntity}}" data-index="{{goodsIndex}}" data-depid="{{dep.nxDepartmentId}}"
+												data-depindex="{{depIndex}}"
+												hover-class="hoaverHistory">+</view>
+										</view>
+									</view>
+								</view>
+								<view class="line"></view>
+
+								<view
+									wx:if="{{goods.nxDepartmentOrdersEntity !== null}}">
+
+									<view class="flex-row" style="width: {{windowWidth - 80}}rpx;  ">
+										<view class="half-row flex-column-center ninty_height btn_view_left" bindtap="deleteHistoryApply"
+											hover-class="hover" data-item="{{goods.nxDepartmentOrdersEntity}}" data-disgoods="{{goods.nxDistributerGoodsEntity}}" data-depindex="{{depIndex}}" data-index="{{goodsIndex}}">
+											<image class="btn_icon" src="/images/ashbin.png"></image>
+
+										</view>
+										<view class="column_line"></view>
+										<view class="half-row flex-column-center ninty_height btn_view_right" 
+										bindtap="toEditApply"
+										data-item="{{goods.nxDepartmentOrdersEntity}}"
+														data-disgoods="{{goods.nxDistributerGoodsEntity}}" hover-class="hover"
+														data-depindex="{{depIndex}}" data-index="{{goodsIndex}}">
+											<image class="btn_icon" src="/images/edit-3.png"></image>
+										</view>
+									</view>
+								</view>
+							</view>
+							<!-- ./item -->
+						</view>
+					</view>
+				</view>
+			</block>
+			<!-- ./hasSub > 0 -->
+
+
+		<!-- hasSub == 0 -->
+			<block wx:else>
+			<view class="p-20flex-column  margin_bottom font-lgwhiteBack">
+				<view class="item_father bg-whiteflex-column" wx:for="{{depGoodsArr}}"
+						wx:key="nxDepartmentDisGoodsId" wx:for-item="goods" 
+						 wx:for-index="goodsIndex" >
+
+						<view class="item">
+							<!-- circle -->
+							<view class="circle" wx:if="{{goods.nxDepartmentOrdersEntity !== null}}"
+								style=" height: 60rpx; width: 100rpx;position: absolute; right: -30rpx; top: -30rpx;">
+								<view class="number">								
+										<view class="number">{{goods.nxDepartmentOrdersEntity.nxDoQuantity}}{{goods.nxDepartmentOrdersEntity.nxDoStandard}}</view>
+								</view>
+							</view>
+							<!-- ./circle -->
+
+							<!-- item -->
+							<view class="history_item {{goods.nxDepartmentOrdersEntity !== null ? 'select_border' : 'font-lg_border'}}"
+								style="width:{{(windowWidth - 100)}}rpx;">
+								<view class="flex-column   " style="padding: 30rpx  30rpx 15rpx 15rpx; ">
+										<view class="flex-row-wrap p-20big">
+											<text class="brand"
+												wx:if="{{goods.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0 && goods.nxDistributerGoodsEntity.nxDgGoodsBrand !==  'null'}}">{{goods.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
+											<text class="mr-10 text-secondary"
+												wx:if="{{goods.nxDistributerGoodsEntity.nxDgPullOff == 1}}">(下架){{goods.nxDdgDepGoodsName}}</text>
+											<text class="mr-10" wx:else>{{goods.nxDdgDepGoodsName}}</text>
+											<text class="mr-10"
+												wx:if="{{goods.nxDistributerGoodsEntity.nxAliasEntities.length > 0}}"
+												wx:for="{{goods.nxDistributerGoodsEntity.nxAliasEntities}}" wx:for-item="alias"
+												wx:key="nxDistributerAliasId">@{{alias.nxDaAliasName}}</text>
+								
+												<text class="mr-10"
+													wx:if="{{goods.nxDistributerGoodsEntity.nxDgGoodsStandardname !== '斤'}}">({{goods.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+											<text class="mr-10"
+												wx:if="{{goods.nxDistributerGoodsEntity.nxDgGoodsDetail.length > 0 && goods.nxDistributerGoodsEntity.nxDgGoodsDetail !==  'null'}}">{{goods.nxDistributerGoodsEntity.nxDgGoodsDetail}}</text>
+											<text class="font-sl mr-10 text-secontory"
+												wx:if="{{goods.nxDistributerGoodsEntity.nxDgGoodsPlace !== null && goods.nxDistributerGoodsEntity.nxDgGoodsPlace.length > 0}}">产地:{{goods.nxDistributerGoodsEntity.nxDgGoodsPlace}}</text>
+										</view>
+								
+									<view class="flex-row-default font-md" wx:if="{{goods.nxDepartmentOrdersEntity == null}}"
+										style="width:{{windowWidth - 80}}rpx; padding: 8rpx 8rpx 30rpx 20rpx; ">
+										<text class="mr-10flex-fixed">订货:</text>
+										<view class=" flex-row-wrap">
+											<view class="his_price" wx:for="{{goods.nxDepOrdersHistoryEntities}}" wx:for-item="history"
+												bindtap="applyHistory" data-item="{{goods.nxDistributerGoodsEntity}}" data-index="{{goodsIndex}}" data-depid="{{depInfo.nxDepartmentId}}"
+											 data-hasquantity="{{history.nxDohQuantity}}"  data-hasstandard="{{history.nxDohStandard}}" hover-class="hoaverHistory">{{history.nxDohQuantity}}{{history.nxDohStandard}}</view>
+
+											<view class="his_price" data-pulloff="{{goods.nxDistributerGoodsEntity.nxDgPullOff}}"
+												bindtap="applyGoods" data-item="{{goods.nxDistributerGoodsEntity}}" data-index="{{goodsIndex}}" data-depid="{{dep.nxDepartmentId}}"
+											
+												hover-class="hoaverHistory">+</view>
+										</view>
+									</view>
+								</view>
+								<view class="line"></view>
+
+								<view
+									wx:if="{{goods.nxDepartmentOrdersEntity !== null}}">
+
+									<view class="flex-row" style="width: {{windowWidth - 80}}rpx;  ">
+										<view class="half-row flex-column-center ninty_height btn_view_left" bindtap="deleteHistoryApply"
+											hover-class="hover" data-item="{{goods.nxDepartmentOrdersEntity}}" data-disgoods="{{goods.nxDistributerGoodsEntity}}" data-depindex="{{depIndex}}" data-index="{{goodsIndex}}">
+											<image class="btn_icon" src="/images/ashbin.png"></image>
+
+										</view>
+										<view class="column_line"></view>
+										<view class="half-row flex-column-center ninty_height btn_view_right" 
+										bindtap="toEditApply"
+										data-item="{{goods.nxDepartmentOrdersEntity}}"
+														data-disgoods="{{goods.nxDistributerGoodsEntity}}" hover-class="hover"
+														data-depindex="{{depIndex}}" data-index="{{goodsIndex}}">
+											<image class="btn_icon" src="/images/edit-3.png"></image>
+										</view>
+									</view>
+								</view>
+
+							</view>
+
+							<!-- ./item -->
+
+						</view>
+					</view>
+			</view>
+			
+			</block>
+			<!-- ./hasSub == 0 -->
+
+				<view class="flex-column-center" wx:if="{{depGoodsArr.length > 0}}">
+					<view class="p-20flex-row">
+						<image src="/images/atm-away.png" class="show_icon"></image>
+						<view class="text-secondary small">显示3个月内订过的商品。</view>
+					</view>
+				</view>
+			</scroll-view>
+
+</template>

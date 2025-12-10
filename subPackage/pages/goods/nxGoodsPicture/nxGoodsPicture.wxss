@@ -1,0 +1,16 @@
+/* pages/your_page/your_page.wxss */
+.container {
+  padding: 20rpx;
+}
+
+.image-preview {
+  width: 300rpx;
+  height: 300rpx;
+  margin-top: 20rpx;
+}
+
+view text {
+  display: block;
+  margin-top: 10rpx;
+  font-size: 28rpx;
+}

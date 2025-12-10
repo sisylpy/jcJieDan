@@ -1,0 +1,164 @@
+<view class='flex flex-column'>
+
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="{{inviter ? '邀请好友得奖励' :  inviterDisName + '邀请您注册'}}" avatar="/images/logo.jpg" button-text="设置" bindnavbuttontap="toIndex"></back-navbar>
+
+  <block wx:if="{{inviter}}">
+
+    <view class="flex-column center-content" style="margin-top: 40rpx;">
+
+      <!-- <image src="{{url + 'userImage/say.png'}}" mode="aspectFill" class="p-30"/> -->
+      <view class="flex-row p-30 font-lg">
+        🎉 恭喜你！成功邀请好友注册！
+      </view>
+      <view class="flex-row p-10 font-lg-2">
+        💎 你的邀请获得了 1000 点奖励！
+      </view>
+      <view class="flex-row p-10 font-lg-2">
+        等待好友注册成功奖励已发放至你的账户，快去查看吧！💰
+      </view>
+      <view class="flex-row p-10 font-lg-2">
+        继续邀请好友，更多奖励等着你！😊
+      </view>
+
+      <button style="width: {{windowWidth - 140}}rpx; background-color: #ee4502; line-height: 100rpx; height: 100rpx; margin-top: 100rpx; color: #fff; font-weight: 500;" class="font-md" open-type="share">继续邀请好友</button>
+
+    </view>
+
+  </block>
+
+  <block wx:else="">
+
+    <view class='flex-column p-20'>
+
+      <view class="flex-column center-content">
+        <view class='word'>京采接单</view>
+        <view class="small gray" style="margin-bottom: 40rpx;">专业配送商户专用版</view>
+      </view>
+
+      <view class="flex-column">
+
+        <view class="flex-row" style="width: {{windowWidth - 40}}rpx; ">
+          <text class="mr-10" style="width: 220rpx; text-align: right;">所在位置:</text>
+          <view class='what' style="width: {{windowWidth - 280}}rpx;">
+            <input class='input middle' type='text' placeholder='批发市场' name='marketName' value='{{marketName}}' bindtap='showMarket' disabled="false"></input>
+          </view>
+        </view>
+
+        <view class="flex-row" style="width: {{windowWidth - 40}}rpx; margin-top: 20rpx;">
+          <text class="mr-10" style="width: 220rpx;text-align: right;">商铺地址:</text>
+          <view class='what' style="width: {{windowWidth - 280}}rpx;">
+            <input class='inputHalf middle' type='text' placeholder='大厅号+摊位号' name='address' value='{{address}}' bindblur='getAddress'></input>
+          </view>
+        </view>
+
+        <view class="flex-row mt-10" style="width: {{windowWidth - 40}}rpx; ">
+          <text class="mr-10" style="width: 220rpx; text-align: right;">批发商名称:</text>
+          <view class='what' style="width: {{windowWidth - 280}}rpx;">
+            <input class='input middle' type='text' placeholder='批发商名称' name='name' value='{{name}}' bindblur='getName' bindconfirm="_canLogin"></input>
+          </view>
+        </view>
+
+        <!-- <view class="flex-row" style="width: {{windowWidth - 40}}rpx; margin-top: 20rpx">
+<text class="mr-10" style="width: 220rpx; text-align: right;">配送范围:</text>
+<view class='what'  style="width: {{(windowWidth - 400) / 2}}rpx; margin-right: 20rpx;">
+  <input class='inputHalf middle' type='text' placeholder='请选择' name='businessType' value='{{typeName}}' bindtap='showBusinessType' bindblur="_canLogin" disabled="false"></input>
+</view>
+
+<view class='what'  style="width: {{(windowWidth - 400) / 2}}rpx;margin-right: 20rpx;">
+  <input class='inputHalf middle' type='text' placeholder='请选择' name='businessType' value='{{typeName}}' bindtap='showBusinessType' bindblur="_canLogin" disabled="false"></input>
+</view>
+<view class='flex-row'  >
+   <view class="what flex-column-center" style="width: 40rpx; margin-right: 20rpx;">
+    -
+   </view> 
+   <view class="what flex-column-center" style="width: 40rpx;">
+    +
+   </view> 
+</view>
+</view> -->
+
+
+
+        <!-- <view class="flex-row" style="width: {{windowWidth - 40}}rpx; margin-top: 20rpx;">
+<text class="mr-10" style="width: 220rpx;text-align: right;">定位坐标:</text>
+<view class="flex-row" bindtap="toMap">
+<view class='what' style="width: {{windowWidth - 380}}rpx;"  >
+  <input class='inputHalf middle'  placeholder='定位坐标' name='zuobiao' value='{{latitude}}  {{longitude}}'  disabled="false"></input>
+   </view>
+   <view  style="width: 100rpx;">
+      <image src="../../../images/location.png" class="icon" style="margin-left: 30rpx;"> </image>
+    </view>
+  </view>
+</view> -->
+
+        <view class="flex-row" style="width: {{windowWidth - 40}}rpx; margin-top: 20rpx;">
+          <text class="mr-10" style="width: 220rpx;text-align: right;">联系手机:</text>
+          <view class='what' style="width: {{windowWidth - 280}}rpx;">
+            <input class='inputHalf middle' type='number' placeholder='手机号码' name='phone' value='{{phone}}' bindinput="getPhone" bindblur="validatePhone" bindconfirm="_canLogin"></input>
+          </view>
+        </view>
+
+        <view class="flex-row" style="width: {{windowWidth - 40}}rpx; margin-top: 20rpx;">
+          <text class="mr-10" style="width: 220rpx;text-align: right;">联系人:</text>
+          <view class='what' style="width: {{windowWidth - 280}}rpx;">
+            <input class='inputHalf middle' placeholder='业务联系人' value='{{userName}}' bindinput="getUserName" bindconfirm="_canLogin"></input>
+          </view>
+        </view>
+      </view>
+
+
+      <!-- 登录按钮 -->
+      <view class=' reg_btn  ' style="width: {{windowWidth - 40}}rpx;">
+
+        <button wx:if="{{canLogin}}" class="addBtn next" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar" plain='true' style="width: {{windowWidth - 80}}rpx;">注册专业配送商用户开发版</button>
+        <button wx:else="" class="addBtn" bindtap="tishi" plain='true' style="width: {{windowWidth - 80}}rpx;">注册批发市场专业配送商用版</button>
+      </view>
+
+    </view>
+  </block>
+
+</view>
+
+
+<view class="overlay {{showSelect ? 'show' : 'hide'}}">
+
+  <view class='popup p-30'>
+
+    <!-- 文字 -->
+    <view class='flex-row-between p-30'>
+      <text> 请选择您的经营方式。</text>
+      <view bindtap="closeType">
+        <image src="../../../images/del.png" class="icon"></image>
+      </view>
+    </view>
+    <view class='flex-row p-10'>
+      <radio-group class="radio-group" bindchange="radioChange">
+        <label class="radio" wx:for="{{items}}" wx:key="value">
+          <radio value="{{item.name}}" checked="{{item.checked}}" />{{item.value}}
+        </label>
+      </radio-group>
+    </view>
+  </view>
+
+</view>
+
+
+<view class="overlay {{showMarket ? 'show' : 'hide'}}">
+  <view class='popup'>
+    <!-- 文字 -->
+    <view class='flex-row-between p-30'>
+      <text> 请选所在位置</text>
+      <view bindtap="closeMarket">
+        <image src="../../../images/del.png" class="icon"></image>
+      </view>
+    </view>
+    <view class='flex-row'>
+      <radio-group class="radio-group" bindchange="radioChangeMarket">
+        <label class="radio" wx:for="{{itemsMarket}}" wx:key="value">
+          <radio value="{{index}}" data-name="{{item.sysCmMarketName}}" checked="{{item.sysCityMarketId == marketId}}" />{{item.sysCmMarketName}}
+        </label>
+      </radio-group>
+    </view>
+  </view>
+
+</view>

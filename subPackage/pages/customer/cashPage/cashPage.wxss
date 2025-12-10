@@ -1,0 +1,90 @@
+/* pages/storeApplys/storeApplys.wxss */
+
+page{
+  background: lightgray;
+}
+.customerApply {
+  padding: 10rpx;
+  border: 1px solid lightgray;
+  border-radius: 10rpx;
+  padding-bottom: 260rpx;
+
+ 
+
+}
+
+
+.print_title{
+  font-size: 46rpx;
+  font-weight: 500;
+  text-align: center;
+}
+
+
+.section_body { 
+  border-radius: 4rpx;
+}
+
+.index{
+  width: 10%;
+}
+.goods_name {
+  width: 40%;
+  /* background: yellow; */
+}
+
+.order_price {
+  width: 20%;
+  /* background: blue; */
+}
+
+.weight {
+  width: 15%;
+  /* background: yellow; */
+}
+
+.subtotalTitle {
+  width: 20%;
+  /* background: red; */
+}
+
+.subtotal {
+  width: 20%;
+  /* background: green; */
+}
+
+
+
+
+
+.btn {
+  height: 60rpx;
+  width: 170rpx;
+  background: rgb(68, 108, 170);
+  padding: 10rpx 20rpx;
+  color: #fff;
+  border-radius: 5rpx;
+}
+
+.bottom_btn{
+
+  background: #2d5a5f;
+  color: #fff;
+}
+.input{
+  /* border: 1px solid lightgray; */
+  border-radius: 10rpx;
+  height: 70rpx;
+  line-height: 70rpx;
+  /* padding: 5rpx 10rpx; */
+}
+
+.priceInput{
+  /* width: 80%; */
+}
+
+.total{
+  text-align: right;
+  
+}
+

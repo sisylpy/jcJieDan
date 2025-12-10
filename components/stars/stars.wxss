@@ -1,0 +1,7 @@
+/* components/stars.wxss */
+
+
+.icon-sm {
+  width: 24rpx;
+  height: 24rpx;
+}

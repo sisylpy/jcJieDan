@@ -1,0 +1,75 @@
+/* 员工设置页面特有样式 */
+
+.search-bar {
+  padding: 20rpx;
+}
+
+.staff-list {
+  margin-top: 20rpx;
+}
+
+.staff-item {
+  background-color: #fff;
+  padding: 30rpx;
+  transition: background-color 0.3s;
+}
+
+.staff-avatar {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.staff-avatar .avatar {
+  width: 100%;
+  height: 100%;
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-icon {
+  width: 40rpx;
+  height: 40rpx;
+}
+
+.empty-image {
+  width: 200rpx;
+  height: 200rpx;
+}
+
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  border-top: 1rpx solid #e5e5e5;
+  padding: 30rpx;
+  box-shadow: 0 -2rpx 10rpx rgba(0, 0, 0, 0.05);
+}
+
+.btn-cancel {
+  background-color: #fff;
+  color: #666;
+  border: 1rpx solid #ddd;
+  padding: 15rpx 40rpx;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+}
+
+.btn-confirm {
+  background-color: #07c160;
+  color: #fff;
+  border: none;
+  padding: 15rpx 40rpx;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+}
+
+.border-radius-40 {
+  border-radius: 40rpx;
+}
+

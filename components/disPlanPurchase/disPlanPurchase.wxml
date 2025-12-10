@@ -1,0 +1,48 @@
+<view class='aaa' wx:if='{{show}}' catchtouchmove='ture'>
+  <view class='body bg-white'>
+    <view class='flex-row goodsTitle p-20 mainBack'>
+      <text class="brand" wx:if="{{item.nxDgGoodsBrand !== 'null' && item.nxDgGoodsBrand.length > 0}}">{{item.nxDgGoodsBrand}}</text>
+      <text class="margin-right">{{item.nxDgGoodsName}}</text>
+      <text wx:if="{{item.nxDgGoodsStandardWeight !== null  && item.nxDgGoodsStandardWeight !== ''  && item.nxDgGoodsStandardWeight.length > 0}}">({{item.nxDgGoodsStandardname}}/{{item.nxDgGoodsStandardWeight}})</text>
+      <text wx:else>({{item.nxDgGoodsStandardname}})</text>
+      <text class="" wx:if="{{item.nxAliasEntities.length > 0}}" wx:for="{{item.nxAliasEntities}}" wx:for-item="alias" wx:key="nxDistributerAliasId">@{{alias.nxDaAliasName}}</text>
+    </view>
+
+
+    <view class='p-20 flex-column'>
+   <view class="flex-row p-20">
+        <text class="explain ">进货数量:</text>
+        <input class='numberInput'  type="digit" bindinput="getPlan" focus="true"  value="{{planOrder}}"></input>
+        <input class='standardInput' type="text" bindinput="getStandard" value="{{applyStandardName}}" placeholder="{{item.nxDgCartonUnit !== null && item.nxDgCartonUnit !== undefined && item.nxDgCartonUnit !== '' ? item.nxDgCartonUnit : item.nxDgGoodsStandardname}}"></input>
+      </view>
+
+      <view class="flex-row p-20">
+        <text class="explain shrink_fix">剩余库存</text>
+        <input class='numberInput'  type="digit" bindinput="getNewRestWeight" value="{{restWeight}}"></input>
+
+      </view>
+
+      <!-- <view class="flex-row-default  p-20">
+        <text class="explain shrink_fix">单位</text>
+        <view class=" flex-row-wrap shrink_change rightPart">
+          <text class="standardName {{applyStandardName == item.nxDgGoodsStandardname ? 'is-active' : ''}}" bindtap="changeStandard" data-name="{{item.nxDgGoodsStandardname}}">{{item.nxDgGoodsStandardname}}</text>
+
+          <text class="standardName {{applyStandardName == standard.nxDsStandardName ? 'is-active' : ''}}" catchtap="changeStandard" data-name="{{standard.nxDsStandardName}}" catchlongpress="delStandard" data-id="{{standard.nxDistributerStandardId}}" wx:for="{{item.nxDistributerStandardEntities}}" wx:key="nxDistributerStandardId" wx:for-item="standard">{{standard.nxDsStandardName}}</text>
+
+        </view>
+      </view> -->
+    </view>
+
+
+    <view class="flex-row  p-20 margin-top">
+      <view class='btn'>
+        <text class="cancleBtn" bindtap="cancle" hover-class="hover">取消</text>
+      </view>
+      <view class='btn'>
+        <!-- <text class="sureBtn {{priceLevel !== '-1' && planOrder.length > 0? 'is-active' : ''}}" catchtap='confirm' hover-class="hover">确定</text> -->
+        <text class="sureBtn  {{planOrder > 0 ? 'is-active' : ''}}" catchtap="{{planOrder > 0 ? 'confirm' : ''}}" hover-class="hover">采购</text>
+      </view>
+    </view>
+  </view>
+
+</view>

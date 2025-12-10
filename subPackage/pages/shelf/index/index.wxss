@@ -1,0 +1,473 @@
+
+.left {
+  width: 15vw;
+}
+
+.left-item {
+  padding: 30rpx 20rpx;
+  background-color: rgb(247, 247, 247);
+}
+
+.left-active {
+  background-color: #fff;
+  border-left: 6rpx solid #167063;
+  background-color: #b8e6d0 !important; /* 更强烈的绿色背景，表示已点击且可操作 */
+  border-left: 6rpx solid #0d5d4f !important; /* 更深的绿色边框 */
+  font-weight: 700; /* 加粗文字 */
+  color: #0d5d4f !important; /* 深绿色文字，更强烈的对比 */
+  box-shadow: 0 4rpx 12rpx rgba(22, 112, 99, 0.3); /* 更强的阴影效果，更突出 */
+  transform: scale(1.02); /* 轻微放大，增强视觉反馈 */
+}
+
+
+.circle{
+  
+  /* z-index: 998; */
+  background: #04328c;
+  border-radius: 20rpx;
+  width: 80rpx;
+  height: 50rpx;
+  line-height: 50rpx;
+  margin-left: -25rpx;
+  margin-top: -125rpx;
+  font-size: 26rpx;
+  color: #fff;
+  
+}
+
+.circle_list{
+  background: #04328c;
+  border-radius: 20rpx;
+  width: 80rpx;
+  height: 50rpx;
+  line-height: 50rpx;
+  font-size: 26rpx;
+  color: #fff;
+}
+
+.his_price{
+  background-color: #ececec;
+  color: rgb(14, 26, 192);
+  padding: 4rpx 16rpx;
+  border-radius: 10rpx;
+
+}
+
+.circle.gray{
+  background: #374947;
+}
+
+
+.border-radius-40{
+  border-radius: 40rpx;
+  border: 1px solid lightgray;
+
+
+}
+
+
+.shelf-tools-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.35);
+  z-index: 10000;
+}
+
+.shelf-tools-panel {
+  position: fixed;
+  right: 40rpx;
+  z-index: 10001;
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 16rpx 32rpx rgba(0, 0, 0, 0.12);
+}
+
+.shelf-layer-divider {
+  width: 100%;
+  padding: 20rpx 0 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.divider-line {
+  flex: 1;
+  height: 4rpx;
+  background-color: #12a085;
+  border-radius: 4rpx;
+}
+
+.divider-text {
+  margin: 0 26rpx;
+  font-size: 26rpx;
+  color: #0a8a72;
+  font-weight: 600;
+}
+
+.shelf-list-wrap {
+  padding: 20rpx;
+}
+
+.shelf-list-item {
+  display: flex;
+  align-items: flex-start;
+  background-color: #fff;
+  border-radius: 24rpx;
+  border: 1px solid #e5e5e5;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+}
+
+.shelf-list-thumb {
+  width: 160rpx;
+  height: 160rpx;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+  border-radius: 16rpx;
+  overflow: hidden;
+  background-color: #f5f5f5;
+}
+
+.shelf-list-img {
+  width: 100%;
+  height: 100%;
+}
+
+.shelf-list-img.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shelf-list-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.shelf-list-title {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.shelf-list-brand {
+  font-size: 26rpx;
+  color: #0a8a72;
+  padding: 0 14rpx;
+  background-color: rgba(10, 138, 114, 0.12);
+  border-radius: 12rpx;
+}
+
+.shelf-list-title-text {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+.shelf-list-name {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.shelf-list-spec {
+  font-size: 26rpx;
+  color: #7a8594;
+}
+
+.shelf-list-stock {
+  display: flex;
+  align-items: flex-start;
+  font-size: 26rpx;
+  color: #666;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.shelf-list-stock-label {
+  color: #666;
+}
+
+.stock-num {
+  color: #147062;
+  font-weight: 600;
+}
+
+.stock-empty {
+  color: #999;
+}
+
+.overlay .popup {
+  top: 12% !important;
+  transform: translate(-50%, 0) !important;
+  width: 92% !important;
+  border-radius: 28rpx;
+  overflow: hidden;
+  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.18);
+}
+
+.shelf-list-tag {
+  margin-left: 20rpx;
+  display: flex;
+  align-items: center;
+}
+
+.shelf-card-wrap {
+  width: 48%;
+  margin: 0 2% 24rpx 0;
+  position: relative;
+  box-sizing: border-box;
+}
+.shelf-card-wrap:nth-child(2n) {
+  margin-right: 0;
+}
+
+.shelf-card {
+  background: #ffffff;
+  border-radius: 28rpx;
+  padding: 24rpx;
+  box-shadow: 0 12rpx 32rpx rgba(0, 0, 0, 0.06);
+  border: 1rpx solid #e9eff2;
+  min-height: 220rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.shelf-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+.shelf-card-brand {
+  font-size: 24rpx;
+  padding: 4rpx 18rpx;
+  color: #0a8a72;
+  background: rgba(18, 160, 133, 0.12);
+  border-radius: 20rpx;
+}
+
+.shelf-card-title {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+.sameShelf{
+  border: 1px solid rgb(224, 71, 0);
+  border-radius: 10rpx;
+  padding: 4rpx 10rpx;
+  background-color: #f8feff;
+  color: rgb(204, 1, 1);
+  font-size: 24rpx;
+  font-weight: 500;
+  
+  
+}
+
+.shelf-card-name {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #1f2f3d;
+}
+
+.shelf-card-spec {
+  font-size: 26rpx;
+  color: #5c6672;
+  /* font-size: 40rpx; */
+  /* color: #04328c; */
+}
+
+
+
+/* 左侧菜单已点击状态（允许点击右侧商品） */
+.left-clicked {
+  background-color: #b8e6d0 !important; /* 更强烈的绿色背景，表示已点击且可操作 */
+  border-left: 6rpx solid #0d5d4f !important; /* 更深的绿色边框 */
+  font-weight: 700; /* 加粗文字 */
+  color: #0d5d4f !important; /* 深绿色文字，更强烈的对比 */
+  box-shadow: 0 4rpx 12rpx rgba(22, 112, 99, 0.3); /* 更强的阴影效果，更突出 */
+  transform: scale(1.02); /* 轻微放大，增强视觉反馈 */
+}
+
+
+.shelf-card-stock {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  flex: 1;
+  align-items: flex-start;
+}
+
+.stock-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e9efff;
+  color: #3171ff;
+  padding: 8rpx 22rpx;
+  border-radius: 20rpx;
+  font-size: 28rpx;
+  line-height: 1.2;
+}
+
+.shelf-card-empty {
+  color: #b0b7c3;
+  font-size: 26rpx;
+}
+
+.shelf-card-tag {
+  position: absolute;
+  top: 10rpx;
+  right: 10rpx;
+}
+.shelf-card-tag .circle {
+  margin: 0;
+  width: 90rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  border-radius: 28rpx;
+  font-size: 24rpx;
+  
+}
+
+/* 图片弹窗样式 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100rpx);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.image-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 20rpx;
+  width: 90%;
+  max-width: 600rpx;
+  max-height: 80%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.close-btn {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  background: #f5f5f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 40rpx;
+  color: #666;
+  transition: all 0.3s ease;
+}
+
+.close-btn:active {
+  background: #e0e0e0;
+  transform: scale(0.95);
+}
+
+.modal-body {
+  padding: 30rpx;
+  text-align: center;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-image {
+  width: 100%;
+  max-height: 500rpx;
+  border-radius: 12rpx;
+  margin-bottom: 20rpx;
+  animation: scaleIn 0.4s ease 0.1s both;
+  transition: transform 0.3s ease;
+}
+
+.image-info {
+  text-align: left;
+  margin-top: 20rpx;
+}
+
+.goods-name {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.goods-standard {
+  display: block;
+  font-size: 28rpx;
+  color: #666;
+}
+
+/* 固定货架名称区域 */
+.shelf-header-fixed {
+  position: relative;
+  z-index: 100;
+  background-color: #fff;
+}

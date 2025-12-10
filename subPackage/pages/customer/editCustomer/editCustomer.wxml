@@ -1,0 +1,118 @@
+<view class='flex-column height-100'>
+
+
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="{{depInfo.nxDepartmentAttrName}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+  <view class='p-20 ' style='background:white; margin-top: {{navBarHeight}}rpx;'>
+
+    <view class="flex-row font-lg p-20">
+      <text class="mr-10">订货部门:</text>
+      <view class="flex-column">
+        <view class="flex-row">
+          <radio-group class="plr-20  flex-row" bindchange="radioChange">
+            <label class="radio mr-20">
+              <view class="flex-row with-tb-padding">
+                <radio value="0" checked="{{hasSubs == 0}}" />
+                <text class=''>不分部门</text>
+              </view>
+            </label>
+
+            <label class="radio">
+              <view class="flex-row with-tb-padding">
+                <radio value="1" checked="{{hasSubs > 0}}" />
+                <text class=''>分部门</text>
+              </view>
+            </label>
+          </radio-group>
+        </view>
+      </view>
+    </view>
+
+    <!-- 修改子部门 -->
+    <view class='p-20 font-lg' wx:if="{{depInfo.nxDepartmentEntities.length > 0}}">
+
+      <view class=" flex-row">
+        <text style="margin-right:10rpx; margin-top:0rpx;">一共有</text>
+        <view class="flex-row" style="margin-right:20rpx;">
+          <view class="flex-column">
+            <input class="numInput1" style="width:{{windowWidth/3}}rpx; font-size: 40rpx;  height: 90rpx; line-height: 90rpx; padding-left: 20rpx; " disabled="{{hasSubs == 0 ? 'true' : ''}}" value="{{depInfo.nxDepartmentEntities.length}}"></input>
+          </view>
+        </view>
+        <text style="margin-top:20rpx;">个部门</text>
+      </view>
+
+      <view class='depments with-tb-padding'>
+        <view class="pt-10 pb-10" style="font-size: 32rpx; font-weight: 500; ">部门名称:</view>
+
+        <view class="flex-row font-sm" wx:for="{{depInfo.nxDepartmentEntities}}" wx:for-index="inputIndex">
+          <input class="numInput {{item.isSelected !== null ? 'is-active' : ''}}" style="width:{{windowWidth/2}}rpx; height: 90rpx; line-height: 90rpx;padding-left: 10rpx; margin-bottom:10rpx; font-size: 34rpx; " bindinput="getDepartmentName" data-index="{{inputIndex}}" value="{{item.nxDepartmentName}}" adjust-position="true" placeholder="部门名称" confirm-type='done' hold-keyboard="true" disabled="{{item.isSelected == null ? true : false}}" focus="{{item.isSelected !== null ? true : false}}" bindconfirm='updateDepName'></input>
+          <view class="flex-row">
+            <view class="flex-row p-20 mr-20" bind:tap="editSubDep" data-index="{{inputIndex}}">
+              <image src="/images/edit.png" mode="aspectFill" class="icon" />
+            </view>
+
+            <view class="flex-row p-20 mr-20" bind:tap="delSubDep" data-index="{{inputIndex}}">
+              <image src="/images/ashbin.png" mode="aspectFill" class="icon" />
+            </view>
+
+          </view>
+
+        </view>
+
+
+        <view class="flex-row">
+
+          <input class="numInput {{addDep ? 'is-active' : ''}}" style="width:{{windowWidth/2}}rpx; height: 90rpx; line-height: 90rpx;padding-left: 10rpx; margin-bottom:10rpx; font-size: 34rpx; " bindinput="getName" value="{{depName}}" adjust-position="true" placeholder="部门名称" confirm-type='done' hold-keyboard="true" disabled="{{!addDep ? true : false}}" focus="{{addDep !== null ? true : false}}" bindconfirm='saveDep'></input>
+          <view class="flex-row">
+            <view wx:if="{{!addDep}}" class="flex-row p-20 mr-20" bind:tap="addDep" data-index="{{inputIndex}}">
+              <image src="/images/add.png" mode="aspectFill" class="icon" />
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!--  添加分部门 -->
+    <view wx:if="{{editDepItem.nxDepartmentEntities.length > 0 && changeSubNumber}}">
+      <view class=" flex-row">
+        <text class="mr-20">一共有</text>
+        <view class="flex-row mr-20">
+          <view class="flex-column">
+            <input class="numInput1" style="width:{{windowWidth/3}}rpx; font-size: 40rpx;  height: 90rpx; line-height: 90rpx; padding-left: 20rpx; " value="{{hasSubs}}" bindinput="inputSubNumber"></input>
+          </view>
+        </view>
+        <text style="margin-top:20rpx;">个部门</text>
+      </view>
+
+      <view class='depments with-tb-padding'>
+        <view class="with-tb-padding text-secondary" style="font-size: 32rpx; font-weight: 500;">部门名称:</view>
+        <view class="flex-row" wx:for="{{editDepItem.nxDepartmentEntities}}" wx:for-item="subDep" wx:for-index="subIndex">
+          <input class="numInput is-active" style="width:{{windowWidth/2}}rpx; height: 90rpx; line-height: 90rpx;padding-left: 10rpx; margin-bottom:10rpx; font-size: 34rpx; " bindinput="getNewName" data-index="{{subIndex}}" value="{{subDep.nxDepartmentName}}" adjust-position="true" placeholder="部门名称" confirm-type='done' hold-keyboard="true" focus="{{changeSubNumber && subIndex == 0 ? true : false}}"></input>
+        </view>
+        <view class="center-content mt-10 pt-10">
+        <text  bind:tap="changeMultiDeps"   class="p-10 radius-20 font-md width-200 text-center {{changeSubNumber ? 'bg-success' : 'bg-light'}}">保存修改</text>
+        
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
+
+
+<view class='overlay {{deleteShow ? "show" : ""}}' catchtap="hideChoiceMask">
+  <view class=" popup" >
+    <view class="flex-cloumn">
+      <view class="weight_five  p-20" style="text-align: center; background-color: red; color: #fff; ">
+        <view class="p-20font-md">请确定要删除所有部门！</view>
+      </view>
+    </view>
+    <view class="center-content p-20">
+      <text class="font-md">所有订单和账单数据都在客户下!</text>
+    </view>
+
+    <view class="flex-row-between p-20">
+      <view class="p-20 third-row  font-md " bindtap="deleteNo" hover-class="hover" style="text-align: center;">取消</view>
+      <view class="p-20 third-row  font-md" bindtap="deleteYes" hover-class="hover" style=" text-align: center;">确定</view>
+    </view>
+  </view>
+</view>

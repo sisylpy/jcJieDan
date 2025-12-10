@@ -1,0 +1,103 @@
+
+
+
+<view  class="flex flex-column">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="{{type == 'sell' ? '卖价' : '进价'}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+ 
+
+  <view class="flex-column" >
+
+    <view class="flex flex-row p-20 border-bottom"  >
+     <text>{{totalCount}}个</text>
+    </view>
+    <view class="flex-column p-20 bg-white border-bottom"   wx:for="{{goodsList}}" wx:for-item="sons" wx:key="nxDistributerGoodsId" wx:for-index="goodsIndex" id="NAV{{sons.nxDgNxGrandId}}">
+            <view class="flex flex-row">
+              <view class="flex-column "  >
+                <view class="flex-column mr-10" style="border: 1px solid rgb(207, 207, 207);">
+                  <view class="flex-row ">
+                    <image class="flex-fixed" src="{{url + sons.nxDgGoodsFile}}" mode="aspectFill" class="icon" />
+                    <image src="/images/photozhaoxiang.png" mode="aspectFill" class="" style="width: 50rpx; height: 50rpx;" />
+                  </view>
+                  <image class="flex-fixed" src="{{url + sons.nxDgGoodsFileLarge}}" mode="aspectFill" class="icon" />
+                </view>
+              </view>
+
+              <view class="flex-column">
+
+                <view class="flex-row-between" bindtap="toDetail" data-id="{{sons.nxDistributerGoodsId}}" data-name="{{sons.nxDgGoodsName}}" data-color="{{sons.nxDgNxGoodsFatherColor}}" data-item="{{sons}}" data-index="{{goodsIndex}}" hover-class="hover">
+                  <view class="flex-row-wrap font-md" style="width: {{windowWidth - 260}}rpx; ">
+                    <text class=" {{sons.nxDgGoodsBrand !== null && sons.nxDgGoodsBrand.length > 0 ? 'brand' : ''}}">{{sons.nxDgGoodsBrand !== null && sons.nxDgGoodsBrand.length > 0 ? sons.nxDgGoodsBrand : ''}}</text>
+                    <text class=" five-weight mr-20">{{sons.nxDgGoodsName}}</text>
+                    <text class="">{{sons.nxDgGoodsDetail !== null ? sons.nxDgGoodsDetail : ''}}</text>
+                  </view>
+                  <view>
+                    <image src="/images/arrow-right-3.png" mode="aspectFill" class="icon" />
+                  </view>
+                </view>
+
+                <view class="flex-row small">
+                  <text class="m-10 text-secondary">规格:</text>
+                  <block wx:if="{{sons.nxDgGoodsStandardWeight !== 'null' && sons.nxDgGoodsStandardWeight.length > 0}}">
+                    <text class="font-xs">{{sons.nxDgGoodsStandardWeight}}/{{sons.nxDgGoodsStandardname}}</text>
+                  </block>
+                  <block wx:else>
+                    <text>{{sons.nxDgGoodsStandardname}}</text>
+                  </block>
+                </view>
+                <view class="flex-row font-xs">
+                  <view class="flex-row half-row">
+                    <text class="m-10 text-secondary">出货方式:</text>
+                    <text wx:if="{{sons.nxDgPurchaseAuto == -1}}">出库</text>
+                    <text wx:elif="{{sons.nxDgPurchaseAuto == 0}}">自采</text>
+                    <text wx:elif="{{sons.nxDgPurchaseAuto == 1}}"> 订货</text>
+                    <text wx:elif="{{sons.nxDgPurchaseAuto == 2}}">指定供货</text>
+                  </view>
+
+                  <view class="flex-row half-row" wx:if="{{sons.nxJrdhSupplierEntity !== null}}">
+                    <image class="mr-20" src="{{url + sons.nxJrdhSupplierEntity.jrdhUserEntity.nxJrdhWxAvartraUrl}}" mode="aspectFill" class="" style="width: 50rpx; height: 50rpx; border-radius: 50%;" />
+                    <text class="font-xs text-secondary">{{sons.nxJrdhSupplierEntity.jrdhUserEntity.nxJrdhWxNickName}}</text>
+                  </view>
+                </view>
+
+                <!-- <view class="flex-row-between">
+              <text class="mr-20">是否暂停订货:</text>
+                <switch checked="{{sons.nxDgPullOff == 1}}"/>
+              </view>      -->
+
+                <view class="flex-row with-tb-padding" bindtap="showIsPurchase" data-item="{{sons}}" data-index="{{goodsIndex}}" data-level="1" hover-class="hover"  >
+                  <text class="text-secondary m-10">售价:</text>
+                  <block wx:if="{{sons.nxDgWillPrice !== '0.1'}}">
+                    <text>{{sons.nxDgWillPrice}}元/{{sons.nxDgGoodsStandardname}}</text>
+                  </block>
+                  <block wx:else="">
+                    <image src="/images/add.png" mode="aspectFill" class="icon" />
+                  </block>
+                </view>
+              </view>
+            </view>
+          </view>
+
+    <!-- 加载状态提示 -->
+    <view class="loading-container" wx:if="{{isLoading}}" style="padding: 40rpx 0; text-align: center;">
+      <text class="text-secondary font-xs">加载中...</text>
+    </view>
+
+    <!-- 没有更多数据提示 -->
+    <view class="p-20 text-secondary font-xs" wx:if="{{!hasMore && goodsList.length > 0}}" style="text-align:center;">
+      没有更多数据了
+    </view>
+
+    <!-- 空状态提示 -->
+    <view class="p-20 text-secondary font-xs" wx:if="{{!isLoading && goodsList.length === 0}}" style="text-align:center;">
+      暂无商品数据
+    </view>
+
+  </view>
+
+</view>
+
+
+
+
+
+<editBuyingPrice show="{{showBuyingPrice}}" level="{{level}}" bindtoDeletePurchaseGoods="toDeletePurchaseGoods" bindtoEditPurchaseGoods="toEditPurchaseGoods" bindconfirm="confirm" bindcancle="cancleIsPurchase" bindfinish="finishnxPurGoods" item="{{item}}" consultItem="{{consultItem}}" maskHeight="{{maskHeight > windowHeight ? maskHeight : windowHeight}}" scrollViewTop="{{scrollViewTop}}" windowHeight="{{windowHeight}}" windowWidth="{{windowWidth}}" level="{{level}}" profit="{{profit}}" willPrice="{{willPrice}}" buyingPrice="{{buyingPrice}}" weight="{{weight}}" />

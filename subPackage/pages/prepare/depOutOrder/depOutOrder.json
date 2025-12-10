@@ -1,0 +1,8 @@
+{
+  "usingComponents": {
+    "editWeight": "/components/editWeight/editWeight",
+    "back-navbar": "/components/back-navbar/back-navbar"
+
+
+  }
+}

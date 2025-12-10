@@ -1,0 +1,61 @@
+<!-- pages/your_page/your_page.wxml -->
+
+
+<view class="flex-column height-100">
+
+
+<back-navbar style="height: {{navBarHeight}}rpx;" title="修改图片" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+<view class="flex-column p-20 bg-white" style="margin-top: {{navBarHeight}}rpx;">
+
+
+  <view class="flex-row-default p-20 font-xl" >
+    <text class="mr-20">商品名称:</text>
+    <input class="group_input normal" disabled="true" value="{{editItem.nxDgGoodsName}}"> </input>
+  </view>
+
+
+<view class="flex-column p-20">
+  <!-- 选择图片按钮 -->
+  <button bindtap="chooseImage">选择图片</button>
+  
+  <view class="flex-row-default">
+  <!-- 显示缩略图 -->
+  <image src="{{thumbnailPath}}" mode="aspectFit" wx:if="{{thumbnailPath}}" class="image-preview mr-20"></image>
+
+   <view class="flex-column">
+
+ 
+ <!-- 显示原图片尺寸 -->
+ <view class="p-10" wx:if="{{originalWidth && originalHeight}}">
+    <text>原图片尺寸：{{originalWidth}} x {{originalHeight}}</text>
+  </view>
+   <!-- 显示缩略图的压缩后尺寸 -->
+   <view class="p-10" wx:if="{{thumbnailWidth && thumbnailHeight}}">
+    <text>缩略图尺寸：{{thumbnailWidth}} x {{thumbnailHeight}}</text>
+  </view>
+
+ <!-- 显示大图的压缩后尺寸 -->
+ <view class="p-10" wx:if="{{largeImageWidth && largeImageHeight}}">
+    <text>大图尺寸：{{largeImageWidth}} x {{largeImageHeight}}</text>
+  </view>
+  
+  </view>
+ 
+
+  
+   
+  
+   </view>
+  
+  <!-- 其他内容 -->
+
+  <!-- Canvas 元素 -->
+  <canvas type="2d" id="myCanvas" style="width: {{canvasWidth}}px; height: {{canvasHeight}}px; display: none;"></canvas>
+</view>
+
+
+</view>
+
+
+</view>

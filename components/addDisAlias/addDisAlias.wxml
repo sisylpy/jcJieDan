@@ -1,0 +1,23 @@
+<view class='overlay' wx:if='{{show}}' catchtouchmove='ture'>
+  <view class='popup'>
+
+    <view class="popup-header">
+      <text class="product-name ">{{depGoodsName}}</text>
+    </view>
+
+    <view class="flex-row p-20">
+      <text class="p-20 label">新别名:</text>
+
+      <input class='popInput p-20' focus='true' type='text' bindinput="getAlias" value='{{itemAlias.nxDaAliasName}}' bindfocus="getFocus" placeholder="别名名称" />
+    </view>
+
+    <view class="btn_row p-20">
+      <view class='btn sureBtn' catchtap='confirm' hover-class="hover">确定</view>
+      <view class='btn cancleBtn' bindtap="cancle" hover-class="hover">取消</view>
+    </view>
+
+
+
+
+  </view>
+</view>

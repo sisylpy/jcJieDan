@@ -1,0 +1,15 @@
+
+
+<view class="flex flex-column ">
+
+
+<back-navbar style="height: {{navBarHeight}}rpx;" title="登录打印" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+
+<view class="flex-column p-30 center-content" style="margin-top: {{navBarHeight}}rpx;">
+
+ <view>终端打印机已登录</view>
+  <view>{{sessionId}}</view>
+</view>
+
+</view>

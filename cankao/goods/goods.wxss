@@ -1,0 +1,237 @@
+
+.filterMy{
+  border-radius: 40rpx;
+  padding: 10rpx 40rpx;
+  /* background: #0f8674; */
+  color: #fff;
+  
+}
+.delIcon{
+  position:relative;
+  width: 40rpx;
+  height: 40rpx;
+  margin-top: -60rpx;
+  padding:  -40rpx;
+  margin-left: 20rpx;
+}
+
+
+.flex-column-center {
+  display: flex;
+  flex-flow: column nowrap;
+  /* justify-content: space-around; */
+  justify-content: center;
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.hide{
+  display: none;
+}
+
+.show{
+  display: block;
+}
+
+
+/* 左侧菜单容器 - 固定宽度，防止被压缩 */
+.left-scroll-view {
+  flex-shrink: 0; /* 防止在 flex 布局中被压缩 */
+  box-sizing: border-box; /* 确保宽度计算包含边框和内边距 */
+}
+
+.left-item {
+  padding: 30rpx 10rpx;
+  background-color: #f8f9fa; /* 浅灰白色背景，比 #eee 更清晰，适合数据展示 */
+  transition: all 0.2s; /* 添加过渡效果 */
+  box-sizing: border-box; /* 确保边框包含在宽度内 */
+  border-left: 6rpx solid transparent; /* 预留边框空间，使用透明边框 */
+  text-align: center; /* 文字居中 */
+  font-size: 28rpx; /* 设置字体大小 */
+  line-height: 1.4; /* 设置行高 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #1a1a1a; /* 更深的黑色文字，确保清晰可读 */
+}
+
+.left-item text {
+  display: block;
+  word-break: break-word; /* 允许文字换行，长文本可以换到第二行 */
+  white-space: normal; /* 允许正常换行 */
+  width: 100%;
+  text-align: center;
+  line-height: 1.5; /* 增加行高，让文字更易读 */
+  word-wrap: break-word; /* 确保长单词也能换行 */
+}
+
+.sameShelf{
+  border:  1px solid rgb(231, 153, 8);
+  padding: 2rpx 10rpx;
+  border-radius: 10rpx;
+  font-size: 28rpx;
+}
+
+.left-active {
+  background-color: #e6f7f0 !important; /* 更鲜明的绿色背景，选中状态更明显 */
+  border-left: 6rpx solid #167063 !important; /* 选中时显示绿色边框 */
+  font-weight: 700; /* 加粗文字，更突出 */
+  color: #167063 !important; /* 绿色文字，与背景形成对比 */
+  box-shadow: 0 2rpx 6rpx rgba(22, 112, 99, 0.15); /* 添加轻微阴影，增强层次感 */
+}
+
+/* 左侧菜单已点击状态（允许点击右侧商品） */
+.left-clicked {
+  background-color: #b8e6d0 !important; /* 更强烈的绿色背景，表示已点击且可操作 */
+  border-left: 6rpx solid #0d5d4f !important; /* 更深的绿色边框 */
+  font-weight: 700; /* 加粗文字 */
+  color: #0d5d4f !important; /* 深绿色文字，更强烈的对比 */
+  box-shadow: 0 4rpx 12rpx rgba(22, 112, 99, 0.3); /* 更强的阴影效果，更突出 */
+  transform: scale(1.02); /* 轻微放大，增强视觉反馈 */
+}
+
+/* 右侧内容区域容器 - flex-1 占据剩余空间 */
+.flex-1 {
+  box-sizing: border-box; /* 确保宽度计算包含 padding */
+  min-width: 0; /* 防止 flex 子元素溢出 */
+}
+
+/* 右侧内容区域 - 确保宽度计算正确 */
+.scroll-content {
+  box-sizing: border-box; /* 确保宽度计算包含边框和内边距 */
+  width: 100%; /* 占据父容器的全部剩余空间 */
+}
+
+/* 右侧内容区域选中状态 - 简化版，只改变背景色，不影响宽度 */
+.category-section-active,
+.shelf-section-active {
+  background-color: #f0fdf4 !important; /* 更鲜明的浅绿色背景，与左侧菜单呼应 */
+  box-sizing: border-box; /* 确保不会因为任何样式改变宽度 */
+  /* 不添加边框，只在锁住状态时显示 */
+}
+
+/* 右侧内容区域锁住状态（工作状态）- 显示绿色边框 */
+.category-section-locked,
+.shelf-section-locked {
+  border-left: 4rpx solid #167063 !important; /* 添加左侧绿色边框，表示锁住状态 */
+  padding-left: 16rpx; /* 为边框留出空间 */
+}
+
+/* 右侧商品可点击状态（属于已点击的左侧菜单） */
+.goods-clickable {
+  opacity: 1; /* 完全不透明，表示可点击 */
+  cursor: pointer; /* 鼠标指针样式（小程序中可能不生效，但保留） */
+  background-color: #ffffff !important; /* 白色背景，清晰可见 */
+  border: 1px solid #e0e0e0; /* 浅灰色边框，保持清晰 */
+}
+
+/* 右侧商品不可点击状态（不属于已点击的左侧菜单） */
+.goods-disabled {
+  opacity: 0.75; /* 提高透明度，从0.65改为0.75，确保仍然清晰可见 */
+  pointer-events: auto; /* 允许点击事件，但会在 JS 中拦截 */
+  background-color: #f5f5f5 !important; /* 浅灰色背景，与可点击状态区分 */
+  border: 1px solid #e8e8e8; /* 更浅的边框，表示不可点击 */
+  color: #4a4a4a !important; /* 深灰色文字，比 #999 更深，保持清晰可读 */
+}
+
+/* 覆盖全局的 text-secondary 样式，在 goods 页面使用更深的颜色 */
+.text-secondary {
+  color: #4a4a4a !important; /* 深灰色，比全局的 #666 更深，确保清晰可读 */
+}
+
+/* 确保右侧商品内容的文字颜色是深色 */
+.out_goods {
+  color: #1a1a1a; /* 深黑色文字，确保清晰可读 */
+}
+
+.out_goods text {
+  color: #1a1a1a; /* 深黑色文字 */
+}
+
+/* 商品名称等主要文字使用深色（仅在此页面） */
+.out_goods .font-lg-2 {
+  color: #1a1a1a !important; /* 深黑色文字 */
+}
+
+/* 右侧内容区域选中状态下的商品项，覆盖 bg-white */
+.category-section-active .bg-white,
+.shelf-section-active .bg-white {
+  background-color: #f0fdf4 !important; /* 与选中区域背景色一致 */
+  border: 1px solid #d4edda; /* 添加浅绿色边框，增强选中效果 */
+  border-radius: 8rpx; /* 添加圆角，更美观 */
+  margin: 4rpx 0; /* 添加间距，更清晰 */
+}
+
+
+.fatherGoods {
+  font-size: 26rpx;
+  text-align: center;
+  padding: 10rpx;
+  margin-right: 20rpx;
+  margin-bottom: 10rpx;
+  border: 1px solid rgb(206, 206, 206);
+  border-radius: 8rpx;
+  background-color: #fff;
+}
+
+.is-active {
+  background-color: #187e6e;
+  color: #ffffff;
+}
+
+.out_goods{
+  border-radius: 20rpx;
+  border: 1px solid gray;
+  padding: 10rpx 10rpx;
+ 
+}
+
+/* 切换按钮样式 */
+.switch-container {
+  background: #f5f5f5;
+  border-radius: 40rpx;
+  padding: 6rpx;
+  display: flex;
+  width: 320rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+}
+
+.switch-item {
+  flex: 1;
+  text-align: center;
+  padding: 24rpx 0;
+  border-radius: 34rpx;
+  font-size: 28rpx;
+  color: #1a1a1a; /* 更深的黑色，从 #666 改为 #1a1a1a */
+  transition: all 0.3s;
+  position: relative;
+  font-weight: 500;
+}
+
+.switch-item.active {
+  /* background: #167063; */
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 2rpx 8rpx rgba(22, 112, 99, 0.3);
+}
+
+.switch-item text {
+  display: block;
+}
+
+/* 按钮容器激活状态 */
+.button-container.active {
+  background: #167063;
+  box-shadow: 0 2rpx 8rpx rgba(22, 112, 99, 0.3);
+}
+
+.button-container .icon {
+  width: 40rpx;
+  height: 40rpx;
+}
+
+

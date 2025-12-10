@@ -1,0 +1,14 @@
+
+{
+  "navigationStyle": "custom",
+  "usingComponents": {
+    "custom-navbar": "/components/custom-navbar/custom-navbar",
+    "back-navbar": "/components/back-navbar/back-navbar",
+    "isPurchase": "/components/isPurchase/isPurchase",
+    "isPurchaseSingle": "/components/isPurchaseSingle/isPurchaseSingle",
+    "goodsWillPirce": "/components/goodsWillPirce/goodsWillPirce",
+    "editBuyingPrice": "/components/editBuyingPrice/editBuyingPrice"
+
+  }
+}
+

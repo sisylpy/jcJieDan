@@ -1,0 +1,11 @@
+
+{
+  
+  "usingComponents": {
+    
+    "back-navbar": "/components/back-navbar/back-navbar",
+    "editBuyingPrice": "/components/editBuyingPrice/editBuyingPrice"
+
+  }
+}
+

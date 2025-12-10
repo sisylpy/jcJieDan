@@ -1,0 +1,114 @@
+<wxs src="../../../../utils/fn.wxs" module="tool" />
+
+<view class="chat-container">
+
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="智能客服助手" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+  <!-- 对话区域 -->
+  <scroll-view class="chat-messages" scroll-y style="height: {{windowHeight - navBarHeight - 120}}rpx;" scroll-top="{{scrollTop}}">
+    
+    <!-- 对话消息列表 -->
+    <view class="message-list">
+      <block wx:for="{{chatMessages}}" wx:key="timestamp">
+        
+        <!-- 订单信息消息 -->
+        <view wx:if="{{item.type === 'order'}}" class="message-item ai-message">
+          <view class="message-avatar">
+            <image src="/images/robot-solid.png" class="avatar-img"></image>
+          </view>
+          <view class="message-content">
+            <view class="message-bubble ai-bubble">
+              <view class="order-info">
+                <text class="order-label">📋 您查询的订单：</text>
+                <text class="order-content">{{item.content}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+        
+        <!-- 文本消息 -->
+        <view wx:elif="{{item.type === 'text'}}" class="message-item {{item.isUser ? 'user-message' : 'ai-message'}}">
+          <view class="message-avatar" wx:if="{{!item.isUser}}">
+            <image src="/images/robot-solid.png" class="avatar-img"></image>
+          </view>
+          <view class="message-content">
+            <view class="message-bubble {{item.isUser ? 'user-bubble' : 'ai-bubble'}}">
+              <text>{{item.content}}</text>
+            </view>
+          </view>
+          <view class="message-avatar" wx:if="{{item.isUser}}">
+            <image src="/images/user.png" class="avatar-img"></image>
+          </view>
+        </view>
+        
+        <!-- 商品推荐消息 -->
+        <view wx:elif="{{item.type === 'goods'}}" class="message-item ai-message">
+          <view class="message-avatar">
+            <image src="/images/robot-solid.png" class="avatar-img"></image>
+          </view>
+          <view class="message-content">
+            <view class="message-bubble ai-bubble">
+              <text class="goods-intro">{{item.content}}</text>
+              
+              <!-- 商品列表 -->
+              <view class="goods-list">
+                <view class="goods-item" wx:for="{{item.goods}}" wx:key="nxDistributerGoodsId" wx:for-index="goodsIndex">
+                  <view class="goods-info">
+                    <text class="goods-index">{{goodsIndex + 1}}.</text>
+                    <view class="goods-details">
+                      <text class="goods-category">{{item.nxDistributerFatherGoodsEntity.nxDistributerFatherGoodsEntity.nxDfgFatherGoodsName}}></text>
+                      <text class="goods-category">{{item.nxDistributerFatherGoodsEntity.nxDfgFatherGoodsName}}></text>
+                      <text class="goods-name">{{item.nxDgGoodsName}}</text>
+                      <text class="goods-spec">({{item.nxDgGoodsStandardname}})</text>
+                      <text class="goods-place" wx:if="{{item.nxDgGoodsPlace}}">产地:{{item.nxDgGoodsPlace}}</text>
+                    </view>
+                  </view>
+                  <view class="goods-actions">
+                    <button class="select-btn" bindtap="onGoodsSelected" data-id="{{item.nxDistributerGoodsId}}">
+                      选择这个
+                    </button>
+                  </view>
+                </view>
+              </view>
+              
+              <!-- 快速操作按钮 -->
+              <view class="quick-actions">
+                <button class="quick-btn" bindtap="onNoneMatch">都不是</button>
+              </view>
+            </view>
+          </view>
+        </view>
+        
+      </block>
+    </view>
+    
+  </scroll-view>
+  
+  <!-- 快速输入建议 -->
+  <view class="quick-suggestions" wx:if="{{showSuggestions}}">
+    <view class="suggestion-item" wx:for="{{suggestions}}" wx:key="*this" bindtap="onSuggestionTap" data-text="{{item}}">
+      {{item}}
+    </view>
+  </view>
+
+  <!-- 群功能测试按钮 -->
+  <view class="test-section">
+    <button class="test-group-btn" bindtap="testGroupFunction">测试群功能</button>
+  </view>
+
+  <!-- 输入区域 -->
+  <view class="input-area">
+    <view class="input-container">
+      <input 
+        class="message-input" 
+        placeholder="{{placeHolder}}" 
+        value="{{inputText}}"
+        bindinput="onInputChange"
+        confirm-type="send"
+        bindconfirm="onSendMessage"
+      />
+      <button class="send-btn" bindtap="onSendMessage">发送</button>
+    </view>
+  </view>
+
+</view>

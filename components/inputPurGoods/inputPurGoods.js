@@ -1,0 +1,609 @@
+Component({
+  /**
+   * 组件的属性列表
+   */
+  properties: {
+    //是否显示modal
+    show: {
+      type: Boolean,
+      value: true
+    },
+    item: {
+      type: Object,
+      value: ""
+    },
+    maskHeight: {
+      type: Number,
+      value: ""
+    },
+    windowHeight: {
+      type: Number,
+      value: ""
+    },
+    windowWidth: {
+      type: Number,
+      value: ""
+    },
+    scaleInput: {
+      type: Boolean,
+      value: "false"
+    }
+  },
+
+  /**
+   * 组件的初始数据
+   */
+  data: {
+    cartonBuyPrice: '', // 箱单价（用户输入的原始值）
+    averageBuyPrice: '', // 平均单价（最小单位单价）
+    cartonExpectPrice: '', // 箱零售价（用户输入的原始值）
+    averageExpectPrice: '' // 平均建议售价（最小单位零售价）
+  },
+
+  /**
+   * 组件属性监听器
+   */
+  observers: {
+    // 监听 show 属性变化，关闭时重置内部状态
+    'show': function(show) {
+      if (!show) {
+        // 弹窗关闭时，重置内部状态
+        this.setData({
+          cartonBuyPrice: '',
+          averageBuyPrice: '',
+          cartonExpectPrice: '',
+          averageExpectPrice: ''
+        })
+      }
+    },
+    // 监听 item 属性变化，打开弹窗时重置内部状态
+    'item': function(item) {
+      if (item && this.data.show) {
+        // 弹窗打开时，重置内部状态
+        this.setData({
+          cartonBuyPrice: '',
+          averageBuyPrice: '',
+          cartonExpectPrice: '',
+          averageExpectPrice: ''
+        })
+      }
+    }
+  },
+
+  /**
+   * 组件的方法列表
+   */
+  methods: {
+
+    clickMask() {
+      this.setData({
+        show: false,
+      })
+    },
+
+    cancle() {
+      this.setData({
+        show: false,
+        editApply: false,
+        item: "",
+      })
+      this.triggerEvent('cancle')
+    },
+
+    finish(e){
+      this.setData({
+        show: false,
+        editApply: false,
+        item: "",
+        
+      })
+      this.triggerEvent('finish')
+    },
+
+    
+    // 获取采购单价
+    getPurchasePrice(e) {
+      var price = e.detail.value;
+      
+      // 验证输入：只允许数字和小数点
+      // 移除所有非数字和非小数点的字符（保留一个小数点）
+      if (price) {
+        // 先移除所有非数字和非小数点的字符
+        price = price.replace(/[^\d.]/g, '');
+        // 确保只有一个小数点
+        const parts = price.split('.');
+        if (parts.length > 2) {
+          // 如果有多个小数点，只保留第一个
+          price = parts[0] + '.' + parts.slice(1).join('');
+        }
+        // 限制小数点后最多2位
+        if (parts.length === 2 && parts[1].length > 2) {
+          price = parts[0] + '.' + parts[1].substring(0, 2);
+        }
+      }
+      
+      const disGoods = this.data.item.nxDistributerGoodsEntity;
+      let averagePrice = ''; // 平均单价（最小单位单价，仅用于显示）
+      
+      // 如果商品有外包装，用户输入的是箱单价，需要计算平均单价（仅用于显示）
+      if (disGoods && disGoods.nxDgCartonUnit !== null && disGoods.nxDgCartonUnit !== undefined && disGoods.nxDgCartonUnit !== '') {
+        const itemsPerCarton = disGoods.nxDgItemsPerCarton || 1;
+        if (itemsPerCarton > 0 && price) {
+          // 验证是否为有效数字
+          const numPrice = Number(price);
+          if (isNaN(numPrice) || numPrice < 0) {
+            wx.showToast({
+              title: '请输入有效的价格',
+              icon: 'none'
+            });
+            return;
+          }
+          // 计算平均单价（最小单位单价，仅用于显示给用户看）
+          averagePrice = (numPrice / Number(itemsPerCarton)).toFixed(1);
+          // 保存用户输入的原始价格到 item.nxDpgBuyPrice（用于提交，不除以箱数）
+          // 保存箱单价到 cartonBuyPrice（用于显示）
+          this.setData({
+            'item.nxDpgBuyPrice': price, // 直接保存用户输入的原始价格，后台会计算
+            cartonBuyPrice: price,
+            averageBuyPrice: averagePrice // 仅用于显示
+          });
+        } else {
+          this.setData({
+            'item.nxDpgBuyPrice': price,
+            cartonBuyPrice: price,
+            averageBuyPrice: ''
+          });
+        }
+      } else {
+        // 没有外包装，直接使用输入的价格
+        // 验证是否为有效数字
+        if (price) {
+          const numPrice = Number(price);
+          if (isNaN(numPrice) || numPrice < 0) {
+            wx.showToast({
+              title: '请输入有效的价格',
+              icon: 'none'
+            });
+            return;
+          }
+        }
+        this.setData({
+          'item.nxDpgBuyPrice': price,
+          cartonBuyPrice: '',
+          averageBuyPrice: ''
+        });
+      }
+      
+      this._calculateSubtotal();
+    },
+
+    // 获取建议售价
+    getPurchaseExpectPrice(e) {
+      var price = e.detail.value;
+      
+      // 验证输入：只允许数字和小数点
+      // 移除所有非数字和非小数点的字符（保留一个小数点）
+      if (price) {
+        // 先移除所有非数字和非小数点的字符
+        price = price.replace(/[^\d.]/g, '');
+        // 确保只有一个小数点
+        const parts = price.split('.');
+        if (parts.length > 2) {
+          // 如果有多个小数点，只保留第一个
+          price = parts[0] + '.' + parts.slice(1).join('');
+        }
+        // 限制小数点后最多2位
+        if (parts.length === 2 && parts[1].length > 2) {
+          price = parts[0] + '.' + parts[1].substring(0, 2);
+        }
+      }
+      
+      const disGoods = this.data.item.nxDistributerGoodsEntity;
+      let averagePrice = ''; // 平均建议售价（最小单位零售价，仅用于显示）
+      
+      // 如果商品有外包装，用户输入的是箱零售价，需要计算平均建议售价（仅用于显示）
+      if (disGoods && disGoods.nxDgCartonUnit !== null && disGoods.nxDgCartonUnit !== undefined && disGoods.nxDgCartonUnit !== '') {
+        const itemsPerCarton = disGoods.nxDgItemsPerCarton || 1;
+        if (itemsPerCarton > 0 && price) {
+          // 验证是否为有效数字
+          const numPrice = Number(price);
+          if (isNaN(numPrice) || numPrice < 0) {
+            wx.showToast({
+              title: '请输入有效的价格',
+              icon: 'none'
+            });
+            return;
+          }
+          // 计算平均建议售价（最小单位零售价，仅用于显示给用户看）
+          averagePrice = (numPrice / Number(itemsPerCarton)).toFixed(1);
+          // 保存用户输入的原始价格到 item.nxDpgExpectPrice（用于提交，不除以箱数）
+          // 保存箱零售价到 cartonExpectPrice（用于显示）
+          this.setData({
+            'item.nxDpgExpectPrice': price, // 直接保存用户输入的原始价格，后台会计算
+            cartonExpectPrice: price,
+            averageExpectPrice: averagePrice // 仅用于显示
+          });
+        } else {
+          this.setData({
+            'item.nxDpgExpectPrice': price,
+            cartonExpectPrice: price,
+            averageExpectPrice: ''
+          });
+        }
+      } else {
+        // 没有外包装，直接使用输入的价格
+        // 验证是否为有效数字
+        if (price) {
+          const numPrice = Number(price);
+          if (isNaN(numPrice) || numPrice < 0) {
+            wx.showToast({
+              title: '请输入有效的价格',
+              icon: 'none'
+            });
+            return;
+          }
+        }
+        this.setData({
+          'item.nxDpgExpectPrice': price,
+          cartonExpectPrice: '',
+          averageExpectPrice: ''
+        });
+      }
+    },
+
+    // 获取采购数量
+    getPurchaseQuantity(e) {
+      var quantity = e.detail.value;
+      
+      // 验证输入：只允许数字和小数点
+      if (quantity) {
+        // 先移除所有非数字和非小数点的字符
+        quantity = quantity.replace(/[^\d.]/g, '');
+        // 确保只有一个小数点
+        const parts = quantity.split('.');
+        if (parts.length > 2) {
+          // 如果有多个小数点，只保留第一个
+          quantity = parts[0] + '.' + parts.slice(1).join('');
+        }
+        // 限制小数点后最多3位（数量可能需要小数）
+        if (parts.length === 2 && parts[1].length > 3) {
+          quantity = parts[0] + '.' + parts[1].substring(0, 3);
+        }
+      }
+      
+      this.setData({
+        'item.nxDpgBuyQuantity': quantity
+      });
+      this._calculateSubtotal();
+    },
+
+    // 计算总金额
+    _calculateSubtotal() {
+      const disGoods = this.data.item.nxDistributerGoodsEntity;
+      var quantity = Number(this.data.item.nxDpgBuyQuantity) || 0;
+      var subtotal = 0;
+      
+      // 如果商品有外包装，用户输入的是箱数和箱单价，应该用箱单价 × 箱数计算总金额
+      if (disGoods && disGoods.nxDgCartonUnit !== null && disGoods.nxDgCartonUnit !== undefined && disGoods.nxDgCartonUnit !== '') {
+        // 使用箱单价 × 箱数计算总金额（避免精度误差）
+        const cartonPrice = Number(this.data.cartonBuyPrice || this.data.item.nxDpgBuyPrice) || 0;
+        if (cartonPrice > 0 && quantity > 0) {
+          subtotal = (cartonPrice * quantity).toFixed(2);
+        }
+      } else {
+        // 没有外包装，使用最小单位单价 × 最小单位数量
+        var price = Number(this.data.item.nxDpgBuyPrice) || 0;
+        subtotal = (price * quantity).toFixed(2);
+      }
+      
+      this.setData({
+        'item.nxDpgBuySubtotal': subtotal
+      });
+    },
+
+    // 检查价格
+    _checkPrice(e) {
+      var price = e.detail.value;
+      if (price && (isNaN(price) || price < 0)) {
+        wx.showToast({
+          title: '请输入有效的价格',
+          icon: 'none'
+        });
+      }
+    },
+
+    // 检查数量
+    _checkQuantity(e) {
+      var quantity = e.detail.value;
+      if (quantity && (isNaN(quantity) || quantity <= 0)) {
+        wx.showToast({
+          title: '请输入有效的数量',
+          icon: 'none'
+        });
+      }
+    },
+
+    // 切换等待入库状态
+    changeWait(e) {
+      const checked = e.detail.value;
+      this.setData({
+        'item.isShowTools': checked
+      });
+    },
+
+    confirm(e) {
+        // 验证采购单价
+        if (!this.data.item.nxDpgBuyPrice || this.data.item.nxDpgBuyPrice.length == 0) {
+          wx.showToast({
+            title: '采购单价不能为空',
+            icon: 'none'
+          })
+          return;
+        }
+
+        // 验证采购数量
+        if (!this.data.item.nxDpgBuyQuantity || this.data.item.nxDpgBuyQuantity.length == 0) {
+          wx.showToast({
+            title: '采购数量不能为空',
+            icon: 'none'
+          })
+          return;
+        }
+
+        // 根据文档：双单价和双零售价功能
+        // 如果商品有外包装，需要同时保存箱单价和箱零售价
+        const disGoods = this.data.item.nxDistributerGoodsEntity;
+        if (disGoods && disGoods.nxDgCartonUnit !== null && disGoods.nxDgCartonUnit !== undefined && disGoods.nxDgCartonUnit !== '') {
+          // 有外包装，保存箱单价和箱零售价
+          // nxDgssPrice: 最小单位采购单价（已保存在 item.nxDpgBuyPrice）
+          // nxDgssPriceCarton: 外包装采购单价（保存在 cartonBuyPrice）
+          if (this.data.cartonBuyPrice) {
+            this.data.item.nxDgssPriceCarton = this.data.cartonBuyPrice;
+          }
+          // nxDgssSellingPrice: 最小单位建议零售价（已保存在 item.nxDpgExpectPrice）
+          // nxDgssSellingPriceCarton: 外包装建议零售价（保存在 cartonExpectPrice）
+          if (this.data.cartonExpectPrice) {
+            this.data.item.nxDgssSellingPriceCarton = this.data.cartonExpectPrice;
+          }
+        }
+
+        console.log(this.data.item)
+        this.triggerEvent('confirm', {
+          item: this.data.item
+        })
+        this.setData({
+          show: false,
+        })
+    },
+
+
+    // getPurchasePrice: function (e) {
+    //   console.log("getPurchasePrice_getBuySubtotal")
+    //   var itemData = "item.nxDpgBuyPrice";
+    //   var numberStr = e.detail.value;
+    //   //输入非空 
+    //   if (e.detail.value.length > 0) {
+    //     //0
+    //     this.setData({
+    //       [itemData]: numberStr,
+    //     })
+    //     //1. 小数点
+    //     var y = String(numberStr).indexOf("."); //获取小数点的位置
+    //     if (y !== -1) {
+    //       var count = String(numberStr).length - y; //获取小数点后的个数
+    //     }
+    //     if (count > 2) {
+    //       wx.showToast({
+    //         title: '小数点只能保留一位',
+    //       })
+    //       this.setData({
+    //         [itemData]: numberStr.substring(0, numberStr.length - 1),
+    //       })
+    //     }
+    //     //2. 值大小判断
+    //     if (numberStr > 99999) {
+    //       wx.showToast({
+    //         title: '最大不能超过九万九千九百九十九',
+    //         icon: "none"
+    //       })
+    //       this.setData({
+    //         [itemData]: numberStr.substring(0, numberStr.length - 1),
+    //       })
+    //     }
+    //     this._getBuySubtotal();
+    //     this._countOrderCostPrice();
+    //   } else {
+    //     this._emptyInputPrice();
+    //   }
+    // },
+
+    getOrderWeight(e) {
+      var index = e.currentTarget.dataset.index;
+      var doWeightData = "item.nxDepartmentOrdersEntities[" + index + "].nxDoWeight";
+      var costSubtotalData = "item.nxDepartmentOrdersEntities[" + index + "].nxDoCostSubtotal";
+      var orderWeighValue = e.detail.value;
+      var costPrice = this.data.item.nxDepartmentOrdersEntities[index].nxDoCostPrice;    
+      var costSubtotal = (Number(costPrice) * Number(orderWeighValue)).toFixed(1);
+
+      //输入非空 
+      if (orderWeighValue.length > 0) {
+
+        console.log(costSubtotal);
+        console.log("yisagnshicostsubtototototo")
+        this.setData({
+          [doWeightData]: orderWeighValue,
+          [costSubtotalData]: costSubtotal
+        })
+        var doPrice = this.data.item.nxDepartmentOrdersEntities[index].nxDoPrice; 
+        if(doPrice !== null){
+          var orderSubtotalData = "item.nxDepartmentOrdersEntities[" + index + "].nxDoSubtotal";
+           var doSubtotal = (Number(doPrice) * Number(orderWeighValue)).toFixed(1);
+           var profitSubtotal = (Number(doSubtotal) - Number(costSubtotal)).toFixed(1);        
+           var profitScale = (Number(profitSubtotal) / Number(doSubtotal) * 100).toFixed(2);
+           var profitSubData = "item.nxDepartmentOrdersEntities[" + index + "].nxDoProfitSubtotal";
+           var profitScaleData = "item.nxDepartmentOrdersEntities[" + index + "].nxDoProfitScale";
+           this.setData({
+             [orderSubtotalData] : doSubtotal,
+             [profitSubData]: profitSubtotal,
+             [profitScaleData]:  profitScale
+           })
+        }
+        
+
+        //1. 小数点
+        var y = String(orderWeighValue).indexOf("."); //获取小数点的位置
+        console.log(y);
+        if (y !== -1) {
+          var count = String(orderWeighValue).length - y; //获取小数点后的个数
+        }
+        if (count > 2) {
+          wx.showToast({
+            title: '小数点只能保留一位',
+          })
+          
+          var newWeight = Number(orderWeighValue.substring(0, orderWeighValue.length - 1));
+          var costSubtotal = (Number(costPrice) * newWeight).toFixed(1);
+          this.setData({
+            [orderWeightData]: newWeight,
+            [costSubtotalData]: costSubtotal
+          })
+          if(doPrice !== null){
+            var orderSubtotalData = "item.nxDepartmentOrdersEntities[" + index + "].nxDoSubtotal";
+             var doSubtotal = (Number(doPrice) * Number(newWeight)).toFixed(1);
+             var profitSubtotal = (Number(doSubtotal) - Number(costSubtotal)).toFixed(1);        
+             var profitScale = (Number(profitSubtotal) / Number(doSubtotal) * 100).toFixed(2);
+             var profitSubData = "item.nxDepartmentOrdersEntities[" + index + "].nxDoProfitSubtotal";
+             var profitScaleData = "item.nxDepartmentOrdersEntities[" + index + "].nxDoProfitScale";
+             this.setData({
+               [orderSubtotalData] : doSubtotal,
+               [profitSubData]: profitSubtotal,
+               [profitScaleData]:  profitScale
+             })
+          }
+          
+
+
+        }
+        //2. 值大小判断
+        if (e.detail.value > 99999) {
+          wx.showToast({
+            title: '最大不能超过九万九千九百九十九',
+            icon: "none"
+          })
+          var newWeight = Number(orderWeighValue.substring(0, orderWeighValue.length - 1));
+          var costSubtotal = (Number(price) * newWeight).toFixed(1);
+          this.setData({
+            [orderWeightData]: newWeight,
+            [costSubtotalData]: costSubtotal
+          })
+          if(doPrice !== null){
+            var orderSubtotalData = "item.nxDepartmentOrdersEntities[" + index + "].nxDoSubtotal";
+             var doSubtotal = (Number(doPrice) * Number(newWeight)).toFixed(1);
+             var profitSubtotal = (Number(doSubtotal) - Number(costSubtotal)).toFixed(1);        
+             var profitScale = (Number(profitSubtotal) / Number(doSubtotal) * 100).toFixed(2);
+             var profitSubData = "item.nxDepartmentOrdersEntities[" + index + "].nxDoProfitSubtotal";
+             var profitScaleData = "item.nxDepartmentOrdersEntities[" + index + "].nxDoProfitScale";
+             this.setData({
+               [orderSubtotalData] : doSubtotal,
+               [profitSubData]: profitSubtotal,
+               [profitScaleData]:  profitScale
+             })
+          }
+        
+        }
+      
+      } else {
+        this.setData({
+          [orderWeightData]: "",
+          [subData]: ""
+        })
+      }
+      this._getBuySubtotal();
+    },
+
+    _emptyInputPrice() {
+      var arr = this.data.item.nxDepartmentOrdersEntities;
+      for (var i = 0; i < arr.length; i++) {
+        var orderPriceData = "item.nxDepartmentOrdersEntities[" + i + "].nxDoCostPrice";
+        var subData = "item.nxDepartmentOrdersEntities[" + i + "].nxDoCostSubtotal";
+        this.setData({
+          [orderPriceData]: "",
+          [subData]: ""
+        })
+      }
+      var subData = "item.nxDpgBuySubtotal";
+      var priceData = "item.nxDpgBuyPrice";
+      this.setData({
+        [subData]: "",
+        [priceData]: "",
+      })
+    },
+    
+   
+    _countOrderCostPrice() {
+      var buyPrice = Number(this.data.item.nxDpgBuyPrice);
+      var arr = this.data.item.nxDepartmentOrdersEntities;
+      for (var i = 0; i < arr.length; i++) {
+        var costPriceData = "item.nxDepartmentOrdersEntities[" + i + "].nxDoCostPrice";
+        this.setData({
+          [costPriceData]: buyPrice,         
+        })
+        var doWeight = this.data.item.nxDepartmentOrdersEntities[i].nxDoWeight;
+        if(doWeight !== null && doWeight > 0){
+          var costSubtotalData = "item.nxDepartmentOrdersEntities[" + i + "].nxDoCostSubtotal";
+          var costSubtotal = (Number(buyPrice) * Number(doWeight)).toFixed(1);
+          this.setData({
+            [costSubtotalData]: costSubtotal,         
+          })
+        }
+      }
+      this._getBuySubtotal();
+    },
+
+    _getBuySubtotal(e) {
+      var arr = this.data.item.nxDepartmentOrdersEntities;
+      var purGoodsBuyQuantity = "";
+      var buyPrice = this.data.item.nxDpgBuyPrice;
+
+      for (var i = 0; i < arr.length; i++) {
+       var doWeight = arr[i].nxDoWeight;
+        purGoodsBuyQuantity = (Number(purGoodsBuyQuantity) + Number(doWeight)).toFixed(1);
+      }
+      var purGoodsBuySubtotal = (Number(purGoodsBuyQuantity) * Number(buyPrice)).toFixed(1);
+      var purGoodsBuySubtotalData = "item.nxDpgBuySubtotal";
+      var purGoodsBuyQuantityData = "item.nxDpgBuyQuantity";
+      this.setData({
+        [purGoodsBuySubtotalData]: purGoodsBuySubtotal,
+        [purGoodsBuyQuantityData]: purGoodsBuyQuantity,
+      })
+    },
+
+    
+    _countOrderSubtotal(){
+      var doPrice = this.data.item.nxDpgBuyPrice;
+      var arr = this.data.item.nxDepartmentOrdersEntities;
+      for(var i = 0; i < arr.length; i++){
+        var priceData = "item.nxDepartmentOrdersEntities[" + i +"].nxDoCostPrice";
+        this.setData({
+          [priceData]: doPrice,
+        })
+      }
+    },
+
+
+
+
+
+
+
+
+
+
+
+
+  },
+
+
+
+
+})

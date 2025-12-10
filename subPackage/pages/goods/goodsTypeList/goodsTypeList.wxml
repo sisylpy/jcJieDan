@@ -1,0 +1,161 @@
+<wxs src="../../../../utils/fn.wxs" module="tool" />
+
+
+
+<view class="flex flex-column ">
+ <back-navbar style="height: {{navBarHeight}}rpx;" title="{{typeName}}-{{name}}({{totalCount}})" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+    <view class="flex-column p-20" style="padding-bottom: {{tabBarHeight || 120}}rpx;">
+      <view class="flex flex-column p-10 border-bottom bg-white" wx:for="{{goodsList}}" wx:for-item="sons" wx:key="nxDistributerGoodsId" wx:for-index="goodsIndex" id="NAV{{sons.nxDgNxGrandId}}">
+            <view class="flex-row-default">
+             <text>{{goodsIndex + 1}}.</text>
+            <view class=" flex-column mr-10" bindtap="toEditGoodsImage" data-goods="{{sons}}" data-item="{{sons.nxGoodsEntity}}" data-index="{{goodsIndex}}">
+             
+              <image class="" src="{{url + sons.nxDgGoodsFileLarge}}" mode="aspectFill" class="goods_item_lg" />
+            </view>
+
+            <view class="flex-column font-sm width-100">
+              <view class="flex-row-between " bindtap="toGoodsDetailPage" data-id="{{sons.nxDistributerGoodsId}}" data-name="{{sons.nxDgGoodsName}}" data-color="{{sons.nxDgNxGoodsFatherColor}}" data-item="{{sons}}" data-index="{{goodsIndex}}" hover-class="hover">
+                <view class="flex-row-wrap">
+                  <text class=" {{sons.nxDgGoodsBrand !== null && sons.nxDgGoodsBrand.length > 0 ? 'brand' : ''}}">{{sons.nxDgGoodsBrand !== null && sons.nxDgGoodsBrand.length > 0 ? sons.nxDgGoodsBrand : ''}}</text>
+                  <text class="font-md">{{sons.nxDgGoodsName}}</text>
+                  <text class="">{{sons.nxDgGoodsDetail !== null ? sons.nxDgGoodsDetail : ''}}</text>
+                  <block wx:if="{{sons.nxDistributerAliasEntities.length > 0}}">
+                    <text wx:for="{{sons.nxDistributerAliasEntities}}" wx:for-item="alias">@{{alias.nxDaAliasName}}</text>
+                  </block>                 
+                </view>
+                <view>
+                  <image src="/images/arrow-right-3.png" mode="aspectFill" class="icon" />
+                </view>
+              </view>
+
+              <view class="flex-row">
+                <view class="flex-row half-row">
+                  <text class="text-secondary">规格:</text>
+                  <block wx:if="{{sons.nxDgGoodsStandardWeight !== 'null' && sons.nxDgGoodsStandardWeight.length > 0}}">
+                    <text class="font-xs">{{sons.nxDgGoodsStandardWeight}}/{{sons.nxDgGoodsStandardname}}</text>
+                  </block>
+                  <block wx:else>
+                    <text>{{sons.nxDgGoodsStandardname}}</text>
+                  </block>
+                </view>
+                <view class="flex-row half-row">
+                  <text class="text-secondary">外包装:</text>
+                  <block wx:if="{{sons.nxDgCartonUnit !== null && sons.nxDgCartonUnit   !== ''}}">
+
+                    <text class="font-xs">{{sons.nxDgItemsPerCarton}}{{sons.nxDgGoodsStandardname}}/{{sons.nxDgCartonUnit}}</text>
+                  </block>
+                    <text wx:else="">无</text>
+                </view>
+            
+
+              </view>
+              <view class="flex-row-default">
+                <text class="text-secondary flex-fixed">订货规格:</text>
+                <view class="flex-row-wrap">
+                  <text class="standard mr-10">{{sons.nxDgGoodsStandardname}}</text>
+                  <text class="standard mr-10" wx:for="{{sons.nxDistributerStandardEntities}}" wx:for-item="standard">{{standard.nxDsStandardName}}</text>
+                </view>
+
+              </view>
+              
+              <view class="flex-row-default">
+                <view class="text-secondary mr-10 flex-fixed">货架:</view>
+                <view class="flex-row-wrap ">
+                  <view  class="flex-row-default bg-light p-10 font-xs radius-20   mr-20 mb-20" wx:for="{{sons.nxDistributerGoodsShelfGoodsEntities}}" wx:for-item="shelfGoods">
+                <view class="flex-row">
+                <text class="mainColor flex-fixed">{{shelfGoods.shelfName}}</text>
+                 <view class="flex-row-wrap mr-30">
+                  <text  class="plr-20" wx:for="{{shelfGoods.nxDisGoodsShelfStockEntities}}" wx:for-item="stock"> {{stock.nxDgssRestWeight}}{{sons.nxDgGoodsStandardname}}
+                </text>  
+                 </view>
+                   
+                </view>
+              </view>
+              
+              </view>
+               
+              </view>
+              
+
+              <view class="flex-row-between" wx:if="{{sons.nxDgPullOff == 1}}">
+                <text class="text-danger">暂停订货:</text>
+                <switch  disabled="true" checked="{{sons.nxDgPullOff == 1}}" />
+              </view>
+              <view class="flex-row-between" wx:if="{{sons.nxDgGoodsIsHidden == 1}}">
+                <text class="text-danger">停止配送:</text>
+                <switch disabled="true" checked="{{sons.nxDgGoodsIsHidden == 1}}" />
+              </view>
+            </view>
+          </view>
+
+            <block  wx:if="{{sons.nxDgPurchaseAuto == 1 && sons.nxDgSupplierId !== null}}">
+                <view class="flex-row p-10">
+                  <text class="text-secondary">订货商:</text>
+                   <view class="flex-row" >
+                    <text class="">{{sons.nxJrdhSupplierEntity.jrdhUserEntity.nxJrdhWxNickName}}</text>
+                </view>
+                </view>
+             </block>
+
+
+             <block wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+                <view class="flex flex-row-between p-10" bindtap="showIsPurchase" data-item="{{sons}}" data-index="{{goodsIndex}}" data-level="1" hover-class="hover" >
+                <text class="text-secondary font-md">基本单位:</text>
+                  <view class="flex-row">
+                   
+                  <block wx:if="{{sons.nxDgWillPriceOne !== null}}">
+                    <text class="mr-20 font-md">{{sons.nxDgWillPriceOne}}元/{{sons.nxDgGoodsStandardname}}</text>
+                    <image src="/images/edit-main.png" mode="aspectFill" class="icon" />
+                  </block>
+                  <block wx:else="">
+                    <image src="/images/add.png" mode="aspectFill" class="icon p-20" />
+                  </block>
+                  </view>
+                 
+                  
+                </view>
+                <view class="flex flex-row-between p-10" bindtap="showIsPurchase" data-item="{{sons}}" data-index="{{goodsIndex}}" data-level="2" hover-class="hover" >
+                <text class="text-secondary font-md">大单位:</text>
+                  <view class="flex-row">
+                   
+                  <block wx:if="{{sons.nxDgWillPriceTwo !== null && sons.nxDgWillPriceTwo !== ''}}">
+                    <text class="mr-20 font-md">{{sons.nxDgWillPriceTwo}}元/{{sons.nxDgWillPriceTwoStandard}}</text>
+                    <image src="/images/edit-main.png" mode="aspectFill" class="icon" />
+                  </block>
+                  <block wx:else="">
+                    <image src="/images/add.png" mode="aspectFill" class="icon p-20" />
+                  </block>
+                  </view>
+                  
+                </view>
+             
+              </block>
+
+             
+             
+          </view>
+
+      <!-- 加载状态提示 -->
+      <view class="loading-container" wx:if="{{isLoading}}">
+        <view class="loading-text">加载中...</view>
+      </view>
+
+      <!-- 没有更多数据提示 -->
+      <view class="p-20 text-secondary font-xs" wx:if="{{!hasMore && goodsList.length > 0}}" style="text-align:center;">
+        没有更多数据了
+      </view>
+
+      <!-- 空状态提示 -->
+      <view class="p-20 text-secondary font-xs" wx:if="{{!isLoading && goodsList.length === 0}}" style="text-align:center;">
+        暂无商品数据
+      </view>
+
+    </view>
+  <!-- </scroll-view> -->
+</view>
+
+
+
+
+<goodsWillPirce show="{{showIsPurchase}}"   bindconfirm="confirm" level="{{level}}" bindcancle="cancleIsPurchase"  item="{{item}}" consultItem="{{consultItem}}"  binddelPrice="delPrice" windowHeight="{{windowHeight}}" windowWidth="{{windowWidth}}"  />

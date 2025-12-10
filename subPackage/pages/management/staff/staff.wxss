@@ -1,0 +1,27 @@
+
+.member_url{
+  width: 70rpx;
+  height: 70rpx;
+  border-radius: 50%;
+}
+
+
+
+
+button{
+  background-color: #147062;
+  color: #fff;
+  font-size: 28rpx;
+  border-radius: 40rpx;
+}
+button.group_btn::after {
+  border: none;
+}
+
+.applyBtn{
+  padding: 20rpx 10rpx;
+  background-color: #147062;
+  color: #fff;
+  font-size: 34rpx;
+  border-radius: 20rpx;
+}

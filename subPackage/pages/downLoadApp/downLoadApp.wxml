@@ -1,0 +1,93 @@
+<!--subPackage/pages/downLoadApp/downLoadApp.wxml-->
+<view class="container">
+  <!-- 顶部导航栏 -->
+  <view class="navbar">
+    <view class="navbar-title">京采接单</view>
+  </view>
+
+  <!-- 主要内容区域 -->
+  <view class="content">
+    <!-- Logo区域 -->
+    <view class="logo-section">
+      <image src="../../../images/logo.jpg" class="logo" mode="aspectFit"></image>
+      <text class="app-name">京采接单</text>
+      <text class="app-desc">专业配送商户专用版</text>
+    </view>
+
+    <!-- 网站信息区域 -->
+    <view class="website-section">
+      <view class="website-card">
+        <view class="card-header">
+          <text class="card-title">官方网站</text>
+        </view>
+        <view class="card-content">
+          <text class="website-url">https://grainservice.club/</text>
+          <text class="website-desc">访问我们的官方网站，了解更多服务信息</text>
+        </view>
+        <view class="card-actions">
+          <!-- <button class="visit-btn" bindtap="visitWebsite">打开网站</button> -->
+          <button class="copy-btn" bindtap="copyWebsite">复制网站链接下载出库App</button>
+        </view>
+      </view>
+    </view>
+    <!-- 功能特色区域 -->
+    <view class="features-section">
+      <view class="section-title">功能特色</view>
+      <view class="features-list">
+        <view class="feature-item">
+          <view class="feature-icon">📦</view>
+          <view class="feature-content">
+            <text class="feature-title">商品管理</text>
+            <text class="feature-desc">专业的商品管理系统</text>
+          </view>
+        </view>
+        <view class="feature-item">
+          <view class="feature-icon">🚚</view>
+          <view class="feature-content">
+            <text class="feature-title">配送服务</text>
+            <text class="feature-desc">高效的配送解决方案</text>
+          </view>
+        </view>
+        <view class="feature-item">
+          <view class="feature-icon">📊</view>
+          <view class="feature-content">
+            <text class="feature-title">数据统计</text>
+            <text class="feature-desc">详细的数据分析报告</text>
+          </view>
+        </view>
+        <view class="feature-item">
+          <view class="feature-icon">👥</view>
+          <view class="feature-content">
+            <text class="feature-title">客户管理</text>
+            <text class="feature-desc">完善的客户服务体系</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 联系信息区域 -->
+    <view class="contact-section">
+      <view class="section-title">联系我们</view>
+      <view class="contact-info">
+        <view class="contact-item">
+          <text class="contact-label">官方网站：</text>
+          <text class="contact-value">https://grainservice.club/</text>
+        </view>
+        <view class="contact-item">
+          <text class="contact-label">服务热线：</text>
+          <text class="contact-value">400-xxx-xxxx</text>
+        </view>
+        <view class="contact-item">
+          <text class="contact-label">服务时间：</text>
+          <text class="contact-value">周一至周日 8:00-22:00</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="bottom-actions">
+    <!-- <button class="primary-btn" bindtap="visitWebsite">立即打开官网</button> -->
+    <button class="secondary-btn" bindtap="goBack">返回</button>
+  </view>
+</view>

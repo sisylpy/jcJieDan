@@ -1,0 +1,22 @@
+
+<view class="flex flex-column">
+ <back-navbar style="height: {{navBarHeight}}rpx;" title="{{goodsName}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+  
+
+  <view class="flex-column" >
+  
+  <view class="flex-row-between p-20  border-bottom font-lg bg-white" wx:for="{{greatGrandArr}}" bindtap="selectedFatherId" data-id="{{item.nxDistributerFatherGoodsId}}" data-name="{{item.nxDfgFatherGoodsName}}"  hover-class="hover">
+  <view>
+  <text>{{index + 1}}.</text>
+  <text>{{item.nxDfgFatherGoodsName}}</text>
+  </view>
+  <view class="flex-column-center">
+  <image src="../../../../images/arrow-right-3.png" class="icon"></image>
+  </view>
+  
+  </view>
+  
+  </view>
+
+</view>

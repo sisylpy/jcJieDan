@@ -1,0 +1,47 @@
+<view class='flex-column height-100'>
+
+
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="调整商品货架" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+ 
+
+  <view class="flex-column p-20" style="margin-top: {{navBarHeight}}rpx;">
+
+    <view class="flex-row font-lg border-bottom p-20">
+      <text class="mr-20">商品:</text>
+      <!-- 添加模式显示 disGoods，更新模式显示 shelfGoods.nxDistributerGoodsEntity -->
+      <text wx:if="{{isAddMode}}">{{disGoods.nxDgGoodsName}}</text>
+      <text wx:else>{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
+    </view>
+
+    <view class="flex-column">
+      <view class="p-20">货架:</view>
+       <scroll-view scroll-y="true" style="height: {{windowHeight - 500}}rpx; ">
+        <radio-group bindchange="shelfChange">
+        <label class="radio  bg-white p-20 flex-row-between font-lg  border-bottom {{shelfArr.length -1 == index ? 'is-last' :''}}" wx:for="{{shelfArr}}" wx:for-item="item">
+           
+          <view class="flex-row">
+          <text class="mr-10 text-secondary">{{index + 1}}.</text>
+          {{item.nxDistributerGoodsShelfName}}</view>
+          <!-- 添加模式：检查是否等于 selectedShelfId（且不为null）；更新模式：检查是否等于 shelf.nxDistributerGoodsShelfId -->
+          <checkbox value="{{index}}" checked="{{isAddMode ? (selectedShelfId != null && item.nxDistributerGoodsShelfId == selectedShelfId) : (shelf && item.nxDistributerGoodsShelfId == shelf.nxDistributerGoodsShelfId)}}" />
+        </label>
+      </radio-group>
+      
+      <view style="height: 200rpx; " class="flex-column-center font-xs text-secondary">没有数据了！</view>
+       </scroll-view>
+   
+
+    </view>
+
+
+
+  </view>
+
+
+
+
+<view class=" bottom_view" >
+   <view class=" p-20 center-content big_button {{canSave ? 'is-active' : ''}}"  bind:tap="{{canSave ? 'save' : ''}}">{{isAddMode ? '添加到货架' : '保存修改'}}</view>
+ </view>
+
+</view>

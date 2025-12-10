@@ -1,0 +1,42 @@
+
+<view class='flex-column flex'>
+   
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="调整货架顺序" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+ 
+  <scroll-view scroll-y="{{true}}" style='height: {{windowHeight - navBarHeight}}rpx; padding-bottom: 120rpx; padding-top: 20rpx;'>
+    <block wx:for='{{shelfArr}}' wx:key='{{item.nxDistributerGoodsShelfId}}'>
+      <view class='flex-row list-row history_item'
+        style='margin-bottom: 20rpx;'>
+        <view class="inner_row flex-row" style="flex: 1;">
+          <view class="mr-20 font-lg">{{index + 1}}.</view>
+          <view class="flex-row" style="flex: 1; align-items: center;">
+            <text class="font-lg">{{item.nxDistributerGoodsShelfName}}</text>
+     </view>
+     </view>
+        <view class="flex-column-center" style="width: 120rpx; margin-left: 20rpx;">
+          <view class="sort-input-container">
+            <input 
+              class="sort-input" 
+              type="number" 
+              value="{{item.nxDistributerGoodsShelfSort}}" 
+              placeholder="排序"
+              data-index="{{index}}"
+              data-id="{{item.nxDistributerGoodsShelfId}}"
+              bindblur="onSortInputBlur"
+              bindconfirm="onSortInputConfirm"
+            />
+         </view>
+     </view>
+     </view>
+   </block>
+
+    <view class="flex-column-center text-secondary font-xs" style="height: 100rpx;">没有数据了</view>
+
+ </scroll-view>
+ 
+  <!-- 固定在底部的按钮 -->
+  <view class="bottom-bar">
+    <view class="save-btn {{isChanged ? 'is-active' : ''}}" bindtap="saveChange">保存修改货架</view>
+  </view>
+
+</view>

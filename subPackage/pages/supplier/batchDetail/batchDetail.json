@@ -1,0 +1,8 @@
+{
+  
+  "usingComponents": {
+    "payType": "/components/payType/payType",
+    "back-navbar": "/components/back-navbar/back-navbar"
+
+  }
+}

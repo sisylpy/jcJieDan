@@ -1,0 +1,8 @@
+
+
+<block wx:for="{{starList}}" wx:key="*this">
+  <image
+    src="../../images/star{{item.active ? 'Green' : 'Gray'}}.png"
+    class="icon-sm"
+  />
+</block>

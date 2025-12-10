@@ -1,0 +1,88 @@
+<wxs src="../../utils/fn.wxs" module="tool" />
+
+
+<view class='aaa' wx:if='{{show}}' catchtouchmove='ture'>
+  <view class='modal-content flex-column ' style=" margin-top:{{200 + statusBarHeight}}rpx;">
+
+    <view class="top">
+      <view class='goodsTitle flex-row'>
+        <text class="brand" wx:if="{{item.nxDgGoodsBrand.length > 0 && item.nxDgGoodsBrand !== 'null'}}">{{item.nxDgGoodsBrand}}</text>
+        <text>{{item.nxDgGoodsName}}</text>
+        <text wx:for="{{item.nxAliasEntities}}" wx:for-item="alias">@{{alias.nxDaAliasName}}</text>
+        <block wx:if="{{item.nxDgGoodsStandardWeight !== 'null' && item.nxDgGoodsStandardWeight.length > 0}}">
+          <text wx:if="{{item.nxDgGoodsStandardname !== '斤'}}">({{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}})</text>
+        </block>
+        <block wx:else>
+          <text>({{item.nxDgGoodsStandardname}})</text>
+        </block>
+      </view>
+    </view>
+
+
+    <view class="flex-row-default" style="font-size: 32rpx;">
+      <scroll-view scroll-y="true" class=" flex-column" style="height: {{windowHeight / 4}}rpx; width: {{windowWidth - 40}}rpx;">
+        <view class="flex-row-between p-20 border-bottom" wx:for="{{item.nxDepartmentOrdersEntities}}" wx:key="nxDepartmentOrdersId" style="font-size: 38rpx;" wx:for-item="orders" wx:for-index="orderIndex">
+          <view class="flex-column">
+            <view class="flex-row-default " style="width: {{windowWidth / 2}}rpx;">
+              <view class="flex-column-center" bindtap="choiceOrder" data-index="{{orderIndex}}">
+                <image src="{{orders.hasChoice ? '/images/checkboxchecked.png' : '/images/checkbox-noselected.png'}}" mode="aspectFill" class="sel_icon" />
+              </view>
+
+              <block wx:if="{{orders.nxRestrauntEntity !== null}}">
+                <view class="longword m-10">{{orders.nxRestrauntEntity.nxRestrauntAttrName}}</view>
+              </block>
+              <block wx:elif="{{orders.gbDepartmentEntity !== null}}">
+
+                <view class="longword m-10 flex-row-wrap">
+                <text wx:if="{{orders.gbDepartmentEntity.fatherGbDepartmentEntity.gbDepartmentSubAmount > 1}}"> {{orders.gbDepartmentEntity.fatherGbDepartmentEntity.gbDepartmentName}}.</text>
+                <text>{{orders.gbDepartmentEntity.gbDepartmentName}}</text>
+               </view>
+              </block>
+              <block wx:else>
+                 <view class="flex-row longword m-10">
+                <view wx:if="{{orders.nxDepartmentEntity.nxDepartmentFatherId !== 0}}">{{orders.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentName}}.</view>
+                <view class="">{{orders.nxDepartmentEntity.nxDepartmentName}}</view>
+              </view>
+              </block>
+
+              <view class="flex-fixed" style="margin-left: 20rpx;">
+                <text>订:{{orders.nxDoQuantity}}{{orders.nxDoStandard}}</text>
+              </view>
+            </view>
+
+            <block wx:if="{{orders.nxDoRemark !== null && orders.nxDoRemark.length > 0}}">
+              <view class="text-danger flex-row-wrap font-sl">
+                <text class="">{{orders.nxDoRemark}}</text>
+              </view>
+            </block>
+            <view class="flex-row-wrap"wx:if="{{orders.nxDepartmentDisGoodsEntity !== null}}">
+                    <text class="mr-10 text-secondary ">拣货:</text>
+                    <text class=" text-danger ">{{orders.nxDepartmentDisGoodsEntity.nxDdgPickDetail}}</text>
+                  </view>
+          </view>
+
+          <view class="flex-row">
+            <view class="inputView" style="margin-right: 10rpx;">
+              <input class="input" focus="{{orderIndex == 0}}" type="digit" adjust-position="true" value="{{orders.nxDoWeight == null || orders.nxDoWeight == '0.0' ? '' : orders.nxDoWeight}}" bindinput="getOrderWeight" data-index="{{orderIndex}}" style="width: {{windowWidth / 5}}rpx; " />
+            </view>
+            <text>{{orders.nxDoPrintStandard}}</text>
+          </view>
+
+        </view>
+      </scroll-view>
+    </view>
+
+
+
+
+    <view class='btn-wrapper flex-row-between'>
+      <view class="" style="width: {{windowWidth /4}}rpx;">
+
+      </view>
+      <view class="btn_row">
+        <text class='cancel-btn' bindtap="cancle" style="width: {{windowWidth / 4}}rpx;" hover-class="hoverBtn">取消</text>
+        <text class='confirm-btn' catchtap='confirm' style="width: {{windowWidth / 3}}rpx;" hover-class="hoverBtn">保存</text>
+      </view>
+    </view>
+  </view>
+</view>

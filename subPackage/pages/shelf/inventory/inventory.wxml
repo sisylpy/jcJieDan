@@ -1,0 +1,79 @@
+<view class='flex-column flex'>
+ 
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="盘点货架 - {{shelfName}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+ 
+  <!-- 周期选择器 -->
+  <view class="period-selector bg-white p-20 border-bottom">
+    <view class="flex-row-between">
+      <text class="font-md">盘库周期：</text>
+      <picker mode="selector" range="{{periodTypes}}" range-key="label" value="{{periodIndex}}" bindchange="onPeriodChange">
+        <view class="picker-text">{{periodTypes[periodIndex].label}}</view>
+      </picker>
+    </view>
+    <!-- 日期/周/月选择 -->
+    <view class="flex-row-between mt-20" wx:if="{{inventoryType == 1}}">
+      <text class="font-md">盘库日期：</text>
+      <picker mode="date" value="{{inventoryDate}}" bindchange="onDateChange">
+        <view class="picker-text">{{inventoryDate || '请选择日期'}}</view>
+      </picker>
+    </view>
+    <view class="flex-row-between mt-20" wx:if="{{inventoryType == 2}}">
+      <text class="font-md">盘库周数：</text>
+      <picker mode="selector" range="{{weekOptions}}" value="{{weekIndex}}" bindchange="onWeekChange">
+        <view class="picker-text">{{weekOptions[weekIndex] || '请选择周数'}}</view>
+      </picker>
+    </view>
+    <view class="flex-row-between mt-20" wx:if="{{inventoryType == 3}}">
+      <text class="font-md">盘库月份：</text>
+      <picker mode="selector" range="{{monthOptions}}" value="{{monthIndex}}" bindchange="onMonthChange">
+        <view class="picker-text">{{monthOptions[monthIndex] || '请选择月份'}}</view>
+      </picker>
+    </view>
+  </view>
+
+  <scroll-view scroll-y="true" style='height: {{windowHeight  -  navBarHeight - 200}}rpx;'>
+    <view class="goods-grid">
+      <block wx:for='{{shelfGoodsList}}' wx:key="nxDistributerGoodsShelfGoodsId">
+        <!-- 商品卡片 -->
+        <view 
+          class="goods-item"
+          bindtap="onGoodsClick"
+          data-item="{{item}}"
+          data-index="{{index}}"
+        >
+          <view class="goods-content">
+            <view class="goods-name">{{item.nxDistributerGoodsEntity.nxDgGoodsName}}</view>
+            <view class="goods-standard" wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname !== '斤'}}">
+              ({{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}})
+            </view>
+            <view class="goods-stock">
+              <text class="stock-label">剩余：</text>
+              <text class="stock-value">{{item.totalRestWeight}}{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <view class="flex-column-center text-secondary font-xs" style="height: 100rpx;" wx:if="{{shelfGoodsList.length == 0}}">
+      <text>暂无未盘库商品</text>
+    </view>
+  </scroll-view>
+  
+</view>
+
+<!-- 盘库弹窗组件 -->
+<inventory-shelf-stock 
+  show="{{showInventoryModal}}" 
+  shelfGoods="{{selectedShelfGoods}}" 
+  disId="{{disId}}" 
+  userId="{{userId}}"
+  totalRestWeight="{{selectedTotalRestWeight}}"
+  inventoryType="{{inventoryType}}"
+  inventoryDate="{{inventoryDate}}"
+  inventoryWeek="{{inventoryWeek}}"
+  inventoryMonth="{{inventoryMonth}}"
+  bindclose="closeInventoryModal"
+  bindsuccess="onInventorySuccess"
+/>
+

@@ -1,0 +1,95 @@
+
+
+/* overlay 背景 */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.popup {
+  width: 90%;
+  background-color: #fff;
+  border-radius: 10rpx;
+  overflow: hidden;
+  box-shadow: 0 0 20rpx rgba(0, 0, 0, 0.3);
+  position: absolute; /* 使用绝对定位 */
+  top: 30%; /* 使弹出窗口距离顶部30% */
+  left: 50%;
+  transform: translate(-50%, 0); /* 水平居中 */
+}
+
+
+/* 弹出窗口顶部 */
+.popup-header {
+  padding: 20rpx;
+  background-color: #f8f8f8;
+  border-bottom: 1rpx solid #ddd;
+  text-align: center;
+}
+
+.product-name {
+  font-size: 38rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+/* 弹出窗口主体 */
+.popup-body {
+  padding: 20rpx;
+}
+.title{
+  font-size: 40rpx;
+}
+
+/* 输入内容右对齐 */
+.input-row {
+  display: flex;
+  justify-content: flex-end; /* 向右对齐 */
+  margin-bottom: 15rpx; /* 每行间隔 */
+}
+
+/* 输入组样式 */
+.input-group {
+  display: flex; 
+  align-items: center; 
+  justify-content: space-between;
+  padding-bottom: 40rpx;
+ 
+}
+
+
+.flex-row {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  align-content: space-between;
+}
+
+.standardInput{
+  width: 100%;
+  border-bottom: 1px solid #9e9e9e;
+  padding: 20rpx 0 ;
+  font-size: 34rpx;
+}
+
+.btn_row{
+  padding: 40rpx 40rpx;
+  display: flex;
+  flex-flow: row-reverse nowrap;
+}
+
+.sureBtn{
+  margin-left: 60rpx;
+  color: #187e6e;
+}
+.btn{
+  font-size: 34rpx;
+}

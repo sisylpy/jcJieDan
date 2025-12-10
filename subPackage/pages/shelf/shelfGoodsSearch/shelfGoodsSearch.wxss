@@ -1,0 +1,309 @@
+/* 搜索框容器 */
+.search-container {
+  padding: 30rpx;
+  background-color: #f0f9ff;
+}
+
+.search-wrapper {
+  /* width: 100%; */
+}
+
+/* 搜索框样式 */
+.searchInput {
+  position: relative;
+  background-color: #ffffff;
+  border-radius: 48rpx;
+  border: 2rpx solid #e5e7eb;
+  padding: 0 24rpx;
+  height: 88rpx;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.04);
+  transition: all 0.3s ease;
+}
+
+.searchInput:focus-within {
+  border-color: #0a8a72;
+  box-shadow: 0 4rpx 16rpx rgba(10, 138, 114, 0.12);
+}
+
+.inputView {
+  flex: 1;
+  font-size: 32rpx;
+  color: #1f2937;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  padding: 0;
+  height: 60rpx;
+  line-height: 60rpx;
+}
+
+.inputView::placeholder {
+  color: #9ca3af;
+}
+
+.holderClass {
+  color: #9ca3af;
+  font-size: 32rpx;
+}
+
+.delSearch {
+  width: 56rpx;
+  height: 56rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  margin-left: 12rpx;
+  border-radius: 50%;
+  background-color: #f3f4f6;
+}
+
+.delSearch.is-show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.delSearch.hover {
+  background-color: #e5e7eb;
+}
+
+.close_icon {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.divider-text {
+  margin: 0 26rpx;
+  font-size: 26rpx;
+  color: #0a8a72;
+  font-weight: 600;
+}
+
+.shelf-list-wrap {
+  padding: 20rpx;
+}
+
+/* 确保商品行容器占满全行 */
+.flex-row-default {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.shelf-list-item {
+  display: flex;
+  align-items: flex-start;
+  background-color: #fff;
+  border-radius: 24rpx;
+  border: 1px solid #e5e5e5;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.shelf-list-thumb {
+  width: 160rpx;
+  height: 160rpx;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+  border-radius: 16rpx;
+  overflow: hidden;
+  background-color: #f5f5f5;
+}
+
+.shelf-list-img {
+  width: 100%;
+  height: 100%;
+}
+
+.shelf-list-img.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shelf-list-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.shelf-list-title {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.shelf-list-brand {
+  font-size: 26rpx;
+  color: #0a8a72;
+  padding: 0 14rpx;
+  background-color: rgba(10, 138, 114, 0.12);
+  border-radius: 12rpx;
+}
+
+.shelf-list-title-text {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+.shelf-list-name {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.shelf-list-spec {
+  font-size: 26rpx;
+  color: #7a8594;
+}
+
+.shelf-list-stock {
+  display: flex;
+  align-items: flex-start;
+  font-size: 26rpx;
+  color: #666;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.shelf-list-stock-label {
+  color: #666;
+}
+
+.stock-num {
+  color: #147062;
+  font-weight: 600;
+}
+
+.stock-empty {
+  color: #999;
+}
+
+.overlay .popup {
+  top: 12% !important;
+  transform: translate(-50%, 0) !important;
+  width: 92% !important;
+  border-radius: 28rpx;
+  overflow: hidden;
+  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.18);
+}
+
+.shelf-list-tag {
+  margin-left: 20rpx;
+  display: flex;
+  align-items: center;
+}
+
+.circle_list{
+  background: #04328c;
+  border-radius: 20rpx;
+  width: 80rpx;
+  height: 50rpx;
+  line-height: 50rpx;
+  font-size: 26rpx;
+  color: #fff;
+}
+
+
+.shelf-card-wrap {
+  width: 48%;
+  margin: 0 2% 24rpx 0;
+  position: relative;
+  box-sizing: border-box;
+}
+.shelf-card-wrap:nth-child(2n) {
+  margin-right: 0;
+}
+
+.shelf-card {
+  background: #ffffff;
+  border-radius: 28rpx;
+  padding: 24rpx;
+  box-shadow: 0 12rpx 32rpx rgba(0, 0, 0, 0.06);
+  border: 1rpx solid #e9eff2;
+  min-height: 220rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+}
+
+.shelf-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+.shelf-card-brand {
+  font-size: 24rpx;
+  padding: 4rpx 18rpx;
+  color: #0a8a72;
+  background: rgba(18, 160, 133, 0.12);
+  border-radius: 20rpx;
+}
+
+.shelf-card-title {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+.shelf-card-name {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #1f2f3d;
+}
+
+.shelf-card-spec {
+  font-size: 26rpx;
+  color: #7a8594;
+}
+
+.shelf-card-stock {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  flex: 1;
+  align-items: flex-start;
+}
+
+.stock-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e9efff;
+  color: #3171ff;
+  padding: 8rpx 22rpx;
+  border-radius: 20rpx;
+  font-size: 28rpx;
+  line-height: 1.2;
+}
+
+.shelf-card-empty {
+  color: #b0b7c3;
+  font-size: 26rpx;
+}
+
+.shelf-card-tag {
+  position: absolute;
+  top: 10rpx;
+  right: 10rpx;
+}
+.shelf-card-tag .circle {
+  margin: 0;
+  width: 90rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  border-radius: 28rpx;
+  font-size: 24rpx;
+  
+}

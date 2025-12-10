@@ -1,0 +1,21 @@
+
+
+/* 左侧菜单样式 */
+.left-menu {
+  background-color: #f8f8f8;
+}
+
+.category-item {
+  padding: 20rpx;
+  font-size: 30rpx;
+  color: #666666;
+  border-bottom: 1px solid rgb(235, 235, 235);
+}
+
+.category-item.active {
+  background-color: #ffffff;
+  border-left: 4rpx solid #187e6e;
+  font-weight: 500;
+  color: #000;
+  
+}

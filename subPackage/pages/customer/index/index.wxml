@@ -1,0 +1,301 @@
+<wxs src="../../../../utils/fn.wxs" module="tool" />
+
+
+<view class="flex-column height-100">
+
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="客户" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+
+  <view class=" bg-white flex-row-reverse plr-20  border-bottom-text-secondary" style="height:100rpx; width: {{windowWidth - 40}}rpx; margin-top: {{navBarHeight}}rpx; ">
+
+    <view class="newBtnBack flex-column-center" bindtap="addNewCustomer">
+      <image src="../../../../images/add.png" class="icon"></image>
+    </view>
+  </view>
+  <!-- bb -->
+  <view class="flex-column ">
+    <!-- <block wx:if="{{showInvite}}">
+      <view class="flex-column p-20">
+        <view class="flex-row-reverse p-10" bind:tap="closeTishi">
+          <image src="/images/del.png" mode="aspectFill" class="icon" />
+        </view>
+        <view class="flex-row-default" style="width: {{windowWidth - 40}}rpx;">
+          <image src="/images/jjcg.png" mode="aspectFill" class="logoimg mr-30 " />
+          <view class="flex-column" style="width: {{windowWidth - 240}}rpx;">
+            <view class="flex-row">
+              <text class="font-md font-bold">京京采购小程序</text>
+            </view>
+            <view class="flex-row-wrap">
+              ‘京京订货’小程序专为后厨下单设计，您可在采购小程序上查看订单，并根据不同采购方式制定第二天的采购计划
+            </view>
+            <button class="submit-btn mb-20" bindtap="toPasteInviteUrl">复制订货小程序的注册链接</button>
+          </view>
+        </view>
+      </view>
+    </block> -->
+    <view class="flex-row-between p-20">
+      <view class="flex-row">
+        <image src="../../../../images/pay-2.png" class="icon"></image>
+        <text class="ml-20small text-secondary">现金客户</text>
+      </view>
+      <view class="" bindtap="toCashInvite">
+        <image src="/images/add-3.png" mode="aspectFill" class="icon" />
+      </view>
+    </view>
+
+    <view bindtap="toCustomerPage" data-item="{{item}}" hover-class="hover" data-type="0" class="border-bottom flex-row-between bg-white p-20" wx:for="{{myCustomerArrOne}}">
+      <view class="flex-column">
+        <view class="flex-row">
+          <text class="mr-20">{{index + 1}}.</text>
+          <text class='font-lg'>{{item.nxDepartmentAttrName}}</text>
+        </view>
+        <view class="flex-row-between">
+          <text class="mr-20 text-white">{{index + 1}}.</text>
+
+          <view class="flex-column font-sm">
+
+            <!-- <view class="flex-row-between" style="width: {{windowWidth - 160}}rpx; ">
+            <view class="flex-row half-row" >
+              <text class="mr-10 text-secondary">部门:</text>
+            <text class="">{{item.nxDepartmentEntities.length == '0' ? '无' : '多部门'}}</text>
+            </view>
+            <view class="flex-row half-row" >
+              <text class="mr-10 text-secondary">配送单格式:</text>
+            <block wx:if="{{item.nxDepartmentPrintName == 'ApplyPanel'}}">
+              <text class="">一张一列</text>
+            </block>
+            <block wx:elif="{{item.nxDepartmentPrintName == 'ApplyFiftyPanel'}}">
+              <text class="">一张二列</text>
+            </block>
+            <block wx:else="">
+              <text class="">半张二列</text>
+            </block>
+            </view>
+          </view> -->
+
+
+            <view class="flex-row" style="width: {{windowWidth - 140}}rpx; ">
+              <view class="flex-row half-row">
+                <text class="mr-10 text-secondary">配送单显示:</text>
+                <text>{{item.nxDepartmentAttrName}}</text>
+              </view>
+              <view class="flex-row half-row">
+                <text class="mr-10 text-secondary">配送单格式:</text>
+                <block wx:if="{{item.nxDepartmentPrintName == 'ApplyPanel'}}">
+                  <text class="">一张一列</text>
+                </block>
+                <block wx:elif="{{item.nxDepartmentPrintName == 'ApplyFiftyPanel'}}">
+                  <text class="">一张二列</text>
+                </block>
+                <block wx:elif="{{item.nxDepartmentPrintName == 'ApplyHalfWholePanel'}}">
+                  <text class="">半张一列</text>
+                </block>
+                <block wx:elif="{{item.nxDepartmentPrintName == 'ApplyHalfPanel'}}">
+                  <text class="">半张两列</text>
+                </block>
+                <block wx:elif="{{item.nxDepartmentPrintName == 'ApplyThirtyWholePanel'}}">
+                  <text class="">三分之一张一列</text>
+                </block>
+                <block wx:elif="{{item.nxDepartmentPrintName == 'ApplyThirtyPanel'}}">
+                  <text class="">三分之一张两列</text>
+                </block>
+              </view>
+            </view>
+
+            <view class="flex-row-between" style="width: {{windowWidth - 160}}rpx; " wx:if="{{item.nxDepartmentWorkingStatus == -1}}">
+              <view class="flex-row ">
+                <text class="mr-10 text-secondary">未开通</text>
+              </view>
+              <switch bindchange="openDep" data-item="{{item}}" />
+            </view>
+
+
+          </view>
+        </view>
+      </view>
+      <view wx:if="{{item.nxDepartmentWorkingStatus == 0}}">
+        <image src="../../../../images/arrow-right-3.png" class="icon-md plr-20"></image>
+
+        <!-- <image src="../../../../images/arrow-right-3.png" class="icon-md plr-20"></image> -->
+      </view>
+    </view>
+  </view>
+
+
+  <view class="flex-column">
+    <view class="flex-row-between p-20">
+      <view class="flex-row">
+        <image src="../../../../images/date.png" class="icon"></image>
+        <text class="ml-20small text-secondary ">记账客户</text>
+      </view>
+    </view>
+
+    <view bindtap="toCustomerPage" data-item="{{item}}" hover-class="hover" data-type="1" class="border-bottom flex-row-between  bg-white p-20" wx:for="{{myCustomerArrTwo}}">
+      <view class="flex-column">
+
+        <view class="flex-row">
+          <text class="">{{index + 1}}.</text>
+          <text class=' font-lg'>{{item.nxDepartmentAttrName}}</text>
+          <image wx:if="{{item.payEntity !== null}}" src="/images/dinghuo.png" mode="aspectFill" class="icon mr-20" />
+        </view>
+
+        <view class="flex-row-between">
+          <text class="mr-20 text-white">{{index + 1}}.</text>
+
+          <view class="flex-column font-sm">
+
+            <view class="flex-row-between" style="width: {{windowWidth - 160}}rpx; ">
+              <view class="flex-row half-row">
+                <text class="mr-10 text-secondary">配送路线:</text>
+                <view>{{item.nxDepartmentPickName}}</view>
+              </view>
+              <view class="flex-row half-row">
+                <text class="mr-10 text-secondary">配送单格式:</text>
+                <block wx:if="{{item.nxDepartmentPrintName == 'ApplyPanel'}}">
+                  <text class="">一张一列</text>
+                </block>
+                <block wx:elif="{{item.nxDepartmentPrintName == 'ApplyFiftyPanel'}}">
+                  <text class="">一张二列</text>
+                </block>
+                <block wx:elif="{{item.nxDepartmentPrintName == 'ApplyHalfWholePanel'}}">
+                  <text class="">半张一列</text>
+                </block>
+                <block wx:elif="{{item.nxDepartmentPrintName == 'ApplyHalfPanel'}}">
+                  <text class="">半张两列</text>
+                </block>
+                <block wx:elif="{{item.nxDepartmentPrintName == 'ApplyThirtyWholePanel'}}">
+                  <text class="">三分之一张一列</text>
+                </block>
+                <block wx:elif="{{item.nxDepartmentPrintName == 'ApplyThirtyPanel'}}">
+                  <text class="">三分之一张两列</text>
+                </block>
+              </view>
+            </view>
+
+
+            <view class="flex-row" style="width: {{windowWidth - 160}}rpx; ">
+              <view class="flex-row ">
+                <text class="mr-10 text-secondary">录音时长:</text>
+                <text class="mainColor">{{item.nxDepartmentRecordMinutes}}</text>
+                <text class="text-secondary">秒</text>
+              </view>
+
+            </view>
+          </view>
+        </view>
+
+        <view class="flex-column" wx:if="{{item.payEntity !== null}}">
+          <view class="flex-row">
+            <text class="mr-20 text-white">{{index + 1}}.</text>
+            <view class="flex-row">
+              <text class="mr-10"> {{tool.transferFullTimeString(item.payEntity.nxNdpFromTime)}}</text>
+              <text class="mr-10">-</text>
+              <text>{{tool.transferFullTimeString(item.payEntity.nxNdpStopTime)}}</text>
+            </view>
+          </view>
+
+          <view class="flex-row">
+            <text class="mr-20 text-white">{{index + 1}}.</text>
+            <view class="flex-row" style="width: {{windowWidth - 180}}rpx;">
+              <view class="flex-row  half-row">
+                <text class="mr-10">使用小程序:</text>
+                <text>{{item.nxDepartmentDeliveryBoxNumber}}天</text>
+              </view>
+              <view class="flex-row half-row">
+                <text class="mr-10">订货点数:</text>
+                <text>{{item.nxDepartmentOrderTotal}}点</text>
+              </view>
+            </view>
+
+          </view>
+        </view>
+
+      </view>
+      <view class="flex-row">
+
+        <image src="../../../../images/arrow-right-3.png" class="icon-md plr-20"></image>
+      </view>
+
+    </view>
+  </view>
+ 
+  <view class="flex-column" wx:if="{{disInfo.nxDistributerBusinessTypeId  !== '12'}}">
+    <view class="flex-row-between p-20">
+      <view class="flex-row p-20" bind:tap="requestSubscribeMessage">
+        <image src="../../../../images/date.png" class="icon"></image>
+        <text class="ml-20 font-sl text-secondary ">京采账本App</text>
+        <text class="font-sl text-secondary">(成为指定商品配送商)</text>
+      </view>
+      <!-- <view class="button-container mr-30" bindtap="toOpenPrint" hover-class="button-hover">
+        <image src="/images/jjcg.png" class="button-image"></image>
+      </view> -->
+    </view>
+
+    <view class="border-bottom flex-column  bg-white p-20" bindtap="toYifaPage" data-item="{{item}}" hover-class="hover" wx:for="{{yifaArr}}" >
+      <view class="flex-row-between">
+        <view class="flex-row">
+          <text class="mr-20">{{index + 1}}.</text>
+          <text class='font-lg mr-20'>{{item.gbDistributerEntity.gbDistributerName}}</text>
+          <image wx:if="{{item.nxDgdFromNxDisId  == disId}}" src="/images/starGreen.png" mode="aspectFill" class="icon-sm ml-20" />
+        </view>
+        <view class="">
+          <image src="../../../../images/arrow-right-3.png" class="icon"></image>
+        </view>
+      </view>
+
+      <block wx:if="{{item.nxDgdStatus == -1 || item.nxDgdStatus == -2}}">
+        <view class="flex-column whiteBackRadius p-20" wx:if="{{item.nxDgdGbPayMethod == 1}}">
+          <view class="flex-row">
+            <view class="flex-column-center m-10" style="width: 50rpx; height: 50rpx;">
+              <image bindtap="fixedPrice" data-type="0" src="../../../../images/selected-2.png" class="icon "></image>
+            </view>
+            <text>商议定价方式</text>
+          </view>
+          <view class="flex-row-wrap font-sltext-secondary">客户协商商品的价格，在双方认可的时期内，按商定价格配送</view>
+
+        </view>
+
+        <view class="flex-column bg-white  p-20">
+          <view class="flex-row">
+            <view class="flex-row" style="width: {{windowWidth / 2}}rpx;" wx:if="{{item.nxDgdGbPayMethod == 0}}">
+              <view class="flex-column-center m-10" style="width: 50rpx; height: 50rpx;" bindtap="payMethod" data-type="0">
+                <image src="../../../../images/selected-2.png" class="icon "></image>
+              </view>
+              <text>现金支付</text>
+            </view>
+
+            <view class="flex-row" style="width: {{windowWidth / 2}}rpx;" wx:if="{{item.nxDgdGbPayMethod  == 1}}">
+              <view class="flex-column-center m-10" style="width: 50rpx; height: 50rpx;" bindtap="payMethod" data-type="1">
+                <image src="../../../../images/selected-2.png" class="icon "></image>
+              </view>
+              <text>记账</text>
+            </view>
+          </view>
+          <view class="flex-row-wrap font-sltext-secondary">客户协商商品的价格，在双方认可的时期内，按商定价格配送</view>
+        </view>
+
+
+        <view class="flex-row">
+
+          <view class="radius-10 bg-danger p-10 mr-30 half-row text-center" bindtap="delteBusiness" data-id="{{item.nxDistributerGbDistributerId}}">删除申请</view>
+          <!-- <block wx:if="{{item.nxDgdStatus == -2}}">
+                <view class="radius-10 bg-danger p-10  mr-30 third-row text-center">请求来电</view>
+              </block>
+              <block wx:else="">
+                <view class="radius-10 bg-primary p-10  mr-30 third-row text-center" bindtap="changeStatus" data-status="-2" data-id="{{item.nxDistributerGbDistributerId}}">请求来电</view>
+              </block> -->
+
+          <view class="radius-10 bg-success p-10  mr-30 half-row text-center" bindtap="changeStatus" data-status="0" data-id="{{item.nxDistributerGbDistributerId}}">同意配送</view>
+
+        </view>
+
+
+      </block>
+    </view>
+  </view>
+
+
+</view>
+
+
+

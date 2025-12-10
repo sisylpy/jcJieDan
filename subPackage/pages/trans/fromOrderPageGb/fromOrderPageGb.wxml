@@ -1,0 +1,119 @@
+<wxs src="../../../../utils/fn.wxs" module="tool" />
+
+<view class="flex flex-column ">
+
+
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="{{name}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+  <view class="flex-column with-s-padding " wx:for="{{batch.gbDPGEntities}}" wx:key="gbDistributerPurchaseGoodsId">
+    <view class="flex-row-default p-20  border-bottom {{orderIndex + 1 == item.gbDepartmentOrdersEntities.length ? 'is-last' : ''}}" style="margin-bottom: 0rpx; width: {{widowWidth - 40}}rpx;  ">
+      <text class="mr-10">{{ index + 1}}.</text>
+      <view class="flex-column">
+        <view class="flex-row-between" style="width:{{(windowWidth - 140 ) }}rpx;">
+          <view class="flex-row-wrap font-lg">
+            <text class="mr-20 ">{{item.gbDistributerGoodsEntity.gbDgGoodsName}}</text>
+            <text class="font-md gray" wx:if="{{item.gbDistributerGoodsEntity.gbDgGoodsDetail.length > 0 && item.gbDistributerGoodsEntity.gbDgGoodsDetail !== 'null'}}">{{item.gbDistributerGoodsEntity.gbDgGoodsDetail}}</text>
+            <block wx:if="{{item.gbDpgStandard !== item.gbDistributerGoodsEntity.gbDgGoodsStandardname && item.gbDpgBuyScale !== '-1'}}">
+              <text class="mr-20"> ({{item.gbDpgStandard}})</text>
+            </block>
+          </view>
+        </view>
+
+        <view class="flex-row font-sl pt-20 pb-20" style="width: {{windowWidth - 120}}rpx; ">
+          <!-- price -->
+          <view class="flex-row third-row">
+            <text class="mr-10 flex-fixed">单价:</text>
+            <text wx:if="{{item.gbDpgBuyScale !== null && item.gbDpgBuyScale > 0}}">{{item.gbDpgBuyScalePrice
+                        !== null ? item.gbDpgBuyScalePrice : ''}}/{{item.gbDpgStandard}}</text>
+            <text wx:else>{{item.gbDpgBuyPrice !== null ? item.gbDpgBuyPrice :
+                        ''}}/{{item.gbDistributerGoodsEntity.gbDgGoodsStandardname}}</text>
+          </view>
+
+          <view class="flex-row third-row">
+            <text class="mr-10 flex-fixed">数量:</text>
+            <block wx:if="{{item.gbDpgStandard !== item.gbDistributerGoodsEntity.gbDgGoodsStandardname && item.gbDpgBuyScale !== '-1' && item.gbDpgBuyScaleQuantity > 0}}">
+              <view class="flex-column">
+                <view class="flex-row">
+                  <text class="mr-20 mainColor five-weight">{{item.gbDpgBuyScaleQuantity}}</text>
+                  <text>{{item.gbDpgStandard}}</text>
+                </view>
+
+              </view>
+            </block>
+            <block wx:else>
+              <view class="flex-row">
+                <text class="mainColor five-weight" wx:if="{{item.gbDpgBuyQuantity !== null && item.gbDpgBuyQuantity !== '0.0' }}">{{item.gbDpgBuyQuantity}}{{item.gbDistributerGoodsEntity.gbDgGoodsStandardname}}</text>
+              </view>
+            </block>
+          </view>
+
+          <view class="flex-row third-row">
+            <text class="mr-10 flex-fixed">小计:</text>
+            <text wx:if="{{item.gbDpgBuySubtotal !== null && item.gbDpgBuySubtotal > 0}}">{{item.gbDpgBuySubtotal}}元</text>
+          </view>
+
+        </view>
+
+        <view class="flex-row  pt-20 pb-20 border-bottom {{orderIndex == item.gbDepartmentOrdersEntities.length - 1 ? 'is-last' : ''}} font-md" wx:for="{{item.gbDepartmentOrdersEntities}}" wx:for-item="orders" wx:for-index="orderIndex" bindtap="inputGoods" data-index="{{index}}" data-orderindex="{{orderIndex}}" data-item="{{item}}" hover-class="hover" data-orders="{{orders}}">
+          <view class="felx-row" style="width:{{(windowWidth - 140 ) / 10 * 7}}rpx; ">
+            <block wx:if="{{orders.gbDepartmentEntity.fatherGbDepartmentEntity.gbDepartmentSubAmount > 1}}">
+              <text class="mr-10">{{orders.gbDepartmentEntity.fatherGbDepartmentEntity.gbDepartmentName}}.</text>
+              <text class=" mr-10">{{orders.gbDepartmentEntity.gbDepartmentName}}</text>
+            </block>
+            <block wx:else>
+              <text class="mr-10">{{orders.gbDepartmentEntity.gbDepartmentName}}</text>
+            </block>
+            <text class="mainColor1">{{orders.gbDoQuantity}}{{orders.gbDoStandard}} </text>
+
+            <!-- scale -->
+            <block wx:if="{{orders.gbDoDsStandardScale !== null && orders.gbDoDsStandardScale > 0 && orders.gbDoDsStandardScale !== '-1'}}">
+              <text class="">({{orders.gbDoDsStandardScale}}{{item.gbDistributerGoodsEntity.gbDgGoodsStandardname}}/{{orders.gbDoStandard}})</text>
+            </block>
+          </view>
+
+
+          <block wx:if="{{orders.gbDoDsStandardScale !== null && orders.gbDoDsStandardScale > 0 && orders.gbDoDsStandardScale !== '-1'}}">
+            <view class=" font-lg flex-row" style="width:{{(windowWidth - 100 ) / 10 * 3}}rpx; ">
+              <view class="inputWeight mr-10" style="width:{{(windowWidth - 100 ) / 20 * 3}}rpx; height: 50rpx;line-height: 50rpx;">
+                <view class="mainColor">{{orders.gbDoScaleWeight !== null && orders.gbDoScaleWeight !==
+                            '0.0' ?
+                            orders.gbDoScaleWeight : ''}}</view>
+              </view>
+              <text class="gray">{{orders.gbDoStandard}}</text>
+
+            </view>
+          </block>
+          <block wx:else>
+            <view class=" font-lg flex-row" style="width:{{(windowWidth - 100 ) / 10 * 3}}rpx; ">
+              <view class="inputWeight mr-10" style="width:{{(windowWidth - 100 ) / 10 * 3}}rpx; height: 50rpx;line-height: 50rpx;">
+                <view class="mainColor">{{orders.gbDoWeight !== null && orders.gbDoWeight !== '0.0' ?
+                            orders.gbDoWeight : ''}}</view>
+              </view>
+              <text class="gray">{{item.gbDistributerGoodsEntity.gbDgGoodsStandardname}}</text>
+            </view>
+          </block>
+        </view>
+
+      </view>
+    </view>
+  </view>
+
+
+
+</view>
+
+<view class="flex-row" wx:if="{{batchStatus == -1 || batchStatus == 0 }}" style=" position: fixed; bottom: 0; left: 0; width: 100%; height: 140rpx;">
+  <view class="flex-column-center">
+    <view class="btn_container" style="width:{{windowWidth -40}}rpx; line-height: 100rpx; height: 100rpx;">
+      <view class="save_btn" style="width:{{windowWidth - 40}}rpx; line-height: 80rpx; height: 80rpx;" bindtap="saveOrder" hover-class="numHover">转订单</view>
+    </view>
+  </view>
+</view>
+
+<view class="flex-row" wx:if="{{batchStatus > 0 }}" style=" position: fixed; bottom: 0; left: 0; width: 100%; height: 140rpx;">
+  <view class="flex-column-center">
+    <view class="btn_container" style="width:{{windowWidth -40}}rpx; line-height: 100rpx; height: 100rpx;">
+      <view class="save_btn is-gray" style="width:{{windowWidth - 40}}rpx; line-height: 80rpx; height: 80rpx;" bindtap="toBack" hover-class="numHover">转接完成</view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,39 @@
+<view class="flex-column flex">
+
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="连接标签打印机" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+  
+  <!-- 连接状态 -->
+  <view class="status-section flex-column" wx:if="{{isConnected}}">
+    <view class="status-info">
+      <text class="status-text">已连接</text>
+      <text class="device-name">{{connectedDeviceName}}</text>
+    </view>
+    <button class="btn btn-secondary" bindtap="disconnect">断开连接</button>
+  </view>
+
+  <!-- 设备列表 -->
+  <view class=" flex-column p-20 bg-white" style="margin-top: {{navBarHeight}}rpx;">
+    <view class="section-header">
+      <text class="section-title">蓝牙设备</text>
+      <button class="btn btn-primary" bindtap="startSearch" loading="{{isScanning}}" disabled="{{isScanning}}">
+        {{isScanning ? '搜索中...' : '搜索设备'}}
+      </button>
+    </view>
+
+    <view class="device-list flex-column">
+      <view class="device-item" wx:for="{{deviceList}}" wx:key="deviceId" bindtap="connectDevice" data-id="{{item.deviceId}}" data-name="{{item.displayName || item.name || '未知设备'}}">
+        <view class="device-info">
+          
+          <text class="device-name-item">{{index + 1}}.{{item.displayName || item.name || '未知设备'}}</text>
+          <text class="device-id">{{item.deviceId}}</text>
+        </view>
+        <view class="connect-btn">连接</view>
+      </view>
+
+      <view class="empty" wx:if="{{deviceList.length === 0 && !isScanning}}">
+        <text>暂无设备，请点击搜索设备</text>
+      </view>
+    </view>
+  </view>
+</view>
+

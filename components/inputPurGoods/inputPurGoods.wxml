@@ -1,0 +1,116 @@
+<view class='ccc' wx:if='{{show}}' catchtouchmove='ture'>
+  <view class='modal-content flex-column'>
+    <view class="top">
+      <view class='goodsTitle flex-row'>
+        <text class="brand" wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0 && item.nxDistributerGoodsEntity.nxDgGoodsBrand !== 'null'}}">{{item.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
+        <text>{{item.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
+        <text wx:for="{{item.nxDistributerGoodsEntity.nxAliasEntities}}" wx:for-item="alias">={{alias.nxDaAliasName}}</text>
+        <block wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0}}">
+          <text class="" wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname !== '斤'}}">({{item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight}}/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+        </block>
+        <block wx:else>
+          <text class="">({{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+        </block>
+      </view>
+    </view>
+
+    <view class="body">
+      <view class='goods_contents'>
+        <view class="flex-row-between p-20">
+          <text class="margin-l-right">金额:</text>
+          <view class="">
+            <text wx:if="{{item.nxDpgBuySubtotal !== null}}">{{item.nxDpgBuySubtotal}}元</text>
+          </view>
+        </view>
+
+        <view class="flex-row-between p-20">
+          <text class="margin-l-right">订货数量:</text>
+          <view class="flex-row">
+            <view class="inputVie1" style="width: 200rpx; margin-right: 10rpx;">
+            <text>{{item.nxDpgQuantity}}</text>
+            <text>{{item.nxDistributerGoodsEntity.nxDgCartonUnit !== null && item.nxDistributerGoodsEntity.nxDgCartonUnit !== undefined && item.nxDistributerGoodsEntity.nxDgCartonUnit !== '' ? item.nxDistributerGoodsEntity.nxDgCartonUnit : item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="flex-row-between p-20">
+          <text class="margin-l-right">采购数量:</text>
+          <view class="flex-row">
+            <view class="inputView" style="width: 200rpx; margin-right: 10rpx;">
+              <input class='input' type='digit' value="{{item.nxDpgBuyQuantity}}" bindinput="getPurchaseQuantity" bindblur="_checkQuantity" hold-keyboard='true'></input>
+            </view>
+            <text>{{item.nxDistributerGoodsEntity.nxDgCartonUnit !== null && item.nxDistributerGoodsEntity.nxDgCartonUnit !== undefined && item.nxDistributerGoodsEntity.nxDgCartonUnit !== '' ? item.nxDistributerGoodsEntity.nxDgCartonUnit : item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+          </view>
+        </view>
+
+        <view class="flex-row-between p-20">
+          <text class="margin-l-right">采购单价:</text>
+          <view class="flex-row">
+            <view class="inputView" style="width: 200rpx; margin-right: 10rpx;">
+              <input class='input' type='digit' value="{{cartonBuyPrice || item.nxDpgBuyPrice}}" bindinput="getPurchasePrice" bindblur="_checkPrice" hold-keyboard='true'></input>
+            </view>
+            <text>元/{{item.nxDistributerGoodsEntity.nxDgCartonUnit !== null && item.nxDistributerGoodsEntity.nxDgCartonUnit !== undefined && item.nxDistributerGoodsEntity.nxDgCartonUnit !== '' ? item.nxDistributerGoodsEntity.nxDgCartonUnit : item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+          </view>
+        </view>
+
+        <view class="flex-row-between p-20" wx:if="{{averageBuyPrice}}">
+          <text class="margin-l-right">平均单价:</text>
+          <view class="flex-row">
+            <text>{{averageBuyPrice}}元/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+          </view>
+        </view>
+
+        <view class="flex-row-between p-20">
+          <text class="margin-l-right">建议售价:</text>
+          <view class="flex-row">
+            <view class="inputView" style="width: 200rpx; margin-right: 10rpx;">
+              <input class='input' type='digit' value="{{cartonExpectPrice || item.nxDpgExpectPrice}}" bindinput="getPurchaseExpectPrice" bindblur="_checkPrice" hold-keyboard='true'></input>
+            </view>
+            <text>元/{{item.nxDistributerGoodsEntity.nxDgCartonUnit !== null && item.nxDistributerGoodsEntity.nxDgCartonUnit !== undefined && item.nxDistributerGoodsEntity.nxDgCartonUnit !== '' ? item.nxDistributerGoodsEntity.nxDgCartonUnit : item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+          </view>
+        </view>
+
+        <view class="flex-row-between p-20" wx:if="{{averageExpectPrice}}">
+          <text class="margin-l-right">平均建议售价:</text>
+          <view class="flex-row">
+            <text>{{averageExpectPrice}}元/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+          </view>
+        </view>
+
+        <view class="flex-row-between p-20">
+          <text class="margin-l-right">等待入库:</text>
+          <view class="flex-row">
+            <view class="inputView1" style="width: 200rpx; margin-right: 10rpx;">
+              <switch checked="{{item.isShowTools}}" bindchange="changeWait"/>
+            </view>
+          </view>
+        </view>
+      </view>
+
+      <view class='flex-row'>
+
+        <view class="btn_row" wx:if="{{item.nxDpgStatus == 1}}">
+          <view class="finish-btn hidden flex-row"></view>
+          <view class="btn_row_finish">
+            <text class='cancel-btn' bindtap="cancle" hover-class="hoverBtn">关闭</text>
+            <text class='confirm-btn' catchtap='confirm' hover-class="hoverBtn">完成</text>
+          </view>
+
+        </view>
+        <view class="btn_row" wx:else>
+          <!-- <view class="finish-btn flex-row">
+            <image src="../../images/check.png" class="smallIcon"></image>
+            <text class='' bindtap="finish" hover-class="hoverBtn">标记买了</text>
+          </view> -->
+          <view class=" flex-row"></view>
+          <view class=" btn_row_finish">
+            <text class='cancel-btn' bindtap="cancle" hover-class="hoverBtn">关闭</text>
+            <text class='confirm-btn' catchtap='confirm' hover-class="hoverBtn">完成</text>
+          </view>
+
+        </view>
+      </view>
+    </view>
+
+  </view>
+</view>

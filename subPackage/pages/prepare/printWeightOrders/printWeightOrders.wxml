@@ -1,0 +1,116 @@
+<view class="flex-column height-100">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="打印订单" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+  <!-- here -->
+  <view class="flex-column " style="margin-top: {{navBarHeight}}rpx;">
+    <view class="flex flex-row border-bottom p-30 bg-white" wx:for='{{printGoodsArr}}' wx:for-item="item" wx:for-index='goodsIndex' wx:key='nxDistributerPurchaseGoodsId'>
+
+      <view class=" flex-column" >
+        <view class="flex flex-row-between">
+          <view class="flex-row">
+            <text>{{goodsIndex + 1}}.</text>
+          <view class="flex-row-wrap" style="width: {{windowWidth / 3 * 2 - 40}}rpx;">
+            <text class="brand" wx:if="{{item.nxDgGoodsBrand !== 'null' && item.nxDgGoodsBrand.length > 0}}">{{item.nxDgGoodsBrand}}</text>
+            <text class=" font-lg font-bold">{{item.nxDgGoodsName}}</text>
+            <text class="" wx:if="{{item.nxDgGoodsStandardWeight !== 'null' && item.nxDgGoodsStandardWeight.length > 0}}">({{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}})</text>
+            <text class="" wx:else>({{item.nxDgGoodsStandardname}})</text>
+            <text class="text-secondary" wx:if="{{item.nxDgGoodsPlace !== null && item.nxDgGoodsPlace.length > 0}}">{{item.nxDgGoodsPlace}}</text>
+            <text class="text-secondary  text-secondary" wx:if="{{item.nxDgGoodsDetail.length > 0 && item.nxDgGoodsDetail !==  'null'}}">{{item.nxDgGoodsDetail}}</text>
+          </view>
+          </view>
+
+          <block wx:if="{{stockPrintViewMode == 'department'}}">
+            <view class="flex flex-row font-md" wx:for="{{item.nxDepartmentOrdersEntities}}" wx:for-item="order" wx:key="nxDepartmentOrdersId" wx:for-index="orderIndex" data-orderindex="{{orderIndex}}" data-parentindex="{{parentIndex}}" data-goodsindex="{{goodsIndex}}" bindtap="choiceStockOrders">
+           
+            <text class="ml-20">{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+            <text wx:if="{{order.nxDoRemark !== 'null' && order.nxDoRemark.length > 0}}" class="red">({{order.nxDoRemark}})</text>
+          </view>
+          </block>
+         
+         
+        </view>
+
+         <block wx:if="{{stockPrintViewMode !== 'department'}}">
+          <view class="flex flex-row font-md" wx:for="{{item.nxDepartmentOrdersEntities}}" wx:for-item="order" wx:key="nxDepartmentOrdersId" wx:for-index="orderIndex" data-orderindex="{{orderIndex}}" data-parentindex="{{parentIndex}}" data-goodsindex="{{goodsIndex}}" bindtap="choiceStockOrders">
+            <!-- <view class="flex-column-center" wx:if="{{item.isSelected}}">
+              <image src="{{!order.purSelected ? '../../../images/checkbox-noselected.png' : '../../../images/selected-2.png'}}" class="icon "></image>
+            </view>
+
+            <view class="circle_default mr-10" wx:else=""></view> -->
+
+            <!-- 使用精简字段（扁平化） -->
+            <block wx:if="{{useSimpleFields}}">
+              <!-- GB部门（扁平化） -->
+              <block wx:if="{{order.nxDoGbDepartmentId !== -1}}">
+                <view class="flex-row ">
+                  <text wx:if="{{order.fatherGbDepartmentName}}">{{order.fatherGbDepartmentName}}.</text>
+                  <text>{{order.gbDepartmentName}}</text>
+                </view>
+              </block>
+              <!-- 餐厅（扁平化） -->
+              <block wx:elif="{{order.nxDoNxCommRestrauntId !== -1}}">
+                <view class="flex-row ">
+                  <text>{{order.nxRestrauntAttrName}}</text>
+                </view>
+              </block>
+              <!-- NX部门（扁平化） -->
+              <block wx:else>
+                <view class="flex-row ">
+                  <text wx:if="{{order.nxDoDepartmentFatherId !== order.nxDoDepartmentId}}">{{order.fatherDepartmentAttrName}}.</text>
+                  <text>{{order.nxDepartmentAttrName}}</text>
+                </view>
+              </block>
+            </block>
+            
+            <!-- 使用完整字段（嵌套对象） -->
+            <block wx:else>
+            <block wx:if="{{order.nxDoGbDepartmentId !== -1}}">
+              <view class="flex-row ">
+                  <text wx:if="{{order.gbDepartmentEntity && order.gbDepartmentEntity.fatherGbDepartmentEntity !== null}}">{{order.gbDepartmentEntity.fatherGbDepartmentEntity.gbDepartmentName}}.</text>
+                <text>{{order.gbDepartmentEntity.gbDepartmentName}}</text>
+              </view>
+            </block>
+
+            <block wx:if="{{order.nxDoNxCommRestrauntId !== -1}}">
+              <view class="flex-row ">
+                <text>{{order.nxRestrauntEntity.nxRestrauntAttrName}}</text>
+              </view>
+            </block>
+
+            <block wx:else>
+              <view class="flex-row ">
+                  <text wx:if="{{order.nxDepartmentEntity && order.nxDepartmentEntity.nxDepartmentFatherId > 0}}">{{order.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentName}}.</text>
+                  <text>{{order.nxDepartmentEntity.nxDepartmentAttrName}}</text>
+              </view>
+              </block>
+            </block>
+
+            <text class="ml-20">{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+            <text wx:if="{{order.nxDoRemark !== 'null' && order.nxDoRemark.length > 0}}" class="red">({{order.nxDoRemark}})</text>
+          </view>
+         </block>
+         
+        <!-- </view> -->
+
+      </view>
+
+
+    </view>
+  </view>
+  <!-- ../here -->
+</view>
+
+
+
+<view  class="flex-row bottom-button-container p-10 ">
+  <view class="flex flex-row ">
+    <!-- <view class="flex-row" bindtap="changeHaveOrder" style="width:{{windowWidth /3 -20 }}rpx;">
+      <label>带订单内容</label> <checkbox checked="{{haveOrder}}" />
+    </view> -->
+    <view class="btn is-active" bind:tap="_printPurchaseOrder"  style="width: {{windowWidth - 80}}rpx; line-height: 60rpx;text-align: center;border-radius: 20rpx; ">
+      <text class="font-lg-2">打印出库单</text>
+    </view>
+    
+  </view>
+
+</view>

@@ -1,0 +1,81 @@
+<view class="flex flex-column font-lg">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="选择出库客户" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+
+    <view class="bg-white p-20 flex-row-default border-bottom" wx:for="{{nxDepArr}}">
+
+      <text class="mr-20">{{index + 1}}.</text>
+      <view class="flex-column" bindtap="toCarDep" data-id="{{item.nxDepartmentId}}" data-type="nx" hover-class="hover" data-name="{{item.nxDepartmentName}}" style="width: {{windowWidth - 220}}rpx; ">
+        <view class="flex-row">
+          <text class="font-lg font-bold">{{item.nxDepartmentName}}</text>
+        </view>
+
+        <view class="flex-row font-md" style="width: {{windowWidth - 80}}rpx;">
+          <view class="flex-row third-row">
+            <text class="m-10 text-secondary">订单:</text>
+            <text class="five-weight">{{item.nxDepartmentAddCount}}个</text>
+          </view>
+
+          <view class="flex-row third-row">
+            <text class="m-10 text-secondary">未拣货:</text>
+            <text class="five-weight {{item.nxDepartmentPurOrderCount > 0 ? 'mainColor' : ''}}">{{item.nxDepartmentPurOrderCount}}个</text>
+          </view>
+        </view>
+      </view>
+
+
+      <view class="button-container-white" bindtap="choiceDep" data-type="nx" data-index="{{index}}" hover-class="hover"  wx:if="{{item.nxDepartmentPurOrderCount > 0}}">
+        <image src="{{item.isSelected ? '/images/selected.png' : '/images/radiobuttonunselect-2.png'}}" mode="aspectFill" class="icon" />
+      </view>
+
+    </view>
+
+
+    <view class="flex-column margin-top" wx:if="{{gbDepArr.length > 0}}">
+
+      <text class="p-20">gb客户:</text>
+
+      <view class="bg-white p-20 flex-row-default border-bottom" wx:for="{{gbDepArr}}">
+       
+        <text class="mr-20">{{index + 1}}.</text>
+
+        <view class="flex-column" bindtap="toCarDep" data-id="{{item.gbDepartmentId}}" data-type="gb" hover-class="hover" data-name="{{item.gbDepartmentName}}" style="width: {{windowWidth - 220}}rpx; ">
+         
+        <view class="flex-row">
+          <text class="font-lg font-bold">{{item.gbDepartmentName}}</text>
+        </view>
+
+        <view class="flex-row font-md" style="width: {{windowWidth - 80}}rpx;">
+          <view class="flex-row third-row">
+            <text class="m-10 text-secondary">订单:</text>
+            <text class="five-weight">{{item.gbDepartmentAddCount}}个</text>
+          </view>
+
+          <view class="flex-row third-row">
+            <text class="m-10 text-secondary">未拣货:</text>
+            <text class="five-weight {{item.gbDepartmentPurOrderCount > 0 ? 'mainColor' : ''}}">{{item.gbDepartmentPurOrderCount}}个</text>
+          </view>
+        </view>
+         
+        </view>
+
+
+
+
+        <view class="p-20 flex-column-center" bindtap="choiceDep" data-type="gb" data-index="{{index}}" hover-class="hover" style="width: 200rpx;" wx:if="{{item.gbDepartmentPurOrderCount > 0}}">
+          <image src="{{item.isSelected ? '/images/selected.png' : '/images/radiobuttonunselect-2.png'}}" mode="aspectFill" class="icon" />
+          
+
+        </view>
+
+      </view>
+
+    </view>
+
+
+    <view  class="center-content text-secondary font-md" style="height: 200rpx;">
+      没有数据了！
+    </view>
+
+
+</view>

@@ -1,0 +1,15 @@
+<view class='modal-mask' wx:if='{{show}}' catchtouchmove='ture' bindtap="cancle">
+	<view class='modal-dialog'>
+
+			<!-- <view class='modal-title'>
+				<text>{{item.nxGoodsName}}</text>
+			</view>
+	 -->
+
+		<view class="modal-content">
+
+     <image style="height: {{windowHeight - 500 }}rpx;width: {{windowWidth - 80}}rpx;"  mode="widthFix"  src="{{url + item.gbDgsraFilePath}}" mode="aspectFit"/>
+		</view>
+
+	</view>
+</view>

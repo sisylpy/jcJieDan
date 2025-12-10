@@ -1,0 +1,84 @@
+<import src='../../../../template/resGoods/resGoods.wxml' />
+<import src='../../../../template/resGroup/resGroup.wxml' />
+
+
+<view class="flex-column flex">
+
+
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="{{editDepAttrName}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+  <view class="flex-column">
+
+    <block wx:if="{{userArr.length == 0}}">
+      <view class="flex-column center-content" style="height: {{windowHeight  - navBarHeight - 220}}rpx; ">
+
+        <view class="flex flex-column center-content">
+          <image class="empty_image" src="../../../images/xiuxi.png"></image>
+          <text class="font-xl p-20">暂时无注册成功的小程序用户</text>
+          <text class=" darktext-secondary">客户用小程序下单</text>
+        </view>
+
+      </view>
+    </block>
+    <!-- <scroll-view wx:else="" scroll-y style="height:{{windowHeight  - navBarHeight - 120}}rpx; "> -->
+
+      <template is="resGroup" data="{{userArr:userArr,windowWidth:windowWidth, url: url }}"></template>
+      <view style="height: 100rpx;"> </view>
+    <!-- </scroll-view> -->
+
+    <!-- <view class="center-content flex-column">
+      <view class="flex-row-default  applyBtn text-center" bindtap="toOpenOrder">
+        <view style="width:{{windowWidth  - 180 }}rpx; text-align:center; ">
+          <image src="../../../../images/adduser.png" class="icon mr-20"></image>
+          <text>邀请客户注册订货小程序</text>
+        </view>
+      </view>
+
+
+    </view> -->
+  </view>
+</view>
+
+
+
+
+<view class='overlay {{showOperationUser ? "show" : ""}}' catchtouchmove='ture' catchtap="hideMaskUser" catchtouchmove='ture'>
+  <view class="flex-column nnn bg-white">
+    <!-- <view class="flex-row p-30 border-bottom"  bindtap="editUser">
+      <image src="../../../../images/edit.png" class="icon mr-10"></image>
+      <text class=" mr-20">修改用户信息</text>
+    </view> -->
+
+    <view class="flex-row p-30 border-bottom" bindtap="delUser">
+      <image src="../../../../images/del.png" class="icon mr-10"></image>
+      <text class=" mr-20">删除用户</text>
+    </view>
+  </view>
+</view>
+
+
+
+
+<!-- 
+
+<block wx:if="{{showInvite}}">
+      <view class="flex-column p-20">
+        <view class="flex-row-reverse p-10" bind:tap="closeTishi">
+          <image src="/images/del.png" mode="aspectFill" class="icon" />
+        </view>
+        <view class="flex-row-default">
+          <image src="/images/jjsh.png" mode="aspectFill" class="logoimg mr-30 " />
+          <view class="flex-column" style="width: {{windowWidth - 240}}rpx;">
+            <view class="flex-row">
+              <text class="font-md font-bold">邀请后厨工作人员注册下单小程序</text>
+            </view>
+            <view class="flex-row-wrap">
+              ‘京京订货’小程序专为后厨下单设计，您可在采购小程序上查看订单，并根据不同采购方式制定第二天的采购计划
+            </view>
+            <button class="submit-btn mb-20" bindtap="toPasteInviteUrl">复制订货小程序的注册链接</button>
+            <button class="text-btn" bind:tap="notInvite">自己下单</button>
+          </view>
+        </view>
+      </view>
+
+    </block> -->

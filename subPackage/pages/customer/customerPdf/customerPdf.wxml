@@ -1,0 +1,144 @@
+<import src='../../../../template/resGoods/resGoods.wxml' />
+<import src='../../../../template/resGroup/resGroup.wxml' />
+<wxs src="../../../../utils/fn.wxs" module="tool" />
+
+
+
+<view class="flex flex-column">
+
+
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="{{editDepAttrName}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+
+  <block wx:if="{{arr.length == 0}}">
+
+    <view class="flex-column center-content" style="height: {{windowHeight  - navBarHeight}}rpx; ">
+     
+      <view class="flex-row">
+      <view class="p-20" bindtap="toDatePage">
+        <image src="../../../../images/calender.png" class="icon"></image>
+      </view>
+      <view class="flex-column">
+        <view class="flex-row" wx:if="{{startDate == stopDate}}">
+          <view class="font-sm" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
+        </view>
+        <view class="flex-row" wx:else>
+          <view class=" font-sm" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
+          <text class="p-10">-</text>
+          <view class=" font-sm" wx:if="{{stopDate}}">{{tool.transferDateString(stopDate)}}</view>
+        </view>
+      </view>
+    </view>
+     <view class="flex flex-column center-content">
+        <image class="empty_image" src="../../../images/xiuxi.png"></image>
+        <text class="font-xl p-20">暂时无订货商品</text>
+        <text class=" darktext-secondary">显示配送成功的商品</text>
+      </view>
+
+    </view>
+  </block>
+  <view wx:else="" class="flex-column">
+
+   <!--  top -->
+  <view class=" flex-row-between pr-10 pl-10 border-bottom bg-white">
+    <view class="flex-row">
+      <view class="p-20" bindtap="toDatePage">
+        <image src="../../../../images/calender.png" class="icon"></image>
+      </view>
+      <view class="flex-column">
+        <view class="flex-row" wx:if="{{startDate == stopDate}}">
+          <view class="font-sm" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
+        </view>
+        <view class="flex-row" wx:else>
+          <view class=" font-sm" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
+          <text class="p-10">-</text>
+          <view class=" font-sm" wx:if="{{stopDate}}">{{tool.transferDateString(stopDate)}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="flex-row p-20" bindtap="showSearch">
+      <image src="{{type !== 'goods' ? '../../../../images/filter.png' : '../../../../images/filter-3-fill.png'}}" class="icon mr-20"></image>
+    </view>
+
+    <view class="flex-row p-20" bindtap="toFilter">
+      <image src="" class="icon mr-20"></image>
+    </view>
+  </view>
+
+  <view class="flex-row-reverse p-20 border-bottom" bind:tap="testPdf">
+        <text class="mainBack_new_btn">生成PDF</text>
+      </view>
+
+
+
+      <view class="flex-column pl-20 pr-20" wx:if="{{arr.length > 0}}">
+      <!-- one echarts -->
+
+      <view class="flex-column bg-white  p-20" style="height: {{windowHeight / 3}}rpx; padding-bottom: 80rpx;">
+        <view class="flex-column center-content">
+            <view>{{tool.transferDateString(startDate)}}-{{tool.transferDateString(stopDate)}}总额</view>
+            <view class="big">{{total}}元</view>
+        </view>
+        <ec-canvas id="mychartProfitIndex" canvas-id="mychart-bar" ec="{{ ec }}" ></ec-canvas>
+      </view>
+      <!-- ../echarts -->
+
+   
+       
+        <!-- <view class="flex-column  bg-white mt-10 mb-20">
+          <view class="flex-row border-bottom p-20"  wx:for-item="subFather" wx:for="{{arr}}" wx:key="nxDistributerGoodsFatherId">
+            <view class="third-row">{{subFather.nxDfgFatherGoodsName}}</view>
+            <view class="third-row" >{{subFather.fatherSubtotalTotalString}}元</view>
+            <view class="third-row" >{{subFather.fatherProfitScaleString}}%</view>
+          </view>
+        
+        </view> -->
+
+        <view class="flex-column mt-10 mb-20">
+          <view class="flex-column  bg-white p-20 mb-20 " wx:for-item="grand" wx:for="{{arr}}" wx:key="gbDistributerGoodsFatherId">
+          <view class="flex-column center-content font-bold font-lg-2">
+            <text class="">{{grand.nxDfgFatherGoodsName}}</text>
+          </view>
+
+
+          <view class="flex-row p-20 bg-light">
+            <view style="width: {{windowWidth / 3}}rpx;">商品</view>
+            <view class="flex-row" style="width: {{windowWidth / 3 * 2}}rpx;">
+             <view class="third-row">数量</view>
+             <view class="third-row">总额</view>
+             <view class="third-row">均价</view>
+            </view>
+           </view>
+
+          <view class="flex-column" wx:for="{{grand.nxDistributerGoodsEntities}}" wx:for-item="goods">
+          
+          
+           <view class="flex-row p-10 border-bottom">
+            
+           
+          <view class="" style="width: {{windowWidth / 3}}rpx;">{{goods.nxDgGoodsName}}</view>
+          <view class="flex-row" style="width: {{windowWidth / 3 * 2}}rpx;" >
+            <view class="third-row">{{goods.nxDgOutTotalWeight}}{{goods.nxDgGoodsStandardname}}</view>
+            <view class="third-row">{{goods.sellSubtotal}}元</view>
+            <view class="third-row">{{goods.perPrice}}元/{{goods.nxDgGoodsStandardname}}</view>
+
+          </view>
+           </view>          
+          
+          </view>
+        
+        </view>
+        </view>
+        
+
+    </view>
+
+
+    
+    <view class="center-content font-xs text-secondary" style="height: 200rpx;">
+      没有数据啦！
+    </view>
+  </view>
+</view>
+

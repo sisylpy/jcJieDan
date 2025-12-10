@@ -1,0 +1,45 @@
+
+<view class="flex-column height-100">
+ 
+
+
+
+  <back-navbar style="height: {{navBarHeight}}rpx;" title='为"{{exchangeItem.nxDgGoodsName}}"找商品' avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+  <view class="flex-column " style="margin-top: {{navBarHeight}}rpx;">
+   
+         
+  <view class="flex-column p-20 bg-light" style="height: {{viewBarHeight}}rpx;width: {{windowWidth - 40}}rpx; ">
+      <input placeholder="输入商品名称、拼音或简拼" class="text-center p-20 border radius-20  bg-white font-lg-2 " style="width: {{windowWidth - 80}}rpx; border: 1px solid rgb(170, 169, 169);" bindconfirm="_searchGoods"  value="{{searchStr}}" hold-keyboard="true" confirm-type="search" focus="true"></input>
+      <view class="plr-20" style="height: 70rpx; line-height: 70rpx;" wx:if="{{strArr.length > 0}}">搜索到商品: {{strArr.length}}个</view>
+    </view>
+     
+    <view class="flex-row-between p-20 border-bottom bg-white"  wx:for="{{goodsList}}" >
+     
+				<view class="flex-row font-lg" style="width:{{windowWidth - 180}}rpx;">
+					<text class="margin-l-right">{{index + 1}}.</text>
+					<text class="brand"
+						wx:if="{{item.nxDgGoodsBrand !== null && item.nxDgGoodsBrand.length > 0}}">{{item.nxDgGoodsBrand}}</text>
+					<text class=" mr-10">{{item.nxDgGoodsName}}</text>
+          <block wx:if="{{item.nxDgGoodsStandardWeight !== null && item.nxDgGoodsStandardWeight !== ''}}">
+            <text class="">({{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}})</text>
+          </block>
+          <block wx:else="">
+            <text class="">({{item.nxDgGoodsStandardname}})</text>
+          </block>
+         
+					<text class="gray"
+						wx:if="{{item.nxDgGoodsDetail !== null && item.nxDgGoodsDetail.length > 0}}">{{item.nxDgGoodsDetail}}</text>
+				</view>
+		
+
+       <view class="flex-column mainBack_new_btn" bindtap="choiceExchange" data-id="{{item.nxDistributerGoodsId}}" wx:if="{{exchangeItem.nxDistributerGoodsId != item.nxDistributerGoodsId}}">
+          <text>选择</text>
+       </view>
+    </view>
+
+  </view>
+
+
+
+</view>

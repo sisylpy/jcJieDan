@@ -1,0 +1,74 @@
+<view class='mask' wx:if='{{show}}' catchtouchmove='ture' style="height:{{maskHeight}}rpx;top:(-{{scrollViewTop}} - 60)px;">
+	<view class='modal-content' style=" margin-top:{{scrollViewTop}}px;">
+
+		<view class="top">
+			<view class='goodsTitle flex-row'>
+				<text class="brand" wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0 && item.nxDistributerGoodsEntity.nxDgGoodsBrand !== 'null'}}">{{item.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
+				<text>{{item.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
+				<text wx:for="{{item.nxDistributerGoodsEntity.nxAliasEntities}}" wx:for-item="alias">@{{alias.nxDaAliasName}}</text>
+				<block wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0}}">
+					<text wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname !== '斤'}}">({{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}} {{item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight}}/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+				</block>
+				<block wx:else>
+					<text wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname !== '斤'}}">({{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+				</block>
+			</view>
+		</view>
+
+		<view class="body">
+			<view class='goods_contents'>
+				<view class="flex_row_between p-20">
+					<text class="explain">订单重量:</text>
+					<view class="rightPart">
+						<!-- <input class='numberInput' focus='true' type='digit' value="{{returnNumber}}" bindinput="getApplyNumber" hold-keyboard='true'></input> -->
+						<text>{{item.nxDoWeight}}</text>
+						<text>{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+					</view>
+				</view>
+
+				<view class="flex_row_between p-20">
+					<text class="explain">订单单价</text>
+					<view class="rightPart">
+					  <text>{{item.nxDoPrice}}/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+					</view>
+				</view>
+
+
+				<view class="flex_row_between p-20">
+					<text class="explain">修改新数量</text>
+					<view class="rightPart">
+						<input class='numberInput' focus='true' type='digit' value="{{applyNumber}}" bindinput="getApplyNumber" hold-keyboard='true'></input>
+						<text>{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+					</view>
+				</view>
+
+			
+				<view class="flex_row_between p-20">
+					<text class="explain">修改新单价：</text>
+					<view class="rightPart">
+						<input class='numberInput' type='digit' value="{{applyPrice}}" bindinput="getApplyPrice" hold-keyboard='true'></input>
+						<text>/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+					</view>
+				</view>
+
+				<view class="flex_row_between p-20">
+					<text class="explain">修改后小计：</text>
+					<view class="rightPart">
+					  <text>{{applySubtotal}}</text>
+						<text>/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+					</view>
+				</view>
+
+
+			</view>
+
+			<view class='btn-wrapper'>
+				<view class="btn_row" >
+					<text class='cancel-btn' bindtap="cancle" hover-class="hoverBtn">取消</text>
+					<text class='confirm-btn' catchtap='confirm' hover-class="hoverBtn">确定</text>
+				</view>
+			</view>
+		</view>
+
+	</view>
+</view>

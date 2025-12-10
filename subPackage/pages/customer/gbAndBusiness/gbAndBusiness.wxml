@@ -1,0 +1,54 @@
+
+
+<view class="flex flex-column">
+<back-navbar style="height: {{navBarHeight}}rpx;" title="业务邀请" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+
+
+    <view class="container">
+  
+  <!-- 客户信息 -->
+  <view class="customer-info">
+    <image class="customer-avatar" src="{{url + gbDisInfo.gbDistributerImg}}" alt="客户头像" />
+    <view class="customer-details">
+      <text class="customer-name">{{gbDisInfo.gbDistributerName}}</text>
+      <view>
+        <text class="customer-phone">联系电话：</text>
+        <text class="customer-phone">{{gbDisInfo.gbDistributerPhone}}</text>
+      </view>
+      <view class="flex-row">
+        <text class="customer-phone flex-fixed">地址：</text>
+        <text class="customer-phone flex-row-wrap">{{gbDisInfo.gbDistributerAddress}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 邀请内容 -->
+  <view class="invite-details">
+    <text class="invite-title">邀请内容：</text>
+    <text class="invite-text">
+      {{gbDisInfo.gbDistributerName}}希望与您建立配送合作关系，主要配送蔬菜、肉类等货品。
+    </text>
+    <text class="invite-note">  我们饭店已经使用小程序进行货品下单管理，希望与您的配送商小程序建立对接。通过对接，您可以及时收到我们的订单信息，方便安排配送，提升双方的工作效率。
+
+    </text>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="actions" wx:if="{{!haveBusiness}}">
+    <button class="accept-button" bind:tap="saveBusiness">接受合作</button>
+    <!-- <button class="reject-button" bindtap="rejectInvite">拒绝合作</button> -->
+  </view>
+    <view wx:else="" class="actions">
+     <button class="reject-button" bind:tap="toIndex">已经建立合作关系 </button>
+    </view>
+
+  <!-- 温馨提示 -->
+  <view class="tips">
+    <text>提示：接受邀请后，可在“合作客户”查看详情。</text>
+  </view>
+</view>
+
+ 
+ 
+</view>

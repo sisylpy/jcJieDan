@@ -1,0 +1,132 @@
+<!--pages/storeApplys/storeApplys.wxml-->
+<view class=" ">
+
+
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="客户" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+ 
+
+
+	<view class="top_bar flex-row " hidden="{{hide}}" style=" padding-top: {{statusBarHeight}}rpx;"  >
+	<view bindtap="toBack" class="p-20flex-column-center">
+		<image src="../../../../images/back-text-secondary.png" class="back_icon" ></image>
+	</view>
+		<view class="flex-column">
+			<text class="top_bar_title">单据详细</text>
+		</view>
+	</view>
+
+
+
+	<view class="bg-whiteflex-column" style="margin-top: 180rpx;">
+		<view class="section_head">
+			<view class="flex-column p-20">
+
+				<view class="flex-row ">
+					<text>客户:</text>
+					<text>{{depName}}</text>
+				</view>
+				<view class="flex-row ">
+					<text>单号:</text>
+					<text>{{bill.nxDbTradeNo}}</text>
+				</view>
+
+				<view class="flex-row">
+					<text>时间:</text>
+					<text>{{bill.nxDbTime}}</text>
+				</view>
+
+			</view>
+
+			<view class="flex-row p-20 border-bottom small">
+				<text class="index">序号</text>
+				<text class="goods_name">商品</text>
+				<text class="weight">数量</text>
+				<text class="order_price">单价</text>
+				<text class="subtotalTitle">小计</text>
+			</view>
+		</view>
+		
+		<!-- hasSubs == 0 -->
+		<view class="section_body font-slp-20" wx:if="{{depHasSubs == 0}}">
+			<!-- <scroll-view scroll-y> -->
+			<view class="flex-column border-bottom  p-20" wx:for="{{applyArr}}" wx:key="nxDepartmentOrdersId">
+				<view class="flex-row">
+					<text class="index">{{index + 1}}</text>
+					<text class="goods_name">{{item.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
+					<view class="weight" wx:if="{{item.nxDoWeight !== null  && item.nxDoWeight !== '-1'}}">{{item.nxDoWeight}}{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</view>
+
+					<view class="weight" wx:else>--</view>
+					<view class="order_price" wx:if="{{item.nxDoPrice !== null  && item.nxDoPrice !== '-1'}}">
+						{{item.nxDoPrice}}/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}
+					</view>
+					<view class="order_price" wx:else>--</view>
+					<text class="subtotal" wx:if="{{item.nxDoSubtotal !== null && item.nxDoSubtotal !== '-1'}}">{{item.nxDoSubtotal}}</text>
+					<text class="subtotal" wx:else>0.0</text>
+				</view>
+			</view>
+
+			<view class="p-20flex-column">
+				<view class="p-20font-lg fifty_weight" style="text-align:right;">{{bill.nxDbTotal}}元</view>
+			</view>
+
+		</view>
+		<!--  ./ hasSubs == 0 -->
+
+		<!-- hasSubs == 1 -->
+		<view class="section_body font-slp-20" wx:if="{{depHasSubs > 0}}">
+			<view class="flex-column" wx:for="{{applyArr}}" wx:for-item="dep">
+				<text class="border-bottom p-20">#{{dep.depName}}</text>
+
+				<view class="flex-cloumn  border-bottom  p-20" wx:for="{{dep.depOrders}}" wx:for-item="item">
+					<view class="flex-row">
+						<text class="index">{{index + 1}}</text>
+						<view class="goods_name">
+						
+							<text class="brand" wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsBrand !== 'null' && item.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0}}">{{item.nxDistributerGoodsEntity.nxDgGoodsBrand}}-</text>
+						<text class="">{{item.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
+
+						<block wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0}}">
+							<text class="font-sltext-secondary" wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname !== '斤'}}">({{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight}})</text>
+						</block>
+						<block wx:else>
+							<text class="font-sltext-secondary" wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname !== '斤'}}">({{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+						</block>
+						</view>
+					
+
+						<view class="weight" wx:if="{{item.nxDoWeight !== null && item.nxDoWeight.length > 0  && item.nxDoWeight !== '-1'}}">{{item.nxDoWeight}}</view>
+						<view class="weight" wx:else>--</view>
+						<view class="order_price" wx:if="{{item.nxDoPrice !== null && item.nxDoPrice.length > 0 && item.nxDoPrice !== '-1'}}">
+							{{item.nxDoPrice}}
+						</view>
+						<view class="order_price"  wx:else>--</view>
+
+						<text class="subtotal" wx:if="{{item.nxDoSubtotal !== null  && item.nxDoSubtotal !== '-1'}}">{{item.nxDoSubtotal}}</text>
+						<text class="subtotal" wx:else> 0.0 </text>
+					</view>
+
+				</view>
+			</view>
+
+			<view class="p-20flex-column">
+
+				<view class="p-20font-lg fifty_weight" style="text-align:right;">{{bill.nxDbTotal}}元</view>
+			</view>
+		</view>
+		<!--  ./ hasSubs == 1 -->
+
+
+
+	</view>
+
+
+  <view class="bottom_btn show " bindtap="settleAccount">
+  已付款
+</view>
+
+
+</view>
+
+
+
+

@@ -1,0 +1,16 @@
+<back-navbar style="height: {{navBarHeight}}rpx;" title="添加商品" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+
+<view class="flex-column" style="margin-top: {{navBarHeight}}rpx;">
+
+  <view class="flex-row-between p-30 border-bottom font-lg bg-white" wx:for="{{greatGrandArr}}" bindtap="addThisGoodsBefore" data-id="{{item.nxDfgFathersFatherId}}"  data-goods="{{item}}" data-sort="{{item.nxDfgFatherGoodsSort}}" data-color="{{item.nxDfgFatherGoodsColor}}" data-name="{{item.nxDfgFatherGoodsName}}" hover-class="hover">
+    <view>
+      <text>{{index + 1}}.</text>
+      <text>{{item.nxDfgFatherGoodsName}}</text>
+    </view>
+    <view class="bg-success p-10 radius-10 font-xs">
+      添加到此商品之前
+    </view>
+  </view>
+
+</view>

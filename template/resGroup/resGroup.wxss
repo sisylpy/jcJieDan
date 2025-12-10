@@ -1,0 +1,20 @@
+
+.dep{
+  margin-left: 150rpx;
+}
+.dep_icon{
+  margin-left: 30rpx;
+}
+.dep_img{
+  width: 50rpx;
+  height: 50rpx;
+  margin-right: 40rpx;
+
+}
+
+.member_url{
+  width: 70rpx;
+  height: 70rpx;
+  border-radius: 50%;
+  border-radius: 50%;
+}

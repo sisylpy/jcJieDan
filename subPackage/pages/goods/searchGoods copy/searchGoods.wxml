@@ -1,0 +1,105 @@
+<view class="flex flex-column height-100">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="查找商品" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+
+  <view class="flex-column p-20 bg-light" style="height: {{viewBarHeight}}rpx;width: {{windowWidth - 40}}rpx; ">
+      <input placeholder="输入商品名称、拼音或简拼" class="text-center p-20 border radius-20  bg-white font-lg-2 " style="width: {{windowWidth - 80}}rpx; border: 1px solid rgb(170, 169, 169);" bindconfirm="getSearchString" bindinput="isInputing" value="{{searchStr}}" hold-keyboard="true" confirm-type="search" focus="true"></input>
+      <view class="plr-20" style="height: 70rpx; line-height: 70rpx;" wx:if="{{strArr.length > 0}}">搜索到商品: {{strArr.length}}个</view>
+    </view>
+
+  <!-- 页面内容 -->
+  <view class="flex-column"  >
+
+  
+ 
+    <scroll-view scroll-y="true" style="height: {{windowHeight  - navBarHeight  - viewBarHeight - 70}}rpx; "  wx:if="{{strArr.length > 0 || nxArr.length > 0}}">
+      <view class="bg-white1 flex-column  ">
+        <view class="flex-row border-bottom p-20 bg-white" wx:for="{{strArr}}" wx:for-item="sons" wx:key="nxDistributerGoodsId" wx:for-index="goodsIndex">
+          <view class=" flex-column mr-10"  bindtap="toEditGoodsImage" 
+          data-item="{{sons}}"   data-index="{{goodsIndex}}">
+            <view class="flex-row">
+              <image src="{{url + sons.nxDgGoodsFile}}" mode="aspectFill" class="goods_item_small" />
+              <image src="/images/photozhaoxiang.png" mode="aspectFill" class="icon-lg" />
+            </view>
+            <image class="flex-fixed" src="{{url + sons.nxDgGoodsFileLarge}}" mode="aspectFill" class="goods_item_lg" />
+          </view>
+
+          <view class="flex-column width-100">
+            <view class="flex-row-between flex" bindtap="toDetail" data-id="{{sons.nxDistributerGoodsId}}" data-name="{{sons.nxDgGoodsName}}" data-color="{{sons.nxDgNxGoodsFatherColor}}" data-item="{{sons}}" data-index="{{goodsIndex}}" hover-class="hover">
+              <view class="flex-row-wrap font-lg">
+                <text class=" {{sons.nxDgGoodsBrand !== null && sons.nxDgGoodsBrand.length > 0 ? 'brand' : ''}}">{{sons.nxDgGoodsBrand !== null && sons.nxDgGoodsBrand.length > 0 ? sons.nxDgGoodsBrand : ''}}</text>
+                <text>{{goodsIndex + 1}}.</text>
+                <text>{{sons.nxDistributerFatherGoodsEntity.nxDistributerFatherGoodsEntity.nxDfgFatherGoodsName}}>{{sons.nxDistributerFatherGoodsEntity.nxDfgFatherGoodsName}}></text>
+                <text class="five-weight mr-20 font-lg">{{sons.nxDgGoodsName}}</text>
+                <text class="">{{sons.nxDgGoodsDetail !== null ? sons.nxDgGoodsDetail : ''}}</text>
+              </view>
+              <view>
+                <image src="/images/arrow-right-3.png" mode="aspectFill" class="icon p-10" />
+              </view>
+            </view>
+
+            <view class="flex flex-row p-10">
+              <text class="text-secondary">规格:</text>
+              <block wx:if="{{sons.nxDgGoodsStandardWeight !== 'null' && sons.nxDgGoodsStandardWeight.length > 0}}">
+                <text class="font-xs">{{sons.nxDgGoodsStandardWeight}}/{{sons.nxDgGoodsStandardname}}</text>
+              </block>
+              <block wx:else>
+                <text>{{sons.nxDgGoodsStandardname}}</text>
+              </block>
+            </view>
+            <view class="flex-row-default p-10">
+              <text class="text-secondary flex-fixed">订货规格:</text>
+              <view class="flex-row-wrap">
+                <text class="standard mr-10">{{sons.nxDgGoodsStandardname}}</text>
+                <text class="standard mr-10" wx:for="{{sons.nxDistributerStandardEntities}}" wx:for-item="standard">{{standard.nxDsStandardName}}</text>
+              </view>
+
+            </view>
+            <view class="flex-row p-10">
+              <view class="flex-row half-row">
+                <text class="text-secondary flex-fixed">出货方式:</text>
+                <text wx:if="{{sons.nxDgPurchaseAuto == -1}}">出库</text>
+                <text wx:elif="{{sons.nxDgPurchaseAuto == 0}}">自采</text>
+                <text wx:elif="{{sons.nxDgPurchaseAuto == 1}}"> 订货</text>
+                <text wx:elif="{{sons.nxDgPurchaseAuto == 2}}">指定供货</text>
+              </view>
+              <view class="flex flex-row half-row" bindtap="showIsPurchase" data-item="{{sons}}" data-index="{{goodsIndex}}" data-level="1" hover-class="hover" wx:if="{{disInfo.nxDistributerType > 0}}">
+                <text class="text-secondary">售价:</text>
+                <block wx:if="{{sons.nxDgWillPrice !== '0.1'}}">
+                  <text class="mr-10">{{sons.nxDgWillPrice}}元/{{sons.nxDgGoodsStandardname}}</text>
+                  <image src="/images/edit-3.png" mode="aspectFill" class="icon" />
+                </block>
+                <block wx:else="">
+                  <image src="/images/add.png" mode="aspectFill" class="icon ml-20" />
+                </block>
+              </view>
+             
+            </view>
+
+            <view class="flex-row-between" wx:if="{{sons.nxDgPullOff == 1}}">
+              <text class="text-danger">暂停订货:</text>
+              <switch checked="{{sons.nxDgPullOff == 1}}" />
+            </view>
+            <view class="flex-row-between" wx:if="{{sons.nxDgGoodsIsHidden == 1}}">
+              <text class="text-danger">停止配送:</text>
+              <switch checked="{{sons.nxDgGoodsIsHidden == 1}}" />
+            </view>
+
+
+          </view>
+        </view>
+        <view  class="text-secondary center-content " style="height: 100rpx;">没有数据啦!</view>
+
+      </view>
+    
+    </scroll-view>
+
+
+  </view>
+</view>
+
+
+
+
+
+<editBuyingPrice show="{{showBuyingPrice}}" level="{{level}}" bindtoDeletePurchaseGoods="toDeletePurchaseGoods" bindtoEditPurchaseGoods="toEditPurchaseGoods" bindconfirm="confirm" bindcancle="cancleIsPurchase" bindfinish="finishnxPurGoods" item="{{item}}" consultItem="{{consultItem}}" windowWidth="{{windowWidth}}" level="{{level}}" profit="{{profit}}" willPrice="{{willPrice}}" buyingPrice="{{buyingPrice}}" weight="{{weight}}" />

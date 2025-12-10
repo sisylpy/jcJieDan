@@ -1,0 +1,248 @@
+<import src='../../../../template/resGoods/resGoods.wxml' />
+<import src='../../../../template/resGroup/resGroup.wxml' />
+
+<view class="flex flex-column">
+
+
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="{{editDepAttrName}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+
+  <block wx:if="{{depGoodsArr.length == 0}}">
+    <view class="flex-column center-content" style="height: {{windowHeight  - navBarHeight}}rpx; ">
+      <view class="flex flex-column center-content">
+        <image class="empty_image" src="../../../images/xiuxi.png"></image>
+        <text class="font-xl p-20">暂时无订货商品</text>
+        <text class=" darktext-secondary">显示配送成功的商品</text>
+      </view>
+
+    </view>
+  </block>
+  <view wx:else="" class="flex-column">
+
+   <!--  top -->
+   <view class=" flex-row-reverse p-20 border-bottom bg-white">
+  
+    <view class="button-container" bindtap="toPdf">
+      <image src="/images/loanManage.png" mode="aspectFill" class="button-image"/>
+    </view>
+
+    <view class="flex-row p-20" bindtap="toFilter">
+      <image src="" class="icon mr-20"></image>
+    </view>
+  </view>
+    <view class="flex-column with-s-padding font-md bg-white" wx:for="{{depGoodsArr}}" wx:for-item="father" wx:for-index="fatherIndex" wx:key="nxDistributerFatherGoodsId">
+      <view class=" flex-row-between p-20 border-bottom" bindtap="openFather" data-fatherindex="{{fatherIndex}}" id="Pur{{father.nxDistributerFatherGoodsId}}" data-id="{{father.nxDistributerFatherGoodsId}}" hover-class="hover">
+        <view class="flex-column">
+          <text class="wordColor"> {{father.nxDfgFatherGoodsName}}</text>
+          <!-- <view class="flex-row">
+                  <text class="mainColor small"> {{father.dgGoodsSubNames}}</text>
+                </view> -->
+        </view>
+        <view>
+          <image src="{{father.isSelected ? '/images/reduce-btn.png' : '/images/iconadd.png'}}" mode="aspectFill" class="icon" />
+
+        </view>
+      </view>
+
+      <view class="flex-column   goodsList {{father.isSelected ? 'is-active' : ''}}">
+        <view class="flex-column border-bottom" wx:for="{{father.nxDepartmentDisGoodsEntities}}" wx:for-item="depGoods" wx:key="nxDepartmentDisGoodsId" wx:for-index="index">
+          <view class="p-20 font-lg flex-row-between">
+            <view class="flex-column">
+              <view class="flex-row">
+                <text class=" mr-20">{{depGoods.nxDdgDepGoodsName}}</text>
+                <text class="font-sltext-secondary">{{depGoods.nxDistributerGoodsEntity.nxDgGoodsDetail !== null ? depGoods.nxDistributerGoodsEntity.nxDgGoodsDetail : '' }}</text>
+                <text class="font-xs">({{depGoods.gbDepartmentEntity.gbDepartmentName}})</text>
+              </view>
+
+              <view class="flex-row-default small">
+                <text class="mr-10 text-secondary">配送价格:</text>
+                <text class="mr-20">{{depGoods.nxDdgOrderPrice}}元/{{depGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+                <view class="plr-20" bindtap="selDepartment" data-goods="{{depGoods.nxDistributerGoodsEntity}}" data-depgoods="{{depGoods}}" data-fatherindex="{{fatherIndex}}" data-index="{{index}}">
+                  <image src="/images/edit.png" mode="aspectFill" class="icon" />
+                </view>
+              </view>
+              <view class="flex-row-default small">
+                <text class="mr-10 text-secondary">配送要求:</text>
+                <text class="mr-20">{{depGoods.nxDdgPickDetail}}</text>
+              </view>
+            </view>
+
+            <block>
+              <view class="p-20" bindtap="deleteDepGoods" data-id="{{depGoods.nxDepartmentDisGoodsId}}" data-fatherindex="{{fatherIndex}}" data-index="{{index}}">
+                <image src="/images/ashbin.png" mode="aspectFill" class="icon" />
+              </view>
+
+            </block>
+
+
+          </view>
+
+        </view>
+      </view>
+
+    </view>
+    <view class="center-content font-xs text-secondary" style="height: 200rpx;">
+      没有数据啦！
+    </view>
+  </view>
+</view>
+
+
+<!--  操作  -->
+<view class='overlay {{showOperation ? "show" : ""}}' catchtouchmove='ture' catchtap="{{!deleteShow && !editArrShow ? 'hideMask' : ''}}">
+
+  <view class="popup bg-white p-20" wx:if="{{editArrShow}}">
+    <view class="flex-column">
+      <!-- <view class="font-sl p-20 font-lg-2 center-content">修改</view> -->
+      <view class="flex-row p-20 font-lg" style="margin-top: 30rpx;">
+        <text style="width: 300rpx; margin-right: 10rpx; text-align: right;">客户名称:</text>
+        <input class="nickInput" style="width:{{windowWidth - 380}}rpx;" value="{{editDepName}}" bindinput="getDepName"></input>
+      </view>
+      <view class="flex-row p-20 font-lg">
+        <text class="" style="width: 300rpx; margin-right: 10rpx; text-align: right;">简称(订货显示):</text>
+        <input class="nickInput" style="width:{{windowWidth - 380}}rpx;" value="{{editDepAttrName}}" bindinput="getDepAttrName"></input>
+      </view>
+      <view class="flex-row-default p-20 font-lg">
+        <text style="width: 300rpx; text-align: right; margin-right: 10rpx;">支付方式:</text>
+        <radio-group class="radio-group flex-row" style="width:{{windowWidth - 380}}rpx;" bindchange="radioChange">
+          <label class="radio flex-row " style="margin-right: 20rpx;">
+            <radio value="0" checked="{{depInfo.nxDepartmentSettleType == 0 ? 'true' :''}}" />
+            <text class="">现金</text>
+          </label>
+
+          <label class="radio flex-row border-bottom ">
+            <radio value="1" checked="{{depInfo.nxDepartmentSettleType == 1 ? 'true' :''}}" />
+            <text class="">记账</text>
+          </label>
+        </radio-group>
+
+      </view>
+      <view class="flex-row-default p-20 font-lg">
+        <text style="width: 300rpx; text-align: right; margin-right: 10rpx;">定价方式:</text>
+        <radio-group class="radio-group flex-row" style="width:{{windowWidth - 380}}rpx;" bindchange="radioChangeFixed">
+          <label class="radio flex-row " style="margin-right: 20rpx;">
+            <radio value="0" checked="{{depInfo.nxDepartmentType == 'unFixed' ? 'true' :''}}" />
+            <text class="">不定</text>
+          </label>
+
+          <label class="radio flex-row border-bottom ">
+            <radio value="1" checked="{{depInfo.nxDepartmentType == 'fixed' ? 'true' :''}}" />
+            <text class="">固定</text>
+          </label>
+        </radio-group>
+
+      </view>
+      <view class="flex-row-default p-20 font-lg">
+        <text style="width: 300rpx; text-align: right; margin-right: 10rpx;">打印格式:</text>
+        <radio-group class="radio-group flex-column" style="width:{{windowWidth - 380}}rpx;" bindchange="radioChangePrint">
+          <label class="radio flex-row " style="margin-right: 20rpx;">
+            <radio value="0" checked="{{depInfo.nxDepartmentPrintName == 'ApplyPanel' ? 'true' :''}}" />
+            <text class="">一张一列</text>
+          </label>
+
+          <label class="radio flex-row border-bottom ">
+            <radio value="1" checked="{{depInfo.nxDepartmentPrintName == 'ApplyFiftyPanel' ? 'true' :''}}" />
+            <text class="">一张两列</text>
+          </label>
+          <label class="radio flex-row border-bottom ">
+            <radio value="2" checked="{{depInfo.nxDepartmentPrintName == 'ApplyHalfWholePanel' ? 'true' :''}}" />
+            <text class="">半张一列</text>
+          </label>
+
+          <label class="radio flex-row " style="margin-right: 20rpx;">
+            <radio value="3" checked="{{depInfo.nxDepartmentPrintName == 'ApplyHalfPanel' ? 'true' :''}}" />
+            <text class="">半张两列</text>
+          </label>
+
+          <label class="radio flex-row " style="margin-right: 20rpx;">
+            <radio value="4" checked="{{depInfo.nxDepartmentPrintName == 'BlueToothPrint' ? 'true' :''}}" />
+            <text class="">蓝牙打印机</text>
+          </label>
+        </radio-group>
+
+      </view>
+    </view>
+
+    <view class="flex-row p-20 border-bottom">
+      <text class="mr-10 text-secondary">订货单:</text>
+      <view class="flex-row">
+        <checkbox-group bindchange="changeAppId">
+          <label class="">
+            <checkbox checked="{{depInfo.nxDepartmentAppId == 'wx159c5a46d80e4500'}}" />
+            通用App
+          </label>
+          <label class="">
+            <checkbox checked="{{depInfo.nxDepartmentAppId !== 'wx159c5a46d80e4500'}}" />
+            定制App
+          </label>
+        </checkbox-group>
+      </view>
+    </view>
+
+    <view class="flex-row-between" style="padding: 30rpx 40rpx;">
+      <view class="p-10 third-row center-content hover" bindtap="closeEditGroupInfo">取消</view>
+      <view class="p-10 third-row center-content bg-success" bindtap="updateDepInfo">
+        确定
+      </view>
+    </view>
+
+  </view>
+</view>
+
+
+
+
+
+
+<view class='overlay {{showOperationUser ? "show" : ""}}' catchtouchmove='ture' catchtap="hideMaskUser" catchtouchmove='ture'>
+  <view class="flex-column nnn bg-white">
+    <!-- <view class="flex-row p-30 border-bottom"  bindtap="editUser">
+      <image src="../../../../images/edit.png" class="icon mr-10"></image>
+      <text class=" mr-20">修改用户信息</text>
+    </view> -->
+
+    <view class="flex-row p-30 border-bottom" bindtap="delUser">
+      <image src="../../../../images/del.png" class="icon mr-10"></image>
+      <text class=" mr-20">删除用户</text>
+    </view>
+  </view>
+</view>
+
+
+
+
+
+<!-- mask -->
+<view class='overlay {{showOperationPrice ? "show" : ""}}'>
+
+  <!-- + edit -->
+  <view class="popup">
+    <view class="p-20  flex-column">
+      <view class="flex-row big p-20">
+        <text class="mr-10">{{disGoods.nxDgGoodsName}}</text>
+        <text wx:if="{{disGoods.nxDgGoodsDetail != null && disGoods.nxDgGoodsDetail.length > 0}}"> {{disGoods.nxDgGoodsDetail}}</text>
+      </view>
+
+      <view class="flex-row p-20 font-lg">
+        <view class="mr-20shrink_fix">配送单价:</view>
+        <input type="digit" class="input shrink_change" bindinput="inputSellingPrice" value="{{sellingPrice}}" />元{{disGoods.nxDsStandardName}}
+      </view>
+      <view class="flex-row p-20 font-lg">
+        <view class="mr-20shrink_fix">配送要求:</view>
+        <input type="text" class="input shrink_change" bindinput="inputPickDetail" value="{{pickDetail}}" />
+      </view>
+    </view>
+
+    <view class="flex-row-between p-30">
+      <view class="p-20 bg-light" catchtap="hideMask">
+        <text class="bg-light"> 取消</text>
+      </view>
+      <view class="p-20 bg-success" catchtap="_updateDepGoods">
+        <text class="">保存</text>
+      </view>
+    </view>
+
+  </view>
+
+
+</view>

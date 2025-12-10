@@ -1,0 +1,57 @@
+<wxs src="../../utils/fn.wxs" module="tool" />
+
+
+<view class='aaa' wx:if='{{show}}' catchtouchmove='ture' style="height:{{maskHeight}}rpx;top:-{{scrollViewTop}}rpx;">
+  <view class='modal-content flex-column ' style=" margin-top:{{200 + scrollViewTop}}rpx;">
+
+    <view class="top">
+      <view class='goodsTitle flex-row'>
+        <text class="brand" wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0 && item.nxDistributerGoodsEntity.nxDgGoodsBrand !== 'null'}}">{{item.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
+        <text>{{item.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
+        <text wx:for="{{item.nxDistributerGoodsEntity.nxAliasEntities}}" wx:for-item="alias">@{{alias.nxDaAliasName}}</text>
+        <block wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0}}">
+          <text wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname !== '斤'}}">({{item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight}}/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+        </block>
+        <block wx:else>
+          <text>({{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+        </block>
+      </view>
+    </view>
+
+    <view class="body">
+      <view class='goods_contents'>
+        <view class="flex-column  p-20">
+
+
+          <view class="flex-row with-tbl-padding" >
+            <text class="m-10" style="width: 100rpx;">订货:</text>
+            <text>{{item.nxDoQuantity}}{{item.nxDoStandard}}</text>
+          </view>
+
+          <view class="flex-row-between with-tbl-padding">
+            <text class="mr-20">出货:</text>
+
+            <view class="flex-row">
+              <view class="inputView" style="margin-right: 10rpx;">
+                <input class="input" type="digit" value="{{item.nxDoWeight == null || item.nxDoWeight == '0.0' ? '' : item.nxDoWeight}}" bindinput="getOrderWeight" style="width: {{windowWidth / 4}}rpx; " disabled="{{item.nxDistributerGoodsEntity.unPurGoodsDisGoodsList[0].nxDpgStatus == 2 ? 'true' : ''}}" />
+              </view>
+              <text class="m-10">{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+              <text style="color: text-secondary;font-size: 28rpx;"  wx:if="{{item.nxDistributerGoodsEntity.unPurGoodsDisGoodsList[0].nxDpgStatus == 2}}">(已收货)</text>
+            </view>
+          </view>
+
+         
+        </view>
+      </view>
+
+      <view class='btn-wrapper'>
+        <view class="btn_row">
+          <text class='cancel-btn' bindtap="cancle" hover-class="hoverBtn">取消</text>
+          <text class='confirm-btn' catchtap='confirm' hover-class="hoverBtn">确定</text>
+        </view>
+      </view>
+
+    </view>
+
+  </view>
+</view>

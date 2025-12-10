@@ -1,0 +1,42 @@
+
+
+<view class='overlay' wx:if='{{show}}' catchtouchmove='ture' style="height:{{modalHeight}}px; top:-{{scrollViewTop}}px;" >
+	<view class="popup" >
+
+		<view class="body" >
+			<!-- add -->
+			<block wx:if="{{!isEditShelf}}">
+        <view class="flex flex-column align-center justify-center popup-header">
+          <text class="title">添加货架</text>
+        <view class="input-row popup-body">
+         
+						<input class='standardInput' focus='true' type='text' bindinput="getShlefName" value='{{shelfName}}'   focus="ture"/>
+			
+        </view>
+        
+			</view>
+		</block>
+			<!-- ../add -->
+
+			<!-- edit -->
+			<block wx:else>
+			<view class="popup-body">
+        <text class="title">修改货架</text>
+				<view class="number1">				
+					<input class='standardInput' focus='true' type='text' bindinput="getShlefName" value='{{itemShelf.nxDistributerGoodsShelfName}}' bindfocus="getFocus" placeholder="货架名称"/>
+				
+				</view>
+			</view>
+		</block>
+
+			<!-- ../edit -->
+     	<view class="btn_row" >
+       		<view class='btn sureBtn' catchtap='confirm' hover-class="hover">确定</view>
+				<view class='btn cancleBtn' bindtap="cancle" hover-class="hover">取消</view>
+			</view>
+
+	
+		</view>
+
+	</view>
+</view>
