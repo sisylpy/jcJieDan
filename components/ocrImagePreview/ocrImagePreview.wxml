@@ -1,0 +1,39 @@
+
+<!-- 图片预览缩放组件 -->
+<!-- 最外层容器，确保组件能渲染 -->
+<view class="image-preview-container" style="width: 100%; height: 100%; position: relative; background-color: #000;">
+  
+  
+  <view class="image-canvas-container">
+    <movable-area class="big-canvas" scale-area="true">
+      <movable-view 
+        class="image-view" 
+        direction="all" 
+        inertia="{{false}}" 
+        out-of-bounds="{{false}}" 
+        scale 
+        scale-min="0.5" 
+        scale-max="5" 
+        scale-value="{{imageTransform.scale || 1}}" 
+        x="{{imageTransform.x !== undefined ? imageTransform.x : 390}}" 
+        y="{{imageTransform.y !== undefined ? imageTransform.y : 844}}" 
+        bindchange="onImageMove" 
+        bindscale="onImageScale" 
+        bindscaleend="onImageScaleEnd"
+        style="width: {{imageTransform.width || 390}}px; height: {{imageTransform.height || 844}}px; background-color: rgba(255, 0, 0, 0.3); border: 2px solid rgba(255, 255, 255, 0.5); box-sizing: border-box;"
+      >
+        <image 
+          src="{{imagePath}}" 
+          mode="aspectFit" 
+          style="width:100%; height: 100%; display: block;" 
+          draggable="false" 
+          bindload="initImageTransform" 
+          binderror="onImageError"
+          lazy-load="{{false}}"
+        />
+      </movable-view>
+    </movable-area>
+
+  </view>
+</view>
+

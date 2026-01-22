@@ -1,0 +1,42 @@
+/* TTS 播放器容器样式已在主页面定义，这里可以添加组件特定的样式 */
+
+
+
+
+.flex-column {
+  flex-direction: column;
+}
+
+
+.flex-column-center {
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: space-around;
+  align-items: center;
+}
+
+
+.flex-row-between {
+  display: flex;
+  flex-flow: row nowrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
+
+/* Flex 布局 */
+.flex {
+  display: flex;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.flex-row {
+  flex-direction: row;
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: flex-start;
+  align-items: center; 
+}

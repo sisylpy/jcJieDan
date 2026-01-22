@@ -1,0 +1,25 @@
+<!-- TTS 播放器控制区 -->
+<view class="flex-column" style="background-color: transparent;">
+<block wx:if="{{!isPlaying && !isLoading && !isPaused }}">
+  <button  bindtap="onPlay" class="" style="font-size: 28rpx; border-radius: 40rpx; background-color: white; border: 1px solid green;">▶️ 检查</button>
+</block>
+
+<block wx:else="">
+  <view class="flex-column" style="align-items: center; height: 120rpx; background-color: transparent;">
+    <view class="flex-row" style="flex-shrink: 0; gap: 20rpx; padding: 0 20rpx;">
+      
+      <button wx:if="{{isPlaying || isLoading}}" bindtap="onPause" class="btn btn-warning" style="min-width: 160rpx; height: 64rpx; line-height: 64rpx; font-size: 28rpx; font-weight: 500; padding: 0 20rpx; margin-top: 40rpx;">⏸️ 暂停</button>
+      <button wx:if="{{isPaused && !isPlaying && !isLoading}}" bindtap="onColse" class="btn btn-warning" style="min-width: 160rpx; height: 64rpx; line-height: 64rpx; font-size: 28rpx; font-weight: 500; padding: 0 20rpx; margin-right: 20rpx; margin-top: 30rpx;">⏸️ 关闭</button>
+      <button wx:if="{{isPaused && !isPlaying && !isLoading}}" bindtap="onRestart" class="btn btn-warning" style="min-width: 160rpx; height: 64rpx; line-height: 64rpx; font-size: 28rpx; font-weight: 500; padding: 0 20rpx; margin-right: 20rpx;margin-top: 30rpx;">⏸️ 重读</button>
+      <button wx:if="{{isPaused && !isPlaying && !isLoading}}" bindtap="onContinue" class="btn btn-primary" style="min-width: 160rpx; height: 64rpx; line-height: 64rpx; font-size: 28rpx; font-weight: 500; padding: 0 20rpx;margin-top: 30rpx;">▶️ 继续</button>
+    </view>
+    
+    
+  </view>
+</block>
+ 
+  <view wx:if="{{error}}" style="margin-top: 20rpx; padding: 20rpx; background-color: #fee; border-radius: 8rpx; color: #c00; font-size: 24rpx;">
+    <text style="font-weight: bold;">TTS错误:</text> {{error}}
+  </view>
+</view>
+

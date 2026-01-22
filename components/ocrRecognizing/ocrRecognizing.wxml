@@ -1,0 +1,21 @@
+<!-- 识别进度组件 -->
+<view class="recognizing-section">
+  <view class="progress-container">
+    <view class="progress-text" style="display: flex; align-items: center; justify-content: center; gap: 12rpx;">
+      <text style="font-size: 36rpx;">🔍</text>
+      <text style="font-size: 34rpx; font-weight: 600;">正在识别文件...</text>
+    </view>
+    <view class="progress-bar">
+      <view class="progress-fill" style="width: {{progress}}%"></view>
+    </view>
+    <view class="progress-percent">{{progress}}%</view>
+  </view>
+
+  <view class="image-status-list">
+    <view class="status-item" wx:for="{{imageList}}" wx:key="id" wx:for-index="imgIndex">
+      <image class="status-thumb" src="{{item.path}}" mode="aspectFill"></image>
+      <text class="status-label">{{item.status === 'recognizing' ? '识别中...' : item.status === 'success' ? '识别成功' : item.status === 'error' ? '识别失败' : '待识别'}}</text>
+    </view>
+  </view>
+</view>
+

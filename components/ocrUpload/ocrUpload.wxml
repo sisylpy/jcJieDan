@@ -1,0 +1,64 @@
+<!-- 步骤1: 上传图片或Excel -->
+<view class="upload-section">
+  <view class="section-title">
+    <text>📷 选择图片</text>
+  </view>
+
+  <view class="image-grid">
+    <view class="image-item" wx:for="{{imageList}}" wx:key="id" wx:for-index="imgIndex">
+      <image class="image-preview" src="{{item.path}}" mode="aspectFill" bindtap="previewImage" data-index="{{imgIndex}}"></image>
+      <view class="image-delete" bindtap="deleteImage" data-index="{{imgIndex}}">
+        <text class="delete-icon">×</text>
+      </view>
+      <view class="image-status" wx:if="{{item.status === 'recognizing'}}">
+        <text class="status-text">识别中...</text>
+      </view>
+      <view class="image-status error" wx:if="{{item.status === 'error'}}">
+        <text class="status-text">识别失败</text>
+      </view>
+    </view>
+
+    <view class="image-item add-image" wx:if="{{imageList.length === 0}}" bindtap="chooseImages">
+      <view class="add-icon">+</view>
+      <text class="add-text">选择图片</text>
+    </view>
+    <view class="image-item add-image" wx:if="{{imageList.length > 0}}" bindtap="chooseImages">
+      <view class="add-icon">🔄</view>
+      <text class="add-text">更换图片</text>
+    </view>
+  </view>
+
+  <view class="action-bar" wx:if="{{imageList.length > 0}}">
+    <button class="btn btn-primary btn-large" bindtap="startOCRRecognition">
+      <text>🚀 开始识别</text>
+    </button>
+  </view>
+
+  <!-- Excel 上传选项 -->
+  <view class="excel-section">
+    <view class="section-title">
+      <text>📊 上传 Excel</text>
+    </view>
+
+    <view wx:if="{{excelFile}}" class="excel-file-info">
+      <text class="excel-icon">📄</text>
+      <view class="excel-info">
+        <text class="excel-name">{{excelFile.name}}</text>
+        <text class="excel-size">{{excelFile.size}} KB</text>
+      </view>
+      <view class="excel-delete" bindtap="deleteExcelFile">
+        <text class="excel-delete-icon">×</text>
+      </view>
+    </view>
+
+    <button class="btn btn-secondary btn-large" bindtap="chooseExcelFile">
+      <text>{{excelFile ? '🔄 更换 Excel' : '📊 选择 Excel 文件'}}</text>
+    </button>
+
+    <view wx:if="{{excelFile}}" class="excel-action-bar">
+      <button class="btn btn-primary btn-large" bindtap="startExcelRecognition">
+        <text>🚀 开始识别 Excel</text>
+      </button>
+    </view>
+  </view>
+</view>

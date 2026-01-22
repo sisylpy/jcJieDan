@@ -1,0 +1,94 @@
+/* 图片预览容器 */
+.image-preview-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  background-color: #000;
+}
+
+/* 图片画布容器 */
+.image-canvas-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* 无限画布 - 超大画布，居中偏移 */
+.big-canvas {
+  width: 300vw;
+  height: 300vh;
+  position: absolute;
+  left: -100vw;
+  top: -100vh;
+  /* 确保画布可见 */
+  overflow: visible;
+}
+
+/* 图片层 */
+.image-view {
+  will-change: transform;
+  box-sizing: border-box;
+}
+
+/* 图片本体 - 尺寸固定，不随 scale 变化 */
+.image-view image {
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  display: block;
+  object-fit: contain;
+}
+
+/* 缩放工具栏 */
+.zoom-panel {
+  position: absolute;
+  left: 20rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 70rpx;
+  height: 360rpx;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 40rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20rpx 0;
+  z-index: 100;
+  pointer-events: auto; /* 确保工具栏可以点击 */
+}
+
+/* + / - 按钮 */
+.zoom-btn {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  background: #fff;
+  color: #000;
+  text-align: center;
+  line-height: 48rpx;
+  font-size: 32rpx;
+  margin: 10rpx 0;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.zoom-btn:active {
+  transform: scale(0.9);
+  opacity: 0.8;
+}
+
+/* 重置按钮 */
+.zoom-reset {
+  margin-top: 20rpx;
+}
+
+/* 滑动条 */
+.zoom-slider {
+  flex: 1;
+  margin: 10rpx 0;
+}
+
