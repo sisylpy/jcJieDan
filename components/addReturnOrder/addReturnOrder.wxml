@@ -5,9 +5,9 @@
 			<view class='goodsTitle flex-row'>
 				<text class="brand" wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0 && item.nxDistributerGoodsEntity.nxDgGoodsBrand !== 'null'}}">{{item.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
 				<text>{{item.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
-				<text wx:for="{{item.nxDistributerGoodsEntity.nxAliasEntities}}" wx:for-item="alias">@{{alias.nxDaAliasName}}</text>
+				<!-- <text wx:for="{{item.nxDistributerGoodsEntity.nxAliasEntities}}" wx:for-item="alias">@{{alias.nxDaAliasName}}</text> -->
 				<block wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0}}">
-					<text wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname !== '斤'}}">({{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}} {{item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight}}/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+					<text class="" style="font-size: 30rpx;">({{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}} {{item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight}}/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
 				</block>
 				<block wx:else>
 					<text wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname !== '斤'}}">({{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>

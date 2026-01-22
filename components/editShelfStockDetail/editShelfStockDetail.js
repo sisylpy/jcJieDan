@@ -26,6 +26,10 @@ Component({
     goodsInfo: null,
     editRestWeight: '',
     editSellingPrice: '',
+    cartonBuyPrice: '', // 箱单价（用户输入的原始值）
+    averageBuyPrice: '', // 平均单价（最小单位单价）
+    cartonExpectPrice: '', // 箱零售价（用户输入的原始值）
+    averageExpectPrice: '', // 平均建议售价（最小单位零售价）
     canSubmit: false
   },
 
@@ -67,8 +71,11 @@ Component({
         showEditModal: false,
         stockList: [],
         selectedStock: null,
-        editRestWeight: '',
         editSellingPrice: '',
+        cartonBuyPrice: '',
+        averageBuyPrice: '',
+        cartonExpectPrice: '',
+        averageExpectPrice: '',
         canSubmit: false,
         goodsInfo: null
       })
@@ -156,49 +163,128 @@ Component({
         }
       }
       
+      // 初始化价格数据
+      // 根据是否有外包装，决定使用哪个价格字段
+      const goodsInfo = this.data.goodsInfo
+      const hasCarton = goodsInfo && goodsInfo.nxDgCartonUnit !== null && goodsInfo.nxDgCartonUnit !== undefined && goodsInfo.nxDgCartonUnit !== ''
+      
+      let buyPrice = ''
+      let sellingPrice = ''
+      
+      if (hasCarton) {
+        // 有外包装：优先使用外包装单价
+        buyPrice = selectedStock && selectedStock.nxDgssPriceCarton != null ? String(selectedStock.nxDgssPriceCarton) : 
+                   (selectedStock && selectedStock.nxDgssPrice != null ? String(selectedStock.nxDgssPrice) : '')
+        sellingPrice = selectedStock && selectedStock.nxDgssSellingPriceCarton != null ? String(selectedStock.nxDgssSellingPriceCarton) : 
+                       (selectedStock && selectedStock.nxDgssSellingPrice != null ? String(selectedStock.nxDgssSellingPrice) : '')
+      } else {
+        // 没有外包装：使用最小单位单价
+        buyPrice = selectedStock && selectedStock.nxDgssPrice != null ? String(selectedStock.nxDgssPrice) : ''
+        sellingPrice = selectedStock && selectedStock.nxDgssSellingPrice != null ? String(selectedStock.nxDgssSellingPrice) : ''
+      }
+      
       this.setData({
         selectedStock,
         showStockList: false,
         showEditModal: true,
-        editRestWeight: selectedStock && selectedStock.nxDgssRestWeight != null ? String(selectedStock.nxDgssRestWeight) : '',
-        editSellingPrice: selectedStock && selectedStock.nxDgssSellingPrice != null ? String(selectedStock.nxDgssSellingPrice) : ''
+        editSellingPrice: sellingPrice,
+        cartonBuyPrice: buyPrice,
+        averageBuyPrice: '',
+        cartonExpectPrice: sellingPrice,
+        averageExpectPrice: ''
       })
+      
+      // 如果有初始价格，计算平均单价（仅在有外包装时显示）
+      if (buyPrice && hasCarton) {
+        this._calculateAverageBuyPrice(buyPrice)
+      }
+      if (sellingPrice && hasCarton) {
+        this._calculateAverageExpectPrice(sellingPrice)
+      }
       
       this.checkCanSubmit()
     },
 
-    onRestWeightInput(e) {
-      const value = e.detail.value
-      console.log('输入剩余数量:', value)
+
+
+    // 计算平均单价
+    _calculateAverageBuyPrice(price) {
+      const goodsInfo = this.data.goodsInfo
+      let averagePrice = ''
+      
+      // 如果商品有外包装，用户输入的是箱单价，需要计算平均单价（仅用于显示）
+      if (goodsInfo && goodsInfo.nxDgCartonUnit !== null && goodsInfo.nxDgCartonUnit !== undefined && goodsInfo.nxDgCartonUnit !== '') {
+        const itemsPerCarton = goodsInfo.nxDgItemsPerCarton || 1
+        if (itemsPerCarton > 0 && price) {
+          // 计算平均单价（最小单位单价，仅用于显示给用户看）
+          averagePrice = (Number(price) / Number(itemsPerCarton)).toFixed(1)
+        }
+      }
+      
       this.setData({
-        editRestWeight: value
+        averageBuyPrice: averagePrice
       })
-      this.checkCanSubmit()
     },
 
     onSellingPriceInput(e) {
-      const value = e.detail.value
-      console.log('输入建议售价:', value)
+      const price = e.detail.value
+      console.log('输入建议售价:', price)
+      // 直接保存用户输入的值，包括空字符串
       this.setData({
-        editSellingPrice: value
+        editSellingPrice: price,
+        cartonExpectPrice: price || '' // 确保即使是空字符串也保存
       })
+      // 只有当价格不为空时才计算平均价格
+      if (price) {
+        this._calculateAverageExpectPrice(price)
+      } else {
+        this.setData({
+          averageExpectPrice: ''
+        })
+      }
       this.checkCanSubmit()
+    },
+
+    // 计算平均建议售价
+    _calculateAverageExpectPrice(price) {
+      const goodsInfo = this.data.goodsInfo
+      let averagePrice = ''
+      
+      // 如果商品有外包装，用户输入的是箱零售价，需要计算平均建议售价（仅用于显示）
+      if (goodsInfo && goodsInfo.nxDgCartonUnit !== null && goodsInfo.nxDgCartonUnit !== undefined && goodsInfo.nxDgCartonUnit !== '') {
+        const itemsPerCarton = goodsInfo.nxDgItemsPerCarton || 1
+        if (itemsPerCarton > 0 && price) {
+          // 计算平均建议售价（最小单位零售价，仅用于显示给用户看）
+          averagePrice = (Number(price) / Number(itemsPerCarton)).toFixed(1)
+        }
+      }
+      
+      this.setData({
+        averageExpectPrice: averagePrice
+      })
+    },
+
+    // 检查价格
+    _checkPrice(e) {
+      const price = e.detail.value
+      if (price && (isNaN(price) || price < 0)) {
+        wx.showToast({
+          title: '请输入有效的价格',
+          icon: 'none'
+        })
+      }
     },
 
     // 检查是否可以提交
     checkCanSubmit() {
-      const { editRestWeight, editSellingPrice, selectedStock } = this.data
+      const { editSellingPrice, selectedStock } = this.data
       console.log('=== checkCanSubmit ===')
-      console.log('editRestWeight:', editRestWeight)
       console.log('editSellingPrice:', editSellingPrice)
       console.log('selectedStock:', selectedStock)
       
-      const rest = parseFloat(editRestWeight)
       const selling = parseFloat(editSellingPrice)
       const canSubmit = selectedStock &&
-                        editRestWeight !== '' &&
                         editSellingPrice !== '' &&
-                        !isNaN(rest) && rest >= 0 &&
                         !isNaN(selling) && selling >= 0
       
       console.log('canSubmit计算结果:', canSubmit)
@@ -245,9 +331,8 @@ Component({
         return
       }
 
-      const { editRestWeight, editSellingPrice, selectedStock } = this.data
-      const restWeightNum = parseFloat(editRestWeight)
-      const sellingPriceNum = parseFloat(editSellingPrice)
+      const { editSellingPrice, cartonExpectPrice, selectedStock, goodsInfo } = this.data
+      const cartonSellingPrice = parseFloat(editSellingPrice || cartonExpectPrice)
 
       const stockId = selectedStock.nxDisGoodsShelfStockId ||
                       selectedStock.nxDistributerGoodsShelfStockId ||
@@ -270,20 +355,51 @@ Component({
         return
       }
 
+      // 获取当前剩余数量（只读，不修改，但需要传递给后端）
+      const restWeight = selectedStock && selectedStock.nxDgssRestWeight != null 
+        ? parseFloat(selectedStock.nxDgssRestWeight) 
+        : 0
+
+      // 根据商品是否有外包装，决定保存的价格格式
+      const hasCarton = goodsInfo && goodsInfo.nxDgCartonUnit !== null && goodsInfo.nxDgCartonUnit !== undefined && goodsInfo.nxDgCartonUnit !== ''
+      
+      let sellingPrice = cartonSellingPrice // 默认使用用户输入的价格
+      
+      // 如果商品有外包装，用户输入的是箱零售价，需要计算最小单位零售价
+      if (hasCarton && cartonSellingPrice) {
+        const itemsPerCarton = goodsInfo.nxDgItemsPerCarton || 1
+        if (itemsPerCarton > 0) {
+          // 计算最小单位建议零售价（用于 nxDgssSellingPrice）
+          sellingPrice = (cartonSellingPrice / itemsPerCarton).toFixed(2)
+        }
+      }
+
       const payload = {
         stockId,
-        restWeight: restWeightNum,
-        sellingPrice: sellingPriceNum,
+        restWeight: restWeight, // 传递当前剩余数量，不修改但需要传给后端
+        sellingPrice: parseFloat(sellingPrice), // 最小单位建议零售价
         disId: this.data.disId,
         userId: this.data.userId
+      }
+
+      // 如果商品有外包装，需要同时保存箱零售价
+      if (hasCarton && cartonSellingPrice) {
+        payload.sellingPriceCarton = cartonSellingPrice // 外包装建议零售价
       }
 
       console.log('=== 确认提交 ===')
       console.log('提交参数:', payload)
 
+      const unit = goodsInfo?.nxDgCartonUnit && goodsInfo.nxDgCartonUnit !== '' && goodsInfo.nxDgCartonUnit !== 'null' 
+        ? goodsInfo.nxDgCartonUnit 
+        : goodsInfo?.nxDgGoodsStandardname || ''
+      
+      // 显示给用户的价格（如果有外包装，显示箱零售价；否则显示最小单位零售价）
+      const displayPrice = hasCarton ? cartonSellingPrice : parseFloat(sellingPrice)
+      
       wx.showModal({
         title: '确认修改',
-        content: `剩余数量将更新为 ${restWeightNum}${this.data.goodsInfo.nxDgGoodsStandardname}，建议售价为 ¥${sellingPriceNum}，确认提交吗？`,
+        content: `建议售价将更新为 ¥${displayPrice}${unit ? '元/' + unit : '元'}，确认提交吗？`,
         success: (res) => {
           if (res.confirm) {
             console.log('用户确认提交')

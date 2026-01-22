@@ -23,7 +23,6 @@
 
     <!-- 批次列表 -->
     <scroll-view class="stock-list" scroll-y="true">
-      <view style="text-align: left; font: 18rpx; color: gray; padding: 20rpx 20rpx;">修改库存:</view>
       <view class="stock-item" wx:for="{{stockList}}" wx:key="index" bindtap="selectStock" data-index="{{index}}">
         <view class="stock-content-row">
           <view class="stock-content-half">
@@ -54,10 +53,36 @@
         </view>
         <view class="stock-content-row">
           <view class="stock-content-half">
-            <text class="stock-text">单价 <text class="stock-number">¥{{item.nxDgssPrice}}</text></text>
+            <block wx:if="{{goodsInfo.nxDgCartonUnit && goodsInfo.nxDgCartonUnit !== '' && goodsInfo.nxDgCartonUnit !== 'null' && goodsInfo.nxDgItemsPerCarton > 0}}">
+              <view wx:if="{{item.nxDgssPriceCarton}}">
+                <text class="stock-text">外包单价</text>
+                <text class="stock-number">¥{{item.nxDgssPriceCarton}}元/{{goodsInfo.nxDgCartonUnit}}</text>
+              </view>
+              <view wx:if="{{item.nxDgssPrice}}">
+                <text class="stock-text">单价</text>
+                <text class="stock-number">¥{{item.nxDgssPrice}}元/{{goodsInfo.nxDgGoodsStandardname}}</text>
+              </view>
+            </block>
+            <block wx:else>
+              <text class="stock-text">单价</text>
+              <text class="stock-number">¥{{item.nxDgssPrice}}元/{{goodsInfo.nxDgGoodsStandardname}}</text>
+            </block>
           </view>
           <view class="stock-content-half">
-            <text class="stock-text">建议售价 <text class="stock-number">¥{{item.nxDgssSellingPrice}}</text></text>
+            <block wx:if="{{goodsInfo.nxDgCartonUnit && goodsInfo.nxDgCartonUnit !== '' && goodsInfo.nxDgCartonUnit !== 'null' && goodsInfo.nxDgItemsPerCarton > 0}}">
+              <view wx:if="{{item.nxDgssSellingPriceCarton}}">
+                <text class="stock-text">建议大售价</text>
+                <text class="stock-number">¥{{item.nxDgssSellingPriceCarton}}元/{{goodsInfo.nxDgCartonUnit}}</text>
+              </view>
+              <view wx:if="{{item.nxDgssSellingPrice}}">
+                <text class="stock-text">建议售价</text>
+                <text class="stock-number">¥{{item.nxDgssSellingPrice}}元/{{goodsInfo.nxDgGoodsStandardname}}</text>
+              </view>
+            </block>
+            <block wx:else>
+              <text class="stock-text">建议售价</text>
+              <text class="stock-number">¥{{item.nxDgssSellingPrice}}元/{{goodsInfo.nxDgGoodsStandardname}}</text>
+            </block>
           </view>
         </view>
       </view>
@@ -78,40 +103,38 @@
     </view>
 
     <!-- 批次信息 -->
-    <view class="stock-info-display" wx:if="{{selectedStock}}">
-      <view class="info-row">
-        <text class="label">批次编号：</text>
-        <text class="value">{{selectedStock.nxDgssBatch || selectedStock.nxDgssId || '--'}}</text>
-      </view>
+   
+    <view class="input-section" wx:if="{{selectedStock}}">
       <view class="info-row">
         <text class="label">入库日期：</text>
         <text class="value">{{selectedStock.nxDgssDate ? tool.getAttrDate(selectedStock.nxDgssDate) : '--'}}</text>
       </view>
-    </view>
+      <view class="input-row readonly-row">
+        <text class="label">剩余数量：</text>
+        <!-- <text class="value">{{selectedStock.nxDgssRestWeight}}{{goodsInfo.nxDgCartonUnit !== null && goodsInfo.nxDgCartonUnit !== undefined && goodsInfo.nxDgCartonUnit !== '' ? goodsInfo.nxDgCartonUnit : goodsInfo.nxDgGoodsStandardname}}</text> -->
+        <text class="stock-chip" wx:if="{{goodsInfo.nxDgCartonUnit && goodsInfo.nxDgCartonUnit !== '' && goodsInfo.nxDgCartonUnit !== 'null' && goodsInfo.nxDgItemsPerCarton > 0}}">{{tool.formatQuantityDisplay(selectedStock.nxDgssRestWeight, goodsInfo.nxDgCartonUnit, goodsInfo.nxDgItemsPerCarton, goodsInfo.nxDgGoodsStandardname)}}</text>
+                            <text class="stock-chip" wx:else>{{shelfGoods.totalRestWeight}}{{goodsInfo.nxDgGoodsStandardname}}</text>
+      </view>
+
+      <view class="input-row readonly-row">
+        <text class="label">采购单价：</text>
+        <text class="value">¥{{cartonBuyPrice || (goodsInfo.nxDgCartonUnit !== null && goodsInfo.nxDgCartonUnit !== undefined && goodsInfo.nxDgCartonUnit !== '' ? (selectedStock.nxDgssPriceCarton || selectedStock.nxDgssPrice) : selectedStock.nxDgssPrice)}}元/{{goodsInfo.nxDgCartonUnit !== null && goodsInfo.nxDgCartonUnit !== undefined && goodsInfo.nxDgCartonUnit !== '' ? goodsInfo.nxDgCartonUnit : goodsInfo.nxDgGoodsStandardname}}</text>
+        <text class="value" wx:if="{{averageBuyPrice}}" style="margin-left: 20rpx;">平均单价：{{averageBuyPrice}}元/{{goodsInfo.nxDgGoodsStandardname}}</text>
+      </view>
+
 
     <!-- 输入区域 -->
-    <view class="input-section" wx:if="{{selectedStock}}">
-      <view class="input-row">
-        <text class="label">剩余数量：</text>
-        <view class="input-wrapper">
-          <input class="input" type="digit" placeholder="请输入剩余数量" value="{{editRestWeight}}" bindinput="onRestWeightInput" />
-          <text class="unit">{{goodsInfo.nxDgGoodsStandardname}}</text>
-        </view>
-      </view>
-
-      <view class="input-row">
-        <text class="label">采购单价：</text>
-        <view class="input-wrapper readonly">
-          <text class="value">¥{{selectedStock.nxDgssPrice}}</text>
-        </view>
-      </view>
-
       <view class="input-row">
         <text class="label">建议售价：</text>
         <view class="input-wrapper">
-          <input class="input" type="digit" placeholder="请输入建议售价" value="{{editSellingPrice}}" bindinput="onSellingPriceInput" />
-          <text class="unit">元</text>
+          <input class="input" type="digit" placeholder="请输入建议售价" value="{{cartonExpectPrice}}" bindinput="onSellingPriceInput" bindblur="_checkPrice" hold-keyboard='true' />
+          <text class="unit">元/{{goodsInfo.nxDgCartonUnit !== null && goodsInfo.nxDgCartonUnit !== undefined && goodsInfo.nxDgCartonUnit !== '' ? goodsInfo.nxDgCartonUnit : goodsInfo.nxDgGoodsStandardname}}</text>
         </view>
+      </view>
+
+      <view class="input-row readonly-row" wx:if="{{averageExpectPrice}}">
+        <text class="label">平均建议售价：</text>
+        <text class="value">{{averageExpectPrice}}元/{{goodsInfo.nxDgGoodsStandardname}}</text>
       </view>
     </view>
 

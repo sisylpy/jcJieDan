@@ -14,10 +14,10 @@
         </text>
 			
 				<block wx:if="{{item.nxDgGoodsStandardWeight !== 'null' && item.nxDgGoodsStandardWeight.length > 0}}">
-					<text style="font-size: 30rpx;" wx:if="{{item.nxDgGoodsStandardname !== '斤'}}">({{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}})</text>
+					<text style="font-size: 30rpx;" wx:if="{{item.nxDgGoodsStandardname !== '斤'}}">({{item.nxDgGoodsStandardname}}/{{item.nxDgGoodsStandardWeight}})</text>
 				</block>
 				<block wx:else>
-					<text style="font-size: 30rpx;"  wx:if="{{item.nxDgGoodsStandardname !== '斤'}}">({{item.nxDgGoodsStandardname}})</text>
+					<text style="font-size: 30rpx;"  >({{item.nxDgGoodsStandardname}})</text>
 				</block>
       </view>
     </view>

@@ -22,7 +22,7 @@
   background: #fff;
   border-radius: 20rpx;
   width: 95%;
-  max-width: 600rpx;
+  max-width: 750rpx;
   max-height: 80vh;
   display: flex;
   flex-direction: column;
@@ -234,6 +234,27 @@
   color: #666;
   margin-bottom: 15rpx;
   display: block;
+}
+
+.input-row.readonly-row {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.input-row.readonly-row .label {
+  display: inline;
+  margin-bottom: 0;
+  margin-right: 5rpx;
+  white-space: nowrap;
+}
+
+.input-row.readonly-row .value {
+  display: inline;
+  font-size: 28rpx;
+  color: #333;
+  white-space: nowrap;
 }
 
 .input-wrapper {

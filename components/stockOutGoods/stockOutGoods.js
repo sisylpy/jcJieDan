@@ -119,7 +119,38 @@ getOrderWeight(e) {
   //输入非空 
   if (orderWeighValue.length > 0) {
     weightValue = orderWeighValue;
-    //1. 小数点
+    
+    // 0. 检查是否有连续的小数点（如 1..2）或多个小数点
+    if (orderWeighValue.indexOf("..") !== -1) {
+      wx.showToast({
+        title: '不允许连续的小数点',
+        icon: 'none'
+      })
+      // 恢复到上一个有效值（删除最后一个字符）
+      var currentValue = this.data.item.nxDepartmentOrdersEntities[index].nxDoWeight || "";
+      weightValue = currentValue;
+      this.setData({
+        [doWeightData]: weightValue,
+      })
+      return;
+    }
+    
+    // 检查是否有多于一个小数点
+    var dotCount = (orderWeighValue.match(/\./g) || []).length;
+    if (dotCount > 1) {
+      wx.showToast({
+        title: '只能输入一个小数点',
+        icon: 'none'
+      })
+      var currentValue = this.data.item.nxDepartmentOrdersEntities[index].nxDoWeight || "";
+      weightValue = currentValue;
+      this.setData({
+        [doWeightData]: weightValue,
+      })
+      return;
+    }
+    
+    //1. 小数点位数检查
     var y = String(orderWeighValue).indexOf("."); //获取小数点的位置
     console.log(y);
     var count = 0;
