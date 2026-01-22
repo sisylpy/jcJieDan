@@ -13,9 +13,13 @@ node_modules/
 npm-debug.log
 yarn-error.log
 
+# Git 目录（不应该上传到小程序）
+.git/
+
 # IDE
 .idea/
 .vscode/
+.cursor/
 *.swp
 *.swo
 *~

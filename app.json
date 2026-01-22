@@ -1,26 +1,18 @@
 {
   "pages": [
+   
     "pages/order/index/index",
     "pages/doing/index/index",
     "pages/purchase/index/index",
     "pages/stock/index/index",
-    "pages/login/login",
     "pages/printLogin/printLogin",
-    "pages/order/orderPrint/orderPrint",
-    "pages/order/searchOrder/searchOrder",
-    "pages/order/writePrice/writePrice",
-    "pages/order/writeWeight/writeWeight",
-    "pages/order/orderPage/orderPage",
-    "pages/order/depList/depList",
-    "pages/order/paste/paste",
-    "pages/goods/goods",
-    "pages/order/ailasGoodsList/ailasGoodsList",
-    "pages/order/pSearchPrinter/pSearchPrinter",
-    "pages/order/linshiOrderPage/linshiOrderPage",
-    "pages/order/resGoodsList/resGoodsList"
-  
+    "pages/inviteCode/inviteCode",
+    "pages/login/login",
+
+    "pages/goods/goods"
   
   ],
+  
   "subPackages": [{
     "root": "subPackage/",
     "pages": [
@@ -65,6 +57,7 @@
       "pages/order/orderPageGb/orderPageGb",
       "pages/order/writePriceGb/writePriceGb",
       "pages/shelf/index/index",
+      "pages/shelf/indexSuyuan/indexSuyuan",
       "pages/shelf/editShelf/editShelf",
       "pages/shelf/resGoodsListShelf/resGoodsListShelf",
       "pages/shelf/shelfGoodsSort/shelfGoodsSort",
@@ -74,7 +67,6 @@
       "pages/shelf/voiceAddGoods/voiceAddGoods",
       "pages/shelf/inventory/inventory",
     
-
       "pages/shelf/settlePage/settlePage",
 
       "pages/management/homePage/homePage",
@@ -90,6 +82,7 @@
     
       "pages/management/payList/payList",
       "pages/management/disUserEdit/disUserEdit",
+      "pages/management/disUserEditWeight/disUserEditWeight",
       "pages/management/payPage/payPage",
       "pages/management/payPageMarket/payPageMarket",
       "pages/management/payDetail/payDetail",
@@ -100,14 +93,8 @@
       "pages/supplier/batchDetail/batchDetail",
       "pages/supplier/goodsIndex/goodsIndex",
       "pages/supplier/supplierGoods/supplierGoods",
-      "pages/trans/fromOrderPageGb/fromOrderPageGb",
-      "pages/trans/login/login",
-      "pages/trans/supplierBills/supplierBills",
-      "pages/trans/myPurchaseDetail/myPurchaseDetail",
-      "pages/trans/settlePageGb/settlePageGb",
 
       "pages/prepare/orderDepList/orderDepList",
-      "pages/prepare/land/land",
       "pages/prepare/depOutOrder/depOutOrder",
       "pages/prepare/orderList/orderList",
       "pages/prepare/printWeightOrders/printWeightOrders",
@@ -134,10 +121,7 @@
       "pages/goods/nxPicture/nxPicture",
       "pages/order/editDepApplyGoods/editDepApplyGoods",
       "pages/order/purGoods/purGoods",
-      "pages/order/aiHelpGoods/aiHelpGoods",
-      "pages/route/mapNxDep/mapNxDep",
-      "pages/route/driver/driver",
-      "pages/route/deliveryRoute/deliveryRoute"
+      "pages/order/aiHelpGoods/aiHelpGoods"
     ]
     }, {
     "root": "subPackage-charts/",
@@ -161,12 +145,37 @@
       "pages/stock/index/index",
         "pages/stock/stockList/stockList",
         "pages/stock/stockListOneDay/stockListOneDay",
+      
+      "pages/order/ocrOrder/ocrOrder",
+      "pages/order/ocrOrderTest/ocrOrderTest",
+      "pages/order/orderPrint/orderPrint",
+      "pages/order/searchOrder/searchOrder",
+      "pages/order/writePrice/writePrice",
+      "pages/order/writeWeight/writeWeight",
+      "pages/order/orderPage/orderPage",
+      "pages/order/orderPageSuyuan/orderPageSuyuan",
+      "pages/order/depList/depList",
+      "pages/order/paste/paste",
+      "pages/order/ailasGoodsList/ailasGoodsList",
+      "pages/order/pSearchPrinter/pSearchPrinter",
+      "pages/order/linshiOrderPage/linshiOrderPage",
+      "pages/order/resGoodsList/resGoodsList",
 
       
       "pages/mangement/costGoodsFenxi/costGoodsFenxi",
       "pages/mangement/purGoodsFenxi/purGoodsFenxi",
       "pages/mangement/goodsFenxiCost/goodsFenxiCost",
-      "pages/mangement/goodsFenxiPurchase/goodsFenxiPurchase"
+      "pages/mangement/goodsFenxiPurchase/goodsFenxiPurchase",
+
+
+      "pages/trans/fromOrderPageGb/fromOrderPageGb",
+      "pages/trans/login/login",
+      "pages/trans/supplierBills/supplierBills",
+      "pages/trans/myPurchaseDetail/myPurchaseDetail",
+      "pages/trans/settlePageGb/settlePageGb",
+      "pages/route/mapNxDep/mapNxDep",
+      "pages/route/driver/driver",
+      "pages/route/deliveryRoute/deliveryRoute"
 
 
     ]

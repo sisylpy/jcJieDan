@@ -192,7 +192,6 @@ class LabelPrinter {
    * @param {Array} orderArray - 订单数组
    * @param {Object} options - 配置选项
    * @param {Object} options.goodsItem - 商品对象（用于获取商品名称）
-   * @param {Boolean} options.printRemark - 是否打印备注（默认 false，仅大尺寸标签）
    */
   printVerticalOrders(orderArray, options = {}) {
     if (!this.command) {
@@ -200,7 +199,7 @@ class LabelPrinter {
       return;
     }
 
-    const { goodsItem = null, printRemark = false } = options;
+    const { goodsItem = null } = options;
     const isVertical = this.paperSize.height >= 60;
     
     if (!isVertical) {
@@ -216,7 +215,6 @@ class LabelPrinter {
     const x1 = Math.floor(PRINTER_CONFIG.MARGIN * this.DPMM); // 左边距
     const x2 = Math.floor(labelWidthPoints * 0.4);  // 40% 位置（商品名称）
     const x3 = Math.floor(labelWidthPoints * 0.6);  // 60% 位置（数量）
-    const x4 = Math.floor(labelWidthPoints * 0.85); // 85% 位置（备注，仅大尺寸标签）
     
     // 计算 y 坐标（垂直方向，从底部开始）
     const verticalLineHeight = Math.floor(60 * this.DPMM); // 每行高度约 60 点（约 7.5mm）
@@ -255,12 +253,11 @@ class LabelPrinter {
         : (order.nxDoWeight || 0);
       // 支持多种单位字段：优先使用 nxDoPrintStandard，其次使用 nxDoStandard
       const standard = order.nxDoPrintStandard || order.nxDoStandard || '';
-      const remark = order.nxDoRemark || '';
       
       // 所有内容使用相同的 y 坐标，确保在同一行
       const y = currentY;
       
-      console.log(`[LabelPrinter] 订单[${orderIdx}]: 客户=${customerName}, 商品=${goodsName}, 数量=${quantity}${standard}, 备注=${remark}`);
+      console.log(`[LabelPrinter] 订单[${orderIdx}]: 客户=${customerName}, 商品=${goodsName}, 数量=${quantity}${standard}`);
       
       // 打印部门名称（第一列，字体大）
       if (customerName && customerName.trim()) {
@@ -305,13 +302,6 @@ class LabelPrinter {
         const quantityText = (quantity || 0) + (standard ? standard : '');
         this.command.setText(x3, y, fontName, rotation, quantityScale, quantityScale, quantityText);
         console.log(`[LabelPrinter]   ✓ 数量: ${quantityText} (x=${x3}, y=${y}, scale=${quantityScale})`);
-      }
-      
-      // 打印备注（第四列，仅大尺寸标签且启用时）
-      if (printRemark && this.paperSize.height === 80 && remark && remark.trim()) {
-        const remarkText = '备注：' + remark;
-        this.command.setText(x4, y, fontName, rotation, quantityScale, quantityScale, remarkText);
-        console.log(`[LabelPrinter]   ✓ 备注: ${remarkText} (x=${x4}, y=${y}, scale=${quantityScale})`);
       }
       
       // 下一个订单的 y 坐标递减（从底部向上）

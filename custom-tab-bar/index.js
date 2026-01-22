@@ -18,12 +18,12 @@ Component({
       // }, 
       {
         "pagePath": "pages/stock/index/index",
-        "text": "出库中",
+        "text": "出库",
         "iconPath": "/images/icons/icon_stock.png",
         "selectedIconPath": "/images/icons/icon_stock_active.png"
       }, {
         "pagePath": "pages/purchase/index/index",
-        "text": "未采购",
+        "text": "采购",
         "iconPath": "/images/icons/icon_purchase.png",
         "selectedIconPath": "/images/icons/icon_purchase_active.png"
       }, 

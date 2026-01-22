@@ -733,6 +733,23 @@ function formatDateTimeToChinese(dateTimeString) {
   return month + '月' + day + '日' + hour + '点' + minute + '分';
 }
 
+// 截取字符串，如果超过指定长度则截取并添加省略号
+// 参数：str（字符串）, maxLength（最大长度，默认100）
+function truncateString(str, maxLength) {
+  if (!str) {
+    return '';
+  }
+  
+  var maxLen = maxLength || 100;
+  var strValue = str.toString();
+  
+  if (strValue.length <= maxLen) {
+    return strValue;
+  }
+  
+  return strValue.substring(0, maxLen) + '...';
+}
+
 // 格式化数量显示（如果有外包装，显示为：整数外包装数量 + 小包装数量）
 // 参数：quantity（数量）, cartonUnit（外包装单位）, itemsPerCarton（每箱数量）, itemUnit（最小单位）
 function formatQuantityDisplay(quantity, cartonUnit, itemsPerCarton, itemUnit) {
@@ -832,6 +849,7 @@ module.exports = {
   getDateRange: getDateRange,
   getHowManyDays: getHowManyDays,
   formatDateTimeToChinese: formatDateTimeToChinese,
-  formatQuantityDisplay: formatQuantityDisplay
+  formatQuantityDisplay: formatQuantityDisplay,
+  truncateString: truncateString
 
 }

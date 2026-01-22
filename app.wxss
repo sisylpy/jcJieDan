@@ -781,7 +781,17 @@ page {
   border-right: 1px solid #adadad;
 }
 
-
+.mainBack_btn{
+  padding: 6rpx 10rpx;
+  background-color: #fff;
+  color: #147062;
+  font-size: 28rpx;
+  /* font-weight: 500; */
+  border-radius: 40rpx;
+  /* margin-top: 20rpx; */
+  border: 1px solid #147062;
+  text-align: center;
+}
 
 .mainBack_new_btn{
   padding: 6rpx 30rpx;
