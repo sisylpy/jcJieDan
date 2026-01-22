@@ -1,4 +1,3 @@
-// miniprogram/pages/order/ordersPage/paymentPage/paymentPage.js
 
 
 var load = require('../../../../lib/load.js');
@@ -208,10 +207,53 @@ Page({
    * @param {} e 
    */
   confirm(e) {
-    var total = "";
+    var total = 0;
 
-    if(this.data.depHasSubs == 0){
+    // 判断使用哪个数据源：bill.nxDepartmentOrdersEntities 或 applyArr
+    var useBillOrders = this.data.bill && this.data.bill.nxDbDepId == this.data.bill.nxDbDepFatherId;
+    
+    if(useBillOrders){
+      // 使用 bill.nxDepartmentOrdersEntities
       var index = this.data.index;
+      var orders = this.data.bill.nxDepartmentOrdersEntities;
+      
+      // 先更新内存中的数据数组，再计算总和
+      orders[index].nxDoWeight = e.detail.applyNumber;
+      orders[index].nxDoPrice = e.detail.applyPrice;
+      orders[index].nxDoSubtotal = e.detail.applySubtotal;
+      
+      // 计算总和
+      for(var i = 0; i < orders.length; i++){
+        var sub = orders[i].nxDoSubtotal;
+        console.log(i + "==" + sub);
+        total = Number(total) + Number(sub || 0);
+      }
+      
+      var orderItemWeight = "bill.nxDepartmentOrdersEntities[" + index + "].nxDoWeight";
+      var orderItemPrice = "bill.nxDepartmentOrdersEntities[" + index + "].nxDoPrice";
+      var orderItemSubtotal = "bill.nxDepartmentOrdersEntities[" + index + "].nxDoSubtotal";
+      this.setData({    
+        [orderItemWeight]: e.detail.applyNumber,
+        [orderItemPrice]: e.detail.applyPrice,
+        [orderItemSubtotal]: e.detail.applySubtotal,
+        billSubtotal: total.toFixed(1),
+        ["bill.nxDbTotal"]: total.toFixed(1)
+      })
+    } else if(this.data.depHasSubs == 0){
+      var index = this.data.index;
+      // 先更新内存中的数据数组，再计算总和
+      var arr  = this.data.applyArr;
+      arr[index].nxDoWeight = e.detail.applyNumber;
+      arr[index].nxDoPrice = e.detail.applyPrice;
+      arr[index].nxDoSubtotal = e.detail.applySubtotal;
+      
+      // 计算总和
+      for(var i = 0; i < arr.length; i++){
+        var sub = arr[i].nxDoSubtotal;
+        console.log(i + "==" + sub);
+        total = Number(total) + Number(sub || 0);
+      }
+      
       var orderItemWeight = "applyArr[" + index + "].nxDoWeight";
       var orderItemPrice = "applyArr[" + index + "].nxDoPrice";
       var orderItemSubtotal = "applyArr[" + index + "].nxDoSubtotal";
@@ -219,20 +261,27 @@ Page({
         [orderItemWeight]: e.detail.applyNumber,
         [orderItemPrice]: e.detail.applyPrice,
         [orderItemSubtotal]: e.detail.applySubtotal,
-      })
-      var arr  = this.data.applyArr;
-      for(var i = 0; i < arr.length; i++){
-        var sub = arr[i].nxDoSubtotal;
-        console.log(i + "==" + sub);
-        total = Number(total) + Number(sub);
-      }
-      this.setData({
         billSubtotal: total.toFixed(1),
         ["bill.nxDbTotal"]: total.toFixed(1)
       })
     }else{
       var depIndex = this.data.depIndex;
       var index = this.data.index;
+      // 先更新内存中的数据数组，再计算总和
+      var depArr = this.data.applyArr;
+      depArr[depIndex].depOrders[index].nxDoWeight = e.detail.applyNumber;
+      depArr[depIndex].depOrders[index].nxDoPrice = e.detail.applyPrice;
+      depArr[depIndex].depOrders[index].nxDoSubtotal = e.detail.applySubtotal;
+      
+      // 计算总和
+      for(var i = 0; i < depArr.length; i++){
+        var orderArr =  depArr[i].depOrders;
+        for(var j = 0;  j < orderArr.length; j ++){
+           var sub = orderArr[j].nxDoSubtotal;
+           total = Number(total) + Number(sub || 0);
+        }
+      }
+
       var orderItemWeight = "applyArr[" + depIndex + "].depOrders[" + index + "].nxDoWeight";
       var orderItemPrice = "applyArr[" + depIndex + "].depOrders[" + index + "].nxDoPrice";
       var orderItemSubtotal = "applyArr[" + depIndex + "].depOrders[" + index + "].nxDoSubtotal";
@@ -240,17 +289,6 @@ Page({
         [orderItemWeight]: e.detail.applyNumber,
         [orderItemPrice]: e.detail.applyPrice,
         [orderItemSubtotal]: e.detail.applySubtotal,
-      })
-      var depArr = this.data.applyArr;
-      for(var i = 0; i < depArr.length; i++){
-        var orderArr =  depArr[i].depOrders;
-        for(var j = 0;  j < orderArr.length; j ++){
-           var sub = orderArr[j].nxDoSubtotal;
-           total = Number(total) + Number(sub);
-        }
-    }
-
-      this.setData({
         billSubtotal: total.toFixed(1),
         ["bill.nxDbTotal"]: total.toFixed(1)
       })
@@ -259,7 +297,7 @@ Page({
     var data = {
       billId: this.data.billId,
       orderId: this.data.item.nxDepartmentOrdersId,
-      billSubtotal: this.data.billSubtotal,
+      billSubtotal: total.toFixed(1),
       orderPrice: e.detail.applyPrice,
       orderWeight: e.detail.applyNumber,
       orderSubtotal: e.detail.applySubtotal,
@@ -316,6 +354,7 @@ Page({
       subtotal:(Number(e.detail.applyNumber) * Number(this.data.item.nxDoPrice)).toFixed(1),
       
     };
+    console.log("dat", dg);
 
     updateOrderReturn(dg).then(res => {
       load.showLoading("添加退货商品")

@@ -30,7 +30,7 @@
 					<view class="flex-column">
             <view class="flex-row " wx:if="{{item.nxDbDepId !== item.nxDbDepFatherId}}">
 							<text>部门:</text>
-							<text>{{item.nxDepartmentEntity.nxDepartmentAttrName}}</text>
+							<text>{{item.nxDepartmentEntity.nxDepartmentName}}</text>
 						</view>
 						<view class="flex-row">
               <text class="mr-10">日期:</text>
@@ -102,7 +102,7 @@
 					<view class="flex-column">
             <view class="flex-row " wx:if="{{item.nxDbDepId !== item.nxDbDepFatherId}}">
 							<text>部门:</text>
-							<text>{{item.nxDepartmentEntity.nxDepartmentAttrName}}</text>
+							<text>{{item.nxDepartmentEntity.nxDepartmentName}}</text>
 						</view>
 						<view class="flex-row">
               <text class="mr-10">日期:</text>
@@ -151,14 +151,14 @@
       <text class="font-md">查看详细</text>
     </view>
 
-    <view class="p-30 flex-row border-bottom" bindtap="toOpenPrint">
+    <!-- <view class="p-30 flex-row border-bottom" bindtap="toOpenPrint">
       <image src="../../../../images/0dayinji-05.png" class="icon mr-20"></image>
       <text class="font-md">重新打印</text>
-    </view>
+    </view> -->
 
     <view class="p-30 flex-row border-bottom" wx:if="{{billItem.nxDbStatus == 0}}" bindtap="deleteBill">
-      <image src="../../../../images/ashbin.png" class="icon mr-20"></image>
-      <text class="font-md">删除结账单</text>
+      <image src="../../../../images/0dayinji-05.png" class="icon mr-20"></image>
+      <text class="font-md">重新打印</text>
     </view>
 
     <view style="height: 20rpx;"></view>

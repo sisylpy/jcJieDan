@@ -118,6 +118,7 @@ Page({
       var editDep = this.data.editDep;
       editDep.nxDepartmentAttrName = e.detail.value;
       editDep.nxDepartmentName = e.detail.value;
+      editDep.nxDepartmentOrderCode = e.detail.value;
     }
   },
 

@@ -238,7 +238,8 @@ Page({
   },
 
 
-  addGoods(e){
+  toSetGoods(e){
+    wx.setStorageSync('goodsSetType', "supplier");
     wx.navigateTo({
       url: '../../goods/greatGrandGoods/greatGrandGoods?disId=' + this.data.disId
       + "&supplierId=" + this.data.supplierId + '&type=add',

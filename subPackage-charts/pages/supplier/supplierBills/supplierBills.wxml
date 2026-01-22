@@ -65,13 +65,13 @@
   <!-- 订单列表容器 -->
   <view class="supplier-bills-container" wx:if="{{billArr.length > 0}}">
     
-    <view class="supplier-bill-item" wx:for="{{billArr}}" wx:for-item="item" wx:key="gbDistributerPurchaseBatchId" hover-class="supplier-bill-hover" bindtap="openBatchDetail" data-id="{{item.gbDistributerPurchaseBatchId}}" data-value="{{item.gbDpbSubtotal}}" data-item="{{item}}">
+    <view class="supplier-bill-item" wx:for="{{billArr}}" wx:for-item="item" wx:key="gbDistributerPurchaseBatchId" hover-class="supplier-bill-hover" bindtap="openBatchDetail" data-id="{{item.gbDistributerPurchaseBatchId}}" data-value="{{item.nxDpbSellSubtotal}}" data-item="{{item}}">
       
       <!-- 订单类型标签 -->
       <view class="bill-type-section">
         <view class="bill-type-tag">
-          <text class="bill-type-text tag-return" wx:if="{{item.gbDpbPurchaseType == 9}}">退货单</text>
-          <text class="bill-type-text tag-auto" wx:elif="{{item.gbDpbPurchaseType == 21}}">自动订货</text>
+          <text class="bill-type-text tag-return" wx:if="{{item.nxDpbPurchaseType == 9}}">退货单</text>
+          <text class="bill-type-text tag-auto" wx:elif="{{item.nxDpbPurchaseType == 21}}">自动订货</text>
           <text class="bill-type-text tag-purchase" wx:else="">采购员订货</text>
         </view>
         <view class="bill-arrow-section">
@@ -82,17 +82,17 @@
       <!-- 订单主要信息 -->
       <view class="bill-main-info">
         <view class="bill-date-section">
-          <text class="bill-date-text">{{item.gbDpbDate}}</text>
-          <text class="bill-weekday-text">{{item.gbDpbPurchaseWeek}}</text>
+          <text class="bill-date-text">{{item.nxDpbDate}}</text>
+          <text class="bill-weekday-text">{{item.nxDpbPurchaseWeek}}</text>
         </view>
         <view class="bill-right-section">
           <view class="bill-amount-section">
-            <text class="bill-amount-value">¥{{item.gbDpbSubtotal}}</text>
+            <text class="bill-amount-value">¥{{item.nxDpbSellSubtotal}}</text>
             <text class="bill-amount-label">订货金额</text>
           </view>
           <view class="bill-status-section">
-            <view class="status-badge status-pending" wx:if="{{item.gbDpbStatus == 3}}">待结账</view>
-            <view class="status-badge status-settled" wx:elif="{{item.gbDpbStatus == 4}}">已结账</view>
+            <view class="status-badge status-pending" wx:if="{{item.nxDpbStatus == 3}}">待结账</view>
+            <view class="status-badge status-settled" wx:elif="{{item.nxDpbStatus == 4}}">已结账</view>
           </view>
         </view>
       </view>

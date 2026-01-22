@@ -5,8 +5,10 @@
 
   <back-navbar style="height: {{navBarHeight}}rpx;" title="{{editDepAttrName}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
-  <!-- 空状态页面 -->
-  <block wx:if="{{depGoodsArr.length == 0}}">
+  <view class="flex-column flex " style="margin-top:  20rpx;">   
+  
+   <!-- 空状态页面 -->
+   <block wx:if="{{depGoodsArr.length == 0}}">
     <view class="empty-container" style="height: {{windowHeight - navBarHeight}}rpx;">
       <view class="empty-content">
         <image class="empty-image" src="../../../images/xiuxi.png"></image>
@@ -17,120 +19,155 @@
   </block>
 
   <!-- 商品列表页面 -->
-  <view wx:else class="goods-container">
+  <view wx:else class="goods-container"  >
+    <!-- 搜索无结果提示 -->
+    <view wx:if="{{searchKeyword && filteredDepGoodsArr.length === 0}}" class="empty-search">
+      <view class="empty-content">
+        <image class="empty-image" src="../../../images/xiuxi.png"></image>
+        <text class="empty-title">未找到相关商品</text>
+        <text class="empty-desc">请尝试其他关键词</text>
+      </view>
+    </view>
 
     <!-- 顶部操作栏 -->
     <view class="top-actions">
-      <view class="action-buttons">
-        <!-- <view class="action-btn filter-btn" bindtap="toFilter">
-          <image src="/images/search-3.png" mode="aspectFill" class="btn-icon" />
-          <text class="btn-text">筛选</text>
-        </view> -->
-        <view class="action-btn pdf-btn" bindtap="toPdf">
-          <image src="/images/loanManage.png" mode="aspectFill" class="btn-icon" />
-          <text class="btn-text">导出PDF</text>
+      <view class="search-container">
+        <view class="search-box">
+          <image src="/images/search-3.png" mode="aspectFill" class="search-icon" />
+          <input 
+            class="search-input" 
+            type="text" 
+            placeholder="搜索商品名称" 
+            value="{{searchKeyword}}"
+            bindinput="onSearchInput"
+            bindconfirm="onSearchConfirm"
+            confirm-type="search"
+          />
+          <view class="search-clear" wx:if="{{searchKeyword}}" bindtap="clearSearch">
+            <image src="/images/close.png" mode="aspectFill" class="clear-icon" />
+          </view>
         </view>
       </view>
     </view>
 
-    <!-- 商品分类列表 -->
-    <view class="goods-categories">
-             
-      <view class="category-item" wx:for="{{depGoodsArr}}" wx:for-item="father" wx:for-index="fatherIndex" wx:key="nxDistributerFatherGoodsId">
-        
-        <!-- 分类标题栏 -->
-        <view class="category-header" bindtap="openFather" data-fatherindex="{{fatherIndex}}" id="Pur{{father.nxDistributerFatherGoodsId}}" data-id="{{father.nxDistributerFatherGoodsId}}" hover-class="header-hover" >
-          <view class="category-info">
-            <text class="category-name">{{father.nxDfgFatherGoodsName}}</text>
-            <text class="category-count" wx:if="{{father.nxDepartmentDisGoodsEntities}}">({{father.nxDepartmentDisGoodsEntities.length}})</text>
+    <!-- 左右分栏布局 -->
+    <view class="tree-layout" wx:if="{{!searchKeyword || filteredDepGoodsArr.length > 0}}">
+      <!-- 左侧分类栏 -->
+      <view class="category-sidebar">
+        <scroll-view class="sidebar-scroll" scroll-y>
+          <view 
+            class="category-sidebar-item {{selectedCategoryId === father.nxDistributerFatherGoodsId ? 'active' : ''}}" 
+            wx:for="{{filteredDepGoodsArr}}" 
+            wx:for-item="father" 
+            wx:for-index="fatherIndex" 
+            wx:key="nxDistributerFatherGoodsId"
+            bindtap="selectCategory"
+            data-fatherindex="{{fatherIndex}}"
+            data-id="{{father.nxDistributerFatherGoodsId}}"
+          >
+            <view class="category-sidebar-content">
+              <text class="category-sidebar-name">{{father.nxDfgFatherGoodsName}}</text>
+              <text class="category-sidebar-count" wx:if="{{father.filteredGoods && father.filteredGoods.length > 0}}">({{father.filteredGoods.length}})</text>
+              <text class="category-sidebar-count" wx:elif="{{father.nxDepartmentDisGoodsEntities}}">({{father.nxDepartmentDisGoodsEntities.length}})</text>
+            </view>
           </view>
-          <view class="expand-icon">
-            <image src="{{father.isSelected ? '/images/reduce.png' : '/images/add.png'}}" mode="aspectFill" class="icon" />
-          </view>
-        </view>
+          <!-- 左侧底部空白区域 -->
+          <view class="sidebar-bottom-spacer"></view>
+        </scroll-view>
+      </view>
 
-        <!-- 商品列表 -->
-        <view class="goods-list {{father.isSelected ? 'expanded' : ''}}">
-          <view class="goods-item" wx:for="{{father.nxDepartmentDisGoodsEntities}}" wx:for-item="depGoods" wx:key="nxDepartmentDisGoodsId">
+      <!-- 右侧商品列表 -->
+      <view class="goods-content">
+        <scroll-view 
+          class="content-scroll" 
+          scroll-y 
+          scroll-into-view="{{scrollIntoView}}"
+          scroll-with-animation="{{true}}"
+        >
+          <view 
+            class="category-goods-section" 
+            wx:for="{{filteredDepGoodsArr}}" 
+            wx:for-item="father" 
+            wx:for-index="fatherIndex" 
+            wx:key="nxDistributerFatherGoodsId"
+            id="category-{{father.nxDistributerFatherGoodsId}}"
+          >
+            <!-- 分类标题 -->
+            <view class="category-section-header">
+              <view class="category-title-wrapper">
+                <text class="category-section-name">{{father.nxDfgFatherGoodsName}}</text>
+                <text class="category-section-count" wx:if="{{father.filteredGoods && father.filteredGoods.length > 0}}">({{father.filteredGoods.length}})</text>
+                <text class="category-section-count" wx:elif="{{father.nxDepartmentDisGoodsEntities}}">({{father.nxDepartmentDisGoodsEntities.length}})</text>
+                <view class="category-dash-line"></view>
+              </view>
+            </view>
             
-            <!-- 商品基本信息 -->
-            <view class="goods-header">
-              <view class="goods-title">
-                <text class="goods-name">{{depGoods.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
-                <text class="goods-standard">客名:</text>
-                <text class="goods-name">{{depGoods.nxDdgOrderGoodsName}}</text>
+            <!-- 该分类下的商品列表 -->
+            <view class="goods-item" wx:for="{{father.filteredGoods || father.nxDepartmentDisGoodsEntities}}" wx:for-item="depGoods" wx:key="nxDepartmentDisGoodsId">
+              
+              <!-- 商品基本信息 -->
+              <view class="goods-header">
+                <view class="goods-title">
+                  <text class="goods-name">{{depGoods.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
+                  <text class="goods-standard">客名:</text>
+                  <text class="goods-name">{{depGoods.nxDdgOrderGoodsName}}</text>
+                </view>
+                <view class="goods-detail" wx:if="{{depGoods.nxDistributerGoodsEntity.nxDgGoodsDetail !== null}}">
+                  {{depGoods.nxDistributerGoodsEntity.nxDgGoodsDetail}}
+                </view>
+                <view class="goods-attr" wx:if="{{depInfo.nxDepartmentEntities.length > 1}}">
+                  {{depGoods.nxDepartmentEntity.nxDepartmentAttrName}}
+                </view>
+              </view>
 
-                <!-- <text class="goods-standard">({{depGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text> -->
-                <!-- <text class="goods-price" wx:if="{{depGoods.nxDistributerGoodsEntity.nxDgWillPriceTwoStandard !== null}}">{{depGoods.nxDistributerGoodsEntity.nxDgWillPriceTwoStandard}} </text> -->
+              <!-- 商品详细信息 -->
+              <view class="goods-info">
+                <view class="info-row">
+                  <view class="info-item">
+                    <text class="info-label">订货日期:</text>
+                    <text class="info-value">{{depGoods.nxDdgOrderDate}}</text>
+                  </view>
+                  <view class="info-item">
+                    <text class="info-label">订货数量:</text>
+                    <text class="info-value highlight">{{depGoods.nxDdgOrderQuantity}}{{depGoods.nxDdgOrderStandard}}</text>
+                  </view>
+                </view>
+
+                <view class="info-row">
+                  <view class="info-item">
+                    <text class="info-label">出货要求:</text>
+                    <text class="info-value">{{depGoods.nxDdgPickDetail == null ? "无" : depGoods.nxDdgPickDetail}}</text>
+                  </view>
+                  <view class="info-item">
+                    <text class="info-label">配送价格:</text>
+                    <text class="info-value price">¥{{depGoods.nxDdgOrderPrice}}/{{depGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+                  </view>
+                </view>
               </view>
-              <view class="goods-detail" wx:if="{{depGoods.nxDistributerGoodsEntity.nxDgGoodsDetail !== null}}">
-                {{depGoods.nxDistributerGoodsEntity.nxDgGoodsDetail}}
+
+              <!-- 操作按钮 -->
+              <view class="goods-actions">
+                <view class="action-item edit-btn" bindtap="selDepartment" data-goods="{{depGoods.nxDistributerGoodsEntity}}" data-depgoods="{{depGoods}}">
+                  <image src="/images/edit.png" mode="aspectFill" class="action-icon" />
+                  <text class="action-text">编辑</text>
+                </view>
+                <view class="action-item delete-btn" bindtap="deleteDepGoods" data-id="{{depGoods.nxDepartmentDisGoodsId}}">
+                  <image src="/images/ashbin.png" mode="aspectFill" class="action-icon" />
+                  <text class="action-text">删除</text>
+                </view>
               </view>
-              <view class="goods-attr" wx:if="{{depInfo.nxDepartmentEntities.length > 1}}">
-                {{depGoods.nxDepartmentEntity.nxDepartmentAttrName}}
-              </view>
+
             </view>
-
-            <!-- 商品详细信息 -->
-            <view class="goods-info">
-              <!-- <view class="info-row">
-                <view class="info-item">
-                  <text class="info-label">商品名称:</text>
-                  <text class="info-value">{{depGoods.nxDdgDepGoodsName}}</text>
-                </view>
-                <view class="info-item">
-                  <text class="info-label">客户订货:</text>
-                  <text class="info-value">{{depGoods.nxDdgOrderGoodsName}}</text>
-                </view>
-              </view> -->
-
-              <view class="info-row">
-                <view class="info-item">
-                  <text class="info-label">订货日期:</text>
-                  <text class="info-value">{{depGoods.nxDdgOrderDate}}</text>
-                </view>
-                <view class="info-item">
-                  <text class="info-label">订货数量:</text>
-                  <text class="info-value highlight">{{depGoods.nxDdgOrderQuantity}}{{depGoods.nxDdgOrderStandard}}</text>
-                </view>
-              </view>
-
-              <view class="info-row">
-                <view class="info-item">
-                  <text class="info-label">出货要求:</text>
-                  <text class="info-value">{{depGoods.nxDdgPickDetail == null ? "无" : depGoods.nxDdgPickDetail}}</text>
-                </view>
-                <view class="info-item">
-                  <text class="info-label">配送价格:</text>
-                  <text class="info-value price">¥{{depGoods.nxDdgOrderPrice}}/{{depGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
-                </view>
-              </view>
-            </view>
-
-            <!-- 操作按钮 -->
-            <view class="goods-actions">
-              <view class="action-item edit-btn" bindtap="selDepartment" data-goods="{{depGoods.nxDistributerGoodsEntity}}" data-depgoods="{{depGoods}}">
-                <image src="/images/edit.png" mode="aspectFill" class="action-icon" />
-                <text class="action-text">编辑</text>
-              </view>
-              <view class="action-item delete-btn" bindtap="deleteDepGoods" data-id="{{depGoods.nxDepartmentDisGoodsId}}">
-                <image src="/images/ashbin.png" mode="aspectFill" class="action-icon" />
-                <text class="action-text">删除</text>
-              </view>
-            </view>
-
           </view>
-        </view>
-
+          <!-- 底部空白区域 -->
+          <view class="bottom-spacer"></view>
+        </scroll-view>
       </view>
-    </view>
-
-    <!-- 底部提示 -->
-    <view class="bottom-tip">
-      <text class="tip-text">没有更多数据啦！</text>
     </view>
 
   </view>
+  </view>
+ 
 </view>
 
 <!-- 编辑弹窗 -->

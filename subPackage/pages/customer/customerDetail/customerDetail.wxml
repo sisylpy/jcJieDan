@@ -31,10 +31,10 @@
         <text>{{depInfo.nxDepartmentOrderCode}}</text>
     </view>
       <view class="flex-row p-20 border-bottom">
-          <view class="flex-row half-row">
+          <!-- <view class="flex-row half-row">
             <text class="mr-10 text-secondary">配送线路:</text>
           <text>{{depInfo.nxDepartmentPickName}}</text>
-          </view>
+          </view> -->
           <view class="flex-row half-row">
             <text class="mr-10 text-secondary">录音秒数:</text>
           <text>{{depInfo.nxDepartmentRecordMinutes}}</text>
@@ -51,7 +51,7 @@
       </view>
       
       <!-- 配送设置 -->
-      <view class="flex-row-between p-20 border-bottom" bind:tap="showLocationTimeModal" hover-class="hover">
+      <!-- <view class="flex-row-between p-20 border-bottom" bind:tap="showLocationTimeModal" hover-class="hover">
         <text class="mr-20 text-secondary shrink_fix">配送设置:</text>
         <view class="flex-row">
           <text class="delivery-status {{depInfo.nxDepartmentLat ? 'set' : 'unset'}}">{{depInfo.nxDepartmentLat ? '已设置位置' : '未设置位置'}}</text>
@@ -59,30 +59,30 @@
           <text class="delivery-status {{depInfo.nxDepartmentEarliestDeliveryTime ? 'set' : 'unset'}}">{{depInfo.nxDepartmentEarliestDeliveryTime ? '已设置时间' : '未设置时间'}}</text>
           <image src="/images/arrow-right-3.png" mode="aspectFill" class="icon"/>
         </view>
-      </view>
+      </view> -->
       
       <!-- 配送地址信息查看 -->
-      <view class="flex-row-between p-20 border-bottom" >
+      <!-- <view class="flex-row-between p-20 border-bottom" >
         <text class="mr-20 text-secondary shrink_fix">配送地址信息:</text>
         <view class="flex-row">
           <text class="delivery-status set">{{depInfo.nxDepartmentAddress}}</text>
         </view>
-      </view>
+      </view> -->
       
       <!-- 配送时间信息查看 -->
-      <view class="flex-row-between p-20 border-bottom" >
+      <!-- <view class="flex-row-between p-20 border-bottom" >
         <text class="mr-20 text-secondary shrink_fix">配送时间信息:</text>
         <view class="flex-row">
           <text class="delivery-status set">{{formattedEarliestTime}} - {{formattedLatestTime}}</text>
         </view>
-      </view>
+      </view> -->
        <!-- 配送时间信息查看 -->
-       <view class="flex-row-between p-20 border-bottom" >
+       <!-- <view class="flex-row-between p-20 border-bottom" >
         <text class="mr-20 text-secondary shrink_fix">卸货时间:</text>
         <view class="flex-row">
           <text class="delivery-status set">{{depInfo.nxDepartmentUnloadDuration}}分钟</text>
         </view>
-      </view>
+      </view> -->
       <view class="flex-row p-20 border-bottom">
         <text class="mr-10 text-secondary">配送单格式:</text>
         <block wx:if="{{depInfo.nxDepartmentPrintName == 'ApplyPanel'}}">
@@ -107,13 +107,9 @@
 
       <view class="flex-row-between p-20 border-bottom" bind:tap="trunasferDep" >
         <text class="mr-20 text-secondary shrink_fix">转部门:</text>
-        
-
         <view class="button-container">
           <image src="/images/exchange.png" mode="aspectFill" class="icon"/>
-
         </view>
-
       </view>
 
       <view class="flex-row-between p-20 border-bottom">
@@ -138,12 +134,15 @@
         </view>
       </view>
 
-      <view class="flex-row-between p-20 border-bottom"   wx:if="{{disInfo.nxDistributerAppId !== 'wx1ea78d3f33234284'}}" bind:tap="toCustomerUser" hover-class="hover">
+
+      <block wx:if="{{disInfo.nxDistributerAppId !== '-1'}}" >
+        <view class="flex-row-between p-20 border-bottom"   bind:tap="toCustomerUser" hover-class="hover">
         <text class="mr-20 text-secondary shrink_fix">小程序用户:</text>
         <view   class="">
           <image src="/images/arrow-right-3.png" mode="aspectFill" class="icon"/>
         </view>
       </view>
+
       <view class="flex-row p-20 border-bottom">
         <text class="mr-10 text-secondary">订货单:</text>
         <view class="flex-row  mr-20">
@@ -157,6 +156,8 @@
         </view>
 
       </view>
+      </block>
+     
 
 
       <view class="center-content p-20 border-bottom text-danger" style="width: {{windowWidth - 40}}rpx;margin-top: 20rpx;" bindtap="deleteDep">
@@ -186,10 +187,10 @@
         <text  class="flex-fixed text-secondary" >代号名称(对外订货):</text>
         <input class="nickInput"  value="{{editDepOrderCode}}" bindinput="getDepOrderCode"></input>
       </view>
-      <view class="flex-row p-10 ">
+      <!-- <view class="flex-row p-10 ">
         <text  class="flex-fixed text-secondary" >出库名称:</text>
         <input class="nickInput"  value="{{editPickName}}" bindinput="getDepPickName"></input>
-      </view>
+      </view> -->
 
       <view class="flex-row p-10">
         <text class="flex-fixed text-secondary" >录音秒数:</text>

@@ -8,13 +8,8 @@ let itemWidth = 0;
 import {
   
   updateDepGoodsSellingPrice,
-  deleteDepGoods,
-  getDepUsersByFatherId,
-  disGetDepGoods,
   getDepInfo,
   deleteGroupDep,
-  delHisotory,
-  deleteDepUser,
 
   updateDepUserAdmin,
   updateGroupName

@@ -33,7 +33,13 @@ Page({
     applyArr: [],
     applyHeight: "",
     depGoods: null,
-    showOperationPrice:false
+    showOperationPrice:false,
+    searchKeyword: '',
+    filteredDepGoodsArr: [],
+    originalDepGoodsArr: [],
+    selectedCategoryId: null,
+    selectedCategoryGoods: [],
+    scrollIntoView: ''
 
   },
 
@@ -141,15 +147,28 @@ Page({
           load.hideLoading();
           this.setData({
             depGoodsArr: res.result.data,
+            originalDepGoodsArr: res.result.data,
+            filteredDepGoodsArr: res.result.data,
           })
-          that._openIndex();
+          // 如果有搜索关键词，进行过滤
+          if (this.data.searchKeyword) {
+            this._filterGoods(this.data.searchKeyword);
+          } else {
+            // 默认选中第一个分类
+            if (res.result.data && res.result.data.length > 0) {
+              const firstCategory = res.result.data[0];
+              this._selectCategory(firstCategory, 0);
+            }
+          }
         } else {
           wx.showToast({
             title: res.result.msg,
             icon: 'none'
           })
           this.setData({
-            depGoodsArr: []
+            depGoodsArr: [],
+            originalDepGoodsArr: [],
+            filteredDepGoodsArr: []
           })
         }
       
@@ -160,58 +179,36 @@ Page({
 
 
 
-  // swiper 1
-  //0 
-  openFather(e) {
-    var fatherIndex = e.currentTarget.dataset.fatherindex;
-    var data = "depGoodsArr[" + fatherIndex + "].isSelected";
-    var isSel = this.data.depGoodsArr[fatherIndex].isSelected;
-    var id = e.currentTarget.id; // 分类标题的 id
-
-    if (this.data.openIndex == fatherIndex) {
-      this.setData({
-        [data]: false,
-        openIndex: -1,
-      });
-    } else {
-      if (this.data.openIndex > -1) {
-        var dataLast = "depGoodsArr[" + this.data.openIndex + "].isSelected";
-        this.setData({
-          [dataLast]: false,
-          [data]: true,
-          openIndex: fatherIndex
-        }, () => {
-          // 展开后自动滚动到该分类标题下方
-          setTimeout(() => {
-            wx.createSelectorQuery().select('#' + id).boundingClientRect(rect => {
-              if (rect) {
-                // 这里的 94 是你的导航栏高度（单位 px），可根据实际调整
-                wx.pageScrollTo({
-                  scrollTop: rect.top + wx.getSystemInfoSync().windowScrollY - 94,
-                  duration: 300
-                });
-              }
-            }).exec();
-          }, 100);
-        });
-      } else {
-        this.setData({
-          [data]: true,
-          openIndex: fatherIndex
-        }, () => {
-          setTimeout(() => {
-            wx.createSelectorQuery().select('#' + id).boundingClientRect(rect => {
-              if (rect) {
-                wx.pageScrollTo({
-                  scrollTop: rect.top + wx.getSystemInfoSync().windowScrollY - 94,
-                  duration: 300
-                });
-              }
-            }).exec();
-          }, 100);
-        });
-      }
+  // 选择分类（左右分栏模式）
+  selectCategory(e) {
+    const fatherIndex = e.currentTarget.dataset.fatherindex;
+    const categoryId = e.currentTarget.dataset.id;
+    const filteredArr = this.data.filteredDepGoodsArr || [];
+    
+    if (filteredArr.length <= fatherIndex) {
+      return;
     }
+    
+    const selectedCategory = filteredArr[fatherIndex];
+    this._selectCategory(selectedCategory, fatherIndex);
+  },
+
+  // 选中分类的内部方法
+  _selectCategory(category, index) {
+    const categoryId = category.nxDistributerFatherGoodsId;
+    const scrollId = `category-${categoryId}`;
+    
+    this.setData({
+      selectedCategoryId: categoryId,
+      scrollIntoView: scrollId
+    });
+    
+    // 滚动完成后清空scrollIntoView，以便下次可以再次滚动
+    setTimeout(() => {
+      this.setData({
+        scrollIntoView: ''
+      });
+    }, 500);
   },
 
 
@@ -245,7 +242,7 @@ Page({
 
   _openIndex(){
     if(this.data.openIndex !== -1){
-      var data = "depGoodsArr[" + this.data.openIndex + "].isSelected";    
+      var data = "filteredDepGoodsArr[" + this.data.openIndex + "].isSelected";    
           this.setData({
             [data]: true,
           })
@@ -334,11 +331,104 @@ Page({
           sellingPrice: ""
         })
         this._getResGoodsWithOrders();
-        this._openIndex();
 
       }
     })
 
+  },
+
+  // 搜索输入处理
+  onSearchInput(e) {
+    const keyword = e.detail.value;
+    this.setData({
+      searchKeyword: keyword
+    });
+    this._filterGoods(keyword);
+  },
+
+  // 搜索确认
+  onSearchConfirm(e) {
+    const keyword = e.detail.value;
+    this.setData({
+      searchKeyword: keyword
+    });
+    this._filterGoods(keyword);
+  },
+
+  // 清除搜索
+  clearSearch() {
+    this.setData({
+      searchKeyword: ''
+    });
+    this._filterGoods('');
+  },
+
+  // 过滤商品
+  _filterGoods(keyword) {
+    if (!keyword || keyword.trim() === '') {
+      // 没有搜索关键词，显示所有数据
+      const originalArr = this.data.originalDepGoodsArr || this.data.depGoodsArr || [];
+      // 恢复原始数据，移除 filteredGoods 属性
+      const restoredArr = originalArr.map(father => {
+        const { filteredGoods, ...rest } = father;
+        return rest;
+      });
+      this.setData({
+        filteredDepGoodsArr: restoredArr
+      });
+      // 默认选中第一个分类并滚动
+      if (restoredArr.length > 0) {
+        this._selectCategory(restoredArr[0], 0);
+      }
+      return;
+    }
+
+    const keywordLower = keyword.toLowerCase().trim();
+    const originalArr = this.data.originalDepGoodsArr || this.data.depGoodsArr || [];
+    const filteredArr = [];
+
+    originalArr.forEach((father, index) => {
+      if (!father.nxDepartmentDisGoodsEntities || father.nxDepartmentDisGoodsEntities.length === 0) {
+        return;
+      }
+
+      // 过滤商品
+      const filteredGoods = father.nxDepartmentDisGoodsEntities.filter(depGoods => {
+        // 搜索商品名称（配送商商品名称）
+        const goodsName = depGoods.nxDistributerGoodsEntity?.nxDgGoodsName || '';
+        // 搜索订货商品名称
+        const orderGoodsName = depGoods.nxDdgOrderGoodsName || '';
+        // 搜索分类名称
+        const categoryName = father.nxDfgFatherGoodsName || '';
+
+        return goodsName.toLowerCase().includes(keywordLower) ||
+               orderGoodsName.toLowerCase().includes(keywordLower) ||
+               categoryName.toLowerCase().includes(keywordLower);
+      });
+
+      // 如果有匹配的商品，则添加到结果中
+      if (filteredGoods.length > 0) {
+        filteredArr.push({
+          ...father,
+          filteredGoods: filteredGoods
+        });
+      }
+    });
+
+    this.setData({
+      filteredDepGoodsArr: filteredArr
+    });
+    
+    // 搜索后自动选中第一个匹配的分类并滚动
+    if (filteredArr.length > 0) {
+      this._selectCategory(filteredArr[0], 0);
+    } else {
+      this.setData({
+        selectedCategoryId: null,
+        selectedCategoryGoods: [],
+        scrollIntoView: ''
+      });
+    }
   },
 
 

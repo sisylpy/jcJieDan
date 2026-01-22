@@ -10,7 +10,7 @@
     <view class="flex-row-reverse p-20">
       <view class="p-10 mainBack_new_btn" bindtap="toSupplierGoods">取消商品</view>
 
-      <view class="p-10 mainBack_new_btn" bindtap="addGoods">添加新供货商品</view>
+      <view class="p-10 mainBack_new_btn" bindtap="toSetGoods">添加新供货商品</view>
     </view>
 
    
@@ -94,9 +94,9 @@
                 </view>
                 </view>
              </block>
-              <block wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+              <block wx:if="{{disInfo.nxDistributerBusinessTypeId > 5}}">
                 <view class="flex flex-row-between p-10" bindtap="showIsPurchase" data-item="{{sons}}" data-index="{{goodsIndex}}" data-level="1" hover-class="hover" >
-                <text class="text-secondary font-md">基本单位:</text>
+                <text class="text-secondary font-md">售价:</text>
                   <view class="flex-row">
                    
                   <block wx:if="{{sons.nxDgWillPriceOne !== null}}">
@@ -110,7 +110,7 @@
                  
                   
                 </view>
-                <view class="flex flex-row-between p-10" bindtap="showIsPurchase" data-item="{{sons}}" data-index="{{goodsIndex}}" data-level="2" hover-class="hover" >
+                <!-- <view class="flex flex-row-between p-10" bindtap="showIsPurchase" data-item="{{sons}}" data-index="{{goodsIndex}}" data-level="2" hover-class="hover" >
                 <text class="text-secondary font-md">大单位:</text>
                   <view class="flex-row">
                    
@@ -123,7 +123,7 @@
                   </block>
                   </view>
                   
-                </view>
+                </view> -->
              
               </block>
              
