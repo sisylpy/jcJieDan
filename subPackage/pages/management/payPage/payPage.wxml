@@ -51,116 +51,112 @@
           <!-- ../top -->
 
           <!-- font-md-->
+          <block wx:if="{{selIndex == 0}}">
+            <view class="flex-column p-20">
 
-          <view class="flex-column p-20">
+              <view class="p-20">
+                <text class="font-lg">订单流量</text>
+              </view>
+              <view class="flex-column">
+                <view class="flex-row p-20 bg-white twenty_radius mb-20">
+                  <view class="flex-column">
+                    <text class="font-md ">灵活性高</text>
+                    <view class="tb-10 font-sl">商品商可以根据订单数量的灵活灵活购买，避免过度订购套餐的情况。无论是大批量还是少量订单，都需要根据业务需求选择适合的订单条数。</view>
+                  </view>
+                </view>
 
-            <view class="p-20">
-              <text class="font-lg">订单流量</text>
+
+                <view class="flex-row p-20 bg-white twenty_radius mb-20">
+                  <view class="flex-column">
+                    <text class="font-md ">成本可控</text>
+                    <view class="tb-10 font-sm">按订单数量收费让商品商可以准确计算运营成本。根据订单数量付费，可以避免无效支出，非常适合业务量不确定或可能新增的商品商。</view>
+                  </view>
+                </view>
+
+                <view class="flex-row p-20 bg-white twenty_radius mb-20">
+                  <view class="flex-column">
+                    <text class="font-md ">多部门管理</text>
+                    <view class="tb-10 font-sm">餐厅的不同部门（如厨房、仓库等）可以通过同一个订单端管理和提交订单，简化内部沟通和协调。</view>
+                  </view>
+
+                </view>
+
+
+                <view class="flex-row p-20 bg-white twenty_radius mb-20">
+                  <view class="flex-column">
+                    <text class="font-md ">阶梯式优惠</text>
+                    <view class="tb-10 font-sm">随着订单数量的增加，单笔订单的成本会降低，采用越多越划算。例如，购买10万条订单的费用远低于分散购买，适合大批量订单需求的产品商。</view>
+                  </view>
+
+                </view>
+
+                <view class="flex-row p-20 bg-white twenty_radius mb-20">
+                  <view class="flex-column">
+                    <text class="font-md ">不需要长期绑定</text>
+                    <view class="tb-10 font-sm">商品选择不需要长期订阅，可以灵活调整订单条数，避免因为订阅未使用完造成浪费，更适合短期或临时项目。</view>
+                  </view>
+
+                </view>
+
+
+
+              </view>
+
+
             </view>
-            <view class="flex-column">
-              <view class="flex-row p-20 bg-white twenty_radius mb-20">
-                <view class="flex-column">
-                  <text class="font-md ">灵活性高</text>
-                  <view class="tb-10 font-sl">商品商可以根据订单数量的灵活灵活购买，避免过度订购套餐的情况。无论是大批量还是少量订单，都需要根据业务需求选择适合的订单条数。</view>
-                </view>
+
+            <view class="flex-column p-20">
+
+              <view class=" p-20">
+                <text class="font-lg">享受服务</text>
               </view>
+              <view class="flex-column">
 
+                <view class="flex-row p-20 bg-white twenty_radius mb-20">
+                  <view class="flex-column">
+                    <text class="font-md ">新产品归类协助</text>
+                    <view class="tb-10 font-sm">帮助商品商有效管理新商品的分类，确保快速上线和高效配合。</view>
+                  </view>
 
-              <view class="flex-row p-20 bg-white twenty_radius mb-20">
-                <view class="flex-column">
-                  <text class="font-md ">成本可控</text>
-                  <view class="tb-10 font-sm">按订单数量收费让商品商可以准确计算运营成本。根据订单数量付费，可以避免无效支出，非常适合业务量不确定或可能新增的商品商。</view>
-                </view>
-              </view>
-
-              <view class="flex-row p-20 bg-white twenty_radius mb-20">
-                <view class="flex-column">
-                  <text class="font-md ">多部门管理</text>
-                  <view class="tb-10 font-sm">餐厅的不同部门（如厨房、仓库等）可以通过同一个订单端管理和提交订单，简化内部沟通和协调。</view>
                 </view>
 
-              </view>
+                <view class="flex-row p-20 bg-white twenty_radius mb-20">
+                  <view class="flex-column">
+                    <text class="font-md ">7*24小时操作咨询</text>
+                    <view class="tb-10 font-sm">最大提供技术支持和咨询，随时解决操作问题，保证业务持续进行。</view>
+                  </view>
 
-
-              <view class="flex-row p-20 bg-white twenty_radius mb-20">
-                <view class="flex-column">
-                  <text class="font-md ">阶梯式优惠</text>
-                  <view class="tb-10 font-sm">随着订单数量的增加，单笔订单的成本会降低，采用越多越划算。例如，购买10万条订单的费用远低于分散购买，适合大批量订单需求的产品商。</view>
                 </view>
 
-              </view>
+                <view class="flex-row p-20 bg-white twenty_radius mb-20">
+                  <view class="flex-column">
+                    <text class="font-md ">3次上门免费计算机培训</text>
+                    <view class="tb-10 font-sm">为商品商及其团队提供专业的现场培训，快速掌握小程序操作技能。</view>
+                  </view>
 
-              <view class="flex-row p-20 bg-white twenty_radius mb-20">
-                <view class="flex-column">
-                  <text class="font-md ">不需要长期绑定</text>
-                  <view class="tb-10 font-sm">商品选择不需要长期订阅，可以灵活调整订单条数，避免因为订阅未使用完造成浪费，更适合短期或临时项目。</view>
                 </view>
 
-              </view>
 
+                <view class="flex-row p-20 bg-white twenty_radius mb-20">
+                  <view class="flex-column">
+                    <text class="font-md ">数据分析支持</text>
+                    <view class="tb-10 font-sm">提供详细的订单数据分析报告，帮助商品商优化商品决策，提高运营效率。</view>
+                  </view>
 
-
-            </view>
-
-
-          </view>
-
-          <!-- ../font-md-->
-
-
-          <!-- service -->
-
-          <view class="flex-column p-20">
-
-            <view class=" p-20">
-              <text class="font-lg">享受服务</text>
-            </view>
-            <view class="flex-column">
-
-              <view class="flex-row p-20 bg-white twenty_radius mb-20">
-                <view class="flex-column">
-                  <text class="font-md ">新产品归类协助</text>
-                  <view class="tb-10 font-sm">帮助商品商有效管理新商品的分类，确保快速上线和高效配合。</view>
                 </view>
 
-              </view>
+                <view class="flex-row p-20 bg-white twenty_radius mb-20">
+                  <view class="flex-column">
+                    <text class="font-md ">个性系统化定制</text>
+                    <view class="tb-10 font-sm">根据商品商的特定需求，灵活定制小程序功能和界面，确保符合其业务模式。</view>
+                  </view>
 
-              <view class="flex-row p-20 bg-white twenty_radius mb-20">
-                <view class="flex-column">
-                  <text class="font-md ">7*24小时操作咨询</text>
-                  <view class="tb-10 font-sm">最大提供技术支持和咨询，随时解决操作问题，保证业务持续进行。</view>
-                </view>
-
-              </view>
-
-              <view class="flex-row p-20 bg-white twenty_radius mb-20">
-                <view class="flex-column">
-                  <text class="font-md ">3次上门免费计算机培训</text>
-                  <view class="tb-10 font-sm">为商品商及其团队提供专业的现场培训，快速掌握小程序操作技能。</view>
-                </view>
-
-              </view>
-
-
-              <view class="flex-row p-20 bg-white twenty_radius mb-20">
-                <view class="flex-column">
-                  <text class="font-md ">数据分析支持</text>
-                  <view class="tb-10 font-sm">提供详细的订单数据分析报告，帮助商品商优化商品决策，提高运营效率。</view>
-                </view>
-
-              </view>
-
-              <view class="flex-row p-20 bg-white twenty_radius mb-20">
-                <view class="flex-column">
-                  <text class="font-md ">个性系统化定制</text>
-                  <view class="tb-10 font-sm">根据商品商的特定需求，灵活定制小程序功能和界面，确保符合其业务模式。</view>
                 </view>
 
               </view>
 
             </view>
-
-          </view>
+          </block>
           <!-- ../font-md-->
 
         </scroll-view>
@@ -202,28 +198,28 @@
           <view class="flex-column p-20">
 
             <view class="p-20">
-              <text class="font-lg">订单端定制</text>
+              <text class="font-lg">代下单特点</text>
             </view>
             <view class="flex-column">
               <view class="flex-row p-20 bg-white twenty_radius mb-20">
                 <view class="flex-column">
-                  <text class="font-md ">不限订单数量</text>
-                  <view class="tb-10 font-sl">同一个餐厅在订阅中可以无限量的下单，不会产生额外费用。</view>
+                  <text class="font-md ">成本节省</text>
+                  <view class="tb-10 font-sl">无需雇佣额外员工，每月降低固定人力支出。</view>
                 </view>
               </view>
 
 
               <view class="flex-row p-20 bg-white twenty_radius mb-20">
                 <view class="flex-column">
-                  <text class="font-md ">多人员操作</text>
-                  <view class="tb-10 font-sm">餐厅的多名员工可以同时使用同一个订货端进行下单，满足大型餐厅兄弟部门协作的需求。</view>
+                  <text class="font-md ">专业操作</text>
+                  <view class="tb-10 font-sm">由经验丰富的客服团队代为处理，确保订单录入的准确和高效。</view>
                 </view>
               </view>
 
               <view class="flex-row p-20 bg-white twenty_radius mb-20">
                 <view class="flex-column">
-                  <text class="font-md ">多部门管理</text>
-                  <view class="tb-10 font-sm">餐厅的不同部门（如厨房、仓库等）可以通过同一个订单端管理和提交订单，简化内部沟通和协调。</view>
+                  <text class="font-md ">减少培训</text>
+                  <view class="tb-10 font-sm">客户无需培训内部人员，即可享受专业服务。</view>
                 </view>
 
               </view>
@@ -231,16 +227,16 @@
 
               <view class="flex-row p-20 bg-white twenty_radius mb-20">
                 <view class="flex-column">
-                  <text class="font-md ">灵活订阅周期</text>
-                  <view class="tb-10 font-sm">用户可以根据实际需求选择3个月、6个月或12个月的套餐，套餐周期越长，价格越优惠。</view>
+                  <text class="font-md ">灵活应对</text>
+                  <view class="tb-10 font-sm">特别适合下单量大的业务，按需调整服务范围。</view>
                 </view>
 
               </view>
 
               <view class="flex-row p-20 bg-white twenty_radius mb-20">
                 <view class="flex-column">
-                  <text class="font-md ">统一数据管理</text>
-                  <view class="tb-10 font-sm">所有订单数据都统一存储和管理，方便百货商和餐馆查看历史订单、优化采购流程，升级。</view>
+                  <text class="font-md ">提升效率</text>
+                  <view class="tb-10 font-sm">减少内部沟通成本，让客户更专注于核心业务。</view>
                 </view>
 
               </view>
@@ -266,24 +262,24 @@
 
               <view class="flex-row p-20 bg-white twenty_radius mb-20">
                 <view class="flex-column">
-                  <text class="font-md ">新产品归类协助</text>
-                  <view class="tb-10 font-sm">帮助商品商有效管理新商品的分类，确保快速上线和高效配合。</view>
+                  <text class="font-md ">订单全流程代办</text>
+                  <view class="tb-10 font-sm">我们的客服将全程负责订单录入和管理，确保每个订单都准确无误地完成。</view>
                 </view>
 
               </view>
 
               <view class="flex-row p-20 bg-white twenty_radius mb-20">
                 <view class="flex-column">
-                  <text class="font-md ">7*24小时操作咨询</text>
-                  <view class="tb-10 font-sm">最大提供技术支持和咨询，随时解决操作问题，保证业务持续进行。</view>
+                  <text class="font-md ">个性化支持</text>
+                  <view class="tb-10 font-sm">根据客户的具体业务需求，提供定制化的下单服务流程。</view>
                 </view>
 
               </view>
 
               <view class="flex-row p-20 bg-white twenty_radius mb-20">
                 <view class="flex-column">
-                  <text class="font-md ">3次上门免费计算机培训</text>
-                  <view class="tb-10 font-sm">为商品商及其团队提供专业的现场培训，快速掌握小程序操作技能。</view>
+                  <text class="font-md ">实时响应</text>
+                  <view class="tb-10 font-sm">客服团队提供及时的响应和支持，快速解决下单过程中的任何问题。</view>
                 </view>
 
               </view>
@@ -291,16 +287,16 @@
 
               <view class="flex-row p-20 bg-white twenty_radius mb-20">
                 <view class="flex-column">
-                  <text class="font-md ">数据分析支持</text>
-                  <view class="tb-10 font-sm">提供详细的订单数据分析报告，帮助商品商优化商品决策，提高运营效率。</view>
+                  <text class="font-md ">数据安全保障</text>
+                  <view class="tb-10 font-sm">严格保护客户的订单数据安全，确保信息不外泄。</view>
                 </view>
 
               </view>
 
               <view class="flex-row p-20 bg-white twenty_radius mb-20">
                 <view class="flex-column">
-                  <text class="font-md ">个性系统化定制</text>
-                  <view class="tb-10 font-sm">根据商品商的特定需求，灵活定制小程序功能和界面，确保符合其业务模式。</view>
+                  <text class="font-md ">持续优化</text>
+                  <view class="tb-10 font-sm">根据客户反馈持续优化服务流程，提升整体服务体验。</view>
                 </view>
 
               </view>

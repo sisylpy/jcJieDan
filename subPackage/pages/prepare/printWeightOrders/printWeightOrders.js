@@ -85,16 +85,49 @@ Page({
       // wx.removeStorageSync('selArr');
     }
 
-    // 获取显示模式和字段标识
-    var stockPrintViewMode = wx.getStorageSync('stockPrintViewMode') || 'category';
-    var useSimpleFields = wx.getStorageSync('useSimpleFields') || false;
-    var stockCustomerName = wx.getStorageSync('stockCustomerName') || '';
+    // 获取页面类型和显示模式（统一参数）
+    var printPageType = wx.getStorageSync('printPageType');
+    var printViewMode = wx.getStorageSync('printViewMode');
+    var printUseSimpleFields = wx.getStorageSync('printUseSimpleFields');
+    var printCustomerName = wx.getStorageSync('printCustomerName') || '';
+    
+    // 兼容旧参数（如果新参数不存在，使用旧参数）
+    if (!printPageType) {
+      var stockPrintViewMode = wx.getStorageSync('stockPrintViewMode');
+      if (stockPrintViewMode) {
+        printPageType = 'stock';
+        printViewMode = stockPrintViewMode;
+      } else {
+        printPageType = 'stock';
+        printViewMode = 'category';
+      }
+    }
+    
+    if (!printViewMode) {
+      printViewMode = 'category';
+    }
+    
+    if (printUseSimpleFields === undefined) {
+      var oldUseSimpleFields = wx.getStorageSync('useSimpleFields');
+      printUseSimpleFields = oldUseSimpleFields !== undefined ? oldUseSimpleFields : (printViewMode === 'category');
+    }
+    
+    if (!printCustomerName) {
+      printCustomerName = wx.getStorageSync('stockCustomerName') || '';
+    }
+    
     this.setData({
-      stockPrintViewMode: stockPrintViewMode,
-      useSimpleFields: useSimpleFields,
-      stockCustomerName: stockCustomerName
+      printPageType: printPageType,
+      printViewMode: printViewMode,
+      printUseSimpleFields: printUseSimpleFields,
+      printCustomerName: printCustomerName
     });
-    console.log('✓ 从index页面获取客户名称:', stockCustomerName);
+    console.log('✓ 打印参数:', {
+      pageType: printPageType,
+      viewMode: printViewMode,
+      useSimpleFields: printUseSimpleFields,
+      customerName: printCustomerName
+    });
 
     this._updatePurData()
 
@@ -250,7 +283,7 @@ Page({
         showCancel: false,
         success: function() {
           wx.navigateTo({
-            url: '../../../../pages/order/pSearchPrinter/pSearchPrinter',
+            url: '/subPackage-charts/pages/order/pSearchPrinter/pSearchPrinter',
           });
         }
       });
@@ -433,7 +466,7 @@ Page({
         showCancel: false,
         success: function() {
           wx.navigateTo({
-            url: '../../../../pages/order/pSearchPrinter/pSearchPrinter',
+            url: '/subPackage-charts/pages/order/pSearchPrinter/pSearchPrinter',
           });
         }
       });
@@ -548,7 +581,7 @@ Page({
           success: function(res) {
             if (res.confirm) {
               wx.navigateTo({
-                url: '../../../../pages/order/pSearchPrinter/pSearchPrinter',
+                url: '/subPackage-charts/pages/order/pSearchPrinter/pSearchPrinter',
               });
             }
           }
@@ -688,9 +721,14 @@ Page({
     });
     
     var that = this;
-    var viewMode = this.data.stockPrintViewMode || 'category';
-    console.log('📊 打印模式:', viewMode);
-    console.log('📊 打印商品数量:', this.data.printGoodsArr ? this.data.printGoodsArr.length : 0);
+    // 使用统一参数
+    var pageType = this.data.printPageType || 'stock'; // 'stock' 出库页面, 'purchase' 采购页面
+    var viewMode = this.data.printViewMode || 'category'; // 'category' 按商品显示, 'department' 按部门显示
+    console.log('📊 打印参数:', {
+      pageType: pageType,
+      viewMode: viewMode,
+      goodsCount: this.data.printGoodsArr ? this.data.printGoodsArr.length : 0
+    });
     
     var esc = require("../../../../utils/GPutils/esc.js");
     var command = esc.jpPrinter.createNew();
@@ -701,10 +739,11 @@ Page({
     command.setSelectJustification(1); // 居中
     command.setCharacterSize(17); // 设置倍高倍宽
     
-    // 打印标题：部门模式显示"出库单"，其他模式显示"采购单"
-    var titleText = viewMode === 'department' ? "出库单" : "采购单";
+    // 打印标题：根据页面类型判断
+    // 出库页面显示"出库单"，采购页面显示"采购单"
+    var titleText = pageType === 'stock' ? "出库单" : "采购单";
     command.setText(titleText);
-    console.log('✓ 打印标题:', titleText);
+    console.log('✓ 打印标题:', titleText, '(pageType:', pageType, ')');
     command.setPrint(); // 打印并换行
     command.setPrint(); // 打印并换行
     
@@ -715,8 +754,8 @@ Page({
     // 如果是按部门显示，先获取客户名称并打印（使用和商品名称一样大的字体）
     var customerName = '';
     if (viewMode === 'department') {
-      // 直接使用从index页面传递过来的客户名称
-      customerName = this.data.stockCustomerName || '';
+      // 优先使用统一参数，兼容旧参数
+      customerName = this.data.printCustomerName || '';
       if (customerName) {
         command.setCharacterSize(1); // 设置为和商品名称一样大的字体
         command.setText("客户: " + customerName);
@@ -735,18 +774,15 @@ Page({
     command.setPrint(); // 打印并换行
     command.setPrint();
     
-    // 打印表头
-    if (viewMode === 'category') {
-      // 按商品显示时，打印表头
-      command.setCharacterSize(0); // 表头使用默认字体大小
-      command.setText("   商品");
-      command.setAbsolutePrintPosition(324);
-      command.setText("数量");
-      command.setPrint();
-      command.setText("------------------------------------------------");
-      command.setPrint();
-      console.log('✓ 打印表头（商品模式）');
-    }
+    // 打印表头（两种模式都打印表头）
+    command.setCharacterSize(0); // 表头使用默认字体大小
+    command.setText("   商品");
+    command.setAbsolutePrintPosition(324);
+    command.setText("数量");
+    command.setPrint();
+    command.setText("------------------------------------------------");
+    command.setPrint();
+    console.log('✓ 打印表头（' + (viewMode === 'category' ? '商品' : '部门') + '模式）');
     command.setCharacterSize(1); // 设置倍高倍宽（商品名称字体）
     
     // 打印商品列表
@@ -762,90 +798,202 @@ Page({
     command.setPrint();
     // 打印结束，增加更多空白
     console.log('✓ 打印结束，添加空白行');
-    for (var i = 0; i < 10; i++) {
-      command.setPrint();
-    }
+    // for (var i = 0; i < 10; i++) {
+    //   command.setPrint();
+    // }
     
     // 准备发送数据
     this._prepareSend(command.getData());
   },
   
-  // 获取客户名称（用于按部门显示时在顶部显示）
-  _getCustomerName() {
-    console.log('=== 获取客户名称 ===');
-    var printGoodsArr = this.data.printGoodsArr;
-    var useSimpleFields = this.data.useSimpleFields || false;
-    
-    // 遍历所有商品和订单，找到第一个有效的部门名称
-    for (var j = 0; j < printGoodsArr.length; j++) {
-      var item = printGoodsArr[j];
-      var orderArr = useSimpleFields ? (item.orders || []) : (item.nxDepartmentOrdersEntities || []);
-      
-      if (orderArr && orderArr.length > 0) {
-        for (var k = 0; k < orderArr.length; k++) {
-          var order = orderArr[k];
-          var depName = '';
-          
-          // 优先使用订单中的扁平化字段（从stock页面传递的）
-          if (order.fatherDepartmentAttrName && order.nxDepartmentAttrName) {
-            depName = order.fatherDepartmentAttrName + "." + order.nxDepartmentAttrName;
-            console.log('  ✓ 找到客户名称（部门属性）:', depName);
-            return depName;
-          } else if (order.nxDepartmentAttrName) {
-            depName = order.nxDepartmentAttrName;
-            console.log('  ✓ 找到客户名称（部门属性）:', depName);
-            return depName;
-          }
-          
-          if (order.fatherGbDepartmentName && order.gbDepartmentName) {
-            depName = order.fatherGbDepartmentName + "." + order.gbDepartmentName;
-            console.log('  ✓ 找到客户名称（GB部门）:', depName);
-            return depName;
-          } else if (order.gbDepartmentName) {
-            depName = order.gbDepartmentName;
-            console.log('  ✓ 找到客户名称（GB部门）:', depName);
-            return depName;
-          }
-          
-          if (order.nxRestrauntAttrName) {
-            depName = order.nxRestrauntAttrName;
-            console.log('  ✓ 找到客户名称（餐厅）:', depName);
-            return depName;
-          }
-          
-          // 使用新精简字段的扁平化字段
-          if (order.gbDepName) {
-            depName = order.gbDepName;
-            console.log('  ✓ 找到客户名称（GB部门扁平化）:', depName);
-            return depName;
-          } else if (order.restrauntName) {
-            depName = order.restrauntName;
-            console.log('  ✓ 找到客户名称（餐厅扁平化）:', depName);
-            return depName;
-          } else if (order.depName) {
-            depName = order.depName;
-            console.log('  ✓ 找到客户名称（部门扁平化）:', depName);
-            return depName;
-          }
-        }
-      }
+  /**
+   * 从订单对象中提取部门名称和判断是否是客户
+   * @param {Object} order - 订单对象（已包含所有扁平化字段）
+   * @returns {Object} {depName: String, isCustomer: Boolean}
+   */
+  _extractDepartmentInfo(order) {
+    if (!order) {
+      console.log('⚠️ _extractDepartmentInfo: order 为空');
+      return { depName: '未分类', isCustomer: false };
     }
     
-    console.log('  ⚠️ 未找到客户名称');
-    return '';
+    // 打印订单对象的关键字段，用于调试
+    console.log('📋 _extractDepartmentInfo 订单字段检查:', {
+      hasNxDoDepartmentId: order.nxDoDepartmentId !== undefined,
+      nxDoDepartmentId: order.nxDoDepartmentId,
+      hasNxDoDepartmentFatherId: order.nxDoDepartmentFatherId !== undefined,
+      nxDoDepartmentFatherId: order.nxDoDepartmentFatherId,
+      hasFatherDepartmentAttrName: !!order.fatherDepartmentAttrName,
+      fatherDepartmentAttrName: order.fatherDepartmentAttrName,
+      hasNxDepartmentAttrName: !!order.nxDepartmentAttrName,
+      nxDepartmentAttrName: order.nxDepartmentAttrName,
+      hasGbDepartmentName: !!order.gbDepartmentName,
+      gbDepartmentName: order.gbDepartmentName,
+      hasFatherGbDepartmentName: !!order.fatherGbDepartmentName,
+      fatherGbDepartmentName: order.fatherGbDepartmentName,
+      hasNxRestrauntAttrName: !!order.nxRestrauntAttrName,
+      nxRestrauntAttrName: order.nxRestrauntAttrName,
+      hasGbDepName: !!order.gbDepName,
+      gbDepName: order.gbDepName,
+      hasRestrauntName: !!order.restrauntName,
+      restrauntName: order.restrauntName,
+      hasDepName: !!order.depName,
+      depName: order.depName,
+      hasGbDepartmentEntity: !!order.gbDepartmentEntity,
+      hasNxDepartmentEntity: !!order.nxDepartmentEntity,
+      hasNxRestrauntEntity: !!order.nxRestrauntEntity
+    });
+    
+    // 优先使用扁平化字段（页面已传递）
+    // NX部门：只有当 nxDoDepartmentFatherId !== nxDoDepartmentId 时，才打印父级部门名称
+    if (order.nxDepartmentAttrName) {
+      var depName = '';
+      var shouldShowFather = false;
+      
+      // 判断是否需要打印父级部门名称
+      if (order.nxDoDepartmentFatherId !== undefined && 
+          order.nxDoDepartmentId !== undefined) {
+        shouldShowFather = (order.nxDoDepartmentFatherId !== order.nxDoDepartmentId);
+        console.log('  ✓ NX部门判断:', {
+          nxDoDepartmentFatherId: order.nxDoDepartmentFatherId,
+          nxDoDepartmentId: order.nxDoDepartmentId,
+          shouldShowFather: shouldShowFather,
+          hasFatherName: !!order.fatherDepartmentAttrName
+        });
+      } else {
+        console.log('  ⚠️ 缺少ID字段，无法判断是否需要显示父级部门');
+      }
+      
+      if (shouldShowFather && order.fatherDepartmentAttrName) {
+        // 父级ID不等于当前ID，且存在父级名称，才拼接父级名称
+        depName = order.fatherDepartmentAttrName + "." + order.nxDepartmentAttrName;
+        console.log('  ✓ 拼接父级部门名称:', depName);
+      } else {
+        // 父级ID等于当前ID，或者没有父级名称，只显示当前部门名称
+        depName = order.nxDepartmentAttrName;
+        console.log('  ✓ 只显示当前部门名称:', depName);
+      }
+      return {
+        depName: depName,
+        isCustomer: false
+      };
+    }
+    
+    // GB部门（客户）
+    if (order.fatherGbDepartmentName && order.gbDepartmentName) {
+      console.log('  ✓ 使用GB部门（有父级）:', order.fatherGbDepartmentName + "." + order.gbDepartmentName);
+      return {
+        depName: order.fatherGbDepartmentName + "." + order.gbDepartmentName,
+        isCustomer: true
+      };
+    } else if (order.gbDepartmentName) {
+      console.log('  ✓ 使用GB部门:', order.gbDepartmentName);
+      return {
+        depName: order.gbDepartmentName,
+        isCustomer: true
+      };
+    }
+    
+    // 餐厅（客户）
+    if (order.nxRestrauntAttrName) {
+      console.log('  ✓ 使用餐厅:', order.nxRestrauntAttrName);
+      return {
+        depName: order.nxRestrauntAttrName,
+        isCustomer: true
+      };
+    }
+    
+    // 采购页面的扁平化字段
+    if (order.gbDepName) {
+      console.log('  ✓ 使用GB部门（扁平化）:', order.gbDepName);
+      return {
+        depName: order.gbDepName,
+        isCustomer: true
+      };
+    } else if (order.restrauntName) {
+      console.log('  ✓ 使用餐厅（扁平化）:', order.restrauntName);
+      return {
+        depName: order.restrauntName,
+        isCustomer: true
+      };
+    } else if (order.depName) {
+      console.log('  ✓ 使用部门（扁平化）:', order.depName);
+      return {
+        depName: order.depName,
+        isCustomer: false
+      };
+    }
+    
+    // 兼容旧格式（嵌套对象）
+    console.log('  ⚠️ 使用兼容旧格式（嵌套对象）');
+    try {
+      if (order.gbDepartmentEntity) {
+        var gbDep = order.gbDepartmentEntity;
+        var depName = '';
+        if (gbDep.gbDepartmentSubAmount > 1 && gbDep.fatherGbDepartmentEntity) {
+          depName = (gbDep.fatherGbDepartmentEntity.gbDepartmentName || '') + "." + (gbDep.gbDepartmentName || '');
+        } else {
+          depName = gbDep.gbDepartmentName || '';
+        }
+        console.log('  ✓ 使用GB部门（旧格式）:', depName);
+        return { depName: depName || '未分类', isCustomer: true };
+      } else if (order.nxRestrauntEntity) {
+        var restrauntName = order.nxRestrauntEntity.nxRestrauntAttrName || '未分类';
+        console.log('  ✓ 使用餐厅（旧格式）:', restrauntName);
+        return {
+          depName: restrauntName,
+          isCustomer: true
+        };
+      } else if (order.nxDepartmentEntity) {
+        var nxDep = order.nxDepartmentEntity;
+        var depName = '';
+        var shouldShowFather = false;
+        
+        // 判断是否需要打印父级部门名称：只有当 nxDepartmentFatherId !== nxDepartmentId 时，才打印父级部门名称
+        if (nxDep.nxDepartmentFatherId !== undefined && 
+            nxDep.nxDepartmentId !== undefined) {
+          shouldShowFather = (nxDep.nxDepartmentFatherId !== nxDep.nxDepartmentId && nxDep.nxDepartmentFatherId !== 0);
+          console.log('  ✓ NX部门（旧格式）判断:', {
+            nxDepartmentFatherId: nxDep.nxDepartmentFatherId,
+            nxDepartmentId: nxDep.nxDepartmentId,
+            shouldShowFather: shouldShowFather,
+            hasFatherEntity: !!nxDep.fatherDepartmentEntity
+          });
+        } else {
+          console.log('  ⚠️ 缺少ID字段（旧格式），无法判断是否需要显示父级部门');
+        }
+        
+        if (shouldShowFather && nxDep.fatherDepartmentEntity) {
+          depName = (nxDep.fatherDepartmentEntity.nxDepartmentName || '') + "." + (nxDep.nxDepartmentName || '');
+          console.log('  ✓ 拼接父级部门名称（旧格式）:', depName);
+        } else {
+          depName = nxDep.nxDepartmentName || '';
+          console.log('  ✓ 只显示当前部门名称（旧格式）:', depName);
+        }
+        return { depName: depName || '未分类', isCustomer: false };
+      }
+    } catch (e) {
+      console.error('  ✗ 提取部门信息时出错:', e);
+    }
+    
+    console.log('  ⚠️ 未找到任何部门信息，返回默认值');
+    return { depName: '未分类', isCustomer: false };
   },
   
   // 打印采购商品
   _printPurchaseGoods(command) {
     console.log('=== 开始打印采购商品 ===');
     var printGoodsArr = this.data.printGoodsArr;
-    var viewMode = this.data.stockPrintViewMode || 'category';
-    var useSimpleFields = this.data.useSimpleFields || false;
+    // 使用统一参数
+    var pageType = this.data.printPageType || 'stock'; // 'stock' 出库页面, 'purchase' 采购页面
+    var viewMode = this.data.printViewMode || 'category'; // 'category' 按商品显示, 'department' 按部门显示
+    var useSimpleFields = this.data.printUseSimpleFields !== undefined ? this.data.printUseSimpleFields : false;
     
     console.log('📊 打印参数:', {
-      goodsCount: printGoodsArr.length,
+      pageType: pageType,
       viewMode: viewMode,
-      useSimpleFields: useSimpleFields
+      useSimpleFields: useSimpleFields,
+      goodsCount: printGoodsArr.length
     });
     
     if (viewMode === 'department') {
@@ -861,8 +1009,19 @@ Page({
         console.log('📦 处理商品:', goodsName);
         
         // 根据是否使用新精简字段来决定使用哪个字段
-        var orderArr = useSimpleFields ? (item.orders || []) : (item.nxDepartmentOrdersEntities || []);
-        console.log('📋 订单数量:', orderArr.length);
+        // 出库页面使用 nxDepartmentOrdersEntities，采购页面按商品显示时使用 orders
+        var orderArr = [];
+        if (useSimpleFields && item.orders) {
+          // 采购页面按商品显示：使用 orders 字段
+          orderArr = item.orders;
+        } else if (item.nxDepartmentOrdersEntities) {
+          // 出库页面或采购页面按部门显示：使用 nxDepartmentOrdersEntities 字段
+          orderArr = item.nxDepartmentOrdersEntities;
+        } else if (item.orders) {
+          // 兼容：如果没有 nxDepartmentOrdersEntities，尝试使用 orders
+          orderArr = item.orders;
+        }
+        console.log('📋 订单数量:', orderArr.length, 'useSimpleFields:', useSimpleFields, 'hasOrders:', !!item.orders, 'hasNxDepartmentOrdersEntities:', !!item.nxDepartmentOrdersEntities);
         
         if (orderArr && orderArr.length > 0) {
           for (var k = 0; k < orderArr.length; k++) {
@@ -871,96 +1030,30 @@ Page({
             var orderStandard = order.nxDoStandard || '';
             var orderRemark = order.nxDoRemark || '';
             
-            // 获取部门名称和类型（用于判断是否打印#）
-            var depName = '';
-            var isCustomer = false; // 是否是客户（GB部门或餐厅），客户不打印#
+            // 使用辅助方法提取部门信息（已包含所有扁平化字段）
+            var depInfo = this._extractDepartmentInfo(order);
+            var depName = depInfo.depName;
+            var isCustomer = depInfo.isCustomer;
             
-            // 优先使用订单中的扁平化字段（从stock页面传递的）
-            if (order.fatherDepartmentAttrName && order.nxDepartmentAttrName) {
-              depName = order.fatherDepartmentAttrName + "." + order.nxDepartmentAttrName;
-              isCustomer = false; // NX部门，不是客户
-              console.log('  ✓ 使用部门属性名称:', depName);
-            } else if (order.nxDepartmentAttrName) {
-              depName = order.nxDepartmentAttrName;
-              isCustomer = false; // NX部门，不是客户
-              console.log('  ✓ 使用部门属性名称:', depName);
-            } else if (order.fatherGbDepartmentName && order.gbDepartmentName) {
-              depName = order.fatherGbDepartmentName + "." + order.gbDepartmentName;
-              isCustomer = true; // GB部门，是客户
-              console.log('  ✓ 使用GB部门名称（客户）:', depName);
-            } else if (order.gbDepartmentName) {
-              depName = order.gbDepartmentName;
-              isCustomer = true; // GB部门，是客户
-              console.log('  ✓ 使用GB部门名称（客户）:', depName);
-            } else if (order.nxRestrauntAttrName) {
-              depName = order.nxRestrauntAttrName;
-              isCustomer = true; // 餐厅，是客户
-              console.log('  ✓ 使用餐厅名称（客户）:', depName);
-            } else if (order.gbDepName) {
-              depName = order.gbDepName;
-              isCustomer = true; // GB部门，是客户
-              console.log('  ✓ 使用GB部门名称（扁平化，客户）:', depName);
-            } else if (order.restrauntName) {
-              depName = order.restrauntName;
-              isCustomer = true; // 餐厅，是客户
-              console.log('  ✓ 使用餐厅名称（扁平化，客户）:', depName);
-            } else if (order.depName) {
-              depName = order.depName;
-              isCustomer = false; // 可能是NX部门，不是客户
-              console.log('  ✓ 使用部门名称（扁平化）:', depName);
-            } else {
-              // 兼容旧格式
-              try {
-                var gbDep = order.gbDepartmentEntity;
-                if (gbDep && gbDep !== null) {
-                  var subAmount = gbDep.gbDepartmentSubAmount;
-                  if (subAmount && subAmount > 1) {
-                    var fatherGbDep = gbDep.fatherGbDepartmentEntity;
-                    if (fatherGbDep && fatherGbDep.gbDepartmentName) {
-                      depName = fatherGbDep.gbDepartmentName + "." + (gbDep.gbDepartmentName || '');
-                    } else if (gbDep.gbDepartmentName) {
-                      depName = gbDep.gbDepartmentName;
-                    }
-                  } else if (gbDep.gbDepartmentName) {
-                    depName = gbDep.gbDepartmentName;
-                  }
-                  isCustomer = true; // GB部门，是客户
-                  console.log('  ✓ 使用GB部门名称（旧格式，客户）:', depName);
-                } else {
-                  var nxRest = order.nxRestrauntEntity;
-                  if (nxRest && nxRest !== null && nxRest.nxRestrauntAttrName) {
-                    depName = nxRest.nxRestrauntAttrName;
-                    isCustomer = true; // 餐厅，是客户
-                    console.log('  ✓ 使用餐厅名称（旧格式，客户）:', depName);
-                  } else {
-                    var nxDep = order.nxDepartmentEntity;
-                    if (nxDep && nxDep !== null) {
-                      var fatherNxDep = nxDep.fatherDepartmentEntity;
-                      if (fatherNxDep && fatherNxDep !== null && nxDep.nxDepartmentFatherId !== 0 && fatherNxDep.nxDepartmentName) {
-                        depName = fatherNxDep.nxDepartmentName + "." + (nxDep.nxDepartmentName || '');
-                      } else if (nxDep.nxDepartmentName) {
-                        depName = nxDep.nxDepartmentName;
-                      }
-                      isCustomer = false; // NX部门，不是客户
-                      console.log('  ✓ 使用部门名称（旧格式）:', depName);
-                    }
-                  }
-                }
-              } catch (e) {
-                console.error('  ✗ 处理部门信息时出错:', e);
+            // 判断是否有分部门（用于决定是否打印部门名称行）
+            var hasSubDepartment = false;
+            if (!isCustomer) {
+              // 只有NX部门需要判断是否有分部门
+              if (order.nxDoDepartmentFatherId !== undefined && 
+                  order.nxDoDepartmentId !== undefined && 
+                  order.nxDoDepartmentFatherId !== order.nxDoDepartmentId) {
+                hasSubDepartment = true;
               }
+            } else {
+              // 客户（GB部门或餐厅）总是打印部门名称
+              hasSubDepartment = true;
             }
             
-            if (!depName) {
-              depName = '未分类';
-              isCustomer = false; // 默认不是客户
-              console.log('  ⚠️ 未找到部门名称，使用默认值');
-            }
-            
-            // 按部门分组，保存是否是客户的信息
+            // 按部门分组，保存是否是客户和是否有分部门的信息
             if (!depGroups[depName]) {
               depGroups[depName] = {
                 isCustomer: isCustomer, // 保存是否是客户
+                hasSubDepartment: hasSubDepartment, // 保存是否有分部门
                 goods: []
               };
             }
@@ -985,19 +1078,23 @@ Page({
         var isCustomer = depGroup.isCustomer;
         var goodsList = depGroup.goods;
         
-        console.log('📌 打印部门:', depNameKey, '商品数量:', goodsList.length, '是否是客户:', isCustomer);
+        console.log('📌 打印部门:', depNameKey, '商品数量:', goodsList.length, '是否是客户:', isCustomer, '是否有分部门:', depGroup.hasSubDepartment);
         
-        // 打印部门名称：如果是客户（GB部门或餐厅），不打印"#"，如果是NX部门，打印"#"
-        if (isCustomer) {
-          // 客户模式，不打印"#"
-          command.setText(depNameKey);
-          console.log('  ✓ 已打印客户名称（无#）:', depNameKey);
+        // 打印部门名称：只有当有分部门时才打印（客户总是打印，NX部门需要判断）
+        if (depGroup.hasSubDepartment) {
+          if (isCustomer) {
+            // 客户模式，不打印"#"
+            command.setText(depNameKey);
+            console.log('  ✓ 已打印客户名称（无#）:', depNameKey);
+          } else {
+            // NX部门模式，打印"#"
+            command.setText("#" + depNameKey);
+            console.log('  ✓ 已打印部门名称（有#）:', depNameKey);
+          }
+          command.setPrint();
         } else {
-          // NX部门模式，打印"#"
-        command.setText("#" + depNameKey);
-          console.log('  ✓ 已打印部门名称（有#）:', depNameKey);
+          console.log('  ⚠️ 部门没有分部门，跳过打印部门名称行');
         }
-        command.setPrint();
         
         // 打印该部门下的商品（商品名称和订货数量在一行）
         for (var m = 0; m < goodsList.length; m++) {
@@ -1050,8 +1147,19 @@ Page({
         console.log('  ✓ 已打印商品名称:', goodsName);
         
         // 根据是否使用新精简字段来决定使用哪个字段
-        var orderArr = useSimpleFields ? (item.orders || []) : (item.nxDepartmentOrdersEntities || []);
-        console.log('  📋 订单数量:', orderArr.length);
+        // 出库页面使用 nxDepartmentOrdersEntities，采购页面按商品显示时使用 orders
+        var orderArr = [];
+        if (useSimpleFields && item.orders) {
+          // 采购页面按商品显示：使用 orders 字段
+          orderArr = item.orders;
+        } else if (item.nxDepartmentOrdersEntities) {
+          // 出库页面或采购页面按部门显示：使用 nxDepartmentOrdersEntities 字段
+          orderArr = item.nxDepartmentOrdersEntities;
+        } else if (item.orders) {
+          // 兼容：如果没有 nxDepartmentOrdersEntities，尝试使用 orders
+          orderArr = item.orders;
+        }
+        console.log('  📋 订单数量:', orderArr.length, 'useSimpleFields:', useSimpleFields, 'hasOrders:', !!item.orders, 'hasNxDepartmentOrdersEntities:', !!item.nxDepartmentOrdersEntities);
         
         // 打印订单详情（无"订单详情:"行，每条订单前无序号）
         if (orderArr && orderArr.length > 0) {
@@ -1063,6 +1171,22 @@ Page({
             var orderInfo = "    "; // 不要序号
             
             console.log('  📋 处理订单:', k + 1, '数量:', orderQuantity + orderStandard);
+            console.log('  📋 订单对象:', {
+              hasNxDoDepartmentId: order.nxDoDepartmentId !== undefined,
+              nxDoDepartmentId: order.nxDoDepartmentId,
+              hasNxDoDepartmentFatherId: order.nxDoDepartmentFatherId !== undefined,
+              nxDoDepartmentFatherId: order.nxDoDepartmentFatherId,
+              hasNxDepartmentAttrName: !!order.nxDepartmentAttrName,
+              nxDepartmentAttrName: order.nxDepartmentAttrName,
+              hasFatherDepartmentAttrName: !!order.fatherDepartmentAttrName,
+              fatherDepartmentAttrName: order.fatherDepartmentAttrName,
+              hasNxDepartmentEntity: !!order.nxDepartmentEntity
+            });
+            
+            // 使用辅助方法提取部门名称（已包含所有扁平化字段）
+            var depInfo = this._extractDepartmentInfo(order);
+            console.log('  📋 提取的部门信息:', depInfo);
+            orderInfo += depInfo.depName;
             
             // 添加订单数量和单位
             orderInfo += " 订:" + orderQuantity + orderStandard;
@@ -1077,7 +1201,7 @@ Page({
           }
         }
         // 打印分隔线
-        command.setText("------------------------------------------------");
+        // command.setText("------------------------------------------------");
         command.setPrint();
       }
     }

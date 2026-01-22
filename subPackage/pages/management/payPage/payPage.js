@@ -41,7 +41,7 @@ Page({
       }, 
       
       {
-        name: "定制",
+        name: "客服",
         amount: "",
         amountOk: "",
       },{

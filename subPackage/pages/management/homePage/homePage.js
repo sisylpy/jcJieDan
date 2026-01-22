@@ -3,6 +3,7 @@ var load = require('../../../../lib/load.js');
 import download from "../../../../utils/download.js"
 
 import apiUrl from '../../../../config.js'
+
 import{
   aaa
 }from '../../../../lib/apiibook'
@@ -404,13 +405,6 @@ Page({
     
 
 
-  toPrintSet(){
-    wx.navigateTo({
-      url: '../printerSet/printerSet',
-    })
-
-  },
-
 
   toStock(){
     wx.navigateTo({
@@ -420,9 +414,17 @@ Page({
   
 
 toMyShelf(e){
-  wx.navigateTo({
-    url: '../../shelf/index/index',
-  })
+  console.log('shelelele' + this.data.disInfo.nxDistributerType)
+  if(this.data.disInfo.nxDistributerType == 2){
+    wx.navigateTo({
+      url: '../../shelf/indexSuyuan/indexSuyuan',
+    })
+  }else{
+    wx.navigateTo({
+      url: '../../shelf/index/index',
+    })
+  }
+  
 },
 
 

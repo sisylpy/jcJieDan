@@ -1,8 +1,8 @@
 <view class="flex-column height-100">
-  <back-navbar style="height: {{navBarHeight}}rpx;" title="打印订单" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="{{printViewMode == 'department' ? printCustomerName : ''}}-打印出库单" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
   <!-- here -->
-  <view class="flex-column " style="margin-top: {{navBarHeight}}rpx;">
+  <view class="flex-column " style="margin-top: {{navBarHeight}}rpx; padding-bottom: 120rpx;">
     <view class="flex flex-row border-bottom p-30 bg-white" wx:for='{{printGoodsArr}}' wx:for-item="item" wx:for-index='goodsIndex' wx:key='nxDistributerPurchaseGoodsId'>
 
       <view class=" flex-column" >
@@ -19,7 +19,7 @@
           </view>
           </view>
 
-          <block wx:if="{{stockPrintViewMode == 'department'}}">
+          <block wx:if="{{printViewMode == 'department'}}">
             <view class="flex flex-row font-md" wx:for="{{item.nxDepartmentOrdersEntities}}" wx:for-item="order" wx:key="nxDepartmentOrdersId" wx:for-index="orderIndex" data-orderindex="{{orderIndex}}" data-parentindex="{{parentIndex}}" data-goodsindex="{{goodsIndex}}" bindtap="choiceStockOrders">
            
             <text class="ml-20">{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
@@ -30,7 +30,7 @@
          
         </view>
 
-         <block wx:if="{{stockPrintViewMode !== 'department'}}">
+         <block wx:if="{{printViewMode !== 'department'}}">
           <view class="flex flex-row font-md" wx:for="{{item.nxDepartmentOrdersEntities}}" wx:for-item="order" wx:key="nxDepartmentOrdersId" wx:for-index="orderIndex" data-orderindex="{{orderIndex}}" data-parentindex="{{parentIndex}}" data-goodsindex="{{goodsIndex}}" bindtap="choiceStockOrders">
             <!-- <view class="flex-column-center" wx:if="{{item.isSelected}}">
               <image src="{{!order.purSelected ? '../../../images/checkbox-noselected.png' : '../../../images/selected-2.png'}}" class="icon "></image>
@@ -39,7 +39,7 @@
             <view class="circle_default mr-10" wx:else=""></view> -->
 
             <!-- 使用精简字段（扁平化） -->
-            <block wx:if="{{useSimpleFields}}">
+            <block wx:if="{{printUseSimpleFields}}">
               <!-- GB部门（扁平化） -->
               <block wx:if="{{order.nxDoGbDepartmentId !== -1}}">
                 <view class="flex-row ">
@@ -62,26 +62,48 @@
               </block>
             </block>
             
-            <!-- 使用完整字段（嵌套对象） -->
+            <!-- 使用完整字段（优先使用扁平化字段，如果没有再使用嵌套对象） -->
             <block wx:else>
-            <block wx:if="{{order.nxDoGbDepartmentId !== -1}}">
-              <view class="flex-row ">
+              <!-- 优先使用扁平化字段（出库页面传递的数据） -->
+              <block wx:if="{{order.gbDepartmentName || order.fatherGbDepartmentName}}">
+                <view class="flex-row ">
+                  <text wx:if="{{order.fatherGbDepartmentName}}">{{order.fatherGbDepartmentName}}.</text>
+                  <text>{{order.gbDepartmentName}}</text>
+                </view>
+              </block>
+              
+              <block wx:elif="{{order.nxRestrauntAttrName}}">
+                <view class="flex-row ">
+                  <text>{{order.nxRestrauntAttrName}}</text>
+                </view>
+              </block>
+              
+              <block wx:elif="{{order.nxDepartmentAttrName}}">
+                <view class="flex-row ">
+                  <text wx:if="{{order.nxDoDepartmentFatherId !== undefined && order.nxDoDepartmentId !== undefined && order.nxDoDepartmentFatherId !== order.nxDoDepartmentId && order.fatherDepartmentAttrName}}">{{order.fatherDepartmentAttrName}}.</text>
+                  <text>{{order.nxDepartmentAttrName}}</text>
+                </view>
+              </block>
+              
+              <!-- 如果没有扁平化字段，再使用嵌套对象（兼容旧格式） -->
+              <block wx:elif="{{order.nxDoGbDepartmentId !== -1 && order.gbDepartmentEntity}}">
+                <view class="flex-row ">
                   <text wx:if="{{order.gbDepartmentEntity && order.gbDepartmentEntity.fatherGbDepartmentEntity !== null}}">{{order.gbDepartmentEntity.fatherGbDepartmentEntity.gbDepartmentName}}.</text>
-                <text>{{order.gbDepartmentEntity.gbDepartmentName}}</text>
-              </view>
-            </block>
+                  <text>{{order.gbDepartmentEntity.gbDepartmentName}}</text>
+                </view>
+              </block>
 
-            <block wx:if="{{order.nxDoNxCommRestrauntId !== -1}}">
-              <view class="flex-row ">
-                <text>{{order.nxRestrauntEntity.nxRestrauntAttrName}}</text>
-              </view>
-            </block>
+              <block wx:elif="{{order.nxDoNxCommRestrauntId !== -1 && order.nxRestrauntEntity}}">
+                <view class="flex-row ">
+                  <text>{{order.nxRestrauntEntity.nxRestrauntAttrName}}</text>
+                </view>
+              </block>
 
-            <block wx:else>
-              <view class="flex-row ">
-                  <text wx:if="{{order.nxDepartmentEntity && order.nxDepartmentEntity.nxDepartmentFatherId > 0}}">{{order.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentName}}.</text>
+              <block wx:elif="{{order.nxDepartmentEntity}}">
+                <view class="flex-row ">
+                  <text wx:if="{{order.nxDepartmentEntity && order.nxDepartmentEntity.nxDepartmentFatherId !== undefined && order.nxDepartmentEntity.nxDepartmentId !== undefined && order.nxDepartmentEntity.nxDepartmentFatherId !== order.nxDepartmentEntity.nxDepartmentId && order.nxDepartmentEntity.nxDepartmentFatherId > 0 && order.nxDepartmentEntity.fatherDepartmentEntity}}">{{order.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentName}}.</text>
                   <text>{{order.nxDepartmentEntity.nxDepartmentAttrName}}</text>
-              </view>
+                </view>
               </block>
             </block>
 

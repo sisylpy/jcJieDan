@@ -80,18 +80,24 @@
           <view class="flex-row-wrap ">
         <text class="">{{item.nxNdpSellDetail}}</text>
       </view>
+        
         </view>
        
-        <view class="flex-row p-10 ">
-        <text class="mr-20 text-secondary">开始时间</text>
-      
-        <text>{{tool.transferFullTimeString(item.nxNdpFromTime)}}</text>
 
+      <view class="flex-row-between p-20 bg-white border-bottom" bind:tap="{{userInfo.nxDiuPrintDeviceId == '-1' ? 'toPrintSet' : 'delPrint'}}">
+
+        <view class="flex-row">
+          <image src="{{userInfo.nxDiuPrintDeviceId !== '-1' ? '../../../../images/print-4.png' : '../../../../images/0dayinji-05.png'}}" class="icon mr-20"></image>
+          <text class="mr-10 flex-fixed">小票单打印机:</text>
+        </view>
+        <view class="flex-row">
+          <text class="mr-20">{{userInfo.nxDiuPrintDeviceId !== '-1' ? 'PT-380' : '设置'}}</text>
+          <image src="{{userInfo.nxDiuPrintDeviceId == '-1' ? '../../../../images/arrow-right-3.png' : '../../../../images/del.png'}}" class="icon"> </image>
+        </view>
       </view>
-      <view class="flex-row p-10">
-        <text class="mr-20 text-secondary">结束时间</text>
-        <text>{{tool.transferFullTimeString(item.nxNdpStopTime)}}</text>
-      </view>
+
+
+
       </block>
      
 

@@ -1,9 +1,9 @@
-<view class="flex-column height-100">
-  <back-navbar style="height: {{navBarHeight}}rpx;" title="打印订单" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+<view class="flex-column flex">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="{{printViewMode == 'department' ? purchaseSelectedDepName || printCustomerName : '商品'}}-{{isPrintMode ? '打印采购单' : '复制订货'}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
   <!-- here -->
-  <view class="flex-column " style="margin-top: {{navBarHeight}}rpx;">
-    <view class="flex flex-row border-bottom p-30 bg-white" wx:for='{{purGoodsArr}}' wx:for-item="item" wx:for-index='goodsIndex' wx:key='nxDistributerPurchaseGoodsId'>
+  <view class="flex-column " >
+    <view class="flex flex-row border-bottom p-20 bg-white" wx:for='{{purGoodsArr}}' wx:for-item="item" wx:for-index='goodsIndex' wx:key='nxDistributerPurchaseGoodsId'>
 
       <view class=" flex-column" >
         <view class="flex flex-row-between">
@@ -18,23 +18,20 @@
             <text class="text-secondary  text-secondary" wx:if="{{item.nxDgGoodsDetail && item.nxDgGoodsDetail.length > 0 && item.nxDgGoodsDetail !== 'null'}}">{{item.nxDgGoodsDetail}}</text>
           </view>
           <view class="center-content" style="width: {{windowWidth / 3 - 20}}rpx;" bindtap="toEditPurchaseGoods" data-item="{{item}}" data-index="{{goodsIndex}}">
-          <text class="font-md mr-10">采购:</text>
+          <!-- <text class="font-md mr-10">采购:</text> -->
             <image src="/images/add.png" mode="aspectFill" class="icon-lg" wx:if="{{item.nxDpgQuantity == 'null'}}"/>
-            <view class="flex-row-default" wx:else="">   
-              <text class="mr-10 font-lg">{{item.nxDpgQuantity}}{{item.nxDpgStandard}}</text>
+            <view class="flex-row" wx:else="">   
+              <text class="mr-20 font-lg">{{item.nxDpgQuantity}}{{item.nxDpgStandard}}</text>
               <image src="/images/edit-main.png" mode="aspectFill" class="icon"/>
             </view> 
           </view>
         </view>
-        <!-- <view class="flex-column" wx:if="{{haveOrder}}"> -->
+     
           <!-- 适配简化DTO：使用 orders 字段（数据已在js中统一格式化） -->
-          <view class="flex flex-row font-md" wx:for="{{item.orders}}" wx:for-item="order" wx:key="nxDepartmentOrdersId" wx:for-index="orderIndex" data-orderindex="{{orderIndex}}" data-parentindex="{{parentIndex}}" data-goodsindex="{{goodsIndex}}" bindtap="choiceStockOrders">
+          <view class="flex flex-row font-md" wx:for="{{item.orders}}" wx:for-item="order" wx:key="uniqueKey" wx:for-index="orderIndex" >
             <!-- 适配简化DTO：使用扁平化的 isSelected 字段 -->
-            <view class="flex-column-center" wx:if="{{item.isSelected}}">
-              <image src="{{!order.purSelected ? '../../../images/checkbox-noselected.png' : '../../../images/selected-2.png'}}" class="icon "></image>
-            </view>
 
-            <view class="circle_default mr-10" wx:else=""></view>
+            <view class="circle_default mr-10"></view>
 
             <!-- 适配简化DTO：使用扁平化字段（数据已在js中统一格式化） -->
             <block wx:if="{{order.gbDepName}}">
@@ -59,12 +56,11 @@
             <text class="ml-20">{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
             <text wx:if="{{order.nxDoRemark !== 'null' && order.nxDoRemark && order.nxDoRemark.length > 0}}" class="red">({{order.nxDoRemark}})</text>
           </view>
-        <!-- </view> -->
-
+      
       </view>
-
-
     </view>
+
+      <view  class="flex-column-center text-secondary font-sm" style="height: 100rpx;">没有数据了！</view>
   </view>
   <!-- ../here -->
 </view>
@@ -85,21 +81,27 @@
 </view>
 
 <!-- 确认弹窗 -->
-<view class="modal-overlay" wx:if="{{showConfirmModal}}" bindtap="closeConfirmModal">
+<view class="modal-overlay" wx:if="{{showConfirmModal}}" bindtap="closeConfirmModal" catchtouchmove="preventScroll">
   <view class="modal-content" catchtap="stopPropagation">
     <view class="modal-header">
-      <text class="modal-title">复制内容预览：</text>
-      <view class="modal-close" bindtap="closeConfirmModal">×</view>
+       <view class="flex-column">
+        <text class="modal-title">复制内容预览：</text>
+       </view>
+       <view class="flex-column">
+        <view class="modal-title mt-10 mb-10" style="font-size: 24rpx; margin-right: 10rpx;">隐藏订单</view>
+        <switch checked="{{onlyGoodsNameAndTotal}}" bindchange="changeShowOrder"/>
+         </view>
+      <!-- <view class="modal-close" bindtap="closeConfirmModal">×</view> -->
     </view>
-    <view class="modal-body">
+    <scroll-view class="modal-body" scroll-y="true" enable-back-to-top="true">
       <view class="content-preview">
         <view class="preview-content">
           <text>{{pasteContent}}</text>
         </view>
       </view>
-    </view>
+    </scroll-view>
     <view class="modal-footer">
-      <view class="modal-btn cancel-btn" bindtap="closeConfirmModal">取消</view>
+      <view class="modal-btn cancel-btn" bindtap="closeConfirmModal">关闭</view>
       <view class="modal-btn confirm-btn" bindtap="confirmSaveBatch">确认保存</view>
     </view>
   </view>

@@ -52,14 +52,14 @@
     <view class="flex-row-between border-bottom bg-white p-20" wx:for="{{oneUserArr}}" wx:key="nxDistributerUserId">
 
       <view class="flex-row">
-        <image src='{{item.nxDiuUrlChange == 1 ?  url + item.nxDiuWxAvartraUrl : item.nxDiuWxAvartraUrl}}' class="member_url mr-20"></image>
+        <image src='{{item.nxWuUrlChange == 1 ?  url + item.nxWuWxAvartraUrl : item.nxWuWxAvartraUrl}}' class="member_url mr-20"></image>
 
         <view class="flex-column">
           <view class="flex-row">
-            <text class="font-md">{{item.nxDiuWxNickName}}</text>
+            <text class="font-md">{{item.nxWuWxNickName}}</text>
           </view>
           <view class="flex-row">
-            <text class="font-lg">{{item.nxDiuWxPhone}}</text>
+            <text class="font-lg">{{item.nxWuWxPhone}}</text>
             <text class="font-md text-secondary">（登录手机号）</text>
 
           </view>
@@ -68,7 +68,7 @@
 
       </view>
 
-      <view class="btnClick plr-20" bindtap="openOperation" data-id="{{item.nxDistributerUserId}}" hover-class="hover" data-type="dis" data-item="{{item}}">
+      <view class="btnClick plr-20" bindtap="openOperationWeight" data-id="{{item.nxWeightUserId}}" hover-class="hover"  data-item="{{item}}">
         <image src="../../../../images/points.png" class="icon"></image>
       </view>
 
@@ -89,6 +89,23 @@
     </view>
 
     <view  class="flex-row p-30" bindtap="delUser">
+      <image src="../../../../images/del.png" class="icon ml-20 mr-20"></image>
+      <text class="">删除用户</text>
+    </view>
+    <view style="height: 40rpx;"></view>
+  </view>
+</view>
+
+
+<view class='overlay {{showOperationWeight ? "show" : ""}}' catchtouchmove='ture' catchtap="hideMask">
+  <view class="flex-column nnn bg-white ">
+
+    <view  class="flex-row p-30" bindtap="editUserWeight">
+      <image src="../../../../images/edit.png" class="icon ml-20 mr-20"></image>
+      <text class="">修改用户信息</text>
+    </view>
+
+    <view  class="flex-row p-30" bindtap="delUserWeight">
       <image src="../../../../images/del.png" class="icon ml-20 mr-20"></image>
       <text class="">删除用户</text>
     </view>

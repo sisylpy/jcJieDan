@@ -6,6 +6,7 @@ import apiUrl from '../../../../config.js'
 import {
   disGetPayList,
   disPayUser,
+  updateDisUser
 } from '../../../../lib/apiDistributer'
 
 
@@ -72,6 +73,7 @@ Page({
       screenWidth: globalData.windowWidth * globalData.rpxR,
       windowHeight: globalData.windowHeight * globalData.rpxR,
       rpxR: globalData.rpxR,
+      sysDeviceId: globalData.sysDeviceId,
       url: apiUrl.server,
       navBarHeight: globalData.navBarHeight * globalData.rpxR,
       type:  options.type,
@@ -158,7 +160,58 @@ Page({
   },
 
 
+  toPrintSet(){
+    wx.navigateTo({
+      url: '/subPackage-charts/pages/order/pSearchPrinter/pSearchPrinter',
+    })
 
+  },
+
+
+  delPrint(){
+    wx.showModal({
+      title: '确定要删除打印机吗？',
+      content: '',
+      complete: (res) => {
+        if (res.cancel) {
+          
+        }
+    
+        if (res.confirm) {
+          this._updateUserInf()
+        }
+      }
+    })
+  },
+
+  _updateUserInf(){
+    var userInfo = this.data.userInfo;
+    var data = {
+      userName: userInfo.nxDiuWxNickName,
+      userId: userInfo.nxDistributerUserId,
+      phone: userInfo.nxDiuWxPhone,
+      deviceId: -1,
+    }
+ updateDisUser(data).then(res => {
+        if (res.result.code == 0) {
+        load.hideLoading();
+      
+        this.setData({
+          userInfo: res.result.data
+        })
+        wx.setStorageSync('userInfo', res.result.data);
+        
+      }else{
+        load.hideLoading();
+        wx.showToast({
+          title: '获取信息失败',
+          icon: 'none'
+        })
+      }
+      })
+  },
+
+  
   toBack(){
     wx.navigateBack({
       delta: 1

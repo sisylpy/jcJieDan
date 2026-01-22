@@ -33,7 +33,9 @@
         <text class="mr-20" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 1}}">小规模批发商</text>
         <text class="mr-20" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 2}}">货架型业务批发商</text>
         <text class="mr-20" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 3}}">代客服型批发商</text>
-        <text class="mr-20" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 4}}">平台</text>
+        <text class="mr-20" wx:elif="{{disInfo.nxDistributerType == 2}}">学校企事业配送商</text>
+        <text class="mr-20" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 5}}">分布式库房配送</text>
+        <text class="mr-20" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 6}}">平台</text>
         <text class="mr-20" wx:elif="{{disInfo.nxDistributerType == -1}}">试用期</text>
       </view>
       <view class="flex-row-default p-20">
@@ -45,6 +47,24 @@
       </view>
 
       <view class="bg-white">
+
+        <view class="flex-row-between p-20 mb-10 border-bottom" bindtap="toStaff" hover-class="hover">
+          <view class="flex-row">
+            <image src="../../../../images/user-group-2.png" class="icon mr-20"></image>
+            <text>账号管理</text>
+          </view>
+          <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
+        </view>
+
+         <view class="flex-row-between p-20 border-bottom" bindtap="toPayPageList" hover-class="hover">
+          <view class="flex-row">
+            <image src="/images/contract-pay-history.png" mode="aspectFill" class="icon mr-20" />
+            <text>充值记录</text>
+          </view>
+          <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
+        </view>
+
+
         <view class="flex-row-between p-20 border-bottom" bind:tap="toPayPage" data-type="0" hover-class="hover">
           <view class="flex-row">
             <image src="/images/wallet.png" mode="aspectFill" class="icon mr-20" />
@@ -60,21 +80,7 @@
           </view>
         </view>
 
-        <view class="flex-row-between p-20 mb-10 border-bottom" bindtap="toStaff" hover-class="hover">
-          <view class="flex-row">
-            <image src="../../../../images/user-group-2.png" class="icon mr-20"></image>
-            <text>账号管理</text>
-          </view>
-          <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
-        </view>
-
-        <view class="flex-row-between p-20 border-bottom" bindtap="toPayPageList" hover-class="hover">
-          <view class="flex-row">
-            <image src="/images/contract-pay-history.png" mode="aspectFill" class="icon mr-20" />
-            <text>充值记录</text>
-          </view>
-          <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
-        </view>
+       
 
         <view class="p-20 flex-row-between" wx:if="{{disInfo.machinePayList.length > 0}}">
 
@@ -115,19 +121,6 @@
         </view>
       </view> -->
 
-      <view class="flex-row-between p-20 bg-white border-bottom" bind:tap="toPrintSet">
-
-        <view class="flex-row">
-          <image src="{{userInfo.nxDiuPrintDeviceId !== -1 ? '../../../../images/print-4.png' : '../../../../images/0dayinji-05.png'}}" class="icon mr-20"></image>
-          <text class="mr-10 flex-fixed">小票单打印机:</text>
-        </view>
-        <view>
-          <text class="mr-20">{{userInfo.nxDiuPrintDeviceId == sysDeviceId ? '型号PT-380' : ''}}</text>
-          <text class="mr-20">{{userInfo.nxDiuPrintBillDeviceId == sysDeviceId ? '型号PT-380' : ''}}</text>
-        </view>
-        <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
-      </view>
-
     </view>
 
     <view class="flex-column font-lg mt-10">
@@ -138,21 +131,18 @@
         </view>
         <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
       </view>
-
-
-
-
-      <block wx:if="{{disInfo.nxDistributerBusinessTypeId  > 1}}">
-
-        <view class="flex-column bg-white font-lg mt-10">
-
-          <view class="flex-row-between p-30 border-bottom" bindtap="toGoods" hover-class="hover">
+      <view class="flex-row-between p-30 border-bottom bg-white " bindtap="toGoods" hover-class="hover">
             <view class="flex-row">
               <image src="/images/icon_goods_active.png" mode="aspectFill" class="icon mr-20" />
               <text>商品</text>
             </view>
             <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
           </view>
+
+
+      <block wx:if="{{disInfo.nxDistributerBusinessTypeId  > 1}}">
+
+        <view class="flex-column bg-white font-lg mt-10">
 
           <view class="flex-row-between p-30 border-bottom" bindtap="toMyShelf" hover-class="hover">
             <view class="flex-row">
@@ -161,14 +151,9 @@
             </view>
             <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
           </view>
+        </view>
 
-          <view class="flex-row-between p-20 border-bottom" bindtap="toStock" hover-class="hover">
-            <view class="flex-row">
-              <image src="/images/goods.png" mode="aspectFill" class="icon mr-20" />
-              <text>库存</text>
-            </view>
-            <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
-          </view>
+        <view class="flex-column bg-white font-lg mt-10" wx:if="{{disInfo.nxDistributerBusinessTypeId  > 2}}">
 
           <view class="flex-row-between p-30 border-bottom" bindtap="toSupplierList" hover-class="hover">
             <view class="flex-row">
@@ -177,10 +162,15 @@
             </view>
             <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
           </view>
+          
+          <view class="flex-row-between p-20 border-bottom" bindtap="toStock" hover-class="hover">
+            <view class="flex-row">
+              <image src="/images/goods.png" mode="aspectFill" class="icon mr-20" />
+              <text>库存</text>
+            </view>
+            <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
+          </view>
 
-        </view>
-
-        <view class="flex-column bg-white font-lg mt-10">
 
           <view class="flex-row-between p-20 border-bottom" bindtap="toMyPurchase" hover-class="hover">
             <view class="flex-row">
@@ -189,6 +179,7 @@
             </view>
             <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
           </view>
+
           <view class="flex-row-between p-20 border-bottom" bindtap="toPurchaseGoods" hover-class="hover">
             <view class="flex-row">
               <image src="/images/icon_goods_active.png" mode="aspectFill" class="icon mr-20" />
@@ -218,15 +209,7 @@
 
       </block>
 
-      <!-- </view> -->
-
-
-
     </view>
-
-
-
-
 
 
     <view class="center-content  text-secondary" style="height: 140rpx;">

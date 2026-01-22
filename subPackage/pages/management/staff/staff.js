@@ -7,6 +7,7 @@ import apiUrl from '../../../../config.js'
 
 import {
   deleteDisUser,
+  deleteWeightUser,
   deleteJrdhUser,
   getDisUserInfo,
   updateDisUserAdmin
@@ -95,8 +96,8 @@ Page({
       this.setData({
         zeroUserArr: res.result.data.zero,
         oneUserArr: res.result.data.one,
-        twoUserArr: res.result.data.two,
-        threeUserArr: res.result.data.three,
+        // twoUserArr: res.result.data.two,
+        // threeUserArr: res.result.data.three,
 
         editUser: false
       })
@@ -156,6 +157,15 @@ openOperation(e){
   })
 },
 
+openOperationWeight(e){
+  this.setData({
+    showOperationWeight: true,
+    selectUserIdWeight: e.currentTarget.dataset.id,
+    editUserItemWeight: e.currentTarget.dataset.item,
+
+  })
+},
+
 
 
   /**
@@ -194,6 +204,23 @@ openOperation(e){
   },
 
 
+  delUserWeight(){
+    load.showLoading("删除用户")
+      deleteWeightUser(this.data.selectUserIdWeight).then(res => {
+        if (res.result.code !== -1) {
+          load.hideLoading();
+          this._initData();
+        } else {
+          load.hideLoading();
+          wx.showToast({
+            title: res.result.msg,
+          })
+        }
+      })
+    
+
+  },
+
  
   editUser(e){
     this.setData({
@@ -206,6 +233,18 @@ openOperation(e){
   },
 
 
+  editUserWeight(){
+
+    this.setData({
+      editUserWeight: true,
+      showOperationWeight:false
+    })
+    wx.setStorageSync('editUserItemWeight', this.data.editUserItemWeight);
+    wx.navigateTo({
+      url: '../disUserEditWeight/disUserEditWeight',
+    })
+
+  },
 
   /**
    * 关闭蒙版
@@ -213,6 +252,7 @@ openOperation(e){
   hideMask() {
     this.setData({
       showOperation: false,
+      showOperationWeight: false
       
     })
   },
@@ -230,10 +270,12 @@ openOperation(e){
 
 toOpenOrder() {
     
- 
+  console.log('disId=' + this.data.disId + '&disName=' + this.data.disInfo.nxDistributerName
+  +'&userId=-1&userType=1');
   wx.navigateToMiniProgram({
     appId: "wxe7ab0f97ea2c6417",
-    path: '/pages/inviteAdmin/inviteAdmin?disId=' + this.data.disId + '&disName=' + this.data.disInfo,
+    path: '/pages/inviteAdmin/inviteAdmin?disId=' + this.data.disId + '&disName=' + this.data.disInfo.nxDistributerName
+    +'&userId=-1&userType=1&supplierId=-1',
     envVersion: 'trial', //release develop trial
     success(res) {
      

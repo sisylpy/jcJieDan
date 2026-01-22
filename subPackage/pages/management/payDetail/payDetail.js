@@ -4,8 +4,8 @@ var load = require('../../../../lib/load.js');
 import apiUrl from '../../../../config.js'
 import {
   
-  disGetPayListDetail
-
+  disGetPayListDetail,
+  
 } from '../../../../lib/apiDistributer'
 
 

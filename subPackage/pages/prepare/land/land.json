@@ -2,7 +2,6 @@
   "pageOrientation": "landscape",
 
   "usingComponents": {
-    "stockOutGoodsLand": "/components/stockOutGoodsLand/stockOutGoodsLand",
     "back-navbar": "/components/back-navbar/back-navbar"
   }
 }
