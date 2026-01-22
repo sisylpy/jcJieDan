@@ -9,6 +9,8 @@
     "input-pur-stock": "/components/inputPurStock/inputPurStock",
     "disEditPurchase": "/components/disEditPurchase/disEditPurchase",
     "editShelfStock": "/components/editShelfStock/editShelfStock",
-    "editShelfStockDetail": "/components/editShelfStockDetail/editShelfStockDetail"
+    "editShelfStockDetail": "/components/editShelfStockDetail/editShelfStockDetail",
+
+    "stockDetailModal": "/components/stockDetailModalSuyuan/stockDetailModalSuyuan"
   }
 }

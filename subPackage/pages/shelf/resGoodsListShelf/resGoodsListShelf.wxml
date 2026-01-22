@@ -1,8 +1,8 @@
 <view class="page">
   <back-navbar style="height: {{navBarHeight}}rpx;" title="{{name}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
-  <view class="content" style="padding-bottom: 0;">
-    <scroll-view class="content-scroll" scroll-y="true" style="height: {{scrollViewHeight}}rpx;">
+  <view class="content flex-column" style="padding-bottom: 0; height: {{scrollViewHeight}}rpx; ">
+    <scroll-view class="content-scroll1" scroll-y="true" style="height: {{scrollViewHeight}}rpx; padding-bottom: {{searchBoxHeight + safeBottom + keyboardHeight}}rpx;">
       <block wx:if="{{showArr.length > 0}}">
         <view class="section">
           <view class="flex-row font-md p-10">
@@ -31,7 +31,7 @@
       </block>
 
       <block wx:if="{{nxArr.length > 0}}">
-        <view class="section">
+        <view class="section" >
           <view class="section-header">
             <text class="font-lg">搜索结果</text>
             <view class="header-actions">
@@ -40,7 +40,7 @@
             </view>
           </view>
           <view class="section-body">
-            <view class="card result-card" wx:for="{{nxArr}}" wx:key="goodsIndex" wx:for-index="goodsIndex" wx:for-item="goods">
+            <view class="card1 result-card p-20" wx:for="{{nxArr}}" wx:key="goodsIndex" wx:for-index="goodsIndex" wx:for-item="goods">
               <!-- 已上架商品（显示货架名称） -->
               <block wx:if="{{goods.goodsType == 'shelfGoods'}}">
                 <view class="card-title font-md">
@@ -126,7 +126,7 @@
       </block>
 
       <block wx:if="{{nxArr.length == 0 && showArr.length == 0}}">
-        <view class="empty-state">
+        <view class=" flex-column-center" style="height: 200rpx;">
           <text class="font-sl text-secondary">在下方输入关键字即可搜索并添加货架商品</text>
         </view>
       </block>
@@ -136,7 +136,7 @@
   <view class="search-bar" style="bottom: {{keyboardOffset}}rpx; ">
     <view class="search-input-wrapper">
       <input class="search-input font-md" type="text" placeholder="搜索商品名称 / 拼音 / 别名" bindinput="getSearchStringNx" value="{{searchStr}}" bindfocus="onFocus" bindblur="onBlur" bindkeyboardheightchange="onKeyboardHeightChange" cursor-spacing="80" adjust-position="{{false}}" />
-      <view class="add-temp-btn"  bindtap="toAddTempGoods">
+      <view class="add-temp-btn"  bindtap="toAddTempGoods" wx:if="{{searchStr.length > 0}}"> 
         <text class="add-temp-text">添加临时商品</text>
       </view>
     </view>

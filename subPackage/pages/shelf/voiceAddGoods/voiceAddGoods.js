@@ -8,8 +8,17 @@ import {
 const plugin = requirePlugin('QCloudAIVoice');
 const speechRecognizerManager = plugin.speechRecognizerManager();
 
-const DEEPSEEK_API_KEY = 'sk-ab54d76efc1e4d95a7ab2cdb3013a920';
-const DEEPSEEK_API_URL = 'https://api.deepseek.com/v1/chat/completions';
+// 从配置文件读取配置
+const config = require('../../../../config');
+const DEEPSEEK_API_KEY = config.deepSeek?.apiKey || '';
+const DEEPSEEK_API_URL = config.deepSeek?.apiUrl || 'https://api.deepseek.com/v1/chat/completions';
+
+// 从配置文件读取腾讯云配置
+const TENCENT_CLOUD_SECRET_ID = config.tencentCloud?.secretId || '';
+const TENCENT_CLOUD_SECRET_KEY = config.tencentCloud?.secretKey || '';
+const TENCENT_CLOUD_APP_ID = config.tencentCloud?.appId || '1308821743';
+const TENCENT_CLOUD_ENGINE_MODEL_TYPE = config.tencentCloud?.engineModelType || '16k_zh';
+const TENCENT_CLOUD_VOICE_FORMAT = config.tencentCloud?.voiceFormat || 1;
 
 const COMMON_UNIT_WORDS = ['瓶','桶','袋','斤','金','进','今','津','劲','盒','包','件','箱','克','毫升','升','千克','公斤','斤装','个'];
 
@@ -548,11 +557,11 @@ Page({
 
   _doStartRecord() {
     const params = {
-      secretkey: 'YOUR_TENCENT_CLOUD_SECRET_KEY', // TODO: 从配置文件或环境变量读取
-      secretid: 'YOUR_TENCENT_CLOUD_SECRET_ID', // TODO: 从配置文件或环境变量读取
-      appid: '1308821743',
-      engine_model_type: '16k_zh',
-      voice_format: 1
+      secretkey: TENCENT_CLOUD_SECRET_KEY,
+      secretid: TENCENT_CLOUD_SECRET_ID,
+      appid: TENCENT_CLOUD_APP_ID,
+      engine_model_type: TENCENT_CLOUD_ENGINE_MODEL_TYPE,
+      voice_format: TENCENT_CLOUD_VOICE_FORMAT
     };
 
     this.setData({

@@ -69,7 +69,7 @@
                 <view class="purchase-date">
                   <text>{{tool.getHowManyDays(stock.nxDgssDate || stock.gbDgsDate)}}天库存</text>
                 </view>
-                <text class="font-sm">{{(stock.nxDepartmentEntity && stock.nxDepartmentEntity.nxDepartmentName) || (stock.gbDepartmentEntity && stock.gbDepartmentEntity.gbDepartmentName)}}</text>
+                <text class="font-sm">{{stock.shelfName}}</text>
               </view>
             </view>
 

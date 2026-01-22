@@ -45,6 +45,14 @@
   color: #fff;
 }
 
+.circle_list.gray{
+  background: #374947;
+}
+
+
+.circle_list.green{
+  background-color: #0a868a;
+}
 .his_price{
   background-color: #ececec;
   color: rgb(14, 26, 192);
@@ -57,6 +65,9 @@
   background: #374947;
 }
 
+.circle.green{
+  background-color: #0a868a;
+}
 
 .border-radius-40{
   border-radius: 40rpx;
@@ -328,7 +339,7 @@
 .shelf-card-tag {
   position: absolute;
   top: 10rpx;
-  right: 10rpx;
+  right: -30rpx;
 }
 .shelf-card-tag .circle {
   margin: 0;

@@ -651,7 +651,7 @@ Page({
       nxDpgDistributerId: this.data.disId,
       nxDpgInputType: 1,
       nxDpgCostLevel: e.detail.priceLevel,
-      nxDpgPurchaseType: 0,
+      nxDpgPurchaseType: 10,
       nxDpgPurchaseDate: this.data.arriveDate,
       nxDpgStockRestWeight: usedStockWeight
     }
@@ -734,7 +734,7 @@ Page({
       nxDpgExpectPrice: expectPrice,
       nxDpgDistributerId: this.data.disId,
       nxDpgInputType: 1,
-      nxDpgPurchaseType: 0,
+      nxDpgPurchaseType: 10,
       isShowTools: isShowTools,
       nxDpgPurUserId: this.data.userInfo ? this.data.userInfo.nxDistributerUserId : null
     }

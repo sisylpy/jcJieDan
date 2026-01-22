@@ -11,6 +11,7 @@ import {
   staffApplyPurGoods,
   disGetUnshelfGoods,
   disSavePurGoodsSaveStock,
+  
   saveShelfGoodsStock,
   deletePlanPurchaseGoods,
   updatePurchaseGoods,
@@ -300,6 +301,7 @@ Page({
       isListView: !this.data.isListView
     });
   },
+
 
   updateShelfGoodsData(e, keepCurrentPage = false) {
     console.log('updateShelfGoodsData - 开始刷新货架商品，shelfId:', this.data.shelfId, 'keepCurrentPage:', keepCurrentPage);
@@ -627,7 +629,6 @@ Page({
 
   changeShelfId(e) {
     console.log(e);
-    console.log("abbdbdbddbds-changeShelfIdchangeShelfId")
     this.setData({
       shelfIndex: e.currentTarget.dataset.index,
       shelfItem: e.currentTarget.dataset.item,
@@ -756,15 +757,15 @@ Page({
   showChoiceUn(e) {
     var disGoods = e.currentTarget.dataset.goods;
     const stockList = Array.isArray(disGoods.nxDisGoodsShelfStockEntities) ? disGoods.nxDisGoodsShelfStockEntities : [];
-    const fakeShelfGoods = {
-      nxDistributerGoodsEntity: disGoods,
-      nxDisGoodsShelfStockEntities: stockList,
-    };
+    // const fakeShelfGoods = {
+    //   nxDistributerGoodsEntity: disGoods,
+    //   nxDisGoodsShelfStockEntities: stockList,
+    // };
     this.setData({
       showOperation: true,
       isEditGoods: true,
       disGoods: disGoods,
-      shelfGoods: fakeShelfGoods,
+      // shelfGoods: fakeShelfGoods,
       isUnshelfSelected: true,
     })
   },
@@ -809,35 +810,35 @@ Page({
   /**
    * 修改采购商品（非货架商品）
    */
-  editPurchaseGoodsUnShelf() {
-    console.log('editPurchaseGoodsUnShelf called');
-    console.log('disGoods:', this.data.disGoods);
-    console.log('shelfPurGoods:', this.data.disGoods.shelfPurGoods);
+  // editPurchaseGoodsUnShelf() {
+  //   console.log('editPurchaseGoodsUnShelf called');
+  //   console.log('disGoods:', this.data.disGoods);
+  //   console.log('shelfPurGoods:', this.data.disGoods.shelfPurGoods);
 
-    if (!this.data.disGoods || !this.data.disGoods.shelfPurGoods) {
-      wx.showToast({
-        title: '采购信息不存在',
-        icon: 'none'
-      });
-      return;
-    }
+  //   if (!this.data.disGoods || !this.data.disGoods.shelfPurGoods) {
+  //     wx.showToast({
+  //       title: '采购信息不存在',
+  //       icon: 'none'
+  //     });
+  //     return;
+  //   }
 
-    const shelfPurGoods = this.data.disGoods.shelfPurGoods;
+  //   const shelfPurGoods = this.data.disGoods.shelfPurGoods;
 
-    this.setData({
-      showEditPurGoods: true,
-      item: this.data.disGoods,
-      applyStandardName: shelfPurGoods.nxDpgStandard || this.data.disGoods.nxDgGoodsStandardname,
-      planOrder: shelfPurGoods.nxDpgQuantity ? shelfPurGoods.nxDpgQuantity.toString() : '',
-      priceLevel: shelfPurGoods.nxDpgCostLevel || '1',
-      purchaseGoods: shelfPurGoods,
-      showOperation: false,
-      isEditPurchase: true, // 标识为修改模式
-      isUnshelfEdit: true, // 标识为非货架商品修改
-    })
+  //   this.setData({
+  //     showEditPurGoods: true,
+  //     item: this.data.disGoods,
+  //     applyStandardName: shelfPurGoods.nxDpgStandard || this.data.disGoods.nxDgGoodsStandardname,
+  //     planOrder: shelfPurGoods.nxDpgQuantity ? shelfPurGoods.nxDpgQuantity.toString() : '',
+  //     priceLevel: shelfPurGoods.nxDpgCostLevel || '1',
+  //     purchaseGoods: shelfPurGoods,
+  //     showOperation: false,
+  //     isEditPurchase: true, // 标识为修改模式
+  //     isUnshelfEdit: true, // 标识为非货架商品修改
+  //   })
 
-    console.log('showEditPurGoods set to true for unshelf goods');
-  },
+  //   console.log('showEditPurGoods set to true for unshelf goods');
+  // },
 
 
   /**
@@ -1024,9 +1025,7 @@ Page({
       nxDpgQuantity: plan,
       nxDpgStandard: standard,
       nxDpgDistributerId: this.data.disId,
-      nxDpgInputType: 1,
       nxDpgCostLevel: e.detail.priceLevel,
-      nxDpgPurchaseType: 0,
       nxDpgPurchaseDate: this.data.arriveDate,
       nxDpgStockRestWeight: usedStockWeight
     }
@@ -1211,7 +1210,6 @@ Page({
       nxDpgExpectPrice: expectPrice, // 期望售价（用户输入的原始价格，后台会计算）
       nxDpgDistributerId: this.data.disId,
       nxDpgInputType: 1,
-      nxDpgPurchaseType: -1,
       isShowTools: isShowTools, // 等待入库标识
       nxDpgPurUserId: this.data.userInfo ? this.data.userInfo.nxDistributerUserId : null
     }
@@ -1309,6 +1307,8 @@ Page({
   },
 
 
+  
+
   _getDisShelfs() {
     // 1. 先拉左侧所有货架
     disGetShelfList(this.data.disId).then(res => {
@@ -1337,9 +1337,9 @@ Page({
    */
   receivePurGoods() {
     const shelfGoods = this.data.shelfGoods;
-    if (!shelfGoods || !shelfGoods.shelfPurGoods) {
+    if (shelfGoods.shelfPurGoods.nxDpgStatus == 1) {
       wx.showToast({
-        title: '采购商品信息不存在',
+        title: '采购未完成',
         icon: 'none'
       });
       return;
@@ -1368,16 +1368,15 @@ Page({
                 icon: 'success'
               });
               
-              // 获取更新后的采购商品信息（接收后状态会变化）
-              const updatedPurchaseGoods = res.result.data || {
-                ...purGoods,
-                // 接收后状态通常会变化，如果接口返回了更新后的数据则使用，否则保持原数据
-                nxDpgStatus: res.result.data?.nxDpgStatus || purGoods.nxDpgStatus
-              };
-              
-              // 优化：只更新列表中对应商品的采购信息，不刷新整个列表
+              // 收货接口返回的是stock（库存批次），需要：
+              // 1. 给这个货架商品的库存加返回的库存批次
+              // 2. 把采购商品清空
               if (goodsId) {
-                this.updatePurchaseGoodsInList(goodsId, shelfGoodsId, updatedPurchaseGoods, false);
+                const resultData = res.result.data || {};
+                // 更新库存：追加返回的库存批次到现有库存列表
+                this.updateStockInList(goodsId, shelfGoodsId, null, resultData, false);
+                // 清空采购商品
+                this.updatePurchaseGoodsInList(goodsId, shelfGoodsId, null, false);
               }
               
               this.setData({
@@ -1750,7 +1749,14 @@ Page({
             isShowTools: false,
             shelfIndex: 0,
           })
-          this._getDisShelfs();
+          if(this.data.shelfArr.length == 1){
+            this.setData({
+              shelfArr: []
+            })
+          }else{
+            this._getDisShelfs();
+          }
+         
         } else {
           wx.showToast({
             title: res.result.msg,
@@ -1786,6 +1792,12 @@ Page({
               // shelfIndex: that.data.shelfArr.length - 1,
               // shelfGoodsList: [],
             })
+            if(arr.length == 1){
+              this.setData({
+                 shelfId: res.result.data.nxDistributerGoodsShelfId,
+              shelfItem: res.result.data,
+              })
+            }
           
           }
         })
@@ -1886,6 +1898,10 @@ Page({
 
   getUnShelfGoods(keepCurrentPage = false) {
     console.log('getUnShelfGoods - 开始刷新非货架商品，disId:', this.data.disId, 'keepCurrentPage:', keepCurrentPage);
+
+    this.setData({
+      shelfGoods:  null,
+    })
 
     // 如果保持当前页且当前页 > 1，需要重新加载所有已加载的页面
     if (keepCurrentPage && this.data.currentPage > 1) {
@@ -2194,8 +2210,6 @@ Page({
   },
 
 
-
-
   // 打开订货弹窗name=朝天椒皮&id=26929&type=undefined&standard=袋
   toOpenDisPlanPurchase() {
     // 获取商品信息（从 shelfGoods 中获取）
@@ -2270,8 +2284,9 @@ Page({
       isShowTools: false, // 等待入库，默认 false
       nxDistributerGoodsEntity: disGoods
     };
+
     this.setData({
-      showInputPurStock: true,
+     
       item: purGoodsItem,
       disGoods: disGoods,
       applyStandardName: standardName,
@@ -2279,6 +2294,14 @@ Page({
       windowWidth: this.data.windowWidth,
       showOperation: false
     })
+
+    this.setData({
+      showInputPurStock: true,
+    })
+
+   
+
+
   },
 
   // 取消采购入库
@@ -2288,6 +2311,7 @@ Page({
       item: null, // 清空item对象，避免下次打开弹窗时遗留数据
     })
   },
+
   // 处理采购入库确认
   confirmInputPurGoods(e) {
     const item = e.detail.item;
@@ -2422,6 +2446,7 @@ Page({
       return
     }
 
+    
     this.setData({
       showStockDetail: true,
       showOperation: false
@@ -2519,6 +2544,7 @@ Page({
       });
     });
   },
+
 
   // 关闭库存弹窗
   closeStockModal() {
@@ -3167,6 +3193,16 @@ Page({
   },
 
 
+  toSetGoods(e){
+    wx.setStorageSync('shelfItem', e.currentTarget.dataset.shelf)
+    wx.setStorageSync('goodsSetType', "shelf");
+    this.setData({
+      isShowTools: false
+    })
+    wx.navigateTo({
+      url: '/subPackage/pages/goods/greatGrandGoods/greatGrandGoods?disId=' + this.data.disId + '&type=add',
+    })
+  },
 
 
 

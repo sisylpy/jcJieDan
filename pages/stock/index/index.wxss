@@ -76,8 +76,10 @@
 
 
 .left-item {
-  padding: 30rpx 20rpx;
+  padding: 30rpx 15rpx;
   background-color: #eee;
+  word-break: break-all;
+  word-wrap: break-word;
 }
 
 .left-active {

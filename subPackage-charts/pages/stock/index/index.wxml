@@ -42,6 +42,13 @@
           </view>
           <view class="font-md">{{three.threeTotal}}元</view>
         </view>
+        <view class="swiper1_top_item  flex-column {{itemIndex==5 ? 'on' : ''}}" data-index='5' bindtap="onTab1Click" style="width: {{windowWidth / 4}}rpx; min-width: 140rpx; padding: 16rpx 12rpx; margin: 0 4rpx; box-sizing: border-box;">
+          <view class="flex-row">
+            <view class="time-icon more-days">3+</view>
+            <text class="">{{exceedThree.dateString}}</text>
+          </view>
+          <view class="font-md">{{exceedThree.exceedThreeTotal}}元</view>
+        </view>
       </scroll-view>
     </view>
   </view>
@@ -380,6 +387,74 @@
         </view>
       </scroll-view>
 
+
+    </swiper-item>
+
+
+
+    <!-- exceed 超过3天 -->
+    <swiper-item style="height: 100%;">
+      <scroll-view scroll-y style="height:{{ windowHeight - navBarHeight}}rpx;">
+        <view class="flex-column bg-light p-20" wx:if="{{tab1Index  == 5 && exceedThree.exceedThreeTotal > 0}}">
+
+
+          <view class="bg-light flex-column" wx:if="{{exceedThree.arr && exceedThree.arr.length > 0}}">
+            <view class="flex-column font-md  bg-white " wx:for="{{exceedThree.arr}}" wx:for-item="grand" wx:for-index="greatIndex" wx:key="nxDistributerFatherGoodsId">
+
+              <view class="flex-row-default" style="width: {{windowWidth - 80}}rpx;" bindtap="toStockPage" data-id="{{grand.nxDistributerFatherGoodsId || grand.gbDistributerFatherGoodsId}}" data-name="{{grand.nxDfgFatherGoodsName || grand.gbDfgFatherGoodsName}}"  data-color="{{grand.nxDfgFatherGoodsColor || grand.gbDfgFatherGoodsColor}}" data-total="{{grand.fatherStockTotalString}}" data-index="{{greatIndex}}" hover-class="hover">
+                <!-- 左侧：商品图片和名称 -->
+                <view class="p-20">
+                  <image src="{{grand.nxDfgFatherGoodsImg ? (url + grand.nxDfgFatherGoodsImg) : ''}}" mode="aspectFill" class="category-image" binderror="onImageError" />
+                </view>
+                <!-- 右侧：库存信息 -->
+                <view class="flex-column p-20">
+                  <view class="flex-row-between " style="width: {{windowWidth - 240}}rpx;">
+                    <text class="category-name">{{grand.nxDfgFatherGoodsName || grand.gbDfgFatherGoodsName}}</text>
+                    <!-- 百分比环形图 -->
+                    <view class="donut-chart-container">
+                      <view class="donut-chart" style="width: 80rpx; height: 80rpx; background: {{grand.stockConicGradient}};">
+                        <text class="donut-percent">{{grand.fatherStockTotalPercent}}%</text>
+                      </view>
+                    </view>
+                  </view>
+
+                  <view class="flex-column">
+                    <!-- 主要金额 -->
+                    <view class="stock-quantity">
+                      <text class="quantity-label">库存金额:</text>
+                      <view class="flex-column">
+                        <view class="quantity-value">{{grand.fatherStockTotalString}}元</view>
+                      </view>
+                     
+                    </view>
+                    <!-- 商品数量 -->
+                    <view class="stock-quantity">
+                      <text class="quantity-label">商品:</text>
+                      <view class="flex-column">
+                        <view class="quantity-value">{{grand.fatherStockManyString}}个</view>
+                      </view>
+                    </view>
+
+                  </view>
+
+                </view>
+              </view>
+
+            </view>
+          </view>
+
+          <view style="height: 200rpx; ">
+
+          </view>
+        </view>
+        <!-- emptyView -->
+        <view class="flex-column " wx:else style="height:{{windowHeight - navBarHeight}}rpx; margin-top: 300rpx; ">
+          <view class=" flex-column center-content">
+            <image class="icon-lg" src="../../../../images/file-common.png"></image>
+            <text class="p-20">暂无库存</text>
+          </view>
+        </view>
+      </scroll-view>
 
     </swiper-item>
 

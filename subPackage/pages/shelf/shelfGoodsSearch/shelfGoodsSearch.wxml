@@ -134,35 +134,6 @@
         </view>
       </view>
 
-      <view class="p-30 flex-row border-bottom" catchtap="toOpenDisPlanPurchase" hover-class="hover">
-        <image src="/images/add-active.png" mode="aspectFill" class="icon mr-20" />
-        <text> 订货</text>
-      </view>
-
-      <view class="popup-item flex-row" catchtap="editPurchaseGoods" hover-class="popup-item-hover" wx:if="{{shelfGoods.shelfPurGoods !== null && shelfGoods.shelfPurGoods.nxDpgStatus < 2}}">
-        <image src="/images/edit-3.png" class="popup-item-icon"></image>
-        <view class="popup-item-text">
-          <text class="popup-item-title">修改采购信息</text>
-        </view>
-      </view>
-
-      <view class="p-30 flex-row border-bottom" catchtap="toOpenInputPurSock" hover-class="hover">
-        <image src="/images/gouwuche-4.png" mode="aspectFill" class="icon mr-20" />
-        <text> 采购入库</text>
-      </view>
-
-      <block wx:if="{{disGoods.stockList && disGoods.stockList.length > 0}}">
-        <view class="p-30 flex-row border-bottom" catchtap="showStockDetail" hover-class="hover">
-          <image src="/images/Focus-Auto.png" mode="aspectFill" class="icon mr-20" />
-          <text>库存详细</text>
-        </view>
-
-        <view class="p-30 flex-row border-bottom" catchtap="showStock" hover-class="hover">
-          <image src="/images/tab_classification-2.png" mode="aspectFill" class="icon mr-20" />
-          <text> 修改库存数量</text>
-        </view>
-      </block>
-
       <view class="p-30 flex-row border-bottom" catchtap="toGoodsDetail" hover-class="hover">
         <image src="/images/icon_goods.png" mode="aspectFill" class="icon mr-20" />
         <text> 打开详细</text>
@@ -182,26 +153,33 @@
           <text>({{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
         </view>
       </view>
-      <block wx:if="{{shelfGoods.shelfPurGoods  == null}}">
 
-        <view class="p-30 flex-row border-bottom" catchtap="toOpenDisPlanPurchase" hover-class="hover">
-          <image src="/images/add-active.png" mode="aspectFill" class="icon mr-20" />
-          <text> 订货</text>
-        </view>
-      </block>
+      <block wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+        <block wx:if="{{shelfGoods.shelfPurGoods  == null}}">
 
-      <block wx:else="">
+<view class="p-30 flex-row border-bottom" catchtap="toOpenDisPlanPurchase" hover-class="hover">
+  <image src="/images/add-active.png" mode="aspectFill" class="icon mr-20" />
+  <text> 订货</text>
+</view>
+</block>
 
-        <view class="p-30 flex-row border-bottom" catchtap="editPurchaseGoods" hover-class="popup-item-hover" wx:if="{{shelfGoods.shelfPurGoods !== null && shelfGoods.shelfPurGoods.nxDpgStatus == 0}}" hover-class="hover">
-          <image src="/images/icon_goods.png" mode="aspectFill" class="icon mr-20" />
-          <text> 修改订货</text>
-        </view>
-      </block>
+<block wx:else="">
 
-      <view class="p-30 flex-row border-bottom" catchtap="toOpenInputPurSock" hover-class="hover">
+<view class="p-30 flex-row border-bottom" catchtap="editPurchaseGoods" hover-class="popup-item-hover" wx:if="{{shelfGoods.shelfPurGoods !== null && shelfGoods.shelfPurGoods.nxDpgStatus == 0}}" hover-class="hover">
+  <image src="/images/icon_goods.png" mode="aspectFill" class="icon mr-20" />
+  <text> 修改订货</text>
+</view>
+</block>
+
+<view class="p-30 flex-row border-bottom" catchtap="toOpenInputPurSock" hover-class="hover">
         <image src="/images/gouwuche-4.png" mode="aspectFill" class="icon mr-20" />
         <text>采购入库</text>
       </view>
+
+      </block>
+     
+
+    
 
       <block wx:if="{{shelfGoods.nxDisGoodsShelfStockEntities.length > 0}}">
 

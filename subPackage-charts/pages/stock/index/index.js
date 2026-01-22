@@ -80,14 +80,19 @@ Page({
         load.hideLoading();
         console.log("abc")
         console.log(res.result.data)
+        console.log("🔍 检查exceed数据:", res.result.data.exceed)
+        console.log("🔍 检查exceedArr数据:", res.result.data.exceedArr)
         if (res.result.code == 0) {
           if (res.result.data.total.restTotal > 0) {
             // 为每个商品添加环形图渐变色
             const processedData = this._addConicGradients(res.result.data);
 
+            console.log("📊 设置exceedThree数据:", res.result.data.exceed)
+            console.log("📊 处理后的exceed数据:", processedData.exceed)
             this.setData({
               total: res.result.data.total,
               totalArr: processedData.arr,
+              exceedThree: processedData.exceed,
               three: res.result.data.three,
               two: res.result.data.two,
               one: res.result.data.one,
@@ -95,6 +100,7 @@ Page({
               arr: processedData,
 
             })
+            console.log("✅ 设置后的exceedThree:", this.data.exceedThree)
 
 
             if (this.data.tab1Index == 0) {
@@ -117,14 +123,23 @@ Page({
               this.setData({
                 dateString: this.data.three.dateString
               })
+            } else if (this.data.tab1Index == 5) {
+              console.log("🎯 tab1Index == 5, 设置3天以上日期字符串")
+              console.log("exceedThree数据:", this.data.exceedThree)
+              this.setData({
+                dateString: this.data.exceedThree.dateString
+              })
+              console.log("设置后的dateString:", this.data.exceedThree.dateString)
             }
             console.log("chckckckdkdkkdatesYr", this.data.dateString);
+            console.log("当前tab1Index:", this.data.tab1Index)
 
           } else {
             this.setData({
               total: "0.0",
               totalArr: [],
               arr: [],
+              exceedThree: "",
               three: "",
               two: "",
               one: "",
@@ -136,6 +151,7 @@ Page({
             total: "0.0",
             totalArr: [],
             arr: [],
+            exceedThree: "",
             three: "",
             two: "",
             one: "",
@@ -201,6 +217,7 @@ Page({
    */
   onTab1Click(event) {
     let index = event.currentTarget.dataset.index;
+    console.log("🖱️ onTab1Click - index:", index)
     console.log(event.currentTarget.dataset)
     this.setData({
       tab1Index: index,
@@ -210,6 +227,7 @@ Page({
 
 
     })
+    console.log("📌 点击后tab1Index:", this.data.tab1Index, "是否为3天以上(index 5):", index == 5)
 
   },
 
@@ -241,6 +259,7 @@ Page({
   animationfinish(event) {
     console.log("findiis----zero");
     console.log(event)
+    console.log("🔄 animationfinish - current:", event.detail.current)
     this.setData({
       tab1Index: event.detail.current,
       itemIndex: event.detail.current,
@@ -272,6 +291,13 @@ Page({
         leftWidth: 220,
       })
     }
+    if (event.detail.current == 5) {
+      console.log("🎯 切换到3天以上标签页 (index 5)")
+      this.setData({
+        leftWidth: 250,
+      })
+    }
+    console.log("📌 最终tab1Index:", this.data.tab1Index, "itemIndex:", this.data.itemIndex)
     this._getInitData();
   },
 
@@ -329,9 +355,19 @@ Page({
         ...data.three,
         arr: processArray(data.three.arr)
       },
+      exceed: data.exceed ? {
+        ...data.exceed,
+        arr: processArray(data.exceedArr || data.exceed.arr || [])
+      } : { arr: processArray(data.exceedArr || []) }
     };
 
     console.log('✅ 环形图数据处理完成:', result);
+    console.log('🔍 exceed数据详情:', {
+      exceed: data.exceed,
+      exceedArr: data.exceedArr,
+      exceedDotArr: data.exceed?.arr,
+      processedExceedArr: result.exceed?.arr
+    });
     return result;
   },
 

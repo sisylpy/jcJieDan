@@ -49,6 +49,7 @@ Page({
     keyboardVisible: true, // 标记键盘是否可见
     keyboardOffset: 0,
     keyboardHeight: 0, // 键盘高度，用于调整内容区域高度
+    searchBoxHeight: 128, // 搜索栏高度（rpx），初始值
     rpxR: 1,
     tempGoodsAdded: false, // 临时商品是否已添加
     tempGoodsData: null, // 临时商品数据
@@ -63,9 +64,6 @@ Page({
     const app = getApp();
     const globalData = app.globalData;
 
-
-
-
     var value = wx.getStorageSync('userInfo');
     if (value) {
       this.setData({
@@ -74,45 +72,47 @@ Page({
       })
     }
 
-    // 搜索栏实际高度计算：
-    // padding: 16rpx 24rpx 28rpx (上、左右、下)
-    // 输入框高度: 84rpx
-    // 如果有添加按钮: 84rpx + gap(12rpx)
-    // 最大高度: 16 + 84 + 12 + 84 + 28 = 224rpx
-    // 最小高度（只有输入框）: 16 + 84 + 28 = 128rpx
-    // 使用实际测量的高度：约127rpx（只有输入框时）
-    // 如果后续有按钮，高度会动态增加，但初始时使用最小高度
-    const searchBarHeight = 128; // 搜索栏最小高度（只有输入框时，实际测量约127rpx）
-    const contentPaddingTop = 20; // content 的 padding-top
-    const windowHeightRpx = globalData.windowHeight * globalData.rpxR;
-    const navBarHeightRpx = globalData.navBarHeight * globalData.rpxR;
-    const searchBoxHeightRpx = searchBarHeight * globalData.rpxR;
-    const contentPaddingTopRpx = contentPaddingTop * globalData.rpxR;
+    // ✅ 统一用 px 计算，再转 rpx（彻底避免混单位）
+    const win = wx.getWindowInfo(); // 全部是 px
+    const rpxR = 750 / win.windowWidth;
+
+    // searchBarHeight 这里就直接用 rpx（因为 wxss 写死了就是 128rpx）
+    const searchBarHeightRpx = 128; // 搜索栏最小高度（只有输入框时，实际测量约127rpx）
+    const contentPaddingTopRpx = 20; // content 的 padding-top
+
+    // 系统 API 拿到的都是 px，统一转换为 rpx
+    const systemHeightRpx = win.windowHeight * rpxR;
+    const navBarHeightRpx = globalData.navBarHeight * rpxR; // globalData.navBarHeight 是 px
+
     // 初始 scroll-view 高度 = 屏幕高度 - 导航栏高度 - 搜索栏高度 - content padding-top
-    // content 有 padding-top: 20rpx，scroll-view 在 content 内部，需要减去这个 padding
-    const initialScrollViewHeight = windowHeightRpx - navBarHeightRpx - searchBoxHeightRpx - contentPaddingTopRpx;
+    // 注意：content 容器有 padding-top: 20rpx，scroll-view 在 content 内部，所以需要减去这个 padding
+    const initialScrollViewHeight = systemHeightRpx - navBarHeightRpx - searchBarHeightRpx - contentPaddingTopRpx;
     
-    console.log('=== 页面高度初始化 ===');
-    console.log('windowHeightRpx:', windowHeightRpx);
+    console.log('=== 页面高度初始化（修复后） ===');
+    console.log('windowHeight (px):', win.windowHeight);
+    console.log('navBarHeight (px):', globalData.navBarHeight);
+    console.log('rpxR:', rpxR);
+    console.log('systemHeightRpx:', systemHeightRpx);
     console.log('navBarHeightRpx:', navBarHeightRpx);
-    console.log('searchBoxHeightRpx:', searchBoxHeightRpx);
+    console.log('searchBarHeightRpx:', searchBarHeightRpx);
     console.log('contentPaddingTopRpx:', contentPaddingTopRpx);
     console.log('initialScrollViewHeight:', initialScrollViewHeight);
-    console.log('计算验证:', windowHeightRpx, '=', navBarHeightRpx, '+', searchBoxHeightRpx, '+', contentPaddingTopRpx, '+', initialScrollViewHeight);
+    console.log('计算验证:', systemHeightRpx, '=', navBarHeightRpx, '+', searchBarHeightRpx, '+', contentPaddingTopRpx, '+', initialScrollViewHeight);
     
     // 延迟检查实际渲染高度，并根据实际高度动态调整
     setTimeout(() => {
       const query = wx.createSelectorQuery();
       query.select('.search-bar').boundingClientRect((rect) => {
         if (rect) {
-          const actualSearchBarHeightRpx = rect.height * (this.data.rpxR || 1);
+          const currentRpxR = this.data.rpxR || rpxR; // 使用 data 中的 rpxR，如果没有则使用局部变量
+          const actualSearchBarHeightRpx = rect.height * currentRpxR; // rect.height 是 px，转换为 rpx
           console.log('=== 搜索栏实际高度检查 ===');
           console.log('search-bar 实际高度 (px):', rect.height);
           console.log('search-bar 实际高度 (rpx):', actualSearchBarHeightRpx);
-          console.log('设置的 searchBoxHeight (rpx):', searchBoxHeightRpx);
+          console.log('设置的 searchBoxHeight (rpx):', searchBarHeightRpx);
           
           // 如果实际高度和设置的高度不一致，更新 scrollViewHeight
-          if (Math.abs(actualSearchBarHeightRpx - searchBoxHeightRpx) > 10) {
+          if (Math.abs(actualSearchBarHeightRpx - searchBarHeightRpx) > 10) {
             console.log('检测到搜索栏高度不匹配，更新 scrollViewHeight');
             const correctedScrollViewHeight = this.data.systemHeight - this.data.navBarHeight - actualSearchBarHeightRpx - contentPaddingTopRpx;
             this.setData({
@@ -126,10 +126,10 @@ Page({
     }, 500);
  
      this.setData({
-       windowWidth: globalData.windowWidth * globalData.rpxR,
-       windowHeight: windowHeightRpx,
+       windowWidth: win.windowWidth * rpxR,
+       windowHeight: systemHeightRpx,
        navBarHeight: navBarHeightRpx,
-       searchBoxHeight: searchBoxHeightRpx,
+       searchBoxHeight: searchBarHeightRpx,
        scrollViewHeight: initialScrollViewHeight, // 初始 scroll-view 高度（无键盘时）
        orderDataHeight: 0,  // 用于存储订单数据区域的高度
        url: apiUrl.server,
@@ -137,8 +137,8 @@ Page({
        shelfId: options.shelfId,
        sort: options.sort,
        shelfSort: options.shelfSort,
-       rpxR: globalData.rpxR || 1,
-       systemHeight: windowHeightRpx, // 保存系统高度，用于后续计算
+       rpxR: rpxR,
+       systemHeight: systemHeightRpx, // 保存系统高度，用于后续计算
     })
 
     var shelf = wx.getStorageSync('shelfItem');
@@ -168,19 +168,27 @@ Page({
     // e.detail.height 是键盘高度，单位 px
     const keyboardHeightPx = (e.detail && e.detail.height) ? e.detail.height : 0;
     
+    if (keyboardHeightPx === 0) {
+      // 键盘收起，使用 onBlur 处理
+      return;
+    }
+    
     // 将键盘高度从 px 转换为 rpx
-    // rpx = px * (750 / screenWidth)
     const keyboardHeightRpx = keyboardHeightPx * (this.data.rpxR || 1);
     
     // keyboardOffset 用于将搜索栏顶到键盘上方，等于键盘高度
     const keyboardOffsetRpx = keyboardHeightRpx;
     
     // 重新计算 scroll-view 高度
-    // scrollViewHeight = 系统高度 - 导航栏高度 - 搜索栏高度 - content padding-top - 键盘高度
-    const contentPaddingTopRpx = 20 * (this.data.rpxR || 1);
-    const scrollViewHeight = this.data.systemHeight - this.data.navBarHeight - this.data.searchBoxHeight - contentPaddingTopRpx - keyboardHeightRpx;
+    // 键盘弹起时，search-bar 被推上去（bottom: keyboardOffset = keyboardHeight）
+    // scroll-view 的可视区域应该是：从导航栏下方开始，到 search-bar 上方结束
+    // 由于 content 容器有 padding-top: 20rpx，scroll-view 在 content 内部
+    // 所以 scroll-view 高度 = 系统高度 - 导航栏高度 - content padding-top - 键盘高度 - search-bar高度
+    const contentPaddingTopRpx = 20; // content 容器的 padding-top
+    // 键盘弹起时，scroll-view 的可视区域 = 系统高度 - 导航栏 - content padding-top - 键盘高度 - search-bar高度
+    const scrollViewHeight = this.data.systemHeight - this.data.navBarHeight - contentPaddingTopRpx - keyboardHeightRpx - this.data.searchBoxHeight;
     
-    console.log('键盘高度变化:', {
+    console.log('🔍 键盘高度变化（详细）:', {
       keyboardHeightPx: keyboardHeightPx,
       keyboardHeightRpx: keyboardHeightRpx,
       keyboardOffsetRpx: keyboardOffsetRpx,
@@ -188,9 +196,13 @@ Page({
       systemHeight: this.data.systemHeight,
       navBarHeight: this.data.navBarHeight,
       searchBoxHeight: this.data.searchBoxHeight,
-      rpxR: this.data.rpxR
+      contentPaddingTopRpx: contentPaddingTopRpx,
+      rpxR: this.data.rpxR,
+      calculation: `${this.data.systemHeight} - ${this.data.navBarHeight} - ${contentPaddingTopRpx} - ${keyboardHeightRpx} - ${this.data.searchBoxHeight} = ${scrollViewHeight}`,
+      '可视区域占比': `${((scrollViewHeight / this.data.systemHeight) * 100).toFixed(2)}%`
     });
     
+    // 立即更新，不延迟
     this.setData({
       keyboardOffset: keyboardOffsetRpx, // 搜索栏向上偏移，位于键盘上方
       keyboardHeight: keyboardHeightRpx, // 保存键盘高度
@@ -203,7 +215,7 @@ Page({
     setTimeout(() => {
       // 键盘收起后，重新计算 scroll-view 高度
       // scrollViewHeight = 系统高度 - 导航栏高度 - 搜索栏高度 - content padding-top（无键盘）
-      const contentPaddingTopRpx = 20 * (this.data.rpxR || 1);
+      const contentPaddingTopRpx = 20; // 直接使用 rpx，不需要再转换
       const scrollViewHeight = this.data.systemHeight - this.data.navBarHeight - this.data.searchBoxHeight - contentPaddingTopRpx;
       
       this.setData({

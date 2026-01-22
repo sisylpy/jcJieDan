@@ -8,7 +8,7 @@
 }
 
 .content {
-  flex: 1;
+  /* flex: 1; */
   padding: 20rpx 24rpx 0 24rpx;
   box-sizing: border-box;
   overflow: hidden; /* 防止内容溢出 */
@@ -68,7 +68,7 @@
 
 .result-card {
   border: 1rpx solid #d7e8ff;
-  background-color: #f9fcff;
+  background-color: #eff6fd;
 }
 
 .card-title {

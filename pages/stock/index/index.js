@@ -35,6 +35,7 @@ Component({
     // 按客户模式相关数据
     depArr: [], // 部门列表（按客户模式）
     selectedDepId: null, // 选中的部门ID
+    selDepName: '', // 选中的部门名称
     
     // 打印机相关
     printOk: false, // 打印机连接状态
@@ -71,12 +72,17 @@ Component({
         const tabBarHeightRpx = 100;
         const viewBarHeightRpx = viewBarHeight * rpxRatio;
         const contentHeight = (screenHeight - navBarHeight ) * rpxRatio;
+        
+      // 获取显示模式（从缓存读取，如果没有则使用默认值）
+      const viewMode = wx.getStorageSync('stockViewMode') || 'category';
+      // 左侧菜单宽度统一为 120rpx
+      const leftMenuWidth = 120;
 
         this.setData({ 
           contentHeight: contentHeight,
           navBarHeight: navBarHeightRpx,
           tabBarHeight: tabBarHeightRpx,
-          leftMenuWidth: 140,
+          leftMenuWidth: leftMenuWidth,
           viewBarHeight: viewBarHeightRpx,
           windowWidth: globalData.windowWidth * globalData.rpxR,
           windowHeight: globalData.windowHeight * globalData.rpxR,
@@ -158,11 +164,16 @@ Component({
       const viewBarHeightRpx = viewBarHeight * rpxRatio;
       const contentHeight = (screenHeight - navBarHeight ) * rpxRatio;
 
+      // 获取显示模式（从缓存读取，如果没有则使用默认值）
+      const viewMode = wx.getStorageSync('stockViewMode') || 'category';
+      // 左侧菜单宽度统一为 120rpx
+      const leftMenuWidth = 120;
+
       this.setData({ 
         contentHeight: contentHeight,
         navBarHeight: navBarHeightRpx,
         tabBarHeight: tabBarHeightRpx,
-        leftMenuWidth: 140, // 左侧菜单宽度，单位 rpx（减小以增加右侧内容宽度）
+        leftMenuWidth: leftMenuWidth,
 
         viewBarHeight: viewBarHeightRpx,
       });
@@ -192,9 +203,10 @@ Component({
         choiceStockArr: [], // 重置选中的出库商品数组
         
         // 重置显示模式相关数据（从缓存读取，如果没有则使用默认值）
-        viewMode: wx.getStorageSync('stockViewMode') || 'category',
+        viewMode: viewMode,
         depArr: [],
         selectedDepId: null,
+        selDepName: '',
         
         // 检查标签打印机缓存设置
         hasLabelPrinter: false, // 是否有标签打印机设置
@@ -344,20 +356,11 @@ Component({
 
   // 清除所有选择
   clearAllSelected() {
-    var that = this;
-    wx.showModal({
-      title: '提示',
-      content: '确定要清除所有选择吗？',
-      success: function(res) {
-        if (res.confirm) {
-          that._clearSelectedData();
-          wx.showToast({
-            title: '已清除',
-            icon: 'success'
-          });
-        }
-      }
-    });
+    this._clearSelectedData();
+    // wx.showToast({
+    //   title: '已清除',
+    //   icon: 'success'
+    // });
   },
 
   closeStockCar() {
@@ -404,14 +407,19 @@ Component({
       // 保存显示模式到本地存储
       wx.setStorageSync('stockViewMode', newMode);
       
+      // 左侧菜单宽度统一为 120rpx
+      const leftMenuWidth = 120;
+      
       // 重置选中状态
                 this.setData({
         viewMode: newMode,
+        leftMenuWidth: leftMenuWidth,
         choiceStockArr: [],
         goodsArr: [],
         goodsCataArr: [],
         depArr: [],
         selectedDepId: null,
+        selDepName: '',
         selectedSub: 0,
         toView: 'position0',
         scrollTopLeft: 0,
@@ -743,6 +751,8 @@ Component({
         } else {
           // 如果当前页面没有该分类的商品，递归加载直到找到
           console.log('❌ 当前页面没有目标分类商品，开始递归加载');
+          // 显示加载蒙版
+          load.showLoading('正在加载商品');
           this.loadGoodsUntilCategory(categoryId, fullTargetId);
         }
       } else {
@@ -941,6 +951,8 @@ Component({
       
       if (page > maxAttempts) {
         console.log('❌ 达到最大尝试次数，停止加载');
+        // 隐藏加载蒙版
+        load.hideLoading();
         wx.showToast({
           title: '该分类商品在其他页面',
           icon: 'none',
@@ -951,6 +963,8 @@ Component({
       
       if (page > this.data.totalPage) {
         console.log('❌ 已加载所有数据，仍未找到该分类');
+        // 隐藏加载蒙版
+        load.hideLoading();
         wx.showToast({
           title: '该分类商品在其他页面',
           icon: 'none',
@@ -973,7 +987,6 @@ Component({
       };
       
       console.log(`📤 请求参数:`, data);
-      
       disGetTypePrepareOutPage(data).then(res => {
         this.setData({
           isLoading: false
@@ -1046,6 +1059,9 @@ Component({
               console.log('✅ 找到目标分类商品，设置跳转目标');
               console.log(`🎯 设置toView: ${targetId}`);
               
+              // 隐藏加载蒙版
+              load.hideLoading();
+              
               this.setData({
                 toView: targetId
               });
@@ -1067,6 +1083,8 @@ Component({
           });
         } else {
           console.log('❌ 加载数据失败:', res.result.msg);
+          // 隐藏加载蒙版
+          load.hideLoading();
           wx.showToast({
             title: '加载数据失败',
             icon: 'none',
@@ -1078,6 +1096,8 @@ Component({
         this.setData({
           isLoading: false
         });
+        // 隐藏加载蒙版
+        load.hideLoading();
         wx.showToast({
           title: '加载数据失败',
           icon: 'none',
@@ -1127,6 +1147,7 @@ Component({
         goodsCataArr: [],
         depArr: [],
         selectedDepId: null,
+        selDepName: '',
         selectedSub: 0,
         toView: 'position0',
         scrollTopLeft: 0,
@@ -1159,7 +1180,7 @@ Component({
       load.showLoading("获取数据中");
       var data = {
         disId: this.data.disId,
-        purType: 0
+        purType: -1
       }
       
       // 根据显示模式调用不同接口
@@ -1229,7 +1250,7 @@ Component({
           })
       } else {
         // 按客户模式：获取部门列表
-        disGetTypePrepareOutDepCata(data)
+        return disGetTypePrepareOutDepCata(data)
           .then(res => {
             console.log('按客户模式 - 部门列表:', res.result.data);
             if (res.result.code == 0) {
@@ -1248,6 +1269,8 @@ Component({
               if (res.result.data.arr.length > 0) {
                 return this._loadDepartmentGoods(res.result.data.arr[0].depId, 0);
               }
+              
+              return Promise.resolve();
 
             } else {
               load.hideLoading();
@@ -1255,6 +1278,7 @@ Component({
                 title: res.result.msg,
                 icon: "none"
               })
+              return Promise.reject(new Error(res.result.msg));
             }
 
           }).catch(err => {
@@ -1264,8 +1288,170 @@ Component({
               title: '获取数据失败',
               icon: 'none'
             });
+            return Promise.reject(err);
           })
       }
+    },
+
+    // 刷新数据并保持当前选择
+    _refreshDataWithSelection() {
+      var that = this;
+      
+      // 保存当前选择状态
+      var currentSelectedSub = this.data.selectedSub;
+      var currentSelectedDepId = this.data.selectedDepId;
+      var viewMode = this.data.viewMode;
+      
+      console.log('🔄 开始刷新数据，当前选择状态:', {
+        viewMode: viewMode,
+        selectedSub: currentSelectedSub,
+        selectedDepId: currentSelectedDepId
+      });
+      
+      // 调用 _initData 刷新左侧列表
+      this._initData().then(() => {
+        // 延迟一下，确保数据已经设置完成
+        setTimeout(() => {
+          that._restoreSelection(currentSelectedSub, currentSelectedDepId, viewMode);
+        }, 100);
+      }).catch(err => {
+        console.error('刷新数据失败:', err);
+        wx.showToast({
+          title: '刷新数据失败',
+          icon: 'none'
+        });
+      });
+    },
+    
+    // 恢复选择状态
+    _restoreSelection(currentSelectedSub, currentSelectedDepId, viewMode) {
+      var that = this;
+      
+      if (viewMode === 'category') {
+        // 类别模式：检查保存的索引是否还存在
+        if (this.data.goodsCataArr && this.data.goodsCataArr.length > 0) {
+          var targetIndex = currentSelectedSub;
+          
+          // 如果保存的索引超出范围，则选择第一个
+          if (targetIndex >= this.data.goodsCataArr.length || targetIndex < 0) {
+            targetIndex = 0;
+            console.log('⚠️ 原选择索引超出范围，选择第一个分类');
+          }
+          
+          // 获取目标分类ID，用于滚动定位
+          var targetCategoryId = this.data.goodsCataArr[targetIndex].nxDistributerFatherGoodsId;
+          var fullTargetId = `category${targetCategoryId}`;
+          
+          // 如果目标索引和当前索引不同，需要切换
+          if (targetIndex !== this.data.selectedSub) {
+            console.log('✅ 切换到之前选择的分类，索引:', targetIndex, '分类ID:', targetCategoryId);
+            
+            // 重置分页状态
+            this.setData({
+              currentPage: 1,
+              hasMore: true,
+              isLoading: false,
+              selectedSub: targetIndex
+            });
+            
+            // 加载该分类的商品数据
+            this._getPageData();
+            
+            // 延迟执行滚动，等待数据加载完成
+            setTimeout(() => {
+              that._scrollToCategory(fullTargetId, targetIndex);
+            }, 800);
+          } else {
+            console.log('✅ 当前已是目标分类，重新加载数据并滚动');
+            // 即使索引相同，也重新加载一下数据，确保数据是最新的
+            this.setData({
+              currentPage: 1,
+              hasMore: true,
+              isLoading: false
+            });
+            this._getPageData();
+            
+            // 延迟执行滚动，等待数据加载完成
+            setTimeout(() => {
+              that._scrollToCategory(fullTargetId, targetIndex);
+            }, 800);
+          }
+        }
+      } else {
+        // 客户模式：在刷新后的部门列表中查找保存的部门ID
+        if (this.data.depArr && this.data.depArr.length > 0) {
+          var targetDepId = currentSelectedDepId;
+          var targetDepIndex = -1;
+          
+          // 查找保存的部门ID是否还存在
+          for (var i = 0; i < this.data.depArr.length; i++) {
+            if (this.data.depArr[i].depId === targetDepId) {
+              targetDepIndex = i;
+              break;
+            }
+          }
+          
+          // 如果没找到，则选择第一个
+          if (targetDepIndex === -1) {
+            targetDepIndex = 0;
+            targetDepId = this.data.depArr[0].depId;
+            console.log('⚠️ 原选择部门不存在，选择第一个部门');
+          }
+          
+          // 如果目标部门和当前部门不同，需要切换
+          if (targetDepId !== this.data.selectedDepId) {
+            console.log('✅ 切换到之前选择的部门，部门ID:', targetDepId, '索引:', targetDepIndex);
+            
+            // 加载该部门的商品
+            this._loadDepartmentGoods(targetDepId, targetDepIndex);
+          } else {
+            console.log('✅ 当前已是目标部门，重新加载数据');
+            // 即使部门相同，也重新加载一下数据，确保数据是最新的
+            this._loadDepartmentGoods(targetDepId, targetDepIndex);
+          }
+        }
+      }
+    },
+    
+    // 滚动到指定分类位置
+    _scrollToCategory(targetId, categoryIndex) {
+      var that = this;
+      
+      console.log('🔄 准备滚动到分类位置:', targetId, '索引:', categoryIndex);
+      
+      // 先计算分类位置
+      setTimeout(() => {
+        that.calculateCategoryPositions();
+        
+        // 再延迟一下，确保位置计算完成
+        setTimeout(() => {
+          // 检查当前页面是否有该分类的商品
+          const hasCategoryGoods = that.data.goodsArr.some(goods => {
+            const categoryId = that.data.goodsCataArr[categoryIndex]?.nxDistributerFatherGoodsId;
+            return goods.nxDgDfgGoodsGreatGrandId === categoryId;
+          });
+          
+          if (hasCategoryGoods) {
+            // 如果当前页面有该分类的商品，直接滚动
+            console.log('✅ 当前页面有目标分类商品，滚动到位置:', targetId);
+            that.setData({
+              toView: targetId
+            });
+            
+            // 确保左侧菜单也滚动到正确位置
+            if (categoryIndex > 0) {
+              that.scrollLeftMenuToIndex(categoryIndex);
+            }
+          } else {
+            // 如果当前页面没有该分类的商品，需要加载更多
+            console.log('⚠️ 当前页面没有目标分类商品，需要加载更多');
+            const categoryId = that.data.goodsCataArr[categoryIndex]?.nxDistributerFatherGoodsId;
+            if (categoryId) {
+              that.loadGoodsUntilCategory(categoryId, targetId);
+            }
+          }
+        }, 200);
+      }, 300);
     },
 
     _getPageData(isLoadMore = false){
@@ -2065,10 +2251,17 @@ Component({
             console.log('处理后的商品数组长度:', goodsList.length);
             console.log('分类数组长度:', categoryArr.length);
             
+            // 获取部门名称
+            var depName = '';
+            if (this.data.depArr && this.data.depArr[depIndex]) {
+              depName = this.data.depArr[depIndex].depAttrName || '';
+            }
+            
             this.setData({
               selectedDepId: depId,
               isAllDepartmentSelected: false, // 重置全选状态
               selectedSub: depIndex,
+              selDepName: depName, // 设置选中的部门名称
               goodsArr: goodsList,
               goodsCataArr: categoryArr, // 保存分类信息用于锚点
             }, () => {
@@ -2161,23 +2354,17 @@ Component({
       savePlanPurchaseOrderBundle(list).then(res => {
         if (res.result.code == 0) {
           load.hideLoading();
-
-                that.hideButton();
-         
-          // 保存显示模式到缓存，供采购页面使用
-                wx.setStorageSync('stockViewMode', that.data.viewMode);
           
-          // 跳转到采购页面（tabBar页面）
-                if (typeof that.getTabBar === 'function' && that.getTabBar()) {
-                  that.getTabBar().setData({
-              selected: 2  // 采购页面在tabBar中的索引
-            });
-          }
-          wx.switchTab({
-            url: '/pages/purchase/index/index'
+          // 显示成功提示
+          wx.showToast({
+            title: '保存成功',
+            icon: 'success',
+            duration: 1500
           });
           
-                that._initData()
+          // 刷新页面数据，保持当前选择
+          that._refreshDataWithSelection();
+                
         } else {
           wx.showToast({
             title: res.result.msg,
@@ -2322,6 +2509,8 @@ Component({
                   nxDoWeight: order.nxDoWeight,
                   nxDoStandard: order.nxDoStandard,
                   nxDoRemark: order.nxDoRemark,
+                  nxDoDepartmentId: order.nxDoDepartmentId,
+                  nxDoDepartmentFatherId: order.nxDoDepartmentFatherId,
                   nxDoGbDepartmentId: order.nxDoGbDepartmentId,
                   nxDoNxCommRestrauntId: order.nxDoNxCommRestrauntId,
                   gbDepartmentName: order.gbDepartmentName,
@@ -2391,18 +2580,34 @@ Component({
       // 设置标识，表示跳转到打印页面（返回时不要刷新）
       wx.setStorageSync('fromPrintPage', true);
       
-      // 传递显示模式和字段标识
-      wx.setStorageSync('stockPrintViewMode', this.data.viewMode);
-      // 按商品显示时使用新精简字段，按部门显示时使用完整字段
-      wx.setStorageSync('useSimpleFields', this.data.viewMode === 'category');
+      // 传递页面类型和显示模式，用于区分4种打印情况
+      // pageType: 'stock' 出库页面, 'purchase' 采购页面
+      // viewMode: 'category' 按商品显示, 'department' 按部门显示
+      wx.setStorageSync('printPageType', 'stock');
+      wx.setStorageSync('printViewMode', this.data.viewMode);
       
-      // 如果是按部门显示，获取第一个部门名称并传递
-      if (this.data.viewMode === 'department') {
-        var customerName  = this.data.depArr[this.data.selectedSub].depAttrName
+      // 出库页面总是使用 nxDepartmentOrdersEntities 字段（不使用 orders 字段）
+      // 所以 useSimpleFields 应该为 false
+      wx.setStorageSync('printUseSimpleFields', false);
+      
+      // 如果是按部门显示，获取部门名称并传递
+      if (this.data.viewMode === 'department' && this.data.depArr && this.data.selectedSub !== undefined && this.data.depArr[this.data.selectedSub]) {
+        var customerName = this.data.depArr[this.data.selectedSub].depAttrName || '';
         if (customerName) {
-          wx.setStorageSync('stockCustomerName', customerName);
+          wx.setStorageSync('printCustomerName', customerName);
           console.log('✓ 传递客户名称到打印页面:', customerName);
+        } else {
+          wx.setStorageSync('printCustomerName', '');
         }
+      } else {
+        wx.setStorageSync('printCustomerName', '');
+      }
+      
+      // 兼容旧参数（保留一段时间，确保旧代码能正常工作）
+      wx.setStorageSync('stockPrintViewMode', this.data.viewMode);
+      wx.setStorageSync('useSimpleFields', this.data.viewMode === 'category');
+      if (this.data.viewMode === 'department' && customerName) {
+        wx.setStorageSync('stockCustomerName', customerName);
       }
       
       this.setData({
@@ -2472,6 +2677,8 @@ Component({
                 nxDoWeight: order.nxDoWeight,
                 nxDoStandard: order.nxDoStandard,
                 nxDoRemark: order.nxDoRemark,
+                nxDoDepartmentId: order.nxDoDepartmentId,
+                nxDoDepartmentFatherId: order.nxDoDepartmentFatherId,
                 nxDoGbDepartmentId: order.nxDoGbDepartmentId,
                 nxDoNxCommRestrauntId: order.nxDoNxCommRestrauntId,
                 gbDepartmentName: order.gbDepartmentName,

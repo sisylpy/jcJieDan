@@ -1,15 +1,12 @@
 <view class="flex flex-column">
 
-  <custom-navbar style="height: {{navBarHeight}}rpx;" title="出库中" avatar="{{url + userInfo.nxDiuWxAvartraUrl}}" button-text="设置" bindnavbuttontap="onNavButtonTap"></custom-navbar>
+  <custom-navbar style="height: {{navBarHeight}}rpx;" title="出库" avatar="{{url + userInfo.nxDiuWxAvartraUrl}}" button-text="设置" bindnavbuttontap="onNavButtonTap"></custom-navbar>
 
   <view class="content flex-1 flex-column">
 
     <view class="flex  flex-row-between bg-white border-bottom pt-20" style=" height: {{viewBarHeight}}rpx; ">
 
-
       <view class="flex-row">
-
-<!--  -->
 
         <view class=" button-container mr-30 ml-20" bind:tap="setPrint">
           <image src="{{printOk ? '/images/print-4.png' : '/images/0dayinji-05.png'}}" class="icon"></image>
@@ -26,8 +23,6 @@
         </view>
 
       </view>
-
-
 
       <view class="flex flex-row p-20" style="height: {{viewBarHeight}}rpx; align-items: center;">
         <view class="button-container mr-40" bindtap="changeShwoType">
@@ -59,7 +54,7 @@
         <!-- 按客户模式 -->
         <block wx:else>
           <view wx:if="{{depArr.length > 0}}">
-            <view class="left-item flex-column-center border-bottom {{selectedSub == leftIndex ? 'left-active' : ''}}" wx:key="index" wx:for="{{depArr}}" wx:for-item="dep" bindtap="toScrollView" data-index="{{leftIndex}}" wx:for-index="leftIndex">
+            <view class="left-item flex-column-center border-bottom {{selectedSub == leftIndex ? 'left-active' : ''}}" wx:key="index" wx:for="{{depArr}}" wx:for-item="dep" bindtap="toScrollView" data-index="{{leftIndex}}" wx:for-index="leftIndex" >
               <text class="font-sm text-center">{{dep.depAttrName}}</text>
               <view class="font-sm">({{dep.orderCount}})</view>
             </view>
@@ -78,8 +73,11 @@
         <block wx:if="{{(viewMode === 'category' && goodsCataArr.length > 0) || (viewMode === 'department' && depArr.length > 0)}}">
           <scroll-view scroll-y="true" class=" goods-list" scroll-into-view="{{toView}}" scroll-top="0" bindscroll="scrollTo" bindscrolltolower="onReachBottom" lower-threshold="100" scroll-with-animation style="height:{{contentHeight - viewBarHeight }}rpx; ">
             <!-- 部门模式下的全选按钮 -->
-            <view wx:if="{{viewMode === 'department' && goodsArr.length > 0}}" class="flex flex-row-reverse bg-white border-bottom" style="width: {{windowWidth - leftMenuWidth - 10}}rpx; padding: 20rpx;" bindtap="selectAllDepartmentGoods">
-              <view class="flex flex-row plr-20" style="align-items: center;">
+            <view wx:if="{{viewMode === 'department' && goodsArr.length > 0}}" class="flex flex-row-between bg-white border-bottom" style="width: {{windowWidth - leftMenuWidth - 10}}rpx; padding: 20rpx;">
+              <view class="flex flex-row" style="align-items: center;">
+                <text class="font-md text-primary" wx:if="{{selDepName}}">{{selDepName}}</text>
+              </view>
+              <view class="flex flex-row plr-20" style="align-items: center;" bindtap="selectAllDepartmentGoods">
                 <text class="font-md text-secondary mr-10">全选</text>
                 <view class="custom-checkbox {{isAllDepartmentSelected ? 'checked' : ''}}">
                   <text class="checkbox-icon" wx:if="{{isAllDepartmentSelected}}">✓</text>
@@ -96,9 +94,9 @@
 
               <!-- 部门模式：商品和订单在一行显示 -->
               <block wx:if="{{viewMode === 'department'}}">
-                <view wx:for="{{item.nxDepartmentOrdersEntities}}" wx:for-item="order" wx:key="orderIndex" wx:for-index="orderIndex" class="flex flex-row-between border-bottom bg-white {{item.isSelected ? 'bg-mainColor' : ''}}" style="width: {{windowWidth - leftMenuWidth - 10}}rpx; padding: 20rpx;" bindtap="choiceStock" data-item="{{item}}" data-goodsindex="{{goodsIndex}}">
+                <view wx:for="{{item.nxDepartmentOrdersEntities}}" wx:for-item="order" wx:key="orderIndex" wx:for-index="orderIndex" class="flex flex-row-between border-bottom bg-white {{item.isSelected ? 'bg-mainColor' : ''}}" style="width: {{windowWidth - leftMenuWidth - 20}}rpx; padding: 20rpx;" bindtap="choiceStock" data-item="{{item}}" data-goodsindex="{{goodsIndex}}">
                   <!-- 左侧：序号、选择框、商品信息、订单信息 -->
-                  <view class="flex flex-row flex-1" style="min-width: 0; flex-shrink: 1;">
+                  <view class="flex flex-row flex-1" >
                     <!-- 序号 -->
                     <text class="font-md mr-10" style="min-width: 40rpx; flex-shrink: 0;">{{goodsIndex + 1}}.</text>
                     <!-- 选择框 -->
@@ -129,8 +127,8 @@
 
               <!-- 类别模式：原有布局 -->
               <block wx:else>
-                <view class=" flex-column p-20 border-bottom bg-white {{item.isSelected ? 'bg-mainColor' : ''}}" style="width: {{windowWidth - 180}}rpx; ">
-                  <view class="flex flex-row-between" bindtap="choiceStock" data-item="{{item}}" data-goodsindex="{{goodsIndex}}" style="width: {{windowWidth - 200}}rpx;">
+                <view class=" flex-column p-20 border-bottom bg-white {{item.isSelected ? 'bg-mainColor' : ''}}" style="width: {{windowWidth - leftMenuWidth - 20}}rpx; ">
+                  <view class="flex flex-row-between" bindtap="choiceStock" data-item="{{item}}" data-goodsindex="{{goodsIndex}}" style="width: {{windowWidth - leftMenuWidth - 40}}rpx;">
                     <view class="flex-row-wrap">
                       <text class="brand" wx:if="{{item.nxDgGoodsBrand !== 'null' && item.nxDgGoodsBrand.length > 0}}">{{item.nxDgGoodsBrand}}</text>
                       <text class=" font-lg font-bold">{{item.nxDgGoodsName}}</text>
@@ -171,8 +169,8 @@
                       <block wx:else>
 
                         <view class="flex-row ">
-                          <text wx:if="{{order.nxDoDepartmentFatherId  !== order.nxDoDepartmentId}}">{{order.fatherDepartmentAttrName}}.</text>
-                          <text class="">{{order.nxDepartmentAttrName}}</text>
+                          <text wx:if="{{order.nxDoDepartmentFatherId  !== order.nxDoDepartmentId}}">{{order.fatherDepartmentAttrName}}.{{order.nxDepartmentOrderCode}}</text>
+                          <text class="" wx:else="">{{order.nxDepartmentAttrName}}</text>
                         </view>
                       </block>
 
