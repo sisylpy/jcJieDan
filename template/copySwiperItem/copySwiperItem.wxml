@@ -1,0 +1,186 @@
+<template name="copySwiperItem">
+  <swiper-item class=''>
+    <!-- 下拉刷新容器 -->
+    <scroll-view scroll-y="true" refresher-enabled="true" refresher-triggered="{{refresherTriggered2}}" bindrefresherrefresh="onRefresh2" style="height: {{contentHeight}}rpx;">
+      <!-- emptyView -->
+      <view class="{{batchArr.length == 0  ? 'show' : 'hide'}}">
+        <view class="flex-column center-content" style="height: {{windowHeight - 500}}rpx;">
+          <image class="empty_image " src="../../../images/xiuxi.png"></image>
+          <text class="font-md text-secondary p-20">没有复制订单</text>
+        </view>
+      </view>
+      <!-- ./emptyView -->
+      <block wx:if="{{batchArr.length > 0}}">
+
+        <view class="flex-column p-20 bg-white " wx:for="{{batchArr}}" wx:for-item="batch" wx:for-index="batchIndex" wx:key="nxDistributerPurchaseBatchId">
+
+
+          <view class="body" style="width:{{windowWidth - 60}}rpx;  ">
+
+            <view class="copy-content-card">
+              <view class="copy-header">
+                <view class="copy-icon">📋</view>
+                <text class="copy-title">复制内容</text>
+                <view class="copy-tag" bindtap="updatePasteBatchContent" data-batch-id="{{batch.nxDistributerPurchaseBatchId}}" data-batch-index="{{batchIndex}}">再次复制</view>
+              </view>
+              <view class="copy-content-wrapper" wx:if="{{batch.nxDpbPasteContent}}">
+                <text class="copy-content-text" wx:if="{{batch.isContentExpanded === true}}">{{batch.nxDpbPasteContent}}</text>
+                <text class="copy-content-text" wx:elif="{{batch.nxDpbPasteContent.length <= 100}}">{{batch.nxDpbPasteContent}}</text>
+                <text class="copy-content-text" wx:else>{{tool.truncateString(batch.nxDpbPasteContent, 100)}}</text>
+                <view class="copy-expand-btn" wx:if="{{batch.nxDpbPasteContent.length > 100}}" bindtap="toggleContentExpand" data-batch-index="{{batchIndex}}">
+                  <text class="copy-expand-text">{{batch.isContentExpanded === true ? '收起' : '展开'}}</text>
+                </view>
+              </view>
+            </view>
+
+           
+              <view class="flex-row-default p-20 border-bottom  font-lg " wx:for="{{batch.nxDPGEntities}}" wx:key="nxDistributerPurchaseGoodsId" wx:for-index="goodsIndex">
+
+                <text class="p-10" style="width: 40rpx;">{{goodsIndex + 1}}.</text>
+
+                <view class="flex-column">
+                  <view class="flex-row-between">
+                    <view class="flex-row" style="width: {{windowWidth - 220}}rpx;">
+                      <text class="brand" wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsBrand !== null && item.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0}}">{{item.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
+                      <text class="mr-10">{{item.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
+
+                      <block wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0}}">
+                        <text class="mr-10" wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname !== '斤'}}">({{item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight}}/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+                      </block>
+                      <block wx:else>
+                        <text class="mr-30">({{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+                      </block>
+                      <view class="flex-row">
+                        <!-- <text class="text-secondary">数量:</text> -->
+                        <text>{{item.nxDpgQuantity}}{{item.nxDpgStandard}}</text>
+
+                      </view>
+                    </view>
+                    <view class="button-container-white" wx:if="{{item.nxDpgStatus < 3}}">
+                      <view class="" bindtap="cancelDisBatchItem" hover-class="hover" data-id="{{item.nxDistributerPurchaseGoodsId}}" data-name="{{item.nxDistributerGoodsEntity.nxDgGoodsName}}">
+                        <image src="../../../images/del-6.png" class="icon"></image>
+                      </view>
+                    </view>
+                  </view>
+
+
+                 
+                    <view class="flex-column p-10 border-bottom {{order.nxDoPurchaseStatus < 4 ? 'liziBack' :''}}" wx:for-item="order" wx:for="{{item.nxDistributerGoodsEntity.nxDepartmentOrdersEntities}}" wx:for-index="orderIndex" wx:key="nxDepartmentOrdersId" style=" width: {{windowWidth - 160}}rpx; ">
+
+                       
+                          <view class="flex flex-row " style="width: {{windowWidth - 140}}rpx;">
+                            <text class="circle_default"></text>
+                            <block wx:if="{{order.gbDepartmentEntity !== null}}">
+                              <view class="flex-column p-10 mr-20" wx:if="{{order.gbDepartmentEntity.fatherGbDepartmentEntity !== null}}">
+                                <view class='flex-row '>
+                                  <text>{{order.gbDepartmentEntity.fatherGbDepartmentEntity.gbDepartmentName}}.</text>
+                                  <text>{{order.gbDepartmentEntity.gbDepartmentName}}</text>
+
+                                </view>
+                                <view class="text-secondary" wx:if="{{order.nxDoRemark !== 'null' && order.nxDoRemark.length > 0}}">
+                                  <text>备注:</text>
+                                  <text class="red">{{order.nxDoRemark}}</text>
+                                </view>
+
+                              </view>
+                              <view wx:else class="flex-column p-10 mr-20">
+                                <text class=' '>{{order.gbDepartmentEntity.gbDepartmentName}}</text>
+                                <text wx:if="{{batch.nxDpbStatus <  0}}">{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+                                <view class="text-secondary" wx:if="{{order.nxDoRemark !== 'null' && order.nxDoRemark.length > 0}}">
+                                  备注:<text class="red">{{order.nxDoRemark}}</text>
+                                </view>
+                              </view>
+                            </block>
+                            <block wx:elif="{{order.nxRestrauntEntity !== null}}">
+                              <view class="flex-row p-10 mr-20" wx:if="{{order.gbDepartmentEntity !== null && order.gbDepartmentEntity.gbDepartmentSubAmount > 1}}">
+                                <view class='flex-row '>
+
+                                  <text>{{order.gbDepartmentEntity.fatherGbDepartmentEntity.gbDepartmentName}}.</text>
+                                  <text>{{order.gbDepartmentEntity.gbDepartmentName}}</text>
+
+                                </view>
+                                <view class="text-secondary flex-column" wx:if="{{order.nxDoRemark !== 'null' && order.nxDoRemark.length > 0}}">
+                                  <text>备注:</text>
+                                  <text class="red">{{order.nxDoRemark}}</text>
+                                </view>
+
+                              </view>
+                              <view wx:else class="flex-column p-10 mr-20">
+                                <text class=' '>{{order.nxRestrauntEntity.nxRestrauntAttrName}}</text>
+                                <text wx:if="{{batch.nxDpbStatus < 0}}">{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+                                <view class="text-secondary" wx:if="{{order.nxDoRemark !== 'null' && order.nxDoRemark.length > 0}}">
+                                  备注:<text class="red">{{order.nxDoRemark}}</text>
+                                </view>
+                              </view>
+                            </block>
+
+                            <block wx:else>
+                              <view class="flex-row" wx:if="{{order.nxDepartmentEntity.fatherDepartmentEntity !== null}}">
+                                <view class='flex-row '>
+                                  <text class="">{{order.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentOrderCode}}.</text>
+                                  <text class="">{{order.nxDepartmentEntity.nxDepartmentOrderCode}}</text>
+
+                                </view>
+                                <view class="text-secondary flex-column" wx:if="{{order.nxDoRemark !== 'null' && order.nxDoRemark.length > 0}}">
+                                  <text>备注:</text>
+                                  <text class="red">{{order.nxDoRemark}}</text>
+                                </view>
+
+                              </view>
+                              <view wx:else class="flex-row ">
+                                <text class="">{{order.nxDepartmentEntity.nxDepartmentOrderCode}}</text>
+
+                                <view class="text-secondary" wx:if="{{order.nxDoRemark !== 'null' && order.nxDoRemark.length > 0}}">
+                                  <text>备注:</text>
+                                  <text class="red">{{order.nxDoRemark}}</text>
+                                </view>
+                              </view>
+                            </block>
+
+                            <text class="ml-20">订:{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+
+                          </view>
+
+                          <block wx:if="{{order.nxDoPurchaseStatus == 4}}">
+                    <view class="flex-row font-sm" style=" width: {{windowWidth - 100}}rpx;">
+                      <view class="flex-row third-row">
+                        <text class="text-secondary">数量:</text>
+                        <text class="">{{order.nxDoWeight}}{{order.nxDoStandard}}</text>
+                      </view>
+                      <view class="flex-row third-row">
+                        <text class="text-secondary">单价:</text>
+                        <text class="{{(order.nxDoPrice == 0.1 || order.nxDoPrice == '' || !order.nxDoPrice) ? 'text-danger' : 'text-primary'}}">{{order.nxDoPrice == 0.1 ||  order.nxDoPrice == ''  ?  '-' : order.nxDoPrice }}</text>
+                        <text>/{{order.nxDoPrintStandard}}</text>
+
+                      </view>
+
+                      <view class="flex-row third-row">
+                        <text class="text-secondary">小计:</text>
+                        <text wx:if="{{order.nxDoSubtotal !== null || order.nxDoSubtotal == '' }}">{{order.nxDoPrice == 0.1 ||  order.nxDoPrice == '' ?  '-' : order.nxDoSubtotal}}</text>
+                      </view>
+
+                    </view>
+
+                  </block>
+
+                    </view>
+                    
+
+                  </view>
+
+                </view>
+
+            </view>
+
+
+          </view>
+
+          <view class="" style="height: 300rpx;">
+            <view class="p-20 " style="text-align:center;margin-top: 40rpx;">没有数据啦！</view>
+          </view>
+
+        </block>
+      </scroll-view>
+    </swiper-item>
+</template>
+

@@ -1,0 +1,129 @@
+
+.top_search{
+  background-color: rgb(238, 238, 238);
+  border: 1px solid lightgray;
+  border-radius: 20rpx;
+
+ }
+ 
+ 
+.inputGoods{
+  padding-left: 20rpx;
+  line-height: 80rpx;
+  height: 80rpx;
+  padding: 10rpx 10rpx;
+  /* border-bottom: 1px solid gray; */
+}
+
+
+
+
+/*  */
+
+.navbar {
+  display: flex;
+  position: relative;
+  z-index: 500;
+  top: 105rpx;
+  width: 100%;
+  /* border-bottom: 1rpx solid #e5e5e5; */
+  /* background-color: #0d4d43; */
+  height: 100rpx;
+
+}
+
+
+.navbar .navbar-item {
+  position: relative;
+  display: block;
+  flex: 1;
+  text-align: center;
+  line-height: 100rpx;
+  color: #4e5253;
+}
+
+.navbar .bar-item-on {
+  color: #006dfc;
+  
+}
+
+.navbar .navbar-title {
+  display: inline-block;
+  font-size: 34rpx;
+  width: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-wrap: normal;
+}
+
+.navbar .bar-item-on .navbar-title {
+  color: #006dfc;
+}
+
+.navbar .navbar-slider {
+  position: absolute;
+  content: " ";
+  left: 0;
+  bottom: 0;
+  width: 100rpx;
+  height: 5rpx;
+  background-color: #0379ff;
+  -webkit-transition: -webkit-transform 0.3s;
+  transition: -webkit-transform 0.3s;
+  transition: transform 0.3s, -webkit-transform 0.3s;
+}
+
+
+/*  */
+.navbarSearch {
+  display: flex;
+  position: relative;
+  /* z-index: 500; */
+  /* top: 1rpx; */
+  /* width: 100%; */
+  height: 60rpx;
+  margin-bottom: 20rpx;
+}
+
+.navbarSearch .navbar-item {
+  position: relative;
+  display: block;
+  flex: 1;
+  text-align: center;
+  line-height: 60rpx;
+  color: #4e5253;
+}
+
+.navbarSearch .bar-item-on {
+  color: #006dfc;
+  
+}
+
+.navbarSearch .navbar-title {
+  display: inline-block;
+  font-size: 34rpx;
+  width: auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  word-wrap: normal;
+}
+
+.navbarSearch .bar-item-on .navbar-title {
+  color: #006dfc;
+}
+
+.navbarSearch .navbar-slider {
+  position: absolute;
+  content: " ";
+  left: 0;
+  bottom: 0;
+  width: 100rpx;
+  height: 5rpx;
+  background-color: #0379ff;
+  -webkit-transition: -webkit-transform 0.3s;
+  transition: -webkit-transform 0.3s;
+  transition: transform 0.3s, -webkit-transform 0.3s;
+}
+

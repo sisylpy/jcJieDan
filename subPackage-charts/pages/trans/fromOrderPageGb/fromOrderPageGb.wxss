@@ -1,0 +1,25 @@
+
+.save_btn_container{
+ 
+  border-radius: 20rpx;
+  background-color: #dddddd;
+}
+
+.save_btn{
+  background-color: #0f78b4;
+  color: #fff;
+  text-align: center;
+  font-size: 36rpx;
+  margin-top: 10rpx;
+  margin-left: 10rpx;
+  border-radius: 40rpx;
+   /* box-sizing:border-box; */
+  /* border-radius: 20rpx; */
+  
+}
+
+
+.save_btn.is-gray{
+  background-color: #dddddd;
+  color: #000;
+}

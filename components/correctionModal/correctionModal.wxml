@@ -1,0 +1,24 @@
+<view class="popup-overlay" catchtap="onCancel" wx:if="{{show}}">
+  <view class="popup-content flex-column" catchtap="stopPropagation">
+    <text class="popup-title">修改要求:</text>
+    
+    <textarea 
+      class="correction-textarea" 
+      value="{{correctionText}}" 
+      placeholder="请详细描述您的修改要求"
+      bindinput="onInputChange"
+      maxlength="1000"
+      auto-height
+      show-confirm-bar="{{false}}"
+      catchtap="stopPropagation"
+    ></textarea>
+    
+    <text class="correction-hint">请详细描述您的修改要求,支持添加、删除、修改商品信息等操作</text>
+    
+    <view class="button-group flex-row-between">
+      <view class="cancel-button" catchtap="onCancel">取消</view>
+      <view class="confirm-button" catchtap="onConfirm">确定</view>
+    </view>
+  </view>
+</view>
+

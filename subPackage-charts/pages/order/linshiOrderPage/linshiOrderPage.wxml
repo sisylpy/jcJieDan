@@ -1,0 +1,94 @@
+<wxs src="../../../../utils/fn.wxs" module="tool" />
+
+<view class="flex flex-column ">
+
+
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="临时订单" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+
+  <view class="flex flex-column">
+    <scroll-view scroll-y="true" class="flex-column bg-white" style="height: {{windowHeight  - navBarHeight }}rpx; " show-scrollbar="true">
+      <!-- 订单数据 -->
+
+      <view class="flex flex-1 {{depArr.length == 0  ? 'show' : 'hide'}}">
+        <view class="center-content flex-column " style="padding-top: 200rpx;">
+          <image class="empty_image" src="../../../../images/cg.png"></image>
+          <text class="p-30 text-secondary font-xs">无订单</text>
+        </view>
+      </view>
+
+      <view class="flex-column mt-10" wx:for="{{depArr}}" wx:for-item="dep" wx:for-index="depIndex">
+          <view class="flex-column pt-1  pb-10" wx:for="{{dep.nxDepartmentEntities}}" wx:for-item="subDep" wx:for-index="subDepIndex">
+          
+           <view class="flex-row font-lg-2 p-20">
+           <view wx:if="{{subDep.nxDepartmentFatherId !== 0}}">{{dep.nxDepartmentName}}.</view>
+           <text>{{subDep.nxDepartmentName}}</text>
+           </view>
+
+          <view class="flex flex-row border-bottom  p-10 {{order.nxDoPurchaseStatus == 4 ? 'bg-white' :'liziBack'}} {{order.nxDoPurchaseStatus  == 5 ? 'liziDelivery' : ''}} {{order.nxDoPurchaseStatus  == 3 ? 'liziClock' : ''}}" wx:for="{{subDep.nxDepartmentOrdersEntities}}" wx:for-item="order" wx:key="nxDepartmentOrdersId" wx:for-index="applyIndex">
+         
+              <view class="flex-row-between   p-20 font-lg">
+                <view class="flex-row" style="width: {{windowWidth - 140}}rpx; ">
+                  <text class="mr-10">{{globalOrderIndex[depIndex][subDepIndex][applyIndex]}}.</text>
+                  <view class="flex-cloumn">
+                    <view class="flex-row-wrap">
+                      <text class="font-sl text-danger">(未完成)</text>
+                      <text class="mr-20">{{order.nxDoGoodsName}}</text>
+                      <text class="">订:{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+                      <text class="text-danger font-sl" wx:if="{{order.nxDoRemark !== null  && order.nxDoRemark.length > 0}}">({{order.nxDoRemark}})</text>
+                    </view>
+                  </view>
+                </view>
+                <view class="btnClick" bindtap="openOperationLinshi" data-id="{{order.nxDepartmentOrdersId}}" data-item="{{order}}" data-name="{{order.nxDoGoodsName}}" data-dep="{{dep}}" data-depid="{{dep.depId}}" hover-class="hover">
+                  <image src="../../../../images/points.png" class="icon"></image>
+                </view>
+              </view>
+           
+            <!-- ../arrow -->
+          </view>
+
+        </view>
+
+        </view>
+     
+
+     
+      <view class="p-20" wx:if="{{applyArr.length > 0}}" style="height: 100rpx;">
+        <view class="p-20 text-secondary font-sl" style="text-align:center;">没有数据啦！</view>
+      </view>
+    </scroll-view>
+  </view>
+
+
+</view>
+
+
+
+
+
+<!-- goodsOperation -->
+<view class='overlay {{showOperationLinshi ? "show" : ""}}' catchtouchmove='ture' catchtap="hideMaskLinshi">
+  <view class="flex-column nnn bg-white font-lg">
+
+    <view class="flex-row p-30" catchtap="toAiHelp" hover-class="hover" >
+      <image src="/images/edit.png" class="icon mr-20"></image>
+      <text class="">请智能客服协助</text>
+    </view>
+    <view class="flex-row p-30" catchtap="editDepApplyGoods" hover-class="hover" >
+      <image src="/images/edit.png" class="icon mr-20"></image>
+      <text class="">搜索已有商品</text>
+    </view>
+
+    <view class="flex-row p-30" catchtap="confirmDepApplyGoods" hover-class="hover">
+      <image src="/images/add.png" class="icon mr-20"></image>
+      <text class="">添加为新商品</text>
+    </view>
+
+   
+    <view style="height: 20rpx;"></view>
+
+  </view>
+
+</view>
+<!-- ../goodsOperation -->
+

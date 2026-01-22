@@ -28,6 +28,13 @@ const DEEPSEEK_API_KEY = config.deepSeek?.apiKey || '';
 const DEEPSEEK_API_URL = config.deepSeek?.apiUrl || 'https://api.deepseek.com/v1/chat/completions';
 const DEEPSEEK_MODEL = config.deepSeek?.model || 'deepseek-chat';
 
+// 从配置文件读取腾讯云配置
+const TENCENT_CLOUD_SECRET_ID = config.tencentCloud?.secretId || '';
+const TENCENT_CLOUD_SECRET_KEY = config.tencentCloud?.secretKey || '';
+const TENCENT_CLOUD_APP_ID = config.tencentCloud?.appId || '1308821743';
+const TENCENT_CLOUD_ENGINE_MODEL_TYPE = config.tencentCloud?.engineModelType || '16k_zh';
+const TENCENT_CLOUD_VOICE_FORMAT = config.tencentCloud?.voiceFormat || 1;
+
 
 
 // 添加优化语音文本的函数
@@ -611,23 +618,30 @@ Page({
         return;
       }
       
-      // 错误码 6000: 可能是网络错误或服务错误
-      // 如果错误信息为空，可能是临时网络问题，不强制停止录音
+      // 错误码 6000: 网络连接错误（Connection refused）
+      // 可能原因：1. 未在微信公众平台配置服务器域名 2. 开发者工具未开启"不校验合法域名" 3. 网络问题
       if (errorCode === 6000) {
-        console.log('[录音回调] OnError - 识别服务错误（错误码6000），可能是网络问题');
-        // 确保 errorMessage 是字符串类型后再调用 trim
-        const isEmptyMessage = !errorMessage || 
-                               (typeof errorMessage === 'string' && errorMessage.trim() === '') ||
-                               (typeof errorMessage !== 'string' && !errorMessage);
-        if (isEmptyMessage) {
-          // 错误信息为空，可能是临时网络问题，提示用户继续
-          console.log('[录音回调] OnError - 错误信息为空，可能是临时网络问题，不停止录音');
-          this.setData({
-            recognitionStatus: '网络不稳定，请重试...'
-          });
-          // 不停止录音，允许用户继续
-          return;
+        console.log('[录音回调] OnError - 识别服务连接失败（错误码6000）');
+        console.log('[录音回调] OnError - 可能原因：1. 未配置服务器域名 2. 开发者工具设置 3. 网络问题');
+        
+        // 停止录音并提示用户
+        if (this.data.timer) {
+          clearInterval(this.data.timer);
+          console.log('[录音回调] OnError - 定时器已清除，timer ID:', this.data.timer);
         }
+        this.setData({
+          recognitionStatus: '连接失败，请检查网络或配置',
+          isRecording: false,
+          timer: null
+        });
+        
+        // 显示错误提示
+        wx.showToast({
+          title: '连接失败，请检查网络',
+          icon: 'none',
+          duration: 2000
+        });
+        return;
       }
       
       // 其他错误：正常处理，停止录音
@@ -712,12 +726,11 @@ Page({
       timer: null
     })
     const params = {
-      secretkey: 'YOUR_TENCENT_CLOUD_SECRET_KEY', // TODO: 从配置文件或环境变量读取
-      secretid: 'YOUR_TENCENT_CLOUD_SECRET_ID', // TODO: 从配置文件或环境变量读取
-      appid: '1308821743', // 腾讯云账号appid（非微信appid）
-
-      engine_model_type: '16k_zh',
-      voice_format: 1
+      secretkey: TENCENT_CLOUD_SECRET_KEY,
+      secretid: TENCENT_CLOUD_SECRET_ID,
+      appid: TENCENT_CLOUD_APP_ID,
+      engine_model_type: TENCENT_CLOUD_ENGINE_MODEL_TYPE,
+      voice_format: TENCENT_CLOUD_VOICE_FORMAT
     }
     console.log('[录音] 2. 设置录音参数:', params);
 

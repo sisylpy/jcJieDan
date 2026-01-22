@@ -24,21 +24,12 @@ Page({
   data: {
     firstLoading: true,
     onPurchaseRefresh: false,
-    update: false
+    update: false,
+    simpleTaskList: [], // 缓存任务列表
+    cacheTaskTimer: null, // 缓存任务定时器
   },
 
-  onLoad() {
-    console.log('首页 onLoad 开始执行');
-
-    const app = getApp();
-    const globalData = app.globalData;
-
-    // 检测企业微信环境
-    const device = wx.getDeviceInfo();
-    const isWxWork = device.environment === 'wxwork';
-    console.log('当前环境:', isWxWork ? '企业微信' : '普通微信');
-  },
-
+ 
   onShow() {
     const app = getApp();
     const globalData = app.globalData;
@@ -51,17 +42,9 @@ Page({
       })
     }
 
-    var value = wx.getStorageSync('userInfo');
-    if (value) {
-      this.setData({
-        userInfo: value,
-        disId: value.nxDistributerEntity.nxDistributerId,
-        disInfo: value.nxDistributerEntity,
-      })
-      this._getTodayCustomer();
-    } else {
-      this._login();
-    }
+   
+
+    this._login();
 
     // 直接使用 app.js 中已经计算好的值
     this.setData({
@@ -75,6 +58,151 @@ Page({
       contentHeight: (globalData.screenHeight - globalData.navBarHeight - 100 - 60) * globalData.rpxR,
       leftMenuWidth: 150,
       url: apiUrl.server,
+    });
+  },
+
+  /**
+   * 加载缓存任务列表
+   */
+  _loadCacheTasks: function() {
+
+    var taskList = wx.getStorageSync('simpleTaskList');
+    console.log("taskListtaskList111", taskList)
+     if(taskList && taskList.length > 0){
+      console.log("abck")
+      this.setData({
+        simpleTaskList: taskList,
+      });
+      if (this.data.nxDepArr.length > 0) {
+        console.log("taskListtaskListnbxddododod");
+
+        this._updateDepWithCacheTasks();
+      }
+      // 如果有缓存任务，启动定时器
+      this._startCacheTaskTimer();
+     }else{
+      this.setData({
+        simpleTaskList: []
+      })
+      // 如果没有缓存任务，清除定时器
+      this._clearCacheTaskTimer();
+     }
+         
+  },
+
+  /**
+   * 启动缓存任务定时器
+   */
+  _startCacheTaskTimer: function() {
+    // 如果已有定时器，先清除
+    this._clearCacheTaskTimer();
+    
+    // 启动定时器，每20秒获取一次缓存任务
+    const timer = setInterval(() => {
+      const taskList = wx.getStorageSync('simpleTaskList');
+      console.log("定时器检查缓存任务", taskList);
+      
+      if (taskList && taskList.length > 0) {
+        // 更新任务列表
+        this.setData({
+          simpleTaskList: taskList,
+        });
+        
+        // 有缓存任务时，获取今日订货接口
+        if (this.data.disId) {
+          this._getTodayCustomer();
+        }
+      } else {
+        // 任务为空，清除定时器和任务列表
+        console.log("缓存任务已清空，停止定时器");
+        this.setData({
+          simpleTaskList: []
+        });
+        this._clearCacheTaskTimer();
+      }
+    }, 10000); // 10秒
+    
+    this.setData({
+      cacheTaskTimer: timer
+    });
+  },
+
+  /**
+   * 清除缓存任务定时器
+   */
+  _clearCacheTaskTimer: function() {
+    if (this.data.cacheTaskTimer) {
+      clearInterval(this.data.cacheTaskTimer);
+      this.setData({
+        cacheTaskTimer: null
+      });
+      console.log("缓存任务定时器已清除");
+    }
+  },
+
+  /**
+   * 更新部门数据，标记哪些部门有缓存任务
+   */
+  _updateDepWithCacheTasks: function() {
+    console.log('[订单首页] ========== _updateDepWithCacheTasks 开始 ==========');
+    
+    const nxDepArr = this.data.nxDepArr || [];
+    const simpleTaskList = this.data.simpleTaskList || [];
+    
+    console.log('[订单首页] 部门数据数量:', nxDepArr.length);
+    console.log('[订单首页] 缓存任务数量:', simpleTaskList.length);
+    console.log('[订单首页] 缓存任务列表:', simpleTaskList.map(t => ({ taskId: t.taskId, depId: t.depId, depFatherId: t.depFatherId })));
+    
+    // 为每个部门标记是否有缓存任务（使用 depFatherId 匹配）
+    const updatedNxDepArr = nxDepArr.map((depItem, index) => {
+      const depId = depItem.dep?.nxDepartmentId;
+      // 注意：部门数据中可能没有 nxDepartmentFatherId，需要从其他地方获取
+      // 如果部门数据中没有，则使用 depId 作为 depFatherId（因为可能是父部门）
+      const depFatherId = depItem.dep?.nxDepartmentFatherId || depId;
+      
+      console.log(`[订单首页] 处理部门 ${index + 1}/${nxDepArr.length}:`, {
+        depId: depId,
+        depFatherId: depFatherId,
+        depName: depItem.dep?.nxDepartmentAttrName
+      });
+      
+      // 查找是否有匹配的缓存任务（使用 depId 或 depFatherId 匹配）
+      const hasCacheTask = simpleTaskList.some(task => {
+        // 优先使用 depId 匹配，如果匹配不上，再使用 depFatherId 匹配
+        const matchByDepId = String(task.depId) === String(depId);
+        const matchByDepFatherId = depFatherId && String(task.depFatherId) === String(depFatherId);
+        
+        if (matchByDepId || matchByDepFatherId) {
+          console.log(`[订单首页] ✅ 部门 ${depItem.dep?.nxDepartmentAttrName} 匹配到缓存任务:`, {
+            taskId: task.taskId,
+            taskDepId: task.depId,
+            taskDepFatherId: task.depFatherId,
+            matchByDepId: matchByDepId,
+            matchByDepFatherId: matchByDepFatherId
+          });
+        }
+        
+        return matchByDepId || matchByDepFatherId;
+      });
+      
+      if (hasCacheTask) {
+        console.log(`[订单首页] ✅ 部门 ${depItem.dep?.nxDepartmentAttrName} 有缓存任务`);
+      } else {
+        console.log(`[订单首页] ❌ 部门 ${depItem.dep?.nxDepartmentAttrName} 没有缓存任务`);
+      }
+      
+      return {
+        ...depItem,
+        hasCacheTask: hasCacheTask
+      };
+    });
+    
+    const hasCacheTaskCount = updatedNxDepArr.filter(item => item.hasCacheTask).length;
+    console.log(`[订单首页] 更新完成，有缓存任务的部门数量: ${hasCacheTaskCount}/${nxDepArr.length}`);
+    console.log('[订单首页] ========== _updateDepWithCacheTasks 结束 ==========');
+    
+    this.setData({
+      nxDepArr: updatedNxDepArr
     });
   },
 
@@ -119,6 +247,7 @@ Page({
                       disId: res.result.data.disInfo.nxDistributerId,
                     })
                     that._getTodayCustomer();
+                    that._loadCacheTasks();
                   } else if (res.result.data.userInfo.nxDiuAdmin == 3) {
                     wx.redirectTo({
                       url: '../../../subPackage/pages/downLoadApp/downLoadApp',
@@ -131,7 +260,7 @@ Page({
                     icon: 'none'
                   })
                   wx.navigateTo({
-                    url: '../../login/login',
+                    url: '../../inviteCode/inviteCode',
                   })
                 }
               })
@@ -142,7 +271,7 @@ Page({
                   icon: 'none'
                 })
                 wx.navigateTo({
-                  url: '../../login/login',
+                  url: '../../inviteCode/inviteCode',
                 })
               })
           }
@@ -154,7 +283,7 @@ Page({
             icon: 'none'
           })
           wx.navigateTo({
-            url: '../../login/login',
+            url: '../../inviteCode/inviteCode',
           })
         }
       })
@@ -183,6 +312,7 @@ Page({
                       disId: res.result.data.disInfo.nxDistributerId,
                     })
                     that._getTodayCustomer();
+                    that._loadCacheTasks();
                   } else if (res.result.data.userInfo.nxDiuAdmin == 3) {
                     wx.redirectTo({
                       url: '../../../subPackage/pages/downLoadApp/downLoadApp',
@@ -192,7 +322,7 @@ Page({
                 } else {
                   console.log("登录失败")
                   wx.navigateTo({
-                    url: '../../login/login',
+                    url: '../../inviteCode/inviteCode',
                   })
                 }
               })
@@ -200,7 +330,7 @@ Page({
         }
       })
     }
-    //login finish
+    
   },
 
   /**
@@ -224,6 +354,12 @@ Page({
           unDoTotal: res.result.data.unDoTotal,
           linshiTotal: res.result.data.linshiTotal,
         })
+        
+        // 更新部门数据，标记哪些部门有缓存任务
+        if (this.data.simpleTaskList && this.data.simpleTaskList.length > 0 && res.result.data.deps.nxDep.length > 0) {
+          this._updateDepWithCacheTasks();
+        }
+        
         this.setData({
           firstLoading: false,
           update: false,
@@ -290,7 +426,7 @@ Page({
     var depHasSubs = e.currentTarget.dataset.depsub;
 
     wx.navigateTo({
-      url: '../orderPage/orderPage?depFatherId=' + depId +
+      url: '/subPackage-charts/pages/order/orderPage/orderPage?depFatherId=' + depId +
         '&name=' + name + '&gbDepFatherId=' + gbDepId + '&resFatherId=' + resId + '&nxDisId=' + nxDisId + '&gbDisId=' + gbDisId + '&comId=' + comId +
         '&depHasSubs=' + depHasSubs,
     })
@@ -300,14 +436,14 @@ Page({
     wx.setStorageSync('batchItem', e.currentTarget.dataset.batch);
     wx.setStorageSync('supplierItem', e.currentTarget.dataset.supplier);
     wx.navigateTo({
-      url: '../orderPageGb/orderPageGb?batchId=' + e.currentTarget.dataset.id,
+      url: '/subPackage-charts/pages/order/subPackage-charts/pages/order/orderPageGb/orderPageGb?batchId=' + e.currentTarget.dataset.id,
     })
   },
 
   toLinshiOrderPage() {
     console.log("toLinshiOrderPage")
     wx.navigateTo({
-      url: '../linshiOrderPage/linshiOrderPage',
+      url: '/subPackage-charts/pages/order/linshiOrderPage/linshiOrderPage',
     })
 
   },
@@ -319,7 +455,13 @@ Page({
     })
   },
 
-
+  toOcrDep(e){
+   var item = e.currentTarget.dataset.item;
+    wx.navigateTo({
+      url: '/subPackage-charts/pages/order/ocrOrder/ocrOrder?depFatherId=' + item.depFatherId +
+      '&depId=' + item.depFatherId.depId + '&depName=' + item.depFatherId,
+    })
+  },
 
   toDepOrdersGb(e) {
     console.log(e);
@@ -340,7 +482,7 @@ Page({
 
   addDepOrder() {
     wx.navigateTo({
-      url: '../depList/depList?disId=' + this.data.disId,
+      url: '/subPackage-charts/pages/order/depList/depList?disId=' + this.data.disId,
     })
   },
 
@@ -367,7 +509,7 @@ Page({
 
   addSearchOrder() {
     wx.navigateTo({
-      url: '../searchOrder/searchOrder',
+      url: '/subPackage-charts/pages/order/searchOrder/searchOrder',
     })
   },
 
@@ -412,6 +554,13 @@ Page({
     wx.navigateTo({
       url: '../../../subPackage/pages/management/payPage/payPage?type=0',
     })
+  },
+
+  /**
+   * 页面卸载时清除定时器
+   */
+  onUnload: function() {
+    this._clearCacheTaskTimer();
   },
 
 })

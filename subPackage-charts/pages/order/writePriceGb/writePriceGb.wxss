@@ -1,0 +1,117 @@
+.section_body {
+  width: 100%;
+  height: calc(100% - 96rpx);
+  position: fixed;
+  bottom: 0;
+  left: 0;
+}
+
+
+.tui-city-scroll-y {
+  /* padding: 0 20rpx; */
+  height: 100%;
+  box-sizing: border-box;
+  /* margin-top: 100rpx; */
+}
+
+
+
+.bottom_place{
+  width: 100%;
+  height: 980rpx;
+
+  
+}
+
+.quickBtn{
+  background-color: rgb(211, 212, 211);
+  font-size: 30rpx;
+  padding: 4rpx 10rpx;
+  border-radius: 10rpx;
+  border: 1px solid rgb(68, 78, 68);
+  width: 50rpx;
+  text-align: center;
+}
+
+/*  */
+
+.customize_key_board{
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  z-index: 999;
+}
+.customize_key_board.hidden{
+  display: none;
+}
+
+.num{
+  text-align: center;
+  font-size: 50rpx;
+  box-sizing:border-box;
+
+  
+}
+.double_num{
+  text-align: center;
+  box-sizing:border-box;
+}
+
+.weightInput{
+   width: 80%;
+  border: 1px solid rgba(0, 0, 0, 0.575);
+  border-radius: 20rpx;
+  line-height: 60rpx;
+  height: 60rpx;
+  text-align: center;
+  font-size: 40rpx;
+  padding: 0 10rpx;
+  color: #187e6e;
+
+}
+
+.weightInput.is-active{
+  border: 1px solid #187e6e;
+}
+.input_number{
+  margin-right: 6rpx;
+}
+
+.analog_cursor{
+  height: 40rpx;
+  width: 4rpx;
+  background: #187e6e;
+  display: none;
+}
+
+.analog_cursor.is-active{
+  display: block;
+}
+
+/*  */
+.maodian{
+  /* position: absolute; */
+  top: 100rpx;
+  background: red;
+  width: 100%;
+  display: none;
+}
+
+
+
+/*  */
+.maodianPrice {
+  /* position: absolute; */
+  /* top: 200rpx; */
+  background: red;
+  width: 100%;
+  /* display: none; */
+}
+
+.maodianSubsPrice {
+  top: 100rpx;
+  /* background: blue; */
+  width: 100%;
+  color: blue;
+  display: none;
+}

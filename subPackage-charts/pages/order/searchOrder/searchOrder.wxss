@@ -1,0 +1,290 @@
+
+/* 页面容器 */
+.page-container {
+  background-color: #f5f7fa;
+  min-height: 100vh;
+}
+
+/* 搜索框容器 */
+.search-container {
+  background-color: #ffffff;
+  padding: 24rpx 30rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.search-box {
+  display: flex;
+  align-items: center;
+  background-color: #f5f7fa;
+  border-radius: 48rpx;
+  padding: 0 24rpx;
+  height: 88rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+}
+
+.search-icon {
+  font-size: 32rpx;
+  margin-right: 16rpx;
+  color: #8c9eff;
+}
+
+.search-input {
+  flex: 1;
+  height: 88rpx;
+  font-size: 30rpx;
+  color: #333;
+}
+
+.clear-btn {
+  width: 48rpx;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #e0e0e0;
+  margin-left: 12rpx;
+}
+
+.clear-icon {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.clear-btn.hoverBtn {
+  background-color: #c0c0c0;
+}
+
+/* 内容容器 */
+.content-container {
+  padding: 20rpx 24rpx;
+}
+
+/* 商品列表 */
+.goods-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.goods-group {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+/* 商品卡片 */
+.goods-card {
+  background-color: #ffffff;
+  border-radius: 24rpx;
+  padding: 32rpx 28rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+  border: 1rpx solid #e9eff2;
+}
+
+/* 商品头部 */
+.goods-header {
+  padding-bottom: 24rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  margin-bottom: 24rpx;
+}
+
+.goods-name-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 12rpx;
+  gap: 12rpx;
+}
+
+.brand-tag {
+  display: inline-block;
+  padding: 6rpx 16rpx;
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+  border: 1rpx solid #ffa726;
+  color: #e65100;
+  border-radius: 16rpx;
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.goods-name {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #1f2f3d;
+  line-height: 1.4;
+}
+
+.goods-spec-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16rpx;
+  margin-top: 8rpx;
+}
+
+.spec-text {
+  font-size: 28rpx;
+  color: #5c6672;
+  padding: 4rpx 12rpx;
+  background-color: #f5f7fa;
+  border-radius: 8rpx;
+}
+
+.place-text {
+  font-size: 26rpx;
+  color: #8c9eff;
+  padding: 4rpx 12rpx;
+  background-color: #e3f2fd;
+  border-radius: 8rpx;
+}
+
+.detail-text {
+  font-size: 24rpx;
+  color: #999;
+  padding: 4rpx 12rpx;
+  background-color: #fafafa;
+  border-radius: 8rpx;
+}
+
+/* 订单区域 */
+.order-section {
+  margin-top: 28rpx;
+}
+
+.order-section:first-of-type {
+  margin-top: 0;
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+  gap: 12rpx;
+}
+
+.title-icon {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28rpx;
+}
+
+.out-icon {
+  background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+}
+
+.purchase-icon {
+  background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+}
+
+.title-text {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+/* 订单列表 */
+.order-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  padding-left: 12rpx;
+}
+
+.order-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 16rpx;
+  padding: 12rpx 0;
+}
+
+.nested-order-list {
+  display: flex;
+  align-items: flex-start;
+  gap: 16rpx;
+  padding: 8rpx 0;
+}
+
+.order-dot {
+  width: 12rpx;
+  height: 12rpx;
+  border-radius: 50%;
+  background-color: #8c9eff;
+  margin-top: 12rpx;
+  flex-shrink: 0;
+}
+
+.order-content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8rpx;
+}
+
+.dept-name {
+  font-size: 32rpx;
+  color: #333;
+  font-weight: 500;
+}
+
+.quantity-text {
+  font-size: 30rpx;
+  color: #1976d2;
+  font-weight: 600;
+  padding: 4rpx 12rpx;
+  background-color: #e3f2fd;
+  border-radius: 8rpx;
+  margin-left: 8rpx;
+}
+
+/* 空状态 */
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 60rpx 40rpx;
+}
+
+.empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24rpx;
+}
+
+.empty-image {
+  width: 200rpx;
+  height: 200rpx;
+  opacity: 0.6;
+}
+
+.empty-text {
+  font-size: 32rpx;
+  color: #666;
+  font-weight: 500;
+  text-align: center;
+}
+
+.empty-tip {
+  font-size: 26rpx;
+  color: #999;
+  text-align: center;
+}
+
+/* 隐藏/显示 */
+.hide {
+  display: none;
+}
+
+.show {
+  display: block;
+}

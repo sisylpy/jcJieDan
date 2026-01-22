@@ -1,0 +1,116 @@
+
+<view class="flex flex-column page-container">
+
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="搜索今日订单" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+    <view class="flex-column" style="background-color: #f5f7fa;">
+      <!-- 搜索框区域 -->
+      <view class="search-container">
+        <view class="search-box">
+          <view class="search-icon">🔍</view>
+          <input placeholder="查找商品名称或拼音或简拼" class="search-input" bindconfirm="getSearchString" bindinput="getSearchString" value="{{searchStr}}" hold-keyboard="true" confirm-type="search"></input>
+          <view class="clear-btn" wx:if="{{searchStr}}" bindtap="stopSearch" hover-class="hoverBtn">
+            <image src="../../../../images/Delete-2.png" class="clear-icon"></image>
+          </view>
+        </view>
+      </view>
+
+      <!-- 搜索结果列表 -->
+      <view class="content-container">
+          <block wx:if="{{searchArr.length > 0}}">
+            <view class="goods-list">
+              <view class="goods-group" wx:for='{{searchArr}}' wx:key='nxDistributerFatherGoodsId' wx:for-item='parentItem' wx:for-index="parentIndex">
+                <!-- 商品卡片 -->
+                <view class="goods-card" wx:for='{{parentItem.nxDistributerGoodsEntities}}' wx:for-item="item" wx:for-index='goodsIndex' wx:key='nxDistributerGoodsId'>
+                  <!-- 商品信息头部 -->
+                  <view class="goods-header">
+                    <view class="goods-name-row">
+                      <text class="brand-tag" wx:if="{{item.nxDgGoodsBrand !== 'null' && item.nxDgGoodsBrand.length > 0}}">{{item.nxDgGoodsBrand}}</text>
+                      <text class="goods-name">{{item.nxDgGoodsName}}</text>
+                    </view>
+                    <view class="goods-spec-row">
+                      <text class="spec-text" wx:if="{{item.nxDgGoodsStandardWeight !== 'null' && item.nxDgGoodsStandardWeight.length > 0}}">
+                        {{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}}
+                      </text>
+                      <text class="spec-text" wx:else>{{item.nxDgGoodsStandardname}}</text>
+                      <text class="place-text" wx:if="{{item.nxDgGoodsPlace !== null && item.nxDgGoodsPlace.length > 0}}">{{item.nxDgGoodsPlace}}</text>
+                      <text class="detail-text" wx:if="{{item.nxDgGoodsDetail.length > 0 && item.nxDgGoodsDetail !== 'null'}}">{{item.nxDgGoodsDetail}}</text>
+                    </view>
+                  </view>
+                
+                  <!-- 出库订单 -->
+                  <view class="order-section" wx:if="{{item.neetNotPurOrders && item.neetNotPurOrders.length > 0}}">
+                    <view class="section-title">
+                      <view class="title-icon out-icon">📦</view>
+                      <text class="title-text">出库</text>
+                    </view>
+                    <view class="order-list">
+                      <view class="order-item" wx:for="{{item.neetNotPurOrders}}" wx:for-item="needNot" wx:key="nxDepartmentOrdersId">
+                        <view class="order-dot"></view>
+                        <view class="order-content">
+                          <block wx:if="{{needNot.gbDepartmentEntity !== null}}">
+                            <text wx:if="{{needNot.gbDepartmentEntity.gbDepartmentSubAmount > 1}}" class="dept-name">{{needNot.gbDepartmentEntity.fatherDepartmentEntity.gbDepartmentAttrName}}.</text>
+                            <text class="dept-name">{{needNot.gbDepartmentEntity.gbDepartmentAttrName}}</text>
+                          </block>
+                          <block wx:elif="{{needNot.nxRestrauntEntity !== null}}">
+                            <text class="dept-name">{{needNot.nxRestrauntEntity.nxRestrauntAttrName}}</text>
+                          </block>
+                          <block wx:else>
+                            <text wx:if="{{needNot.nxDepartmentEntity.nxDepartmentFatherId > 0}}" class="dept-name">{{needNot.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentAttrName}}.</text>
+                            <text class="dept-name">{{needNot.nxDepartmentEntity.nxDepartmentName}}</text>
+                          </block>
+                          <text class="quantity-text">{{needNot.nxDoQuantity}}{{needNot.nxDoStandard}}</text>
+                        </view>
+                      </view>
+                    </view>
+                  </view>
+
+                  <!-- 采购订单 -->
+                  <view class="order-section" wx:if="{{item.unPurOrdersDisGoodsList && item.unPurOrdersDisGoodsList.length > 0}}">
+                    <view class="section-title">
+                      <view class="title-icon purchase-icon">🛒</view>
+                      <text class="title-text">采购</text>
+                    </view>
+                    <view class="order-list">
+                      <view class="flex-row-wrap" wx:for="{{item.unPurOrdersDisGoodsList}}" wx:for-item="puringGoods" wx:for-index="puringOrderIndex" wx:key="nxDistributerPurchaseGoodsId">
+                        <view class="nested-order-list mr-30" wx:for="{{puringGoods.nxDepartmentOrdersEntities}}" wx:for-item="purOrders" wx:key="nxDepartmentOrdersId">
+                          <view class="order-dot"></view>
+                          <view class="order-content">
+                            <block wx:if="{{purOrders.gbDepartmentEntity !== null}}">
+                              <text wx:if="{{purOrders.gbDepartmentEntity.gbDepartmentSubAmount > 1}}" class="dept-name">{{purOrders.gbDepartmentEntity.fatherDepartmentEntity.gbDepartmentName}}.</text>
+                              <text class="dept-name">{{purOrders.gbDepartmentEntity.gbDepartmentName}}</text>
+                            </block>
+                            <block wx:elif="{{purOrders.nxRestrauntEntity !== null}}">
+                              <text wx:if="{{purOrders.nxRestrauntEntity.nxDepartmentFatherId > 0}}" class="dept-name">{{purOrders.nxDepartmentEntity.fatherDepartmentEntity.nxRestrauntAttrName}}.</text>
+                              <text class="dept-name">{{purOrders.nxRestrauntEntity.nxRestrauntAttrName}}</text>
+                            </block>
+                            <block wx:else>
+                              <text wx:if="{{purOrders.nxDepartmentEntity.nxDepartmentFatherId > 0}}" class="dept-name">{{purOrders.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentName}}.</text>
+                              <text class="dept-name">{{purOrders.nxDepartmentEntity.nxDepartmentName}}</text>
+                            </block>
+                            <text class="quantity-text">{{purOrders.nxDoQuantity}}{{purOrders.nxDoStandard}}</text>
+                          </view>
+                        </view>
+                      </view>
+                    </view>
+                  </view>
+                </view>
+              </view>
+            </view>
+          </block>
+
+          <!-- 空状态 -->
+          <view class="empty-state" wx:if="{{searchArr.length == 0 && searchStr}}">
+            <view class="empty-content">
+              <image class="empty-image" src="../../../../images/cg.png"></image>
+              <text class="empty-text">未找到 "{{searchStr}}" 相关订单</text>
+              <text class="empty-tip">请尝试其他关键词搜索</text>
+            </view>
+          </view>
+      </view>
+
+
+    </view>
+ 
+
+</view>

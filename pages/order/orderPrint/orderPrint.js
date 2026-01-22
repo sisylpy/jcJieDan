@@ -77,14 +77,14 @@ Page({
       })
       if (value.nxDiuPrintDeviceId == -1) {
         wx.navigateTo({
-          url: '../../order/pSearchPrinter/pSearchPrinter',
+          url: '/subPackage-charts/pages/order/pSearchPrinter/pSearchPrinter',
         })
       }else{
         if(this.data.printOk){
           this._initData();
         }else{
-        //  this.startSearch();
-        this._initData();
+         this.startSearch();
+        // this._initData();
         }
       }
     }
@@ -674,7 +674,7 @@ Page({
         })
       
           wx.navigateTo({
-            url: '../../order/pSearchPrinter/pSearchPrinter',
+            url: '/subPackage-charts/pages/order/pSearchPrinter/pSearchPrinter',
           })
         
         console.log(e)

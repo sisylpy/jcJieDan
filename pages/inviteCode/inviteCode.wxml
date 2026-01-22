@@ -1,0 +1,46 @@
+<view class='flex-column'>
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="邀请码认证" avatar="/images/logo.jpg" button-text="返回" bindnavbuttontap="toBack"></back-navbar>
+  
+  <view class='flex-column p-20' style="margin-top: {{navBarHeight}}rpx;">
+    <!-- <view class="flex-column center-content">
+      <view class='word'>京采接单</view>
+      <view class="small gray" style="margin-bottom: 40rpx;">专业配送商户专用版</view>
+    </view> -->
+
+    <view class="invite-container1">
+      <view class="invite-title">请输入邀请码</view>
+      <view class="invite-desc">请使用有效的邀请码进行认证</view>
+      
+      <view class="input-container">
+        <input 
+          class="invite-input" 
+          type="text" 
+          placeholder="请输入邀请码" 
+          value="{{inviteCode}}" 
+          bindinput="onInviteCodeInput"
+          bindconfirm="verifyInviteCode"
+          maxlength="50"
+          disabled="{{isVerifying}}"
+        />
+      </view>
+
+      <view class="btn-container">
+        <button 
+          class="verify-btn {{isVerifying ? 'disabled' : ''}}" 
+          bindtap="verifyInviteCode"
+          disabled="{{isVerifying}}"
+        >
+          {{isVerifying ? '验证中...' : '验证邀请码'}}
+        </button>
+      </view>
+    </view>
+  </view>
+</view>
+
+
+
+
+
+
+
+

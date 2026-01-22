@@ -1,0 +1,10 @@
+<!-- 最简单的测试组件 -->
+<view class="what" style="height: 600rpx; width: 500rpx; background-color: blue; margin-top: 300rpx;">
+  dkkd 
+  
+  <!-- 背景文字 -->
+  <view style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: rgba(255, 255, 255, 0.3); font-size: 200rpx; font-weight: bold;">
+    TEST
+  </view>
+</view>
+

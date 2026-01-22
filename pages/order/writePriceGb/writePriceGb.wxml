@@ -55,7 +55,7 @@
                         <text class="red " wx:if="{{item.nxDoRemark.length > 0}}">({{item.nxDoRemark}})</text> 
                       </view>
 
-                      <block wx:if="{{disInfo.nxDistributerBusinessTypeId  == '2'}}">
+                      <block wx:if="{{disInfo.nxDistributerBusinessTypeId  == 6}}">
                         <view class="flex-row">
                         <view class="flex-row half-row">
                          <text class="margin-l-right">利润:</text>

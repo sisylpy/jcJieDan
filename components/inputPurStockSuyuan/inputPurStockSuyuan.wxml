@@ -1,0 +1,203 @@
+<view class='ccc' wx:if='{{show}}' catchtouchmove='ture'>
+  <view class='modal-content flex-column'>
+    <view class="top">
+      <view class='goodsTitle flex-row'>
+        <text class="brand" wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0 && item.nxDistributerGoodsEntity.nxDgGoodsBrand !== 'null'}}">{{item.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
+        <text>{{item.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
+        <text wx:for="{{item.nxDistributerGoodsEntity.nxAliasEntities}}" wx:for-item="alias">={{alias.nxDaAliasName}}</text>
+        <block wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0}}">
+          <text class="small" >({{item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight}}/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+        </block>
+
+        <block wx:else>
+          <text class="">({{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+        </block>
+
+       
+      </view>
+    </view>
+
+    <view class="body">
+      <scroll-view class='scroll-content' scroll-y="true" enhanced="true" show-scrollbar="false" style="height: {{scrollViewHeight}}rpx;">
+        <view class='goods_contents'>
+       
+     
+         <block wx:if="{{item.nxDistributerGoodsEntity.nxDgCartonUnit !== '' && item.nxDistributerGoodsEntity.nxDgCartonUnit !== null}}">
+          <view class="flex-row-between p-20">
+          <text>采购单位:</text>
+          <text class="small">{{item.nxDistributerGoodsEntity.nxDgItemsPerCarton}}{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}/{{item.nxDistributerGoodsEntity.nxDgCartonUnit}}</text>
+        </view>
+        </block>
+      
+        <view class="flex-row-between p-20">
+          <text class="margin-l-right">采购数量:</text>
+          <view class="flex-row">
+            <view class="inputView" style="width: 200rpx; margin-right: 10rpx;">
+              <input class='input' type='digit' value="{{item.nxDpgBuyQuantity}}" bindinput="getPurchaseQuantity" bindblur="_checkQuantity" hold-keyboard='true'></input>
+            </view>
+            <text>{{item.nxDistributerGoodsEntity.nxDgCartonUnit !== null && item.nxDistributerGoodsEntity.nxDgCartonUnit !== undefined && item.nxDistributerGoodsEntity.nxDgCartonUnit !== '' ? item.nxDistributerGoodsEntity.nxDgCartonUnit : item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+          </view>
+        </view>
+
+        <view class="flex-row-between p-20">
+          <text class="margin-l-right">采购单价:</text>
+          <view class="flex-row">
+            <view class="inputView" style="width: 200rpx; margin-right: 10rpx;">
+              <input class='input' type='digit' value="{{cartonBuyPrice || item.nxDpgBuyPrice}}" bindinput="getPurchasePrice" bindblur="_checkPrice" hold-keyboard='true'></input>
+            </view>
+            <text>元/{{item.nxDistributerGoodsEntity.nxDgCartonUnit !== null && item.nxDistributerGoodsEntity.nxDgCartonUnit !== undefined && item.nxDistributerGoodsEntity.nxDgCartonUnit !== '' ? item.nxDistributerGoodsEntity.nxDgCartonUnit : item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+          </view>
+        </view>
+
+        <view class="flex-row-between p-20" wx:if="{{averageBuyPrice}}">
+          <text class="margin-l-right">平均单价:</text>
+          <view class="flex-row">
+            <text>{{averageBuyPrice}}元/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+          </view>
+        </view>
+
+        <view class="flex-row-between p-20">
+          <text class="margin-l-right">建议售价:</text>
+          <view class="flex-row">
+            <view class="inputView" style="width: 200rpx; margin-right: 10rpx;">
+              <input class='input' type='digit' value="{{cartonExpectPrice || item.nxDpgExpectPrice}}" bindinput="getPurchaseExpectPrice" bindblur="_checkPrice" hold-keyboard='true'></input>
+            </view>
+            <text>元/{{item.nxDistributerGoodsEntity.nxDgCartonUnit !== null && item.nxDistributerGoodsEntity.nxDgCartonUnit !== undefined && item.nxDistributerGoodsEntity.nxDgCartonUnit !== '' ? item.nxDistributerGoodsEntity.nxDgCartonUnit : item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+          </view>
+        </view>
+
+        <view class="flex-row-between p-20" wx:if="{{averageExpectPrice}}">
+          <text class="margin-l-right">平均建议售价:</text>
+          <view class="flex-row">
+            <text>{{averageExpectPrice}}元/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+          </view>
+        </view>
+
+        <view class="flex-row-between p-20">
+          <text class="margin-l-right">金额:</text>
+          <view class="">
+            <text wx:if="{{item.nxDpgBuySubtotal !== null}}">{{item.nxDpgBuySubtotal}}元</text>
+          </view>
+        </view>
+
+       
+       
+        <view class="flex-row-between p-20">
+          <text class="margin-l-right">等待入库:</text>
+          <view class="flex-row">
+            <view class="inputView1" style="width: 200rpx; margin-right: 10rpx;">
+              <switch checked="{{item.isShowTools}}" bindchange="changeWait"/>
+            </view>
+          </view>
+        </view>
+
+        <!-- 首衡项目：溯源报告信息 -->
+        <view class="flex-row-between p-20" style="flex-direction: column; align-items: flex-start;">
+          <text class="margin-l-right" style="margin-bottom: 10rpx;">溯源报告文件:</text>
+          <view style="width: 100%;">
+            <!-- 文件预览 -->
+            <view wx:if="{{traceReportFilePreview || traceReportFileName}}" style="margin-bottom: 10rpx; position: relative; display: inline-block;">
+              <view wx:if="{{traceReportFilePreview}}" style="margin-bottom: 10rpx;">
+                <image wx:if="{{isImageFile}}" src="{{traceReportFilePreview}}" mode="aspectFit" style="width: 200rpx; height: 200rpx; border-radius: 8rpx; background-color: #f5f5f5;"></image>
+                <view wx:else style="width: 200rpx; height: 200rpx; border-radius: 8rpx; background-color: #f5f5f5; display: flex; align-items: center; justify-content: center; border: 1px solid #ddd;">
+                  <text style="color: #666; font-size: 24rpx;">PDF文件</text>
+                </view>
+              </view>
+              <view wx:if="{{traceReportFileName}}" style="margin-bottom: 10rpx;">
+                <text style="color: #333; font-size: 24rpx;">{{traceReportFileName}}</text>
+              </view>
+              <view bindtap="deleteTraceReportFile" style="position: absolute; top: -10rpx; right: -10rpx; width: 40rpx; height: 40rpx; background-color: #ff4444; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <text style="color: white; font-size: 24rpx;">×</text>
+              </view>
+            </view>
+            <!-- 选择文件按钮 -->
+            <view style="display: flex; width: 100%; margin-bottom: 10rpx;">
+              <view bindtap="chooseTraceReportFile" style="flex: 1; padding: 20rpx; background-color: #f0f0f0; border-radius: 8rpx; text-align: center;">
+                <text style="color: #333; font-size: 28rpx;">选择文件（图片或PDF）</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view class="flex-row-between p-20">
+          <text class="margin-l-right">供应商名称:</text>
+          <view class="flex-row" style="flex: 1;">
+            <view class="inputView" style="flex: 1; margin-right: 10rpx;">
+              <input class='input' type='text' value="{{nxTrSupplierName}}" placeholder="请输入供应商名称" bindinput="getSupplierName" hold-keyboard='true'></input>
+            </view>
+          </view>
+        </view>
+
+        <view class="flex-row-between p-20">
+          <text class="margin-l-right">供应商联系方式:</text>
+          <view class="flex-row" style="flex: 1;">
+            <view class="inputView" style="flex: 1; margin-right: 10rpx;">
+              <input class='input' type='text' value="{{nxTrSupplierContact}}" placeholder="请输入联系方式" bindinput="getSupplierContact" hold-keyboard='true'></input>
+            </view>
+          </view>
+        </view>
+
+        <view class="flex-row-between p-20">
+          <text class="margin-l-right">有效期开始日期:</text>
+          <view class="flex-row" style="flex: 1;">
+            <view class="inputView" style="flex: 1; margin-right: 10rpx;">
+              <picker mode="date" value="{{nxTrValidStartDate}}" bindchange="getValidStartDate">
+                <view class="input" style="color: {{nxTrValidStartDate ? '#333' : '#999'}};">
+                  {{nxTrValidStartDate || '请选择开始日期'}}
+                </view>
+              </picker>
+            </view>
+          </view>
+        </view>
+
+        <view class="flex-row-between p-20">
+          <text class="margin-l-right">有效期结束日期:</text>
+          <view class="flex-row" style="flex: 1;">
+            <view class="inputView" style="flex: 1; margin-right: 10rpx;">
+              <picker mode="date" value="{{nxTrValidEndDate}}" bindchange="getValidEndDate">
+                <view class="input" style="color: {{nxTrValidEndDate ? '#333' : '#999'}};">
+                  {{nxTrValidEndDate || '请选择结束日期'}}
+                </view>
+              </picker>
+            </view>
+          </view>
+        </view>
+
+        <view class="flex-row-between p-20">
+          <text class="margin-l-right">备注说明:</text>
+          <view class="flex-row" style="flex: 1;">
+            <view class="inputView" style="flex: 1; margin-right: 10rpx;">
+              <input class='input' type='text' value="{{nxTrRemark}}" placeholder="请输入备注说明" bindinput="getTraceReportRemark" hold-keyboard='true'></input>
+            </view>
+          </view>
+        </view>
+        </view>
+      </scroll-view>
+
+      <view class='flex-row'>
+
+        <view class="btn_row" wx:if="{{item.nxDpgStatus == 1}}">
+          <view class="finish-btn hidden flex-row"></view>
+          <view class="btn_row_finish">
+            <text class='cancel-btn' bindtap="cancle" hover-class="hoverBtn">关闭</text>
+            <text class='confirm-btn' catchtap='confirm' hover-class="hoverBtn">完成</text>
+          </view>
+
+        </view>
+        <view class="btn_row" wx:else>
+          <!-- <view class="finish-btn flex-row">
+            <image src="../../images/check.png" class="smallIcon"></image>
+            <text class='' bindtap="finish" hover-class="hoverBtn">标记买了</text>
+          </view> -->
+          <view class=" flex-row"></view>
+          <view class=" btn_row_finish">
+            <text class='cancel-btn' bindtap="cancle" hover-class="hoverBtn">关闭</text>
+            <text class='confirm-btn' catchtap='confirm' hover-class="hoverBtn">完成</text>
+          </view>
+
+        </view>
+      </view>
+    </view>
+
+  </view>
+</view>

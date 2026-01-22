@@ -506,6 +506,11 @@ Page({
           '&depId=' + this.data.depId + '&depName=' + depName +
           '&gbDepFatherId=-1&resFatherId=-1&depSettleType=' + this.data.depSettleType,
       })
+    } else if (this.data.openType == 'ocr') {
+      wx.navigateTo({
+        url: '/subPackage-charts/pages/order/ocrOrder/ocrOrder?depFatherId=' + this.data.depFatherId +
+          '&depId=' + this.data.depId + '&depName=' + depName,
+      })
     } else {
       wx.navigateTo({
         url: '../resGoodsList/resGoodsList?depFatherId=' + this.data.depFatherId +
@@ -599,6 +604,87 @@ Page({
         '&gbDepFatherId=-1&resFatherId=-1&depSettleType=' + this.data.depSettleType,
     })
 
+  },
+
+  // 跳转到 OCR 识别页面
+  recognizeOrder(e) {
+    console.log("========== recognizeOrder 开始 ==========");
+    console.log("点击事件 e:", e);
+    console.log("dataset:", e.currentTarget.dataset);
+    var type = e.currentTarget.dataset.type;
+    console.log("type:", type);
+    
+    console.log("当前部门信息:");
+    console.log("  depInfo:", this.data.depInfo);
+    console.log("  depFatherId:", this.data.depFatherId);
+    console.log("  depId:", this.data.depId);
+    console.log("  depName:", this.data.depName);
+    
+    // 检查是否有子部门
+    const hasSubDepartments = this.data.depInfo && 
+                              this.data.depInfo.nxDepartmentEntities && 
+                              this.data.depInfo.nxDepartmentEntities.length > 0;
+    console.log("是否有子部门:", hasSubDepartments);
+    if (hasSubDepartments) {
+      console.log("子部门数量:", this.data.depInfo.nxDepartmentEntities.length);
+      console.log("显示部门选择弹窗");
+      this.setData({
+        showChoice: true,
+        openType: 'ocr',
+      })
+      console.log("已设置 showChoice: true, openType: 'ocr'");
+    } else {
+      // 直接跳转到 OCR 识别页面
+      // 使用分包路径格式：/分包root/页面路径
+      const depName = this.data.depName || '';
+      const depFatherId = this.data.depFatherId || '';
+      const depId = this.data.depId || '';
+      
+      // 构建 URL，参数使用 encodeURIComponent 编码（wx.navigateTo 不会自动编码中文）
+      const url = '/subPackage-charts/pages/order/ocrOrder/ocrOrder' +
+        '?depFatherId=' + depFatherId +
+        '&depId=' + depId +
+        '&depName=' + encodeURIComponent(depName);
+      
+      console.log("直接跳转到 OCR 识别页面");
+      console.log("跳转 URL:", url);
+      console.log("参数详情:", {
+        depFatherId: depFatherId,
+        depId: depId,
+        depName: depName,
+        depNameEncoded: encodeURIComponent(depName)
+      });
+      
+      wx.navigateTo({
+        url: url,
+        success: (res) => {
+          console.log("跳转成功:", res);
+        },
+        fail: (err) => {
+          console.error("跳转失败:", err);
+          console.error("错误详情:", JSON.stringify(err, null, 2));
+          console.error("尝试的 URL:", url);
+          
+          // 尝试不带参数跳转，测试页面是否存在
+          console.log("尝试不带参数跳转测试...");
+          wx.navigateTo({
+            url: '/subPackage-charts/pages/order/ocrOrder/ocrOrder',
+            success: (testRes) => {
+              console.log("不带参数跳转成功，说明页面存在，问题可能在参数");
+            },
+            fail: (testErr) => {
+              console.error("不带参数也失败，说明页面配置有问题:", testErr);
+              wx.showModal({
+                title: '页面未找到',
+                content: '请检查：\n1. app.json 中是否已配置页面\n2. 是否需要重新编译小程序\n3. 页面文件是否存在',
+                showCancel: false
+              });
+            }
+          });
+        }
+      })
+    }
+    console.log("========== recognizeOrder 结束 ==========");
   },
 
 

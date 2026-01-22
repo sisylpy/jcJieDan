@@ -34,6 +34,14 @@
       </view>
     </view> -->
 
+
+    <view class="flex flex-row mr-30" bindtap="recognizeOrder" data-type="paste" data-id="-1">
+      <view class="button-container">
+        <image src="../../../images/paste.png" class="icon"></image>
+      </view>
+    </view>
+
+
     <view class="flex flex-row mr-30" bindtap="toAddOrder" data-type="paste" data-id="-1">
       <view class="button-container">
         <image src="../../../images/paste-2.png" class="icon"></image>
@@ -385,10 +393,10 @@
 <view class='overlay {{showOperationLinshi ? "show" : ""}}' catchtouchmove='ture' catchtap="hideMaskLinshi">
   <view class="flex-column nnn bg-white font-lg">
 
-    <view class="flex-row p-30 border-bottom" catchtap="toPasteFromGoods" hover-class="hover"  wx:if="{{applyItem.nxDoIsAgent !== 1}}">
+    <!-- <view class="flex-row p-30 border-bottom" catchtap="toPasteFromGoods" hover-class="hover"  wx:if="{{applyItem.nxDoIsAgent !== 1}}">
       <image src="/images/paste.png" class="icon mr-20"></image>
       <text class="">修改粘贴</text>
-    </view>
+    </view> -->
 
     <view class="flex-row p-30" catchtap="editDepApplyGoods" hover-class="hover" data-type="edit" wx:if="{{applyItem.nxDoIsAgent == 1}}">
       <image src="/images/edit.png" class="icon mr-20"></image>

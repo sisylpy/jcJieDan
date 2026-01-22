@@ -1,0 +1,27 @@
+/* pages/order/addPickFirstStep/addPickFirstStep.wxss */
+
+
+.main{
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: flex-start;
+  align-items: center;
+
+}
+
+
+.userUrl {
+  height: 110rpx;
+  width: 100rpx;
+  border-radius: 20rpx;
+  
+
+  
+}
+
+
+.user-row{
+  /* background: yellow; */
+
+
+}

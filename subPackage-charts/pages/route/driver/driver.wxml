@@ -1,0 +1,40 @@
+<view class='container'>
+
+  <!-- 分店列表 -->
+  <view class="main with-padding">
+
+    <!-- 单个分店 -->
+    <!-- <view class='col-3 {{item.isSelected ? "active" : ""}} ' wx:for='{{pickStoreArr}}' bindtap="isSelected" data-isselected="{{item.isSelected}}" data-index="{{index}}" data-cuCustomerId="{{item.cuCustomerId}}">
+      
+      <view class="with-padding">{{item.duWxNickName}}</view>
+    
+    </view> -->
+
+    <view class=''>选择司机</view>
+    <scroll-view scroll-y class='scrool-view' style='height: {{windowHeight - 100}}rpx'>
+      <radio-group class="radio-group" bindchange="radioChange">
+        <label class="radio" wx:for="{{purchaseUserArr}}" wx:key='{{item.nxCommunityUserId}}'>
+        <view class="flex-row user-row with-border-bottom with-padding" >
+        <radio value="{{item.nxCommunityUserId}}"  />
+            <image class='userUrl margin-right' src="{{item.nxCouWxAvartraUrl}}"></image>
+            <text class='wxNumber'>{{item.nxCouWxNickName}}</text>
+        </view>
+        
+        </label>
+      </radio-group>
+    </scroll-view>
+
+
+
+
+
+
+    <view class='fix-main-btn {{purchaseUserId > 0 ? "active" : "" }}' bindtap='saveBuyTypePurchaseBatch'>分派配送</view>
+
+  </view>
+
+
+
+
+
+</view>
