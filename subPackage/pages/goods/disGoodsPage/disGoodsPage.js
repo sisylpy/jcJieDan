@@ -13,7 +13,7 @@ import {
   disDeleteStandard,
   disDeleteAlias,
   updateDisAlias,
-
+  addTraceReportToGoods,
   updateDepGoodsSellingPrice
 
 } from '../../../../lib/apiDistributer'
@@ -49,6 +49,19 @@ Page({
     sellingPrice: "",
     orderName: "",
     pickDetail: "",
+    // 溯源报告相关
+    showAddTraceReport: false,
+    traceReportFile: '',
+    traceReportFilePreview: '',
+    traceReportFileName: '',
+    isImageFile: false,
+    nxTrSupplierName: '',
+    nxTrSupplierContact: '',
+    nxTrPurchaseDate: '',
+    nxTrStockInDate: '',
+    nxTrValidStartDate: '',
+    nxTrValidEndDate: '',
+    nxTrRemark: ''
   },
 
   onShow(){
@@ -800,5 +813,241 @@ Page({
       }
     })
   },
+
+  // 显示添加溯源报告弹窗
+  showAddTraceReport() {
+    // 获取今天的日期作为默认开始日期
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    const todayStr = `${year}-${month}-${day}`;
+    
+    this.setData({
+      showAddTraceReport: true,
+      traceReportFile: '',
+      traceReportFilePreview: '',
+      traceReportFileName: '',
+      isImageFile: false,
+      nxTrSupplierName: '',
+      nxTrSupplierContact: '',
+      nxTrPurchaseDate: '',
+      nxTrStockInDate: '',
+      nxTrValidStartDate: todayStr, // 默认开始日期为今天
+      nxTrValidEndDate: '',
+      nxTrRemark: ''
+    })
+  },
+
+  // 关闭添加溯源报告弹窗
+  closeAddTraceReport() {
+    this.setData({
+      showAddTraceReport: false
+    })
+  },
+
+  // 阻止弹窗关闭
+  preventClose() {},
+
+  // 选择溯源报告文件
+  chooseTraceReportFile() {
+    const that = this;
+    wx.showActionSheet({
+      itemList: ['选择图片', '选择PDF文件'],
+      success(res) {
+        if (res.tapIndex === 0) {
+          // 选择图片
+          wx.chooseImage({
+            count: 1,
+            sizeType: ['original', 'compressed'],
+            sourceType: ['album', 'camera'],
+            success(res) {
+              const tempFilePath = res.tempFilePaths[0];
+              const fileName = tempFilePath.split('/').pop() || 'image.jpg';
+              that.setData({
+                traceReportFile: tempFilePath,
+                traceReportFilePreview: tempFilePath,
+                traceReportFileName: fileName,
+                isImageFile: true
+              });
+              wx.showToast({
+                title: '图片已选择',
+                icon: 'success',
+                duration: 1500
+              });
+            },
+            fail(err) {
+              console.error('选择图片失败', err);
+              wx.showToast({
+                title: '选择图片失败',
+                icon: 'none'
+              });
+            }
+          });
+        } else if (res.tapIndex === 1) {
+          // 选择PDF文件
+          // 注意：wx.chooseMessageFile 会打开聊天文件选择器，这是正常行为
+          wx.chooseMessageFile({
+            count: 1,
+            type: 'file',
+            extension: ['pdf'],
+            success(res) {
+              if (res.tempFiles && res.tempFiles.length > 0) {
+                const tempFilePath = res.tempFiles[0].path;
+                const fileName = res.tempFiles[0].name || 'document.pdf';
+                that.setData({
+                  traceReportFile: tempFilePath,
+                  traceReportFilePreview: '',
+                  traceReportFileName: fileName,
+                  isImageFile: false
+                });
+                wx.showToast({
+                  title: 'PDF文件已选择',
+                  icon: 'success',
+                  duration: 1500
+                });
+              } else {
+                wx.showToast({
+                  title: '未选择文件',
+                  icon: 'none'
+                });
+              }
+            },
+            fail(err) {
+              console.error('选择PDF文件失败', err);
+              // 如果是用户取消，不显示错误提示
+              if (err.errMsg && !err.errMsg.includes('cancel')) {
+                wx.showToast({
+                  title: '选择PDF文件失败',
+                  icon: 'none'
+                });
+              }
+            }
+          });
+        }
+      }
+    });
+  },
+
+  // 删除选择的溯源报告文件
+  deleteTraceReportFile() {
+    this.setData({
+      traceReportFile: '',
+      traceReportFilePreview: '',
+      traceReportFileName: '',
+      isImageFile: false
+    });
+  },
+
+  // 获取供应商名称
+  getSupplierName(e) {
+    this.setData({
+      nxTrSupplierName: e.detail.value
+    });
+  },
+
+  // 获取供应商联系方式
+  getSupplierContact(e) {
+    this.setData({
+      nxTrSupplierContact: e.detail.value
+    });
+  },
+
+  // 获取采购日期
+  getPurchaseDate(e) {
+    this.setData({
+      nxTrPurchaseDate: e.detail.value
+    });
+  },
+
+  // 获取入库日期
+  getStockInDate(e) {
+    this.setData({
+      nxTrStockInDate: e.detail.value
+    });
+  },
+
+  // 获取有效期开始日期
+  getValidStartDate(e) {
+    this.setData({
+      nxTrValidStartDate: e.detail.value
+    });
+  },
+
+  // 获取有效期结束日期
+  getValidEndDate(e) {
+    this.setData({
+      nxTrValidEndDate: e.detail.value
+    });
+  },
+
+  // 获取溯源报告备注
+  getTraceReportRemark(e) {
+    this.setData({
+      nxTrRemark: e.detail.value
+    });
+  },
+
+  // 确认添加溯源报告
+  confirmAddTraceReport() {
+    // 使用 goods 对象的 ID
+    const goodsId = this.data.goods?.nxDistributerGoodsId;
+    if (!goodsId) {
+      wx.showToast({
+        title: '商品ID不存在',
+        icon: 'none'
+      });
+      return;
+    }
+
+    const formData = {
+      nxDistributerGoodsId: String(goodsId),
+      nxTrSupplierName: this.data.nxTrSupplierName || '',
+      nxTrSupplierContact: this.data.nxTrSupplierContact || '',
+      nxTrPurchaseDate: this.data.nxTrPurchaseDate || '',
+      nxTrStockInDate: this.data.nxTrStockInDate || '',
+      nxTrValidStartDate: this.data.nxTrValidStartDate || '',
+      nxTrValidEndDate: this.data.nxTrValidEndDate || '',
+      nxTrRemark: this.data.nxTrRemark || ''
+    };
+
+    // 如果有用户信息，添加创建用户ID
+    if (this.data.userInfo && this.data.userInfo.nxDistributerUserId) {
+      formData.createUserId = String(this.data.userInfo.nxDistributerUserId);
+    }
+
+    load.showLoading('添加中...');
+    
+    addTraceReportToGoods({
+      filePath: this.data.traceReportFile || null,
+      ...formData
+    }).then(res => {
+      load.hideLoading();
+      if (res.result.code == 0) {
+        wx.showToast({
+          title: '添加成功',
+          icon: 'success'
+        });
+        // 关闭弹窗并刷新商品详情
+        this.setData({
+          showAddTraceReport: false
+        });
+        // 刷新商品详情
+        this._getGoodsDetail();
+      } else {
+        wx.showToast({
+          title: res.result.msg || '添加失败',
+          icon: 'none'
+        });
+      }
+    }).catch(err => {
+      load.hideLoading();
+      console.error('添加溯源报告失败:', err);
+      wx.showToast({
+        title: '添加失败，请重试',
+        icon: 'none'
+      });
+    });
+  }
 
 })

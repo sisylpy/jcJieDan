@@ -40,6 +40,7 @@ Page({
     scrollTop: 0,
     choiceAll: false,
     hasCartonUnit: null, // 外包装查询条件：1-有外包装，0-无外包装，null-不筛选
+    hasTraceReport: null, // 溯源查询条件：1-有溯源，0-无溯源，null-不筛选
     // 分页相关
     currentPage: 1,
     pageSize: 20,
@@ -82,15 +83,27 @@ Page({
       }
     }
 
+    // 从 URL 参数读取溯源筛选条件
+    var hasTraceReport = null;
+    if (options.hasTraceReport !== undefined && options.hasTraceReport !== '') {
+      if (options.hasTraceReport === 'null') {
+        hasTraceReport = null;
+      } else {
+        hasTraceReport = parseInt(options.hasTraceReport);
+      }
+    }
+
     this.setData({
       url: apiUrl.server,
       fatherId: options.fatherId,
       goodsType: options.goodsType,
       name: options.name,
       hasCartonUnit: hasCartonUnit,
+      hasTraceReport: hasTraceReport,
     })
     
     console.log('📦 从 goods 页面传递的外包装筛选条件:', hasCartonUnit);
+    console.log('🔍 从 goods 页面传递的溯源筛选条件:', hasTraceReport);
 
     if(options.goodsType == 99){
       this.setData({
@@ -144,34 +157,6 @@ Page({
     console.log('滚动事件:', e.detail);
   },
 
-  /**
-   * 下拉刷新
-   */
-  onRefresh() {
-    this._refreshData();
-  },
-
-  /**
-   * 刷新数据
-   */
-  _refreshData() {
-    this.setData({
-      currentPage: 1,
-      goodsList: [],
-      hasMore: true,
-      refresherTriggered: true
-    });
-    
-    this._getInitData().then(() => {
-      this.setData({
-        refresherTriggered: false
-      });
-    }).catch(() => {
-      this.setData({
-        refresherTriggered: false
-      });
-    });
-  },
 
   /**
    * 加载更多数据
@@ -230,12 +215,17 @@ Page({
     if (this.data.hasCartonUnit != null && this.data.hasCartonUnit !== undefined) {
       data.hasCartonUnit = this.data.hasCartonUnit;
     }
+    // 添加溯源查询条件（只有当值不为 null 且不为 undefined 时才添加）
+    if (this.data.hasTraceReport != null && this.data.hasTraceReport !== undefined) {
+      data.hasTraceReport = this.data.hasTraceReport;
+    }
     
     console.log('=== 请求分页数据 ===');
     console.log('请求参数:', data);
     console.log('当前页码:', this.data.currentPage);
     console.log('每页数量:', this.data.pageSize);
     console.log('外包装筛选:', this.data.hasCartonUnit);
+    console.log('溯源筛选:', this.data.hasTraceReport);
 
     return disGetDisTypeGoodsListByFatherId(data).then(res => {
       console.log('=== API响应 ===');

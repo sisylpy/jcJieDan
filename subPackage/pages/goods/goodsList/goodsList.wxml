@@ -3,54 +3,42 @@
 
 
 <view class="flex flex-column">
- <back-navbar style="height: {{navBarHeight}}rpx;" title="{{goodsName}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+ <back-navbar style="height: {{navBarHeight}}rpx;" title="{{setType == 'shelf' ? '添加货架商品' : '设置出库/采购'}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
 
-  <!--  top -->
-
-
-
-  <view class="flex-column " >
+  <view class="flex-column " style="padding-bottom: 200rpx;" >
     <view class="p-20 font-lg flex-row-reverse liziBack">
       <checkbox value="" bindtap="choiceAll"/>
      <text class="mr-20 five-weight">全选</text>
     </view>
 
     <view class="flex-row-between border-bottom bg-white p-20 " wx:for="{{goodsList}}" >
-      <view class="flex-column">
 				<view class="flex-row  pb-10 " style="width:{{windowWidth - 100}}rpx;">
 					<text class="mr-10">{{index + 1}}.</text>
 					<text class="brand"
 						wx:if="{{item.nxDgGoodsBrand !== null && item.nxDgGoodsBrand.length > 0}}">{{item.nxDgGoodsBrand}}</text>
-					<text class=" ">{{item.nxDgGoodsName}}</text>
-					<text class="gray"
-						wx:if="{{item.nxDgGoodsDetail !== null && item.nxDgGoodsDetail.length > 0}}">{{item.nxDgGoodsDetail}}</text>
-				</view>
-
-				<view class="flex-row with-tbl-padding gray ">
-					<text class="mr-20 text-white">{{index + 1}}.</text>
-					<view class="half-row">
-						<text class="mr-20">单位:</text>
-						<text class="">{{item.nxDgGoodsStandardname}}</text>
+					<text class="mr-20">{{item.nxDgGoodsName}}</text>
+					<text class="gray" 	wx:if="{{item.nxDgGoodsDetail !== null && item.nxDgGoodsDetail.length > 0}}">{{item.nxDgGoodsDetail}}</text>
+          <text class="">单位:</text>
+          <text class="">{{item.nxDgGoodsStandardname}}</text>
 						<text class=" "
 							wx:if="{{item.nxDgGoodsStandardWeight !== null && item.nxDgGoodsStandardWeight.length > 0}}">({{item.nxDgGoodsStandardWeight}})</text>
-					</view>
-					<view class="half-row " wx:if="{{item.nxDgGoodsPlace !== null && item.nxDgGoodsPlace.length > 0}}">
-						<text class="mr-20 ">产地:</text>
-						<text class="">{{item.nxDgGoodsPlace}}</text>
-					</view>
-				</view>
+				</view>		
 			
-			</view>
-
-       <view class="flex-column">
+       <view class="flex-column" wx:if="{{setType == 'suppler'}}">
           <checkbox  checked="{{item.nxDgSupplierId == supplierId ? 'true' : ''}}" bindtap="choiceGoods"   data-id="{{item.nxDistributerGoodsId}}" />
        </view>
+       <view class="flex-column" wx:elif="{{setType == 'shelf'}}">
+          <checkbox  checked="{{item.isDownload ? true: false}}" bindtap="choiceGoods"   data-id="{{item.nxDistributerGoodsId}}" />
+       </view>
+       <view class="flex-column" wx:elif="{{setType == 'autoPurchase'}}">
+          <checkbox  checked="{{item.isDownload ? true: false}}" bindtap="choiceGoods"   data-id="{{item.nxDistributerGoodsId}}" />
+       </view>
+
     </view>
 
-
-
     <view class="p-20 text-secondary font-xs" wx:if="{{currentPage == totalPage}}" style="text-align:center;">没有数据啦！</view>
+
   </view>
 
 
@@ -58,5 +46,19 @@
 
 
 <view class=" bottom_view" >
-   <view class=" p-20 center-content big_button is-active"  bind:tap="saveGoods">保存商品</view>
+  <block wx:if="{{setType == 'autoPurchase'}}">
+    <view class="" style="background-color: rgb(230, 230, 230); border-top: 1px solid #e5e5e5; width: {{windowWidth }}rpx; padding: 20rpx 20rpx; height: 100rpx; ">
+    <view class="flex-row" style="justify-content: center; align-items: center; line-height: 60rpx;">
+      <view class="buy-amount" style="background-color: #ff9800; color: #fff; margin-right: 20rpx; width: 300rpx;" bindtap="setGoodsType" data-type="-1">
+        <text>设为出库商品</text>
+      </view>
+      <view class="buy-amount" style="background-color: #4CAF50; color: #fff; width: 300rpx;" bindtap="setGoodsType" data-type="1">
+        <text>设为采购商品</text>
+      </view>
+    </view>
+  </view>
+  </block>
+  <block wx:else="">
+    <view class="p-20 center-content big_button is-active"  bind:tap="saveGoods">保存商品</view>
+  </block>
  </view>

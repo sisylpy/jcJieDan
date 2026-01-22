@@ -16,29 +16,37 @@
       <view class="flex-row-default">
         <text class="m-10">{{goodsIndex + 1}}.</text>
 
-        <view class=" flex-column mr-10" bindtap="shwoIImage" data-goods="{{item}}" data-index="{{goodsIndex}}">
+        <view class=" flex-column mr-10 shelf-list-thumb" bindtap="shwoIImage" data-goods="{{item}}" data-index="{{goodsIndex}}">
 
-          <image class="" src="{{url + item.nxDgGoodsFileLarge}}" mode="aspectFill" class="goods_item_lg" />
+          <!-- <image class="" src="{{url + item.nxDgGoodsFile}}" mode="aspectFill" class="goods_item_lg" /> -->
+          <image wx:if="{{item.nxDgGoodsFile && item.nxDgGoodsFile !== 'null' && item.nxDgGoodsFile !== 'goodsImage/logo.jpg'}}" src="{{url + item.nxDgGoodsFile}}" mode="aspectFill" class="goods_item_lg" />
+          <view wx:else class="shelf-list-img placeholder">
+            <image src="/images/photozhaoxiang.png" mode="aspectFill" class="icon-lg" />
+          </view>
         </view>
         <view class="flex-column" bindtap="{{ item.nxDgGoodsStatus == 0 ? 'toAlias' : 'toCustomerServicePages'}}" data-name="{{item.nxDgGoodsName}}" data-standard="{{item.nxDgGoodsStandardname}}" data-id="{{item.nxDistributerGoodsId}}" data-item="{{item}}" hover-class="hover">
-          <view class="flex-row with-tbl-padding font-lg-2" style="width:{{windowWidth - 200}}rpx; ">
+          <view class="flex-row-wrap with-tbl-padding font-lg-2" style="width:{{windowWidth - 320}}rpx; ">
             <text class="brand" wx:if="{{item.nxDgGoodsBrand !== null && item.nxDgGoodsBrand.length > 0}}">{{item.nxDgGoodsBrand}}</text>
             <text class=" mr-20">{{item.nxDgGoodsName}}</text>
-            <text class=" ">单位:</text>
             <block wx:if="{{item.nxDgGoodsStandardWeight !== 'null' && item.nxDgGoodsStandardWeight.length > 0}}">
-              <text class="font-sl" wx:if="{{item.nxDgGoodsStandardname !== '斤'}}">{{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}}</text>
+              <text class="font-sl" >{{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}}</text>
             </block>
             <block wx:else>
               <text class="font-sl">{{item.nxDgGoodsStandardname}}</text>
             </block>
 
+            <block wx:if="{{item.nxDgCartonUnit !== 'null' && item.nxDgCartonUnit.length > 0}}">
+              <text  wx:if="{{item.nxDgItemsPerCarton !== 'null' && item.nxDgItemsPerCarton.length > 0}}" class="font-sl" >{{item.nxDgItemsPerCarton}}{{item.nxDgGoodsStandardname}}/</text>
+              <text class="font-sl" >a{{item.nxDgCartonUnit}}</text>
+            </block>
+
             <text class="text-secondary" wx:if="{{item.nxDgGoodsDetail !== null && item.nxDgGoodsDetail.length > 0}}">{{item.nxDgGoodsDetail}}</text>
           </view>
           <view class="flex-column">
-           <view class="flex-row-wrap pt-10">
-            <text wx:for="{{item.nxDistributerGoodsShelfGoodsEntities}}" wx:for-item="shelfGoods" class="sameShelf mr-10">{{shelfGoods.shelfName}}</text>
-           </view>
-         
+            <view class="flex-row-wrap pt-10">
+              <text wx:for="{{item.nxDistributerGoodsShelfGoodsEntities}}" wx:for-item="shelfGoods" class="sameShelf mr-10">{{shelfGoods.shelfName}}</text>
+            </view>
+
             <view class="text-secondary flex-row-default" wx:for="{{item.nxDepartmentOrdersEntities}}" wx:for-item="order">
               <!-- <text class="mr-20 flex-fixed">订货:</text> -->
               <!-- gbDepartment order -->

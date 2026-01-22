@@ -11,9 +11,6 @@ var load = require('../../../../lib/load.js');
 Page({
 
 
-  onShow() {
-
-  },
 
   /**
    * 页面的初始数据
@@ -37,6 +34,13 @@ Page({
       disId: disInfoValue.nxDistributerId
     })
 
+    // 解码 URL 参数（如果使用 encodeURIComponent 编码过）
+    var goodsName = options.goodsName ? decodeURIComponent(options.goodsName) : '';
+    var standard = options.standard ? decodeURIComponent(options.standard) : '';
+    var standardWeight = options.standardWeight ? decodeURIComponent(options.standardWeight) : '';
+    var cartonUnit = options.cartonUnit ? decodeURIComponent(options.cartonUnit) : '';
+    var itemsPerCarton = options.itemsPerCarton ? decodeURIComponent(options.itemsPerCarton) : '';
+
     this.setData({
       windowWidth: globalData.windowWidth * globalData.rpxR,
       windowHeight: globalData.windowHeight * globalData.rpxR,
@@ -51,25 +55,25 @@ Page({
         nxDgBuyingPrice: "1",
         nxDgBuyingPriceUpdate: dateUtils.getArriveDate(0),
         nxDgDistributerId: this.data.disId,
-        nxDgGoodsName: options.goodsName, 
-         nxDgGoodsStandardWeight: "-1",
+        nxDgGoodsName: goodsName, 
+         nxDgGoodsStandardWeight: standardWeight,
         nxDgGoodsBrand: "-1",
         nxDgGoodsPlace: "-1",
         nxDgGoodsInventoryType: 1,
         nxDgNxGoodsFatherColor: "#20afb8",
         nxDgGoodsFile: 'goodsImage/logo.jpg',
         nxDistributerStandardEntities: [],
-        nxDgCartonUnit: "",
-        nxDgItemsPerCarton: ""
+        nxDgCartonUnit: cartonUnit,
+        nxDgItemsPerCarton: itemsPerCarton
       },
       fatherName: "临时添加",
       isGrade: 0,
     })
 
     var data = "goods.nxDgGoodsStandardname";
-    if(options.standard){
+    if(standard){
       this.setData({
-       [data]: options.standard,
+       [data]: standard,
       }, () => {
         // 设置完规格后，重新检查是否可以保存
         this._ifCanSave();

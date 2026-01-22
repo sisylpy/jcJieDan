@@ -138,7 +138,8 @@
     <swiper-item>
       <scroll-view  class="p-10" scroll-y style="height:{{windowHeight - navBarHeight - topViewHeight}}rpx;">
 
-        <view class="p-20 border-bottom flex-column">
+        <block wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+          <view class="p-20 border-bottom flex-column" >
           <text class="text-secondary font-sl">订货端显示</text>
           <view class="flex-row-between ">
             <text class="">暂无库存</text>
@@ -152,6 +153,8 @@
             <switch checked="{{goods.nxDgGoodsIsHidden == 1 ? 'checked' : ''}}" bindchange="switchChange" data-type="hidden" />
           </view>
         </view>
+        </block>
+       
        
 
         <view class="flex-column p-20">
@@ -170,6 +173,18 @@
             <text class="standard" bindtap="addDisAlias" data-name="{{goods.nxGoodsEntity.nxGoodsName}}">+</text>
           </view>
         </view>
+
+
+        <view class="flex-column p-20" wx:if="{{disInfo.nxDistributerType == 2}}">
+          <text class="mr-10 text-secondary">溯源报告</text>
+          <view class="flex-row-wrap pt-10">
+            <view class="standard" bindtap="showAddTraceReport">
+              <text>+ 添加溯源报告</text>
+            </view>
+          </view>
+        </view>
+
+
       </scroll-view>
 
     </swiper-item>
@@ -371,7 +386,7 @@
       <text class="text_operation mr-20">修改商品</text>
     </view>
 
-    <view class=" flex-row p-20 border-bottom" bindtap="toSupplier">
+    <view class=" flex-row p-20 border-bottom" bindtap="toSupplier" wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
       <image src="../../../../images/supplier.png" class="icon mr-20 ml-20"></image>
       <text class="text_operation mr-20">指定供货商</text>
     </view>
@@ -451,6 +466,127 @@
       </view>
       <view class="popup-btn confirm-btn" catchtap="_updateDepGoods">
         <text class="btn-text">保存</text>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- 添加溯源报告弹窗 -->
+<view class="trace-report-modal" wx:if="{{showAddTraceReport}}" catchtouchmove="true">
+  <view class="modal-overlay" bindtap="closeAddTraceReport"></view>
+  <view class="modal-content-trace" catchtap="preventClose">
+    <view class="modal-header">
+      <text class="modal-title">添加溯源报告</text>
+      <view class="modal-close" bindtap="closeAddTraceReport">×</view>
+    </view>
+    
+    <scroll-view class="modal-body" scroll-y="true" enhanced="true" show-scrollbar="false">
+      <view class="modal-body-content">
+      <!-- 溯源报告文件 -->
+      <view class="form-item">
+        <text class="form-label">溯源报告文件:</text>
+        <view class="file-upload-area">
+          <!-- 文件预览 -->
+          <view wx:if="{{traceReportFilePreview || traceReportFileName}}" class="file-preview">
+            <view wx:if="{{traceReportFilePreview}}" class="preview-content">
+              <image wx:if="{{isImageFile}}" src="{{traceReportFilePreview}}" mode="aspectFit" class="preview-image"></image>
+              <view wx:else class="preview-pdf">
+                <text>PDF文件</text>
+              </view>
+            </view>
+            <view wx:if="{{traceReportFileName}}" class="file-name">
+              <text>{{traceReportFileName}}</text>
+            </view>
+            <view class="file-delete" bindtap="deleteTraceReportFile">×</view>
+          </view>
+          <!-- 选择文件按钮 -->
+          <view class="file-upload-btn" bindtap="chooseTraceReportFile">
+            <text>选择文件（图片或PDF）</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 供应商名称 -->
+      <view class="form-item">
+        <text class="form-label">供应商名称:</text>
+        <view class="form-input">
+          <input class="input-field" type="text" value="{{nxTrSupplierName}}" placeholder="请输入供应商名称" bindinput="getSupplierName" />
+        </view>
+      </view>
+
+      <!-- 供应商联系方式 -->
+      <view class="form-item">
+        <text class="form-label">供应商联系方式:</text>
+        <view class="form-input">
+          <input class="input-field" type="text" value="{{nxTrSupplierContact}}" placeholder="请输入联系方式" bindinput="getSupplierContact" />
+        </view>
+      </view>
+
+      <!-- 采购日期 -->
+      <view class="form-item">
+        <text class="form-label">采购日期:</text>
+        <view class="form-input">
+          <picker mode="date" value="{{nxTrPurchaseDate}}" bindchange="getPurchaseDate">
+            <view class="picker-view" style="color: {{nxTrPurchaseDate ? '#333' : '#999'}};">
+              {{nxTrPurchaseDate || '请选择采购日期'}}
+            </view>
+          </picker>
+        </view>
+      </view>
+
+      <!-- 入库日期 -->
+      <view class="form-item">
+        <text class="form-label">入库日期:</text>
+        <view class="form-input">
+          <picker mode="date" value="{{nxTrStockInDate}}" bindchange="getStockInDate">
+            <view class="picker-view" style="color: {{nxTrStockInDate ? '#333' : '#999'}};">
+              {{nxTrStockInDate || '请选择入库日期'}}
+            </view>
+          </picker>
+        </view>
+      </view>
+
+      <!-- 有效期开始日期 -->
+      <view class="form-item">
+        <text class="form-label">有效期开始日期:</text>
+        <view class="form-input">
+          <picker mode="date" value="{{nxTrValidStartDate}}" bindchange="getValidStartDate">
+            <view class="picker-view" style="color: {{nxTrValidStartDate ? '#333' : '#999'}};">
+              {{nxTrValidStartDate || '请选择开始日期'}}
+            </view>
+          </picker>
+        </view>
+      </view>
+
+      <!-- 有效期结束日期 -->
+      <view class="form-item">
+        <text class="form-label">有效期结束日期:</text>
+        <view class="form-input">
+          <picker mode="date" value="{{nxTrValidEndDate}}" bindchange="getValidEndDate">
+            <view class="picker-view" style="color: {{nxTrValidEndDate ? '#333' : '#999'}};">
+              {{nxTrValidEndDate || '请选择结束日期'}}
+            </view>
+          </picker>
+        </view>
+      </view>
+
+      <!-- 备注说明 -->
+      <view class="form-item">
+        <text class="form-label">备注说明:</text>
+        <view class="form-input">
+          <input class="input-field" type="text" value="{{nxTrRemark}}" placeholder="请输入备注说明" bindinput="getTraceReportRemark" />
+        </view>
+      </view>
+      </view>
+    </scroll-view>
+
+    <!-- 按钮 -->
+    <view class="modal-footer">
+      <view class="btn btn-cancel" bindtap="closeAddTraceReport">
+        <text>取消</text>
+      </view>
+      <view class="btn btn-confirm" catchtap="confirmAddTraceReport">
+        <text>确定</text>
       </view>
     </view>
   </view>

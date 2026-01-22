@@ -16,8 +16,8 @@
         <text class="" wx:if="{{goodsType == '99'}}">全部商品</text>
         <text class="" wx:elif="{{goodsType == '-1'}}">库房商品</text>
         <text class="" wx:elif="{{goodsType == '1'}}">自采商品</text>
-        <text class="" wx:elif="{{goodsType == '11' && disInfo.nxDistributerBusinessTypeId == 2}}">自动订货(供货商)</text>
-        <view class="" style="border-radius: 50%;" bindtap="openOperation" hover-class="hover">
+        <text class="" wx:elif="{{goodsType == '11' && disInfo.nxDistributerBusinessTypeId > 2}}">自动订货(供货商)</text>
+        <view class="" style="border-radius: 50%;" bindtap="openFilterMenu" hover-class="hover">
           <image src="../../images/points.png" class="icon mr-10 ml-10"></image>
         </view>
 
@@ -26,9 +26,8 @@
 
       <view class="flex flex-row">
 
-        <view class="button-container mr-40" bindtap="toLinshiGoods" hover-class="button-hover">
-          <image src="../../images/Star.png" class="button-image"></image>
-          <view class="badge {{linshiCount > 0 ? 'show' : 'hide'}}">{{linshiCount}}</view>
+        <view class="button-container mr-40" bindtap="toSetGoods" hover-class="button-hover">
+          <image src="../../images/edit.png" class="button-image"></image>
         </view>
 
         <!-- <view class="button-container mr-20" bindtap="toUpdatePriceGoods" data-type="buyingPrice">
@@ -36,20 +35,13 @@
           <view class="badge {{buyPriceCount > 0 ? 'show' : 'hide'}}">{{buyPriceCount}}</view>
         </view> -->
 
-        <view class="button-container mr-40"   wx:if="{{disInfo.nxDistributerBusinessTypeId == 2}}" hover-class="button-hover" bindtap="toUpdatePriceGoods" data-type="sell">
+        <view class="button-container mr-40"   wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}" hover-class="button-hover" bindtap="toUpdatePriceGoods" data-type="sell">
           <image src="../../images/warn-3.png" class="button-image"></image>
           <view class="badge {{priceCount > 0 ? 'show' : 'hide'}}">{{priceCount}}</view>
         </view>
 
         <view class="button-container mr-40" hover-class="button-hover" bindtap="beginSearch" data-type="buyingPrice">
           <image src="../../images/search-3.png" class="button-image"></image>
-        </view>
-
-        <view class="button-container mr-40" hover-class="button-hover" bindtap="hasCartonUnit" data-type="buyingPrice">
-          <!-- 根据外包装筛选条件显示不同图片 -->
-          <image wx:if="{{hasCartonUnit == null}}" src="../../images/suoyoushangpin.png" class="button-image"></image>
-          <image wx:elif="{{hasCartonUnit == 1}}" src="../../images/aop-arv.png" class="button-image"></image>
-          <image wx:else src="../../images/huowuweimibi.png" class="button-image"></image>
         </view>
 
        
@@ -150,7 +142,7 @@
 
               </view>
 
-              <view class="flex-row-default pt-10 pb-10">
+              <view class="flex-row-default pt-10 pb-10" wx:if="{{disInfo.nxDistributerBusinessTypeId > 1}}">
                 <view class="text-secondary mr-10 flex-fixed">货架:</view>
                 <view class="flex-row-wrap ">
                   <view  class="flex-row-default bg-light p-10 font-xs radius-20   mr-20 mb-20" wx:for="{{sons.nxDistributerGoodsShelfGoodsEntities}}" wx:for-item="shelfGoods">
@@ -183,18 +175,17 @@
             </view>
           </view>
 
-            <block  wx:if="{{sons.nxDgPurchaseAuto == 2}}">
+            <block  wx:if="{{sons.nxDgPurchaseAuto == 1 && sons.nxJrdhSupplierEntity !== null}}">
                 <view class="flex-row p-10">
                   <text class="text-secondary mr-10">自动订货商:</text>
-                   <view class="flex-row" wx:if="{{sons.nxJrdhSupplierEntity !== null}}">
+                   <view class="flex-row" >
                     <text class="">{{sons.nxJrdhSupplierEntity.nxJrdhsSupplierName}}</text>
                 </view>
-                 <view wx:else="" class="text-danger"> -</view>
                 </view>
              </block>
-              <block wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+              <block wx:if="{{disInfo.nxDistributerBusinessTypeId > 5}}">
                 <view class="flex flex-row-between p-10" bindtap="showIsPurchase" data-item="{{sons}}" data-index="{{goodsIndex}}" data-level="1" hover-class="hover" >
-                <text class="text-secondary font-md">基本单位:</text>
+                <text class="text-secondary font-md">售价:</text>
                   <view class="flex-row">
                    
                   <block wx:if="{{sons.nxDgWillPriceOne !== null}}">
@@ -205,10 +196,8 @@
                     <image src="/images/add.png" mode="aspectFill" class="icon p-20" />
                   </block>
                   </view>
-                 
-                  
                 </view>
-                <view class="flex flex-row-between p-10" bindtap="showIsPurchase" data-item="{{sons}}" data-index="{{goodsIndex}}" data-level="2" hover-class="hover" >
+                <!-- <view class="flex flex-row-between p-10" bindtap="showIsPurchase" data-item="{{sons}}" data-index="{{goodsIndex}}" data-level="2" hover-class="hover" >
                 <text class="text-secondary font-md">大单位:</text>
                   <view class="flex-row">
                    
@@ -221,7 +210,7 @@
                   </block>
                   </view>
                   
-                </view>
+                </view> -->
              
               </block>
 
@@ -244,54 +233,78 @@
 
 
 
-<!-- 商品类型选择和外包装选择 - 共用同一个蒙层 -->
-<view class='overlay {{showOperationGoods ? "show" : ""}}' catchtouchmove='ture' catchtap="hideMask">
-  <!-- 商品类型选择 -->
-  <view class="flex-column nnn bg-white font-lg" wx:if="{{chooseSize}}" animation='{{animationData}}'>
-
-    <view class="flex-row p-30 border-bottom" bindtap="getGoodsType" data-type="99">
-      <image src="../../images/edit.png" class="icon mr-20 ml-20"></image>
-      <text class="text_operation {{goodsType == '99' ? 'mainColor' : ''}} ">全部商品</text>
+<!-- 统一筛选菜单 -->
+<view class='overlay {{showFilterMenu ? "show" : ""}}' catchtouchmove='ture' catchtap="hideFilterMenu">
+  <view class="flex-column nnn bg-white font-lg" animation='{{animationData}}'>
+    
+    <!-- 商品类型 -->
+    <view class="p-20 border-bottom">
+      <text class="font-md text-secondary">商品类型</text>
+    </view>
+    <view class="flex-row p-30 border-bottom" bindtap="selectGoodsType" data-type="99">
+      <text class="mr-20" wx:if="{{goodsType == '99'}}">✓</text>
+      <text class="mr-20" wx:else></text>
+      <text class="text_operation {{goodsType == '99' ? 'mainColor' : ''}}">全部商品</text>
+    </view>
+    <view class="flex-row p-30 border-bottom" bindtap="selectGoodsType" data-type="-1">
+      <text class="mr-20" wx:if="{{goodsType == '-1'}}">✓</text>
+      <text class="mr-20" wx:else></text>
+      <text class="text_operation {{goodsType == '-1' ? 'mainColor' : ''}}">库房商品</text>
+    </view>
+    <view class="flex-row p-30 border-bottom" bindtap="selectGoodsType" data-type="1">
+      <text class="mr-20" wx:if="{{goodsType == '1'}}">✓</text>
+      <text class="mr-20" wx:else></text>
+      <text class="text_operation {{goodsType == '1' ? 'mainColor' : ''}}">自采商品</text>
+    </view>
+    <view class="flex-row p-30 border-bottom" bindtap="selectGoodsType" data-type="11" wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+      <text class="mr-20" wx:if="{{goodsType == '11'}}">✓</text>
+      <text class="mr-20" wx:else></text>
+      <text class="text_operation {{goodsType == '11' ? 'mainColor' : ''}}">自动订货(供货商)</text>
     </view>
 
-    <view class="flex-row p-30 border-bottom" bindtap="getGoodsType" data-type="-1">
-      <image src="../../images/edit.png" class="icon mr-20 ml-20"></image>
-      <text class="text_operation {{goodsType == '-1' ? 'mainColor' : ''}} ">出库商品</text>
+    <!-- 外包装 -->
+    <view class="p-20 border-bottom" style="margin-top: 20rpx;">
+      <text class="font-md text-secondary">外包装</text>
+    </view>
+    <view class="flex-row p-30 border-bottom" bindtap="selectCartonUnit" data-type="null">
+      <text class="mr-20" wx:if="{{hasCartonUnit == null}}">✓</text>
+      <text class="mr-20" wx:else></text>
+      <text class="text_operation {{hasCartonUnit == null ? 'mainColor' : ''}}">全部</text>
+    </view>
+    <view class="flex-row p-30 border-bottom" bindtap="selectCartonUnit" data-type="1">
+      <text class="mr-20" wx:if="{{hasCartonUnit == 1}}">✓</text>
+      <text class="mr-20" wx:else></text>
+      <text class="text_operation {{hasCartonUnit == 1 ? 'mainColor' : ''}}">有外包装商品</text>
+    </view>
+    <view class="flex-row p-30 border-bottom" bindtap="selectCartonUnit" data-type="0">
+      <text class="mr-20" wx:if="{{hasCartonUnit == 0}}">✓</text>
+      <text class="mr-20" wx:else></text>
+      <text class="text_operation {{hasCartonUnit == 0 ? 'mainColor' : ''}}">无外包装商品</text>
     </view>
 
-    <view class="flex-row p-30 border-bottom" bindtap="getGoodsType" data-type="1">
-      <image src="../../images/edit.png" class="icon mr-20 ml-20"></image>
-      <text class="text_operation {{goodsType == '1' ? 'mainColor' : ''}} ">自采商品</text>
-    </view>
-    <view class="flex-row p-30 border-bottom" bindtap="getGoodsType" data-type="11"  wx:if="{{disInfo.nxDistributerBusinessTypeId == 2}}">
-      <image src="../../images/edit.png" class="icon mr-20 ml-20"></image>
-      <text class="text_operation {{goodsType == '11' ? 'mainColor' : ''}} ">自动订货(供货商)</text>
-    </view>
+    <!-- 溯源 - 仅当配送商类型为4时显示 -->
+    <block wx:if="{{disInfo.nxDistributerType == 2}}">
+      <view class="p-20 border-bottom" style="margin-top: 20rpx;">
+        <text class="font-md text-secondary">溯源</text>
+      </view>
+      <view class="flex-row p-30 border-bottom" bindtap="selectTraceReport" data-type="null">
+        <text class="mr-20" wx:if="{{hasTraceReport == null}}">✓</text>
+        <text class="mr-20" wx:else></text>
+        <text class="text_operation {{hasTraceReport == null ? 'mainColor' : ''}}">全部</text>
+      </view>
+      <view class="flex-row p-30 border-bottom" bindtap="selectTraceReport" data-type="1">
+        <text class="mr-20" wx:if="{{hasTraceReport == 1}}">✓</text>
+        <text class="mr-20" wx:else></text>
+        <text class="text_operation {{hasTraceReport == 1 ? 'mainColor' : ''}}">有溯源</text>
+      </view>
+      <view class="flex-row p-30 border-bottom" bindtap="selectTraceReport" data-type="0">
+        <text class="mr-20" wx:if="{{hasTraceReport == 0}}">✓</text>
+        <text class="mr-20" wx:else></text>
+        <text class="text_operation {{hasTraceReport == 0 ? 'mainColor' : ''}}">无溯源</text>
+      </view>
+    </block>
 
     <view style="height: 20rpx;"></view>
-
-  </view>
-
-  <!-- 外包装选择 -->
-  <view class="flex-column nnn bg-white font-lg" wx:if="{{chooseCarton}}" animation='{{animationData}}'>
-
-    <view class="flex-row p-30 border-bottom" bindtap="getHasCartonUnit" data-type="null">
-      <image src="../../images/edit.png" class="icon mr-20 ml-20"></image>
-      <text class="text_operation {{hasCartonUnit == null ? 'mainColor' : ''}} ">全部</text>
-    </view>
-
-    <view class="flex-row p-30 border-bottom" bindtap="getHasCartonUnit" data-type="1">
-      <image src="../../images/edit.png" class="icon mr-20 ml-20"></image>
-      <text class="text_operation {{hasCartonUnit == 1 ? 'mainColor' : ''}} ">有外包装商品</text>
-    </view>
-
-    <view class="flex-row p-30 border-bottom" bindtap="getHasCartonUnit" data-type="0">
-      <image src="../../images/edit.png" class="icon mr-20 ml-20"></image>
-      <text class="text_operation {{hasCartonUnit == 0 ? 'mainColor' : ''}} ">无外包装商品</text>
-    </view>
-
-    <view style="height: 20rpx;"></view>
-
   </view>
 </view>
 

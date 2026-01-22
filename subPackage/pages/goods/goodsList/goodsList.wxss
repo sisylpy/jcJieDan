@@ -18,3 +18,14 @@
 
 }
 
+
+
+
+.buy-amount{
+  /* width: 120rpx; */
+  border-radius: 40rpx;
+  border: 1px solid #505050;
+  padding: 6rpx 40rpx;
+  font-size: 28rpx;
+  text-align: center;
+}

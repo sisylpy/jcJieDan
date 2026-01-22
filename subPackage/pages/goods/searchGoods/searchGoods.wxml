@@ -80,18 +80,18 @@
             </view>
          
 
-            <block  wx:if="{{sons.nxDgPurchaseAuto == 1}}">
+            <block  wx:if="{{sons.nxDgPurchaseAuto == 1 && sons.nxJrdhSupplierEntity !== null}}">
                 <view class="flex-row p-10">
-                  <text class="text-secondary">出货:</text>
+                  <text class="text-secondary">自动订货商:</text>
                    <view class="flex-row" >
                     <text class="">{{sons.nxJrdhSupplierEntity.jrdhUserEntity.nxJrdhWxNickName}}</text>
                 </view>
                 </view>
              </block>
 
-             <block wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+             <block wx:if="{{disInfo.nxDistributerBusinessTypeId > 5}}">
                 <view class="flex flex-row-between p-10" bindtap="showIsPurchase" data-item="{{sons}}" data-index="{{goodsIndex}}" data-level="1" hover-class="hover" >
-                <text class="text-secondary font-md">基本单位:</text>
+                <text class="text-secondary font-md">售价:</text>
                   <view class="flex-row">
                    
                   <block wx:if="{{sons.nxDgWillPriceOne !== null}}">
@@ -105,7 +105,7 @@
                  
                   
                 </view>
-                <view class="flex flex-row-between p-10" bindtap="showIsPurchase" data-item="{{sons}}" data-index="{{goodsIndex}}" data-level="2" hover-class="hover" >
+                <!-- <view class="flex flex-row-between p-10" bindtap="showIsPurchase" data-item="{{sons}}" data-index="{{goodsIndex}}" data-level="2" hover-class="hover" >
                 <text class="text-secondary font-md">大单位:</text>
                   <view class="flex-row">
                    
@@ -118,11 +118,11 @@
                   </block>
                   </view>
                   
-                </view>
+                </view> -->
              
               </block>
 
-              <view class="flex-row-default plr-20">
+              <view class="flex-row-default plr-20" wx:if="{{disInfo.nxDistributerBusinessTypeId > 1}}">
                 <view class="text-secondary mr-10 flex-fixed">货架:</view>
                 <view class="flex-row-wrap ">
                   <view  class="flex-row-default bg-light p-10 font-xs radius-20   mr-20 mb-20" wx:for="{{sons.nxDistributerGoodsShelfGoodsEntities}}" wx:for-item="shelfGoods">

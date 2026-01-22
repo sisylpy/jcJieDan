@@ -42,6 +42,13 @@ Page({
       id: options.id,
     })
 
+    var goodsSetType = wx.getStorageSync('goodsSetType');
+    if(goodsSetType){
+      this.setData({
+        goodsSetType: goodsSetType
+      })
+    }
+    
     this._getInitData();
 
   },

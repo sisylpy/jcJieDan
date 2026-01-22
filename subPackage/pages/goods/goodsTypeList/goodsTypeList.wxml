@@ -99,12 +99,12 @@
              </block>
 
 
-             <block wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+             <block wx:if="{{disInfo.nxDistributerBusinessTypeId > 5}}">
                 <view class="flex flex-row-between p-10" bindtap="showIsPurchase" data-item="{{sons}}" data-index="{{goodsIndex}}" data-level="1" hover-class="hover" >
-                <text class="text-secondary font-md">基本单位:</text>
+                <text class="text-secondary font-md">售价:</text>
                   <view class="flex-row">
                    
-                  <block wx:if="{{sons.nxDgWillPriceOne !== null}}">
+                  <block wx:if="{{}}">
                     <text class="mr-20 font-md">{{sons.nxDgWillPriceOne}}元/{{sons.nxDgGoodsStandardname}}</text>
                     <image src="/images/edit-main.png" mode="aspectFill" class="icon" />
                   </block>
@@ -115,7 +115,7 @@
                  
                   
                 </view>
-                <view class="flex flex-row-between p-10" bindtap="showIsPurchase" data-item="{{sons}}" data-index="{{goodsIndex}}" data-level="2" hover-class="hover" >
+                <!-- <view class="flex flex-row-between p-10" bindtap="showIsPurchase" data-item="{{sons}}" data-index="{{goodsIndex}}" data-level="2" hover-class="hover" >
                 <text class="text-secondary font-md">大单位:</text>
                   <view class="flex-row">
                    
@@ -128,7 +128,7 @@
                   </block>
                   </view>
                   
-                </view>
+                </view> -->
              
               </block>
 

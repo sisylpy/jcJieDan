@@ -25,9 +25,6 @@ Page({
    */
   onLoad: function (options) {
     const globalData = app.globalData;
-
-   
-
     this.setData({
       windowWidth: globalData.windowWidth * globalData.rpxR,
       windowHeight: globalData.windowHeight * globalData.rpxR,
@@ -39,13 +36,18 @@ Page({
       supplierId: options.supplierId
     })
 
+    var goodsSetType = wx.getStorageSync('goodsSetType');
+    if(goodsSetType){
+      this.setData({
+        goodsSetType: goodsSetType
+      })
+    }
     this._getInitData();
 
   },
 
 
   _getInitData(e) {
- 
     getLevelOneGoods(this.data.disId)
       .then(res => {
         if (res.result.code == 0) {

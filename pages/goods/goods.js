@@ -23,8 +23,8 @@ Page({
     notUpdate: false,
     goodsType: 99,
     hasCartonUnit: null, // 外包装查询条件：1-有外包装，0-无外包装，null-不筛选
-    chooseSize: false, // 显示商品类型选择菜单
-    chooseCarton: false, // 显示外包装选择菜单
+    hasTraceReport: null, // 溯源查询条件：1-有溯源，0-无溯源，null-不筛选
+    showFilterMenu: false, // 显示统一筛选菜单
     fixedContentHeight: 0, // 固定内容高度（分类标签栏）
     scrollContentHeight: 0, // 滚动区域高度
     upTime: dateUtils.getDateTimeString(),
@@ -185,6 +185,7 @@ Page({
     if (this.data.hasCartonUnit != null && this.data.hasCartonUnit !== undefined) {
       data.hasCartonUnit = this.data.hasCartonUnit;
     }
+
     getDisGoodsCataWithCount(data).then(res => {
       load.hideLoading();
       if (res.result.code == 0) {
@@ -268,6 +269,10 @@ Page({
     // 添加外包装查询条件（只有当值不为 null 且不为 undefined 时才添加）
     if (this.data.hasCartonUnit != null && this.data.hasCartonUnit !== undefined) {
       data.hasCartonUnit = this.data.hasCartonUnit;
+    }
+    // 添加溯源查询条件（只有当值不为 null 且不为 undefined 时才添加）
+    if (this.data.hasTraceReport != null && this.data.hasTraceReport !== undefined) {
+      data.hasTraceReport = this.data.hasTraceReport;
     }
     load.showLoading("获取商品中");
     getDisGoodsByGreatGrandIdWithCount(data).then(res => {
@@ -367,9 +372,15 @@ Page({
     if (this.data.hasCartonUnit != null && this.data.hasCartonUnit !== undefined) {
       data.hasCartonUnit = this.data.hasCartonUnit;
     }
+    // 添加溯源查询条件（只有当值不为 null 且不为 undefined 时才添加）
+    if (this.data.hasTraceReport != null && this.data.hasTraceReport !== undefined) {
+      data.hasTraceReport = this.data.hasTraceReport;
+    }
     getDisGoodsCataWithCount(data).then(res => {
       load.hideLoading();
       if (res.result.code == 0) {
+        console.log("catalist", res.result.data);
+
         this.setData({
           grandList: res.result.data.list,
           linshiCount: res.result.data.lishiCount,
@@ -481,7 +492,8 @@ Page({
     wx.navigateTo({
       url: '../../subPackage/pages/goods/goodsTypeList/goodsTypeList?fatherId=' + e.currentTarget.dataset.id 
        + '&goodsType=' + this.data.goodsType + '&name=' + e.currentTarget.dataset.name
-       + '&hasCartonUnit=' + (this.data.hasCartonUnit !== null && this.data.hasCartonUnit !== undefined ? this.data.hasCartonUnit : 'null'),
+       + '&hasCartonUnit=' + (this.data.hasCartonUnit !== null && this.data.hasCartonUnit !== undefined ? this.data.hasCartonUnit : 'null')
+       + '&hasTraceReport=' + (this.data.hasTraceReport !== null && this.data.hasTraceReport !== undefined ? this.data.hasTraceReport : 'null'),
     })
 
     // if(this.data.searchFather){
@@ -549,6 +561,10 @@ Page({
       if (hasCartonUnit != null && hasCartonUnit !== undefined) {
         data.hasCartonUnit = hasCartonUnit;
       }
+      // 添加溯源查询条件（只有当值不为 null 且不为 undefined 时才添加）
+      if (this.data.hasTraceReport != null && this.data.hasTraceReport !== undefined) {
+        data.hasTraceReport = this.data.hasTraceReport;
+      }
 
 
       getDisGoodsByGreatGrandIdWithCount(data)
@@ -610,17 +626,20 @@ Page({
     }
   },
 
-  openOperation(e) {
+  // 打开统一筛选菜单
+  openFilterMenu(e) {
     this.setData({
-      showOperationGoods: true,
-      chooseSize: true,
-      chooseCarton: false, // 确保只显示商品类型选择
+      showFilterMenu: true,
     })
-    // this.getTabBar().setData({
-    //   showTabBar: false
-    // })
     this.chooseSezi();
+  },
 
+  // 关闭统一筛选菜单
+  hideFilterMenu() {
+    this.hideModal();
+    this.setData({
+      showFilterMenu: false,
+    })
   },
 
   chooseSezi: function (e) {
@@ -666,9 +685,7 @@ Page({
     setTimeout(function () {
       animation.translateY(0).step()
       that.setData({
-        animationData: animation.export(),
-        chooseSize: false,
-        chooseCarton: false
+        animationData: animation.export()
       })
     }, 200)
   },
@@ -677,36 +694,26 @@ Page({
     // this.getTabBar().setData({
     //   showTabBar: true
     // })
-    this.hideModal();
-    this.setData({
-      showOperationGoods: false,
-    })
+    this.hideFilterMenu();
   },
 
-  getGoodsType(e) {
+  // 选择商品类型（统一筛选菜单）
+  selectGoodsType(e) {
     var goodsType = e.currentTarget.dataset.type;
+    // 保存当前的左侧分类ID，以便刷新后恢复选择
+    var savedLeftGreatId = this.data.leftGreatId;
+    
     this.setData({
       goodsType: goodsType,
       currentPage: 1,
-      showOperationGoods: false,
-      chooseSize: false
     })
-    this._getCataGoods();
-    this.hideModal();
+    
+    // 立即刷新列表
+    this._getCataGoodsWithRestore(savedLeftGreatId);
   },
 
-  // 显示外包装选择菜单
-  hasCartonUnit(e) {
-    this.setData({
-      showOperationGoods: true,
-      chooseSize: false, // 不显示商品类型选择
-      chooseCarton: true // 显示外包装选择
-    })
-    this.chooseSezi();
-  },
-
-  // 选择外包装类型
-  getHasCartonUnit(e) {
+  // 选择外包装（统一筛选菜单）
+  selectCartonUnit(e) {
     var hasCartonUnit = e.currentTarget.dataset.type;
     // 处理字符串 "null" 转换为 null
     if (hasCartonUnit === 'null') {
@@ -717,24 +724,38 @@ Page({
     
     // 保存当前的左侧分类ID，以便刷新后恢复选择
     var savedLeftGreatId = this.data.leftGreatId;
-    var savedLeftIndex = this.data.leftIndex;
-    
-    console.log('📦 选择外包装筛选条件:', hasCartonUnit);
-    console.log('  - 保存的 leftGreatId:', savedLeftGreatId);
-    console.log('  - 保存的 leftIndex:', savedLeftIndex);
     
     this.setData({
       hasCartonUnit: hasCartonUnit,
       currentPage: 1,
-      showOperationGoods: false,
-      chooseCarton: false
-    });
+    })
     
-    // 重新加载分类列表，但保持之前选择的分类
+    // 立即刷新列表
     this._getCataGoodsWithRestore(savedLeftGreatId);
-    
-    this.hideModal();
   },
+
+  // 选择溯源（统一筛选菜单）
+  selectTraceReport(e) {
+    var hasTraceReport = e.currentTarget.dataset.type;
+    // 处理字符串 "null" 转换为 null
+    if (hasTraceReport === 'null') {
+      hasTraceReport = null;
+    } else {
+      hasTraceReport = parseInt(hasTraceReport);
+    }
+    
+    // 保存当前的左侧分类ID，以便刷新后恢复选择
+    var savedLeftGreatId = this.data.leftGreatId;
+    
+    this.setData({
+      hasTraceReport: hasTraceReport,
+      currentPage: 1,
+    })
+    
+    // 立即刷新列表
+    this._getCataGoodsWithRestore(savedLeftGreatId);
+  },
+
 
   /**
    * 修改售价
@@ -933,11 +954,14 @@ delPrice(e){
 
 
 
-  onNavButtonTap() {
-    wx.setStorageSync('notUpdate', true);
-   wx.navigateTo({
-     url: '../../subPackage/pages/management/homePage/homePage',
-   })
-  }
+  toSetGoods(e){
+    wx.setStorageSync('goodsSetType', "autoPurchase");
+    wx.navigateTo({
+      url: '/subPackage/pages/goods/greatGrandGoods/greatGrandGoods?disId=' + this.data.disId
+      + "&supplierId=" + this.data.supplierId + '&type=add',
+    })
+  },
+
+
 
 })
