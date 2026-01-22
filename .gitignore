@@ -37,3 +37,6 @@ build/
 
 # 云开发
 .cloudbase/
+
+# 配置文件（包含敏感信息）
+config.js
