@@ -24,6 +24,7 @@ Page({
     userName: null,
     phone: null,
     showSelect: false,
+    downloadAllGoods: false, // 是否下载全部商品
     
     longitude: 0,
     latitude: 0,
@@ -42,6 +43,16 @@ Page({
     
     console.log("登录页面 onLoad - environment:", this.data.environment);
     console.log("登录页面 onLoad - canLogin:", this.data.canLogin);
+
+    // 检查是否已通过邀请码认证
+    const verifiedInviteCode = wx.getStorageSync('verifiedInviteCode');
+    if (!verifiedInviteCode) {
+      // 未验证邀请码，跳转到邀请码认证页面
+      wx.redirectTo({
+        url: '../inviteCode/inviteCode'
+      })
+      return;
+    }
 
     this._login();
 
@@ -178,6 +189,13 @@ Page({
     }
   },
 
+  // 切换是否下载全部商品
+  toggleDownloadAllGoods(e) {
+    this.setData({
+      downloadAllGoods: e.detail.value
+    })
+  },
+
 
   _canLogin() {
     console.log("_canLogin 检查条件:", {
@@ -270,10 +288,9 @@ Page({
     var phone = this.data.phone;
     var code = this.data.code;
 
-   
     load.showLoading("保存修改内容");
     console.log(filePathList, marketId,disName,userName, phone,address, code)
-    jjshUserSaveWithFile(filePathList,code, marketId,disName,userName, address,phone).then((res) => {
+    jjshUserSaveWithFile(filePathList,code, marketId,disName,userName, address,phone, this.data.downloadAllGoods).then((res) => {
       load.hideLoading();
     
       const jsonObject = JSON.parse(res.result);
@@ -314,7 +331,7 @@ Page({
     load.showLoading("保存修改内容");
     console.log(filePathList, marketId, disName, userName, phone, address, code);
     
-    jjshUserSaveWithFile(filePathList, code, marketId, disName, userName, address, phone).then((res) => {
+    jjshUserSaveWithFile(filePathList, code, marketId, disName, userName, address, phone, this.data.downloadAllGoods).then((res) => {
       load.hideLoading();
       
       const jsonObject = JSON.parse(res.result);
@@ -370,8 +387,9 @@ Page({
   _login() {
     console.log("登录页面 _login - environment:", this.data.environment);
     
-    // 检查是否为企业微信环境
-    if (this.data.environment === 'wxwork') {
+    try {
+      // 检查是否为企业微信环境
+      if (this.data.environment === 'wxwork') {
       console.log("✅ 登录页面 - 企业微信环境，执行企业微信登录");
       wx.qy.login({
         suiteId: 'ww2cddb5d2d7b3ee5d',
@@ -459,6 +477,14 @@ Page({
       })
     })
     } // 关闭 else 分支
+    } catch (error) {
+      console.error("登录过程中发生错误:", error);
+      load.hideLoading();
+      wx.showToast({
+        title: '登录失败，请重试',
+        icon: 'none'
+      })
+    }
   },
 
 
@@ -489,6 +515,7 @@ Page({
                 nxDistributerPhone: this.data.phone,
                 nxDistributerBusinessTypeId: this.data.marketId,
                 nxDistributerType: this.data.type,
+                downloadAllGoods: this.data.downloadAllGoods,
                 nxDistributerServiceCityEntities: serviceArr,
                 nxDistributerUserEntity: {
                   nxDiuWxNickName: resUser.userInfo.nickName,
@@ -595,7 +622,7 @@ Page({
                   nxDistributerPhone: this.data.phone,
                   nxDistributerBusinessTypeId: this.data.marketId,
                   nxDistributerType: this.data.type,
-                  isSelected: this.data.down,
+                  downloadAllGoods: this.data.downloadAllGoods,
                   nxDistributerServiceCityEntities: serviceArr,
                   qyNxDisCorpEntity: {
                     qyNxDisQyCorpId: resQy.corpid || 'ww9778dea409045fe6',  // 企业 ID

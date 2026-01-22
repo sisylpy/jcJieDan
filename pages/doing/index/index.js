@@ -40,6 +40,12 @@ Component({
     showConfirmModal: false,
     pasteContent: '',
     tempBatch: null, // 临时保存批次数据
+    onlyGoodsNameAndTotal: false, // 是否只复制商品名称和采购总数
+    
+    // 删除确认弹窗相关数据
+    showDeleteConfirmModal: false,
+    deleteGoodsId: null, // 要删除的商品ID
+    deleteGoodsName: '', // 要删除的商品名称
     
     // 左右联动相关数据
     categoryPositions: [], // 存储分类位置信息
@@ -65,6 +71,7 @@ Component({
     deviceId: '',
     writeServiceId: '',
     writeCharaterId: '',
+    tabs_wx: [], // 初始化 tabs_wx，避免 wxml 中访问 undefined
   },
 
 
@@ -137,28 +144,21 @@ Component({
         orderType: 1,
         innerCurrent: 0,
 
-
-        tabs_wx: [{
-          name: "采购单",
-          amount: "0"
-        },
-        {
-          name: "复制订货",
-          amount: "",
-          amountOk: "",
-        }
-      ],
       purType: 1,
       
   
 
       })
+      console.log(("deviiee," ))
+      console.log("TEST_TEST_TEST - 测试日志是否更新")
+      console.log("========== 开始初始化 tabs_wx ==========")
 
       var value = wx.getStorageSync('userInfo');
       if (value) {
         this.setData({
           userInfo: value,
           disId: value.nxDistributerEntity.nxDistributerId,
+          deviceId: value.nxDiuPrintDeviceId
         })
         var disValue = wx.getStorageSync('disInfo');
         if (disValue) {
@@ -166,29 +166,23 @@ Component({
             disInfo: disValue,
           })
         }
+        console.log(("deviiee"  + value.nxDiuPrintDeviceId))
+        
+        // 初始化 tabs_wx 配置
+        this._initTabsWx(value, disValue);
+        
+      } else {
+        console.log("userInfo不存在，不初始化tabs_wx");
       }
+      
       this.animation = wx.createAnimation({ duration: 300, timingFunction: 'ease' })
-
-      this._getPasteBatch();
-      if(this.data.disInfo.nxDistributerBusinessTypeId == 2){
-        this.setData({
-          tabs_wx: [{
-            name: "采购单",
-            amount: "0"
-          },
-          {
-            name: "复制订货",
-            amount: "",
-            amountOk: "",
-          },
-          {
-            name: "小程序订货",
-            amount: "",
-            amountOk: "",
-          }
-        ],
-        })
-      }
+    
+      // 延迟调用，确保 setData 完成
+      setTimeout(() => {
+        console.log("延迟调用_getPasteBatch，当前tabs_wx:", this.data.tabs_wx);
+        this._getPasteBatch();
+      }, 100);
+      
     
     },
 
@@ -198,8 +192,121 @@ Component({
 
 
   methods: {
+    /**
+     * 根据条件判断应该显示的标签配置
+     * @param {boolean} hasPrinter - 是否有打印机
+     * @param {number} businessTypeId - 业务类型ID
+     * @returns {Array} tabs_wx 配置数组
+     */
+    _getTabsWxConfig(hasPrinter, businessTypeId) {
+      const businessTypeIdNum = Number(businessTypeId) || 0;
+      const isBusinessTypeGreaterThan2 = businessTypeIdNum > 2;
+      
+      // 有打印机且业务类型 > 2，显示3个标签
+      if (hasPrinter && isBusinessTypeGreaterThan2) {
+        return [
+          { name: "复制订货", amount: "" },
+          { name: "采购单", amount: "" },
+          { name: "小程序订货", amount: "" }
+        ];
+      }
+      
+      // 有打印机但业务类型 <= 2，显示2个标签
+      if (hasPrinter && !isBusinessTypeGreaterThan2) {
+        return [
+          { name: "复制订货", amount: "" },
+          { name: "采购单", amount: "" }
+        ];
+      }
+      
+      // 没有打印机但业务类型 > 2，显示2个标签（复制订货 + 小程序订货）
+      if (!hasPrinter && isBusinessTypeGreaterThan2) {
+        return [
+          { name: "复制订货", amount: "" },
+          { name: "小程序订货", amount: "" }
+        ];
+      }
+      
+      // 没有打印机且业务类型 <= 2，不显示标签
+      return [];
+    },
 
+    /**
+     * 初始化或更新 tabs_wx 配置
+     * @param {object} userInfo - 用户信息
+     * @param {object} disInfo - 分销商信息
+     */
+    _initTabsWx(userInfo, disInfo) {
+      if (!userInfo) {
+        this.setData({ tabs_wx: [] });
+        return;
+      }
+      
+      const hasPrinter = userInfo.nxDiuPrintDeviceId && userInfo.nxDiuPrintDeviceId !== '-1';
+      const businessTypeId = disInfo && disInfo.nxDistributerBusinessTypeId !== undefined && disInfo.nxDistributerBusinessTypeId !== null
+        ? disInfo.nxDistributerBusinessTypeId
+        : null;
+      
+      if (businessTypeId === null) {
+        this.setData({ tabs_wx: [] });
+        return;
+      }
+      
+      const tabsWxConfig = this._getTabsWxConfig(hasPrinter, businessTypeId);
+      this.setData({ tabs_wx: tabsWxConfig });
+    },
 
+    /**
+     * 更新 tabs_wx 的数量
+     * @param {object} resultData - 接口返回的数据，包含 pasteCount, printCount, wxCount
+     */
+    _updateTabsWxAmount(resultData) {
+      if (!this.data.tabs_wx || this.data.tabs_wx.length === 0) {
+        console.log("_updateTabsWxAmount: tabs_wx为空，不更新");
+        return;
+      }
+
+      const tabsLength = this.data.tabs_wx.length;
+      const businessTypeId = this.data.disInfo ? Number(this.data.disInfo.nxDistributerBusinessTypeId) : 0;
+      const hasPrinter = this.data.deviceId && this.data.deviceId !== '-1';
+      const isBusinessTypeGreaterThan2 = businessTypeId > 2;
+
+      console.log("_updateTabsWxAmount 开始执行");
+      console.log("tabsLength:", tabsLength);
+      console.log("resultData:", resultData);
+      console.log("pasteCount:", resultData.pasteCount);
+      console.log("printCount:", resultData.printCount);
+      console.log("wxCount:", resultData.wxCount);
+
+      if (tabsLength === 3) {
+        // 3个标签：[复制订货, 采购单, 小程序订货]
+        const updateData = {
+          'tabs_wx[0].amount': resultData.pasteCount !== undefined && resultData.pasteCount !== null ? String(resultData.pasteCount) : '',
+          'tabs_wx[1].amount': resultData.printCount !== undefined && resultData.printCount !== null ? String(resultData.printCount) : '',
+          'tabs_wx[2].amount': resultData.wxCount !== undefined && resultData.wxCount !== null ? String(resultData.wxCount) : ''
+        };
+        console.log("更新3个标签的数量:", updateData);
+        this.setData(updateData);
+      } else if (tabsLength === 2) {
+        if (hasPrinter && !isBusinessTypeGreaterThan2) {
+          // 有打印机且业务类型 <= 2：[复制订货, 采购单]
+          const updateData = {
+            'tabs_wx[0].amount': resultData.pasteCount !== undefined && resultData.pasteCount !== null ? String(resultData.pasteCount) : '',
+            'tabs_wx[1].amount': resultData.printCount !== undefined && resultData.printCount !== null ? String(resultData.printCount) : ''
+          };
+          console.log("更新2个标签的数量（有打印机）:", updateData);
+          this.setData(updateData);
+        } else if (!hasPrinter && isBusinessTypeGreaterThan2) {
+          // 没有打印机但业务类型 > 2：[复制订货, 小程序订货]
+          const updateData = {
+            'tabs_wx[0].amount': resultData.pasteCount !== undefined && resultData.pasteCount !== null ? String(resultData.pasteCount) : '',
+            'tabs_wx[1].amount': resultData.wxCount !== undefined && resultData.wxCount !== null ? String(resultData.wxCount) : ''
+          };
+          console.log("更新2个标签的数量（无打印机）:", updateData);
+          this.setData(updateData);
+        }
+      }
+    },
 
     
     showCar() {
@@ -277,14 +384,14 @@ Component({
       if (that.data.innerCurrent == 1) {
 
         this.setData({
-          purType: 3,
+          purType: 2,
         })
         this._getPasteBatch()
       }
       if (that.data.innerCurrent == 2) {
 
         this.setData({
-          purType: 2,
+          purType: 3,
         })
         this._getPurchasingBatch()
       }
@@ -313,12 +420,10 @@ Component({
               selectedPrintArr: [],
               toTop: 0,
             })
-            var data0 = "tabs_wx[0].amount";
-            var data1 = "tabs_wx[1].amount";
-            this.setData({
-              [data0]: res.result.data.unPurCount,
-              [data1]: res.result.data.isBatchCountUnRepaly,
-            })
+           
+            // 更新 tabs_wx 的数量
+            this._updateTabsWxAmount(res.result.data);
+            
            
             if (res.result.data.arr.length > 0) {
               this.lisenerScrollWx();
@@ -539,6 +644,11 @@ Component({
 
     //swiper-item-2 swiper-item-sub-2
     _getPasteBatch() {
+      console.log("=== _getPasteBatch 开始执行 ===");
+      console.log("当前tabs_wx:", this.data.tabs_wx);
+      console.log("当前tabs_wx长度:", this.data.tabs_wx ? this.data.tabs_wx.length : "undefined");
+      console.log("当前disInfo:", this.data.disInfo);
+      
       load.showLoading("获取进货商铺");
       var data = {
         disId: this.data.disId,
@@ -548,11 +658,25 @@ Component({
       disGetPasteBatch(data)
         .then(res => {
           load.hideLoading();
-          console.log("pasteapsotebacich")
-          console.log(res.result.data)
+          console.log("========== pasteapsotebacich ==========")
+          console.log("接口返回数据:", res.result.data)
+          console.log("当前tabs_wx:", this.data.tabs_wx)
+          console.log("tabs_wx长度:", this.data.tabs_wx ? this.data.tabs_wx.length : "undefined")
+          console.log("disInfo:", this.data.disInfo)
+          console.log("deviceId:", this.data.deviceId)
+          console.log("========== 开始强制检查 ==========")
+          console.log("接口返回后，当前tabs_wx:", this.data.tabs_wx);
+          console.log("接口返回后，当前tabs_wx长度:", this.data.tabs_wx ? this.data.tabs_wx.length : "undefined");
           if (res.result.code == 0) {
+            // 为每个批次添加展开状态字段
+            const batchArr = res.result.data.arr.map(batch => {
+              return {
+                ...batch,
+                isContentExpanded: false // 默认折叠
+              };
+            });
             this.setData({
-              batchArr: res.result.data.arr,
+              batchArr: batchArr,
               selectedArr: [],
               selectedPrintArr: [],
             })
@@ -563,20 +687,21 @@ Component({
               puringCount: res.result.data.puringCount,
             })
 
-            var data0 = "tabs_wx[0].amount";
-            var data1 = "tabs_wx[1].amount";
-            
-            that.setData({
-              [data0]: res.result.data.printCount,
-              [data1]: res.result.data.pasteCount,
-            })
-            if(this.data.disInfo.nxDistributerBusinessTypeId == 2){
-              var data = "tabs_wx[2].amount"; 
-            that.setData({
-              [data]: res.result.data.wxCount,
-            })
+            // 强制检查并修复 tabs_wx 配置
+            if (this.data.userInfo && this.data.disInfo) {
+              const hasPrinter = this.data.deviceId && this.data.deviceId !== '-1';
+              const businessTypeId = this.data.disInfo.nxDistributerBusinessTypeId;
+              const expectedTabs = this._getTabsWxConfig(hasPrinter, businessTypeId);
+              
+              // 如果当前配置不正确，强制修复
+              if (!this.data.tabs_wx || this.data.tabs_wx.length !== expectedTabs.length) {
+                this.setData({ tabs_wx: expectedTabs });
+              }
             }
-
+            
+            // 更新 tabs_wx 的数量
+            this._updateTabsWxAmount(res.result.data);
+           
           } else {
             wx.showToast({
               title: res.result.msg,
@@ -604,8 +729,15 @@ Component({
           load.hideLoading();
           console.log(res.result.data)
           if (res.result.code == 0) {
+            // 为每个批次添加展开状态字段
+            const batchArr = res.result.data.arr.map(batch => {
+              return {
+                ...batch,
+                isContentExpanded: false // 默认折叠
+              };
+            });
             this.setData({
-              batchArr: res.result.data.arr,
+              batchArr: batchArr,
               selectedArr: [],
               selectedPrintArr: [],
             })
@@ -615,18 +747,11 @@ Component({
               unPurCount: res.result.data.unPurCount,
               puringCount: res.result.data.puringCount,
             })
-            var data0 = "tabs_wx[0].amount";
-            var data1 = "tabs_wx[1].amount";
-            that.setData({
-              [data0]: res.result.data.printCount,
-              [data1]: res.result.data.pasteCount,
-            })
-            if(this.data.disInfo.nxDistributerBusinessTypeId == 2){
-              var data = "tabs_wx[2].amount"; 
-            that.setData({
-              [data]: res.result.data.wxCount,
-            })
-            }
+
+           
+            // 更新 tabs_wx 的数量
+            this._updateTabsWxAmount(res.result.data);
+           
           } else {
             wx.showToast({
               title: res.result.msg,
@@ -644,17 +769,57 @@ Component({
     },
 
     cancelDisBatchItem(e) {
-      deleteDisPurBatchItem(e.currentTarget.dataset.id)
+      // 显示删除确认弹窗
+      const goodsId = e.currentTarget.dataset.id;
+      const goodsName = e.currentTarget.dataset.name || '该商品';
+      this.setData({
+        showDeleteConfirmModal: true,
+        deleteGoodsId: goodsId,
+        deleteGoodsName: goodsName
+      });
+    },
+
+    // 确认删除商品
+    confirmDeleteBatchItem() {
+      if (!this.data.deleteGoodsId) {
+        return;
+      }
+      
+      load.showLoading("删除中");
+      deleteDisPurBatchItem(this.data.deleteGoodsId)
         .then(res => {
+          load.hideLoading();
           if (res.result.code == 0) {
+            // 关闭确认弹窗
+            this.setData({
+              showDeleteConfirmModal: false,
+              deleteGoodsId: null,
+              deleteGoodsName: ''
+            });
+            
+            // 重新加载数据
             if(this.data.innerCurrent < 2){
               this._getPasteBatch()
             }else{
               this._getPurchasingBatch()
             }
-            
+          } else {
+            wx.showToast({
+              title: res.result.msg || '删除失败',
+              icon: 'none'
+            });
           }
         })
+        
+    },
+
+    // 取消删除
+    cancelDeleteBatchItem() {
+      this.setData({
+        showDeleteConfirmModal: false,
+        deleteGoodsId: null,
+        deleteGoodsName: ''
+      });
     },
 
     /**
@@ -861,7 +1026,7 @@ Component({
       console.log('=== 第二个swiper-item下拉刷新开始 ===');
       this.setData({
         refresherTriggered2: true,
-        purType: 3,
+        purType: 2,
       });
       
       // 重新获取订货数据
@@ -896,7 +1061,7 @@ Component({
         categoryPositions: [],
         scrollTimer: null,
         isLoadingMoreForCategory: false,
-        purType: 2,
+        purType: 3,
       });
       
       // 重新获取数据
@@ -950,9 +1115,6 @@ Component({
        // 获取批次ID和索引
        const batchId = e.currentTarget.dataset.batchId;
        const batchIndex = e.currentTarget.dataset.batchIndex;
-       console.log('批次ID:', batchId);
-       console.log('批次索引:', batchIndex);
-       
        if (!batchId) {
          wx.showToast({
            title: '批次ID不存在',
@@ -981,15 +1143,39 @@ Component({
          return;
        }
        
+       // 从缓存读取 onlyGoodsNameAndTotal 设置
+       var onlyGoodsNameAndTotal = wx.getStorageSync('onlyGoodsNameAndTotal');
+       if (onlyGoodsNameAndTotal === undefined || onlyGoodsNameAndTotal === null || onlyGoodsNameAndTotal === '') {
+         onlyGoodsNameAndTotal = false;
+       }
+       
        // 生成复制内容
-       let content = this._generatePasteContentFromBatch(batch);
+       let content = this._generatePasteContentFromBatch(batch, onlyGoodsNameAndTotal);
        
        // 显示确认弹窗
        this.setData({
          showConfirmModal: true,
          pasteContent: content,
-         tempBatch: batch // 临时保存批次数据
+         tempBatch: batch, // 临时保存批次数据
+         onlyGoodsNameAndTotal: onlyGoodsNameAndTotal
        });
+     },
+
+     // 切换是否只复制商品名称和采购总数
+     changeShowOrder(e) {
+       const value = e.detail.value;
+       this.setData({
+         onlyGoodsNameAndTotal: value
+       });
+       // 保存到缓存
+       wx.setStorageSync('onlyGoodsNameAndTotal', value);
+       // 重新生成预览内容
+       if (this.data.tempBatch) {
+         let content = this._generatePasteContentFromBatch(this.data.tempBatch, value);
+         this.setData({
+           pasteContent: content
+         });
+       }
      },
 
      // 关闭确认弹窗
@@ -1004,6 +1190,12 @@ Component({
      // 阻止事件冒泡
      stopPropagation() {
        // 空函数，用于阻止事件冒泡
+     },
+
+     // 阻止滚动穿透
+     preventScroll() {
+       // 空函数，用于阻止滚动穿透
+       return false;
      },
 
      // 确认更新复制内容
@@ -1112,7 +1304,7 @@ Component({
      },
 
      // 从批次数据生成复制内容的方法
-     _generatePasteContentFromBatch(batch) {
+     _generatePasteContentFromBatch(batch, onlyGoodsNameAndTotal = false) {
        let content = "";
        
        // 如果有部门名称，在复制内容前面加上部门名称
@@ -1123,16 +1315,77 @@ Component({
        if (batch && batch.nxDPGEntities && batch.nxDPGEntities.length > 0) {
          for (let i = 0; i < batch.nxDPGEntities.length; i++) {
            const item = batch.nxDPGEntities[i];
-           if (item.nxDpgQuantity && item.nxDpgQuantity > 0) {
-             const goodsName = item.nxDistributerGoodsEntity.nxDgGoodsName;
-             const quantity = item.nxDpgQuantity;
-             const standard = item.nxDpgStandard || item.nxDistributerGoodsEntity.nxDgGoodsStandardname;
-             content += `${i + 1}, ${goodsName} ${quantity}${standard}\n`;
+           const goodsName = item.nxDistributerGoodsEntity && item.nxDistributerGoodsEntity.nxDgGoodsName;
+           if (!goodsName) {
+             continue;
+           }
+           
+           // 获取订单列表
+           const orders = item.nxDistributerGoodsEntity && item.nxDistributerGoodsEntity.nxDepartmentOrdersEntities;
+           
+           // 如果没有订单，跳过
+           if (!orders || orders.length === 0) {
+             continue;
+           }
+           
+           // 使用采购数量（如果有），否则不显示总数量
+           const quantity = item.nxDpgQuantity;
+           const goodsStandard = item.nxDpgStandard || (item.nxDistributerGoodsEntity && item.nxDistributerGoodsEntity.nxDgGoodsStandardname) || '';
+           
+           // 如果只显示商品名称和总数，且有采购数量，则输出
+           if (onlyGoodsNameAndTotal) {
+             if (quantity && quantity !== null && quantity !== undefined && quantity !== '') {
+               content += `${i + 1}, ${goodsName} ${quantity}${goodsStandard || ''}\n`;
+             } else {
+               // 没有采购数量，只显示商品名称
+               content += `${i + 1}, ${goodsName}\n`;
+             }
+           } else {
+             // 显示商品和订单详情
+             // 如果有采购数量，先输出商品信息
+             if (quantity && quantity !== null && quantity !== undefined && quantity !== '') {
+               content += `${i + 1}, ${goodsName} ${quantity}${goodsStandard || ''}\n`;
+             } else {
+               // 没有采购数量，只输出商品名称
+               content += `${i + 1}, ${goodsName}\n`;
+             }
+             
+             // 输出订单详情
+             for (let j = 0; j < orders.length; j++) {
+               const order = orders[j];
+               // 获取部门名称
+               let depName = '';
+               if (order.gbDepartmentEntity) {
+                 if (order.gbDepartmentEntity.fatherGbDepartmentEntity) {
+                   depName = `${order.gbDepartmentEntity.fatherGbDepartmentEntity.gbDepartmentName}.${order.gbDepartmentEntity.gbDepartmentName}`;
+                 } else {
+                   depName = order.gbDepartmentEntity.gbDepartmentName;
+                 }
+               } else if (order.nxRestrauntEntity) {
+                 depName = order.nxRestrauntEntity.nxRestrauntAttrName;
+               } else if (order.nxDepartmentEntity) {
+                 if (order.nxDepartmentEntity.fatherDepartmentEntity) {
+                   depName = `${order.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentAttrName}.${order.nxDepartmentEntity.nxDepartmentName}`;
+                 } else {
+                   depName = order.nxDepartmentEntity.nxDepartmentName;
+                 }
+               }
+               
+               const orderQuantity = order.nxDoQuantity || '';
+               const orderStandard = order.nxDoStandard || '';
+               const orderRemark = order.nxDoRemark && order.nxDoRemark !== 'null' && order.nxDoRemark.length > 0 ? order.nxDoRemark : '';
+               
+               // 输出订单信息：部门名称 数量规格 (备注)
+               let orderLine = `   ${depName} ${orderQuantity}${orderStandard}`;
+               if (orderRemark) {
+                 orderLine += ` (${orderRemark})`;
+               }
+               content += orderLine + '\n';
+             }
            }
          }
        }
        
-       console.log('从批次生成的复制内容:', content);
        return content;
      },
      
@@ -1184,7 +1437,7 @@ Component({
        var value = wx.getStorageSync('userInfo');
        if (value && value.nxDiuPrintDeviceId == -1) {
          wx.navigateTo({
-           url: '../../../pages/order/pSearchPrinter/pSearchPrinter',
+           url: '/subPackage-charts/pages/order/pSearchPrinter/pSearchPrinter',
          });
          return;
        }
@@ -1346,7 +1599,7 @@ Component({
              showCancel: false
            });
            wx.navigateTo({
-             url: '../../../pages/order/pSearchPrinter/pSearchPrinter',
+             url: '/subPackage-charts/pages/order/pSearchPrinter/pSearchPrinter',
            });
            console.log(e);
            wx.hideLoading();
@@ -1371,7 +1624,7 @@ Component({
          fail: function (e) {
            console.log(e);
            wx.navigateTo({
-             url: '../../../pages/order/pSearchPrinter/pSearchPrinter',
+             url: '/subPackage-charts/pages/order/pSearchPrinter/pSearchPrinter',
            });
          },
          complete: function (e) {}
@@ -1433,15 +1686,15 @@ Component({
              } else {
                that._getCharacteristics(batch);
              }
-           } else {
-             wx.showToast({
-               title: '连接成功',
-             });
-             that.setData({
-               printOk: true
-             });
-             that._startPrint(batch);
-           }
+          } else {
+            wx.showToast({
+              title: '连接成功',
+            });
+            that.setData({
+              printOk: true
+            });
+            that._startPrint(batch);
+          }
          },
          fail: function (e) {
            console.log(e);
@@ -1664,32 +1917,32 @@ Component({
                icon: 'none',
              });
            },
-           complete: function () {
-             currentTime++;
-             if (currentTime <= loopTime) {
-               that.setData({
-                 currentTime: currentTime
-               });
-               that._sendData(buff);
-             } else {
-               if (currentPrint == printNum) {
-                 that.setData({
-                   looptime: 0,
-                   lastData: 0,
-                   currentTime: 1,
-                   isReceiptSend: false,
-                   currentPrint: 1
-                 });
-               } else {
-                 currentPrint++;
-                 that.setData({
-                   currentPrint: currentPrint,
-                   currentTime: 1,
-                 });
-                 that._sendData(buff);
-               }
-             }
-           }
+          complete: function () {
+            currentTime++;
+            if (currentTime <= loopTime) {
+              that.setData({
+                currentTime: currentTime
+              });
+              that._sendData(buff);
+            } else {
+              if (currentPrint == printNum) {
+                that.setData({
+                  looptime: 0,
+                  lastData: 0,
+                  currentTime: 1,
+                  isReceiptSend: false,
+                  currentPrint: 1
+                });
+              } else {
+                currentPrint++;
+                that.setData({
+                  currentPrint: currentPrint,
+                  currentTime: 1,
+                });
+                that._sendData(buff);
+              }
+            }
+          }
          });
        } else {
          console.log("else===============");
@@ -1704,7 +1957,30 @@ Component({
         url: '../../../subPackage/pages/management/homePage/homePage',
       })
      },
-     
+
+    // 滚动事件处理
+    scrollToWx(e) {
+      // 滚动事件处理，可以根据需要实现
+      const scrollTop = e.detail.scrollTop;
+      // 如果需要实现左侧菜单联动，可以在这里添加逻辑
+    },
+
+    // 触底加载更多
+    onReachBottom() {
+      // 触底加载更多，可以根据需要实现
+      // 如果当前页面有分页加载功能，可以在这里调用加载更多的方法
+      console.log('触底加载更多');
+    },
+
+    // 切换复制内容的展开/折叠状态
+    toggleContentExpand(e) {
+      const batchIndex = e.currentTarget.dataset.batchIndex;
+      const isExpanded = this.data.batchArr[batchIndex].isContentExpanded || false;
+      const dataKey = `batchArr[${batchIndex}].isContentExpanded`;
+      this.setData({
+        [dataKey]: !isExpanded
+      });
+    },
 
     // methods
   },

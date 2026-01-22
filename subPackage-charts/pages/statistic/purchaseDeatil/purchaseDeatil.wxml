@@ -5,7 +5,7 @@
 
 
    
-  <back-navbar style="height: {{navBarHeight}}rpx;" title="日看板" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="{{}}日看板" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
   <!--  top -->
   <view class=" flex-row-between pl-20 pr-20 border-bottom bg-white">
@@ -160,7 +160,7 @@
                 <view wx:if="{{pur.expanded}}" class="purchase-info-card expandable-content expanded">
 
                   <!-- 库存详细信息 - NX系统使用不同字段 -->
-                  <view class="purchase-detail-section" wx:for="{{pur.nxDistributerGoodsShelfStockEntities}}" wx:for-item="stock" wx:key="index">
+                  <view class="purchase-detail-section" wx:for="{{pur.nxDisGoodsShelfStockEntities}}" wx:for-item="stock" wx:key="index">
 
                     <!-- 库存信息行布局 -->
                     <view class="stock-info-row">

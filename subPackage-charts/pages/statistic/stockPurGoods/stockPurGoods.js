@@ -94,6 +94,7 @@ Page({
       stopDate: this.data.stopDate,
       page: this.data.currentPage,
       limit: this.data.limit,
+      greatId: this.data.id,
     };
 
     console.log('获取库存商品列表，参数:', data);

@@ -49,7 +49,7 @@
             <view class="stat-subtitle">商品{{dinghuoCount}}个</view>
           </view>
         </view>
-        <view class="stat-card ratio-card" bind:tap="onTab1Click" data-type="2" data-index="2" hover-class="hover">
+        <view class="stat-card ratio-card" bind:tap="onTab1Click" data-type="10" data-index="2" hover-class="hover">
           <view class="stat-title">入库</view>
           <view class="stat-value">{{ruku}}元</view>
           <view class="stat-details">
@@ -87,7 +87,7 @@
             <!-- 右侧总计和按钮 -->
             <view class="goods-price-section">
               <view class="price-container">
-                <text class="price-label">采购</text>
+                <text class="price-label">总计</text>
                 <text class="price-value">¥{{goods.sellSubtotal}}</text>
               </view>
               <!-- 右侧箭头 -->
@@ -113,7 +113,7 @@
                   <view class="flex-column">
                     <view class="font-md flex-row">{{tool.transferDateString(pur.nxDpgPurchaseDate)}}</view>
                   
-                    <text class="purchase-type">{{pur.nxDpgPurchaseType == -1 ? '直接入库' : (pur.nxDpgPurchaseType == 0 ? '自采' : '订货')}}</text>
+                    <text class="purchase-type">{{pur.nxDpgPurchaseType == 10 ? '直接入库' : (pur.nxDpgPurchaseType == 11 ? '自采' : '订货')}}</text>
                   </view>
                 </view>
                 <!-- 中间采购信息 -->
@@ -146,7 +146,7 @@
                   <view class="stock-info-row">
                     <!-- 左侧：货架信息 -->
                     <view class="stock-department-info">
-                      <text class="font-bold">{{stock.nxDistributerGoodsShelfEntity.nxDgssName || '主货架'}}</text>
+                      <text class="font-bold">{{stock.shelfName}}</text>
                     </view>
 
                     <!-- 右侧：金额信息对比 -->
@@ -155,7 +155,7 @@
                       <view class="stock-info-column stock-inbound">
                         <view class="column-label">入库</view>
                         <view class="column-content">
-                          <text class="amount-text">{{stock.nxDgssSubtotal || 0}}元</text>
+                          <text class="amount-text">{{stock.nxDgssSubtotal}}元</text>
                           <text class="weight-text">
                             <block wx:if="{{goods.nxDgCartonUnit && goods.nxDgCartonUnit !== '' && goods.nxDgCartonUnit !== 'null' && goods.nxDgItemsPerCarton > 0}}">{{tool.formatQuantityDisplay(stock.nxDgssWeight || 0, goods.nxDgCartonUnit, goods.nxDgItemsPerCarton, goods.nxDgGoodsStandardname)}}</block>
                             <block wx:else>{{stock.nxDgssWeight || 0}}{{goods.nxDgGoodsStandardname}}</block>

@@ -239,19 +239,12 @@ Page({
   toDetail(e) {
     const type = e.currentTarget.dataset.type;
     console.log("hanzi",this.data.hanzi);
-    if (type === '0') {
-      // 自采 - 跳转到采购详情页面
-      wx.navigateTo({
-        url: '../purchaseDeatil/purchaseDeatil?startDate=' + this.data.startDate + '&stopDate=' + 
-        this.data.stopDate + '&type=0&hanzi=' + this.data.hanzi + '&disId=' + this.data.disId,
-      })
-    } else if (type === '1') {
-      // 订货 - 跳转到订货详情页面
-      wx.navigateTo({
-        url: '../purchaseDeatil/purchaseDeatil?startDate=' + this.data.startDate + '&stopDate=' + 
-        this.data.stopDate + '&type=1&hanzi=' + this.data.hanzi  + '&disId=' + this.data.disId,
-      })
-    }
+    wx.navigateTo({
+      url: '../purchaseDeatil/purchaseDeatil?startDate=' + this.data.startDate + '&stopDate=' + 
+      this.data.stopDate + '&type=' + type + '&hanzi=' + this.data.hanzi  + '&disId=' + this.data.disId
+       + '&id=' + this.data.greatId
+      ,
+    })
   },
 
 
@@ -518,18 +511,9 @@ Page({
     console.log('=== 按钮点击事件 ===');
     console.log('点击类型:', type);
     console.log('事件目标:', event.currentTarget);
-
+    this.toDetail({ currentTarget: { dataset: { type: type } } });
     // 根据按钮类型执行相应操作
-    if (type === '0') {
-      // 自采按钮
-      this.toDetail({ currentTarget: { dataset: { type: '0' } } });
-    } else if (type === '1') {
-      // 订货按钮
-      this.toDetail({ currentTarget: { dataset: { type: '1' } } });
-    } else if (type === '2') {
-      // 库存按钮
-      this.toStockPage();
-    }
+  
   },
 
 

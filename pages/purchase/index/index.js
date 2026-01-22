@@ -8,12 +8,14 @@ import apiUrl from '../../../config.js'
 import {
  
   disGetTypePrepareOutCata,
+  disGetTypePreparePurGoodsPage,
+
   disGetTypePrepareOutDepCata,
   disGetTypePrepareOutDepGoodsPage,
-  disGetTypePreparePurGoodsPage,
   saveDisPurGoodsBatch,
   saveDisPurGoodsBatchByDep,
   deletePlanPurchase,
+  deleteDisBatch,
 } from '../../../lib/apiDepOrder'
 
 Component({
@@ -43,6 +45,7 @@ Component({
     
     // 左右联动相关数据
     categoryPositions: [], // 存储分类位置信息
+    categoryPositionsRetryCount: 0, // 位置计算重试次数
     scrollTimer: null, // 滚动防抖定时器
     isLoadingMoreForCategory: false, // 是否为分类加载更多数据
 },
@@ -76,7 +79,7 @@ Component({
         navBarHeight: navBarHeightRpx,
         tabBarHeight: tabBarHeightRpx,
         viewBarHeight: viewBarHeightRpx,
-        leftMenuWidth: 150, // 左侧菜单宽度，单位 rpx
+        leftMenuWidth: 120, // 左侧菜单宽度，单位 rpx
       });
 
       this.setData({
@@ -177,6 +180,59 @@ Component({
       })
     },
 
+    // 清除所有选中的商品（清空 selectedArr 并清除页面商品的选中状态）
+    clearSelectedGoods() {
+      console.log('========== clearSelectedGoods 开始 ==========');
+      console.log('当前选中的商品数量:', this.data.selectedArr.length);
+
+      var updates = {};
+      var that = this;
+      
+      // 把页面的选择商品的状态也清除
+      this.data.purGoodsArr.forEach(function(goods, goodsIndex) {
+        var goodsDataKey = `purGoodsArr[${goodsIndex}].isSelected`;
+        updates[goodsDataKey] = false;
+        
+        // 同时更新商品的 categoryIsAllSelected 状态
+        updates[`purGoodsArr[${goodsIndex}].categoryIsAllSelected`] = false;
+        
+        // 如果商品有订单，也要取消订单的选中状态
+        if (goods.orders && goods.orders.length > 0) {
+          goods.orders.forEach(function(order, orderIndex) {
+            var orderDataKey = `purGoodsArr[${goodsIndex}].orders[${orderIndex}].hasChoice`;
+            updates[orderDataKey] = false;
+          });
+        }
+      });
+      
+      // 清空 selectedArr 并关闭弹窗
+      updates.selectedArr = [];
+      updates.showOperationCar = false;
+      
+      // 更新部门模式的全选状态
+      if (this.data.viewMode === 'department') {
+        updates.isAllDepartmentSelected = false;
+      }
+      
+      // 更新所有类别的全选状态为 false
+      if (this.data.viewMode === 'category' && this.data.purCataArr) {
+        this.data.purCataArr.forEach((category, categoryIndex) => {
+          updates[`purCataArr[${categoryIndex}].isAllSelected`] = false;
+        });
+      }
+      
+      this.setData(updates, () => {
+        wx.showToast({
+          title: '已清除',
+          icon: 'success'
+        });
+        
+        console.log('✅ 清除完成，selectedArr 已清空，页面商品选中状态已清除');
+        console.log('更新后的 selectedArr 长度:', this.data.selectedArr.length);
+        console.log('========== clearSelectedGoods 结束 ==========');
+      });
+    },
+    
     closeCar() {
       this.setData({
         showOperationCar: false
@@ -189,32 +245,241 @@ Component({
 
     // 计算分类位置（参考 resGoodsLess 的方法）
     calculateCategoryPositions() {
-      const query = wx.createSelectorQuery();
-      query.selectAll('.goods-category-title').boundingClientRect();
-      query.select('.right-content').boundingClientRect();
-      query.exec((res) => {
-        if (res[0] && res[1]) {
-          const listRect = res[1];
-          // 先计算所有原始 top
-          let rawPositions = res[0].map(item => ({
-            id: item.id.replace('category', ''),
-            top: item.top - listRect.top
-          }));
-          // 取第一个的 top 作为基准
-          const baseTop = rawPositions.length > 0 ? rawPositions[0].top : 0;
-          // 重新计算所有 top，让第一个为 0
-          let positions = rawPositions.map((item, idx) => ({
-            id: item.id,
-            top: item.top - baseTop
-          }));
-          // 按 top 从小到大排序
-          positions.sort((a, b) => a.top - b.top);
-          this.setData({
-            categoryPositions: positions
-          });
-          console.log('分类位置计算完成:', positions);
+      console.log('========== calculateCategoryPositions 开始 ==========');
+      console.log('viewMode:', this.data.viewMode);
+      console.log('purGoodsArr 长度:', this.data.purGoodsArr?.length);
+      
+      // 只在类别模式下计算
+      if (this.data.viewMode !== 'category') {
+        console.log('不是类别模式，跳过位置计算');
+        return;
+      }
+      
+      // 先通过商品数据收集所有分类ID
+      if (!this.data.purGoodsArr || this.data.purGoodsArr.length === 0) {
+        console.log('⚠️ 商品数组为空，无法计算位置');
+        return;
+      }
+      
+      // 收集所有唯一的分类ID
+      const categoryIds = [];
+      this.data.purGoodsArr.forEach((goods) => {
+        const categoryId = goods.nxDgDfgGoodsGreatGrandId;
+        if (categoryId && !categoryIds.includes(categoryId)) {
+          categoryIds.push(categoryId);
         }
       });
+      
+      console.log('找到的分类ID:', categoryIds);
+      
+      if (categoryIds.length === 0) {
+        console.log('⚠️ 没有找到分类ID');
+        return;
+      }
+      
+      // 使用查询获取每个分类元素的位置
+      const query = wx.createSelectorQuery();
+      categoryIds.forEach((categoryId) => {
+        // 查询每个分类的父元素（包含 id="categoryXXX"）
+        query.select(`#category${categoryId}`).boundingClientRect();
+      });
+      query.select('.right-content').boundingClientRect();
+      
+      query.exec((res) => {
+        console.log('查询结果:', res);
+        console.log('查询结果长度:', res.length);
+        console.log('分类元素数量:', res.length - 1);
+        
+        const listRect = res[res.length - 1]; // 最后一个结果是容器
+        const categoryRects = res.slice(0, -1); // 前面的结果是分类元素
+        
+        if (!listRect) {
+          console.log('⚠️ 未找到右侧内容容器');
+          const retryCount = this.data.categoryPositionsRetryCount || 0;
+          if (retryCount < 3) {
+            this.setData({
+              categoryPositionsRetryCount: retryCount + 1
+            });
+            setTimeout(() => {
+              this.calculateCategoryPositions();
+            }, 500);
+          } else {
+            console.log('❌ 已达到最大重试次数(3次)，停止重试');
+            this.setData({
+              categoryPositionsRetryCount: 0
+            });
+          }
+          return;
+        }
+        
+        console.log('listRect:', listRect);
+        console.log('categoryRects:', categoryRects);
+        
+        const positions = [];
+        categoryIds.forEach((categoryId, index) => {
+          const rect = categoryRects[index];
+          if (rect && rect.top !== undefined) {
+            positions.push({
+              id: String(categoryId),
+              top: rect.top - listRect.top
+            });
+          } else {
+            console.log(`⚠️ 分类 ${categoryId} 的位置信息无效:`, rect);
+          }
+        });
+        
+        console.log('原始 positions:', positions);
+        
+        if (positions.length === 0) {
+          console.log('⚠️ 无法获取分类位置，尝试重试');
+          const retryCount = this.data.categoryPositionsRetryCount || 0;
+          if (retryCount < 3) {
+            this.setData({
+              categoryPositionsRetryCount: retryCount + 1
+            });
+            setTimeout(() => {
+              this.calculateCategoryPositions();
+            }, 500);
+          } else {
+            console.log('❌ 已达到最大重试次数(3次)，停止重试');
+            this.setData({
+              categoryPositionsRetryCount: 0
+            });
+          }
+          return;
+        }
+        
+        // 取第一个的 top 作为基准
+        const baseTop = positions.length > 0 ? positions[0].top : 0;
+        // 重新计算所有 top，让第一个为 0
+        let finalPositions = positions.map((item) => ({
+          id: item.id,
+          top: item.top - baseTop
+        }));
+        // 按 top 从小到大排序
+        finalPositions.sort((a, b) => a.top - b.top);
+        
+        console.log('计算后的 positions:', finalPositions);
+        
+        // 成功找到元素，重置重试次数
+        this.setData({
+          categoryPositions: finalPositions,
+          categoryPositionsRetryCount: 0
+        });
+        
+        console.log('✅ 分类位置计算完成，共', finalPositions.length, '个分类');
+        console.log('========== calculateCategoryPositions 结束 ==========');
+      });
+    },
+    
+    // 通过商品数据计算分类位置（备用方案，已废弃，保留以防需要）
+    _calculatePositionsFromGoodsData() {
+      console.log('========== _calculatePositionsFromGoodsData 开始 ==========');
+      
+      if (!this.data.purGoodsArr || this.data.purGoodsArr.length === 0) {
+        console.log('商品数组为空，无法计算位置');
+        return;
+      }
+      
+      // 收集所有唯一的分类ID
+      const categoryIds = [];
+      const categoryMap = new Map();
+      
+      this.data.purGoodsArr.forEach((goods, goodsIndex) => {
+        const categoryId = goods.nxDgDfgGoodsGreatGrandId;
+        if (categoryId && !categoryMap.has(categoryId)) {
+          categoryMap.set(categoryId, {
+            id: String(categoryId),
+            firstIndex: goodsIndex
+          });
+          categoryIds.push(categoryId);
+        }
+      });
+      
+      console.log('找到的分类ID:', categoryIds);
+      console.log('分类映射:', Array.from(categoryMap.entries()));
+      
+      if (categoryIds.length === 0) {
+        console.log('⚠️ 没有找到分类ID');
+        return;
+      }
+      
+      // 使用查询获取每个分类第一个商品的位置
+      const query = wx.createSelectorQuery();
+      categoryIds.forEach((categoryId, index) => {
+        const firstIndex = categoryMap.get(categoryId).firstIndex;
+        // 查询分类标题的父元素（包含 id="categoryXXX"）
+        query.select(`#category${categoryId}`).boundingClientRect();
+      });
+      query.select('.right-content').boundingClientRect();
+      
+      query.exec((res) => {
+        console.log('查询结果:', res);
+        const listRect = res[res.length - 1]; // 最后一个结果是容器
+        const categoryRects = res.slice(0, -1); // 前面的结果是分类元素
+        
+        console.log('listRect:', listRect);
+        console.log('categoryRects:', categoryRects);
+        
+        if (!listRect) {
+          console.log('⚠️ 未找到右侧内容容器');
+          return;
+        }
+        
+        const positions = [];
+        categoryIds.forEach((categoryId, index) => {
+          const rect = categoryRects[index];
+          if (rect && rect.top !== undefined) {
+            positions.push({
+              id: String(categoryId),
+              top: rect.top - listRect.top
+            });
+          }
+        });
+        
+        if (positions.length === 0) {
+          console.log('⚠️ 无法获取分类位置');
+          return;
+        }
+        
+        // 取第一个的 top 作为基准
+        const baseTop = positions.length > 0 ? positions[0].top : 0;
+        // 重新计算所有 top，让第一个为 0
+        let finalPositions = positions.map((item) => ({
+          id: item.id,
+          top: item.top - baseTop
+        }));
+        // 按 top 从小到大排序
+        finalPositions.sort((a, b) => a.top - b.top);
+        
+        console.log('计算后的 positions:', finalPositions);
+        
+        this.setData({
+          categoryPositions: finalPositions
+        });
+        
+        console.log('✅ 通过商品数据计算分类位置完成，共', finalPositions.length, '个分类');
+        console.log('========== _calculatePositionsFromGoodsData 结束 ==========');
+      });
+    },
+    
+    // 从元素获取分类ID（辅助函数）
+    _getCategoryIdFromElement(index) {
+      // 通过商品数据查找对应的分类ID
+      if (!this.data.purGoodsArr || this.data.purGoodsArr.length === 0) {
+        return null;
+      }
+      
+      // 找到第 index 个分类的第一个商品
+      const categoryIds = [];
+      this.data.purGoodsArr.forEach((goods) => {
+        const categoryId = goods.nxDgDfgGoodsGreatGrandId;
+        if (categoryId && !categoryIds.includes(categoryId)) {
+          categoryIds.push(categoryId);
+        }
+      });
+      
+      return categoryIds[index] ? String(categoryIds[index]) : null;
     },
 
     // 滚动事件处理（参考 resGoodsLess 的方法）
@@ -417,7 +682,7 @@ Component({
         // 按客户模式：点击部门
         if (this.data.depArr[index]) {
           const dep = this.data.depArr[index];
-          console.log('🎯 目标部门:', dep.depAttrName);
+          console.log('🎯 目标部门:', dep.nxDepartmentOrderCode);
           console.log('🎯 目标部门ID:', dep.depId);
           
           // 切换部门时，清空选择数组
@@ -485,6 +750,8 @@ Component({
           } else {
             // 如果当前页面没有该分类的商品，递归加载直到找到
             console.log('❌ 当前页面没有目标分类商品，开始递归加载');
+            // 显示加载蒙版
+            load.showLoading('正在加载商品');
             this.loadGoodsUntilCategory(categoryId, fullTargetId);
           }
         } else {
@@ -510,6 +777,8 @@ Component({
       // 如果总页数已知且当前页超过总页数，则停止
       if (this.data.totalPage > 0 && page > this.data.totalPage) {
         console.log('❌ 已加载所有数据，仍未找到该分类');
+        // 隐藏加载蒙版
+        load.hideLoading();
         wx.showToast({
           title: '该分类暂无商品',
           icon: 'none',
@@ -600,6 +869,9 @@ Component({
               console.log('✅ 找到目标分类商品，设置跳转目标');
               console.log(`🎯 设置toViewWx: ${targetId}`);
               
+              // 隐藏加载蒙版
+              load.hideLoading();
+              
               this.setData({
                 toViewWx: targetId
               });
@@ -623,6 +895,8 @@ Component({
               } else {
                 // 已加载所有数据，仍未找到
                 console.log('❌ 已加载所有数据，仍未找到该分类');
+                // 隐藏加载蒙版
+                load.hideLoading();
                 wx.showToast({
                   title: '该分类暂无商品',
                   icon: 'none',
@@ -634,6 +908,8 @@ Component({
           return res; // 返回结果
         } else {
           console.log('❌ 加载数据失败:', res.result.msg);
+          // 隐藏加载蒙版
+          load.hideLoading();
           return res; // 返回结果
         }
       }).catch(err => {
@@ -641,6 +917,8 @@ Component({
         this.setData({
           isLoading: false
         });
+        // 隐藏加载蒙版
+        load.hideLoading();
         throw err; // 重新抛出错误
       });
     },
@@ -1074,7 +1352,8 @@ Component({
                   nxDistributerFatherGoodsId: category.nxDistributerFatherGoodsId,
                   nxDfgFatherGoodsName: category.nxDfgFatherGoodsName,
                   nxDfgFatherGoodsSort: category.nxDfgFatherGoodsSort,
-                  newOrderCount: category.newOrderCount || 0
+                  newOrderCount: category.newOrderCount || 0,
+                  isAllSelected: false // 初始化全选状态为 false
                 });
                 
                 // 提取商品：使用 nxDistributerPurchaseGoodsEntities
@@ -1106,6 +1385,10 @@ Component({
               purCataArr: categoryArr, // 保存分类信息用于锚点
               isAllDepartmentSelected: false, // 重置全选状态
             }, () => {
+              // 初始化类别的全选状态
+              if (this.data.viewMode === 'category') {
+                this._initCategorySelectStates();
+              }
               // 重新获取位置信息
               setTimeout(() => {
                 this.calculateCategoryPositions();
@@ -1154,21 +1437,36 @@ Component({
         return goodsList;
       }
       
-      // 如果已经是新结构（直接包含 nxDgGoodsName），直接返回
+      // 如果已经是新结构（直接包含 nxDgGoodsName），直接返回，但需要添加uniqueKey
       if (firstItem.nxDgGoodsName && !firstItem.nxDistributerGoodsEntity) {
-        console.log('✅ 数据已经是简化版结构，无需转换');
-        return goodsList;
+        console.log('✅ 数据已经是简化版结构，添加uniqueKey...');
+        return goodsList.map((item, goodsIndex) => {
+          const goodsId = item.nxDistributerPurchaseGoodsId || goodsIndex;
+          const orders = item.orders || [];
+          if (orders.length > 0) {
+            const updatedOrders = orders.map((order, orderIndex) => {
+              const orderId = order.nxDepartmentOrdersId || orderIndex;
+              return Object.assign({}, order, {
+                uniqueKey: goodsId + '-' + orderId + '-' + orderIndex
+              });
+            });
+            return Object.assign({}, item, { orders: updatedOrders });
+          }
+          return item;
+        });
       }
       
       // 如果是旧结构（包含 nxDistributerGoodsEntity），进行转换
       if (firstItem.nxDistributerGoodsEntity) {
         console.log('🔄 检测到旧数据结构，开始转换为简化版...');
-        return goodsList.map(item => {
+        return goodsList.map((item, goodsIndex) => {
           const goodsEntity = item.nxDistributerGoodsEntity || {};
           const orders = item.nxDepartmentOrdersEntities || [];
+          const goodsId = item.nxDistributerPurchaseGoodsId || goodsIndex;
           
           // 转换订单数据
-          const convertedOrders = orders.map(order => {
+          const convertedOrders = orders.map((order, orderIndex) => {
+            const orderId = order.nxDepartmentOrdersId || orderIndex;
             const convertedOrder = {
               nxDepartmentOrdersId: order.nxDepartmentOrdersId,
               nxDoQuantity: order.nxDoQuantity,
@@ -1178,18 +1476,19 @@ Component({
               nxDoPrintStandard: order.nxDoPrintStandard,
               nxDoDsStandardScale: order.nxDoDsStandardScale,
               hasChoice: order.hasChoice || false,
+              uniqueKey: goodsId + '-' + orderId + '-' + orderIndex, // 添加唯一key
             };
             
             // 扁平化部门信息
             if (order.nxDepartmentEntity) {
               const dep = order.nxDepartmentEntity;
               convertedOrder.depName = dep.fatherDepartmentEntity 
-                ? `${dep.fatherDepartmentEntity.nxDepartmentName}.${dep.nxDepartmentName}`
-                : dep.nxDepartmentName;
+                ? `${dep.fatherDepartmentEntity.nxDepartmentOrderCode}.${dep.nxDepartmentOrderCode}`
+                : dep.nxDepartmentOrderCode;
               convertedOrder.nxDepartmentAttrName = dep.nxDepartmentAttrName;
               convertedOrder.nxDepartmentOrderCode = dep.nxDepartmentOrderCode;
               if (dep.fatherDepartmentEntity) {
-                convertedOrder.fatherDepartmentAttrName = dep.fatherDepartmentEntity.nxDepartmentAttrName;
+                convertedOrder.fatherDepartmentOrderCode = dep.fatherDepartmentEntity.nxDepartmentAttrName;
               }
             }
             
@@ -1227,6 +1526,7 @@ Component({
             nxDgDfgGoodsGreatGrandId: goodsEntity.nxDgDfgGoodsGreatGrandId,
             nxDgPurchaseAuto: goodsEntity.nxDgPurchaseAuto,
             isSelected: item.isSelected || false,
+            categoryIsAllSelected: false, // 类别全选状态，用于在商品列表中显示
             orders: convertedOrders, // 使用 orders 而不是 nxDepartmentOrdersEntities
           };
         });
@@ -1328,7 +1628,7 @@ Component({
     console.log("[deletePlanPurchseOrders] 开始删除采购订单，item:", item);
     load.showLoading("删除进货商品")
     console.log(e.currentTarget.dataset.item);
-    deletePlanPurchase(e.currentTarget.dataset.item).then(res => {
+    deletePlanPurchase(e.currentTarget.dataset.item.nxDistributerPurchaseGoodsId).then(res => {
       console.log("[deletePlanPurchseOrders] 接口返回数据:", res.result);
       load.hideLoading();
       if (res.result.code == 0) {
@@ -1432,6 +1732,11 @@ Component({
         }
 
         this._getSelectedArr(false, index);
+        
+        // 更新类别的全选状态
+        if (this.data.viewMode === 'category' && this.data.purGoodsArr[index].nxDgDfgGoodsGreatGrandId) {
+          this._updateCategorySelectState(this.data.purGoodsArr[index].nxDgDfgGoodsGreatGrandId);
+        }
 
       } else {
         var userData = "purGoodsArr[" + index + "].nxDpbPurUserId";
@@ -1450,6 +1755,11 @@ Component({
           }
         }
         this._getSelectedArr(true, index);
+        
+        // 更新类别的全选状态
+        if (this.data.viewMode === 'category' && this.data.purGoodsArr[index].nxDgDfgGoodsGreatGrandId) {
+          this._updateCategorySelectState(this.data.purGoodsArr[index].nxDgDfgGoodsGreatGrandId);
+        }
 
       }
       
@@ -1482,6 +1792,329 @@ Component({
     },
 
     // 部门模式下全选/取消全选
+    // 阻止事件冒泡
+    stopPropagation() {
+      console.log('stopPropagation 被调用');
+      // 空函数，用于阻止事件冒泡
+    },
+    
+    // 选择类别下的所有商品
+    selectAllCategoryGoods(e) {
+      console.log('========== selectAllCategoryGoods 开始 ==========');
+      
+      if (this.data.viewMode !== 'category') {
+        console.log('❌ 不是类别模式，当前模式:', this.data.viewMode);
+        return;
+      }
+      
+      const categoryId = e.currentTarget.dataset.categoryId;
+      if (!categoryId) {
+        console.error('❌ 类别ID不存在', { categoryId, dataset: e.currentTarget.dataset });
+        return;
+      }
+      
+      // 先检查该类别的商品是否已全部加载
+      const categoryGoods = this.data.purGoodsArr.filter(goods => 
+        String(goods.nxDgDfgGoodsGreatGrandId) === String(categoryId)
+      );
+      
+      console.log('该类别下的商品数量:', categoryGoods.length);
+      console.log('当前页:', this.data.currentPage, '总页数:', this.data.totalPage);
+      
+      // 检查是否还有更多页需要加载
+      const hasMorePages = this.data.totalPage > 0 && this.data.currentPage < this.data.totalPage;
+      
+      if (hasMorePages) {
+        console.log('⚠️ 该类别还有更多页商品未加载，先加载完所有商品再执行全选');
+        load.showLoading('正在加载该类别所有商品...');
+        // 先加载完该类别的所有商品，然后再执行全选
+        this.loadAllCategoryGoods(categoryId).then(() => {
+          load.hideLoading();
+          // 加载完成后执行全选
+          this._doSelectAllCategoryGoods(categoryId);
+        }).catch(err => {
+          console.error('加载类别商品失败:', err);
+          load.hideLoading();
+          wx.showToast({
+            title: '加载商品失败',
+            icon: 'none'
+          });
+        });
+      } else {
+        // 已加载完所有商品，直接执行全选
+        this._doSelectAllCategoryGoods(categoryId);
+      }
+    },
+
+    // 加载某个类别的所有商品（只加载包含该类别的页）
+    loadAllCategoryGoods(categoryId, startPage = null) {
+      console.log(`\n=== 开始加载类别 ${categoryId} 的所有商品 ===`);
+      
+      // 如果未指定起始页，从当前页的下ー页开始
+      if (startPage === null) {
+        startPage = this.data.currentPage + 1;
+      }
+      
+      console.log(`📄 起始页码: ${startPage}`);
+      console.log(`📊 当前商品总数: ${this.data.purGoodsArr.length}`);
+      
+      // 保存加载前的状态
+      const originalCurrentPage = this.data.currentPage;
+      const originalHasMore = this.data.hasMore;
+      let hasLoadedCategoryGoods = false; // 是否已经加载到该类别的商品
+      
+      return new Promise((resolve, reject) => {
+        if (this.data.isLoading) {
+          console.log('⚠️ 正在加载中，等待完成');
+          setTimeout(() => {
+            this.loadAllCategoryGoods(categoryId, startPage).then(resolve).catch(reject);
+          }, 500);
+          return;
+        }
+        
+        // 如果已经加载完所有页，直接返回
+        if (this.data.totalPage > 0 && startPage > this.data.totalPage) {
+          console.log('✅ 已加载完所有页');
+          resolve();
+          return;
+        }
+        
+        this.setData({
+          isLoading: true
+        });
+        
+        const data = {
+          disId: this.data.disId,
+          page: startPage,
+          limit: this.data.limit,
+        };
+        
+        console.log(`📤 请求第${startPage}页数据`);
+        
+        disGetTypePreparePurGoodsPage(data).then(res => {
+          this.setData({
+            isLoading: false
+          });
+          
+          if (res.result.code == 0) {
+            const convertedList = this._convertToSimpleStructure(res.result.page.list);
+            
+            // 去重逻辑
+            const existingIds = new Set(this.data.purGoodsArr.map(item => item.nxDistributerPurchaseGoodsId));
+            const newItems = convertedList.filter(item => !existingIds.has(item.nxDistributerPurchaseGoodsId));
+            const newPurGoodsArr = this.data.purGoodsArr.concat(newItems);
+            
+            // 检查新加载的数据中是否包含目标类别的商品
+            const hasCategoryInNewData = newItems.some(item => 
+              String(item.nxDgDfgGoodsGreatGrandId) === String(categoryId)
+            );
+            
+            if (hasCategoryInNewData) {
+              hasLoadedCategoryGoods = true;
+            }
+            
+            console.log(`📦 现有商品数量: ${this.data.purGoodsArr.length}`);
+            console.log(`📦 新加载商品数量: ${convertedList.length}`);
+            console.log(`📦 去重后新增数量: ${newItems.length}`);
+            console.log(`📦 合并后商品总数: ${newPurGoodsArr.length}`);
+            console.log(`📦 新数据中包含目标类别: ${hasCategoryInNewData}`);
+            
+            // 检查是否还有更多页
+            const hasMorePages = res.result.page.currPage < res.result.page.totalPage;
+            
+            // 更新数据，保持 hasMore 状态正确
+            this.setData({
+              purGoodsArr: newPurGoodsArr,
+              currentPage: res.result.page.currPage,
+              totalPage: res.result.page.totalPage,
+              totalCount: res.result.page.totalCount,
+              pageSize: res.result.page.pageSize,
+              hasMore: hasMorePages // 根据实际的总页数设置
+            }, () => {
+              // 如果新加载的数据中包含目标类别的商品，继续检查是否还有更多该类别的商品
+              if (hasCategoryInNewData && hasMorePages) {
+                // 继续加载下一页，可能还有该类别的商品
+                console.log(`🔄 继续加载第${res.result.page.currPage + 1}页（寻找类别商品）...`);
+                setTimeout(() => {
+                  this.loadAllCategoryGoods(categoryId, res.result.page.currPage + 1)
+                    .then(resolve)
+                    .catch(reject);
+                }, 300);
+              } else if (!hasCategoryInNewData && hasMorePages) {
+                // 当前页没有该类别的商品，但还有更多页，继续加载（因为可能后面的页会有）
+                console.log(`🔄 当前页无该类别商品，继续加载第${res.result.page.currPage + 1}页...`);
+                setTimeout(() => {
+                  this.loadAllCategoryGoods(categoryId, res.result.page.currPage + 1)
+                    .then(resolve)
+                    .catch(reject);
+                }, 300);
+              } else {
+                // 没有更多页了，或者已经找到该类别的所有商品
+                console.log('✅ 已加载完该类别的所有商品');
+                resolve();
+              }
+            });
+          } else {
+            console.log('❌ 加载数据失败:', res.result.msg);
+            reject(new Error(res.result.msg));
+          }
+        }).catch(err => {
+          console.error('❌ 加载数据失败:', err);
+          this.setData({
+            isLoading: false
+          });
+          reject(err);
+        });
+      });
+    },
+
+    // 执行类别全选/取消全选的实际逻辑
+    _doSelectAllCategoryGoods(categoryId) {
+      console.log('========== _doSelectAllCategoryGoods 开始 ==========');
+      
+      // 找到该类别下的所有商品
+      const categoryGoods = this.data.purGoodsArr.filter(goods => 
+        String(goods.nxDgDfgGoodsGreatGrandId) === String(categoryId)
+      );
+      
+      console.log('该类别下的商品数量:', categoryGoods.length);
+      
+      if (categoryGoods.length === 0) {
+        console.log('❌ 该类别下没有商品');
+        return;
+      }
+      
+      // 检查该类别是否已全选
+      const isAllSelected = categoryGoods.every(goods => goods.isSelected === true);
+      const newSelectedState = !isAllSelected;
+      
+      console.log('当前全选状态:', isAllSelected);
+      console.log('新的选中状态:', newSelectedState);
+      
+      var updates = {};
+      var that = this;
+      
+      // 更新该类别下所有商品的选中状态
+      this.data.purGoodsArr.forEach(function(goods, goodsIndex) {
+        if (String(goods.nxDgDfgGoodsGreatGrandId) === String(categoryId)) {
+          var goodsDataKey = `purGoodsArr[${goodsIndex}].isSelected`;
+          updates[goodsDataKey] = newSelectedState;
+          
+          // 同时更新商品的 categoryIsAllSelected 状态（用于显示）
+          updates[`purGoodsArr[${goodsIndex}].categoryIsAllSelected`] = newSelectedState;
+          
+          // 如果商品有订单，也要更新订单的选中状态
+          if (goods.orders && goods.orders.length > 0) {
+            goods.orders.forEach(function(order, orderIndex) {
+              var orderDataKey = `purGoodsArr[${goodsIndex}].orders[${orderIndex}].hasChoice`;
+              updates[orderDataKey] = newSelectedState;
+            });
+          }
+          
+          // 更新用户ID（如果选中）
+          if (newSelectedState) {
+            var userDataKey = `purGoodsArr[${goodsIndex}].nxDpbPurUserId`;
+            updates[userDataKey] = that.data.userInfo.nxDistributerUserId;
+          }
+          
+          // 更新 selectedArr
+          that._getSelectedArr(newSelectedState, goodsIndex);
+        }
+      });
+      
+      console.log('准备更新的数据键数量:', Object.keys(updates).length);
+      
+      // 找到对应的类别索引并更新类别全选状态
+      const categoryIndex = this.data.purCataArr.findIndex(cat => 
+        String(cat.nxDistributerFatherGoodsId) === String(categoryId)
+      );
+      
+      if (categoryIndex !== -1) {
+        updates[`purCataArr[${categoryIndex}].isAllSelected`] = newSelectedState;
+      }
+      
+      this.setData(updates, () => {
+        console.log('✅ setData 完成');
+        console.log(`${newSelectedState ? '全选' : '取消全选'}类别 ${categoryId} 下的 ${categoryGoods.length} 个商品`);
+      });
+      
+      console.log('========== _doSelectAllCategoryGoods 结束 ==========');
+    },
+    
+    // 更新类别的全选状态（当商品选中状态改变时调用）
+    _updateCategorySelectState(categoryId) {
+      if (!categoryId || this.data.viewMode !== 'category') {
+        return;
+      }
+      
+      // 找到该类别下的所有商品
+      const categoryGoods = this.data.purGoodsArr.filter(goods => 
+        String(goods.nxDgDfgGoodsGreatGrandId) === String(categoryId)
+      );
+      
+      if (categoryGoods.length === 0) {
+        return;
+      }
+      
+      // 检查该类别是否已全选
+      const isAllSelected = categoryGoods.every(goods => goods.isSelected === true);
+      
+      // 找到对应的类别索引
+      const categoryIndex = this.data.purCataArr.findIndex(cat => 
+        String(cat.nxDistributerFatherGoodsId) === String(categoryId)
+      );
+      
+      var updates = {};
+      
+      if (categoryIndex !== -1) {
+        updates[`purCataArr[${categoryIndex}].isAllSelected`] = isAllSelected;
+      }
+      
+      // 更新该类别下所有商品的 categoryIsAllSelected 状态（用于在商品列表中显示）
+      this.data.purGoodsArr.forEach((goods, goodsIndex) => {
+        if (String(goods.nxDgDfgGoodsGreatGrandId) === String(categoryId)) {
+          updates[`purGoodsArr[${goodsIndex}].categoryIsAllSelected`] = isAllSelected;
+        }
+      });
+      
+      if (Object.keys(updates).length > 0) {
+        this.setData(updates);
+      }
+    },
+    
+    // 初始化所有类别的全选状态（在数据加载完成后调用）
+    _initCategorySelectStates() {
+      if (this.data.viewMode !== 'category' || !this.data.purCataArr || this.data.purCataArr.length === 0) {
+        return;
+      }
+      
+      var updates = {};
+      this.data.purCataArr.forEach((category, categoryIndex) => {
+        const categoryId = category.nxDistributerFatherGoodsId;
+        const categoryGoods = this.data.purGoodsArr.filter(goods => 
+          String(goods.nxDgDfgGoodsGreatGrandId) === String(categoryId)
+        );
+        
+        if (categoryGoods.length > 0) {
+          const isAllSelected = categoryGoods.every(goods => goods.isSelected === true);
+          updates[`purCataArr[${categoryIndex}].isAllSelected`] = isAllSelected;
+          
+          // 同时更新该类别下所有商品的 categoryIsAllSelected 状态
+          this.data.purGoodsArr.forEach((goods, goodsIndex) => {
+            if (String(goods.nxDgDfgGoodsGreatGrandId) === String(categoryId)) {
+              updates[`purGoodsArr[${goodsIndex}].categoryIsAllSelected`] = isAllSelected;
+            }
+          });
+        } else {
+          updates[`purCataArr[${categoryIndex}].isAllSelected`] = false;
+        }
+      });
+      
+      if (Object.keys(updates).length > 0) {
+        this.setData(updates);
+      }
+    },
+    
     selectAllDepartmentGoods() {
       if (this.data.viewMode !== 'department' || !this.data.purGoodsArr || this.data.purGoodsArr.length === 0) {
         return;
@@ -1655,16 +2288,27 @@ Component({
       
       wx.setStorageSync('toOrderWx', true);
       wx.setStorageSync('selArr', simplifiedArr);
+      
+      // 传递统一参数（新参数）
+      wx.setStorageSync('printPageType', 'purchase');
+      wx.setStorageSync('printViewMode', this.data.viewMode);
+      wx.setStorageSync('printUseSimpleFields', this.data.viewMode === 'category');
+      
       // 传递显示模式和部门ID信息，供 orderList 页面使用
       if (this.data.viewMode === 'department' && this.data.selectedDepId) {
-        wx.setStorageSync('purchaseViewMode', 'department');
-        wx.setStorageSync('purchaseSelectedDepId', this.data.selectedDepId);
-        // 保存部门名称，用于复制内容
+        // 新参数
         var selectedDep = this.data.depArr.find(dep => dep.depId === this.data.selectedDepId);
         if (selectedDep) {
-          wx.setStorageSync('purchaseSelectedDepName', selectedDep.depAttrName || selectedDep.depOrderCode || '');
+          wx.setStorageSync('printCustomerName', selectedDep.nxDepartmentOrderCode || selectedDep.depOrderCode || '');
+          wx.setStorageSync('purchaseSelectedDepName', selectedDep.nxDepartmentOrderCode || selectedDep.depOrderCode || '');
         }
+        // 兼容旧参数
+        wx.setStorageSync('purchaseViewMode', 'department');
+        wx.setStorageSync('purchaseSelectedDepId', this.data.selectedDepId);
       } else {
+        // 新参数
+        wx.setStorageSync('printCustomerName', '');
+        // 兼容旧参数
         wx.setStorageSync('purchaseViewMode', 'category');
         wx.removeStorageSync('purchaseSelectedDepId');
         wx.removeStorageSync('purchaseSelectedDepName');
@@ -1694,7 +2338,7 @@ Component({
         nxDpbDistributerId: this.data.disId,
         nxDPGEntities: arr,
         nxDPBPurUserId: this.data.userInfo.nxDistributerUserId,
-        nxDpbPurchaseType: 2,
+        nxDpbPurchaseType: 3,
       }
       
       // 如果是按客户模式，添加部门ID
@@ -1724,8 +2368,17 @@ Component({
               
             },
             fail() {
+              console.log("shisbsiisisiididiid==", res.result.data);
+              
+              deleteDisBatch(res.result.data)
+              .then(res => {
+                if (res.result.code == 0) {
+                  
+                //  that._initData();
+                }
+              })
               wx.showToast({
-                title: '跳转失败',
+                title: '没有订货',
                 icon: 'none'
               });
             },
@@ -1790,6 +2443,13 @@ Component({
     onRefresh() {
       this.setData({
         refresherTriggered: true
+      });
+      
+      // 清空选择的数据
+      this.setData({
+        selectedArr: [],
+        selectedPrintArr: [],
+        isAllDepartmentSelected: false,
       });
       
       // 重置分页数据
@@ -1858,9 +2518,28 @@ Component({
        // 设置打印标识和商品数据
        wx.setStorageSync('toPrintWx', true);
        wx.setStorageSync('selArr', sortedPrintArr);
+       
+       // 传递页面类型和显示模式，用于区分4种打印情况
+       // pageType: 'stock' 出库页面, 'purchase' 采购页面
+       // viewMode: 'category' 按商品显示, 'department' 按部门显示
+       wx.setStorageSync('printPageType', 'purchase');
+       wx.setStorageSync('printViewMode', this.data.viewMode);
+       
+       // 如果是按部门显示，传递部门信息
+       if (this.data.viewMode === 'department' && this.data.selectedDepId) {
+         var selectedDep = this.data.depArr.find(dep => dep.depId === this.data.selectedDepId);
+         if (selectedDep) {
+           wx.setStorageSync('printCustomerName', selectedDep.nxDepartmentOrderCode || selectedDep.depOrderCode || '');
+         }
+       }
+       
+       // 按商品显示时使用新精简字段，按部门显示时使用完整字段
+       wx.setStorageSync('printUseSimpleFields', this.data.viewMode === 'category');
+       
        this.setData({
          selectedArr: [],
          selectedPrintArr: [],
+         hasMore: true,
        })
        
        // 跳转到orderList页面
@@ -1878,10 +2557,111 @@ Component({
         url: '../../../subPackage/pages/management/homePage/homePage',
       })
      },
+
+
+
+
+  // 2，选择出库商品中的订单
+  choiceOrders(e) {
+    console.log('\n=== choiceOrders 开始 ===');
+    var fatherIndex = e.currentTarget.dataset.fatherindex;
+    var goodsIndex = e.currentTarget.dataset.index;
+    var orderIndex = e.currentTarget.dataset.orderindex;
+    console.log('🎯 商品索引:', goodsIndex);
+    console.log('🎯 订单索引:', orderIndex);
+    
+    var choice = this.data.purGoodsArr[fatherIndex].orders[orderIndex].hasChoice;
+    console.log('📊 商品是否已选中 (hasChoice):', choice);
+    
+    if(choice){
+      console.log('✅ 商品已选中，可以操作订单');
+      var order = this.data.goodsArr[goodsIndex].nxDepartmentOrdersEntities[orderIndex];
+      console.log('📊 订单对象:', order);
+      console.log('📊 订单ID:', order?.nxDepartmentOrdersId);
+      
+      var orderChoice = order?.purSelected;
+      console.log('📊 订单当前 purSelected 值:', orderChoice);
+      console.log('📊 订单 purSelected 类型:', typeof orderChoice);
+      console.log('📊 订单 purSelected 是否为 undefined:', orderChoice === undefined);
+      console.log('📊 订单 purSelected 是否为 null:', orderChoice === null);
+      
+      var goodsId = this.data.goodsArr[goodsIndex].nxDistributerGoodsId;
+      var data = "goodsArr[" + goodsIndex + "].nxDepartmentOrdersEntities[" + orderIndex + "].purSelected";
+      console.log('📊 setData 路径:', data);
+      
+      if (orderChoice) {
+        console.log('🔄 取消选择订单');
+        this.setData({
+          [data]: false
+        }, () => {
+          console.log('📊 取消选择后，订单 purSelected 值:', this.data.goodsArr[goodsIndex].nxDepartmentOrdersEntities[orderIndex].purSelected);
+        });
+        this._updateChoiceArr(goodsId, goodsIndex);
+      } else {
+        console.log('✅ 选择订单');
+        this.setData({
+          [data]: true
+        }, () => {
+          console.log('📊 选择后，订单 purSelected 值:', this.data.goodsArr[goodsIndex].nxDepartmentOrdersEntities[orderIndex].purSelected);
+        });
+        this._updateChoiceArr(goodsId, goodsIndex);
+      }
+    } else {
+      console.log('❌ 商品未选中，无法操作订单');
+    }
+    console.log('=== choiceOrders 结束 ===\n');
+  },
+
+  _updateChoiceArr(id, goodsIndex) {
+    var orderArr = this.data.goodsArr[goodsIndex].nxDepartmentOrdersEntities;
+    var orderSelCount = 0;
+    for (var i = 0; i < orderArr.length; i++) {
+      var sel = orderArr[i].purSelected;
+      console.log("reeww", i, 'sel=====', sel, "-=--------", orderSelCount);
+      if (sel) {
+        orderSelCount = Number(orderSelCount) + Number(1);
+      }
+    }
+    console.log("resussososodltlltltltlt ======", orderSelCount);
+    var selGoodsData = "goodsArr[" + goodsIndex + "].isSelected";
+    if (orderSelCount == 0) {
+      this.setData({
+        [selGoodsData]: false
+      })
+      //order
+      var orderArr = this.data.goodsArr[goodsIndex].nxDepartmentOrdersEntities;
+      var orderSelCount = 0;
+      for (var i = 0; i < orderArr.length; i++) {
+        var data = "goodsArr[" + goodsIndex + "].nxDepartmentOrdersEntities[" + i + "].purSelected";
+        this.setData({
+          [data]: true,
+        })
+      }
+
+      //choice
+      var selArr = this.data.choiceStockArr;
+      selArr.splice(selArr.findIndex(item => item.nxGoodsId === id), 1);
+      this.setData({
+        choiceStockArr: selArr,
+      })
+   
+    } else {
+      var selArr = this.data.choiceStockArr;
+      const item = selArr.find(element => element.nxGoodsId === id);
+      console.log("Aaaa")
+      item.nxDepartmentOrdersEntities = orderArr;
+    }
+
+  },
+
+
+
+
      
 
     // methods
   },
+
 
 
 

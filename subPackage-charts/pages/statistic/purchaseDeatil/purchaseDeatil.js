@@ -59,24 +59,18 @@ Page({
    */
   onLoad: function (options) {
 
-   
-
-    // 处理type参数，如果为undefined则设置默认值
-    let typeValue = options.type;
-    if (typeValue === undefined || typeValue === 'undefined') {
-      typeValue = '0'; // 默认为自采
-    }
 
     this.setData({
       windowWidth: globalData.windowWidth * globalData.rpxR,
       windowHeight: globalData.windowHeight * globalData.rpxR,
       navBarHeight: globalData.navBarHeight * globalData.rpxR,
       url: apiUrl.server,
-      type: typeValue,
+      type: options.type,
       disId: options.disId,
       startDate: options.startDate,
       stopDate: options.stopDate,
-      hanzi: options.hanzi
+      hanzi: options.hanzi,
+      greatId :options.id,
 
     })
 
@@ -151,6 +145,7 @@ Page({
       purUserIds: this.data.purUserIds,
       startDate: this.data.startDate,
       stopDate: this.data.stopDate,
+      greatId: this.data.greatId,
     }
     
     console.log('请求参数:', data);
@@ -163,10 +158,9 @@ Page({
           console.log('API返回数据:', res.result.data);
           this.setData({
           
-           
             total: res.result.data.total,
           })
-          if(this.data.type == 0){
+          if(this.data.type < 12){
             // 为用户添加展开状态 - NX系统
             const purUserArr = (res.result.data.purUserArr || []).map(user => ({
               ...user,
@@ -187,7 +181,7 @@ Page({
             })
           } 
           
-          if(this.data.type == 1){
+          if(this.data.type == 12){
             // 为供货商添加展开状态 - NX系统
             const supplierArr = (res.result.data.supplierArr || []).map(supplier => ({
               ...supplier,
@@ -404,7 +398,7 @@ Page({
   // 跳转到筛选页面
   toFilter() {
     var type = "";
-    if(this.data.type == 1){
+    if(this.data.type == 12){
       type = "supplier";
     }else{
       type = "purchaser"
@@ -468,10 +462,10 @@ Page({
     let dataArray = [];
     let dataKey = '';
     
-    if (this.data.type == 0) {
+    if (this.data.type < 12) {
       dataArray = this.data.purUserArr;
       dataKey = 'purUserArr';
-    } else if (this.data.type == 1) {
+    } else  {
       dataArray = this.data.supplierArr;
       dataKey = 'supplierArr';
     }
@@ -514,10 +508,10 @@ Page({
     let dataArray = [];
     let dataKey = '';
     
-    if (this.data.type == 0) {
+    if (this.data.type < 12) {
       dataArray = this.data.purUserArr;
       dataKey = 'purUserArr';
-    } else if (this.data.type == 1) {
+    } else {
       dataArray = this.data.supplierArr;
       dataKey = 'supplierArr';
     }
@@ -604,10 +598,10 @@ Page({
     let dataArray = [];
     let dataKey = '';
     
-    if (this.data.type == 0) {
+    if (this.data.type < 12) {
       dataArray = this.data.purUserArr;
       dataKey = 'purUserArr';
-    } else if (this.data.type == 1) {
+    } else {
       dataArray = this.data.supplierArr;
       dataKey = 'supplierArr';
     }
@@ -652,10 +646,10 @@ Page({
     let dataArray = [];
     let dataKey = '';
     
-    if (this.data.type == 0) {
+    if (this.data.type < 12) {
       dataArray = this.data.purUserArr;
       dataKey = 'purUserArr';
-    } else if (this.data.type == 1) {
+    } else  {
       dataArray = this.data.supplierArr;
       dataKey = 'supplierArr';
     }

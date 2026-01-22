@@ -64,7 +64,7 @@ Page({
               } else {
               
                 wx.redirectTo({
-                  url: '../login/login',
+                  url: '../inviteCode/inviteCode',
                 })
                
               }

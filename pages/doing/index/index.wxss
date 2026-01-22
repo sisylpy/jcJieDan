@@ -141,6 +141,7 @@
   align-items: center;
   padding: 30rpx;
   border-bottom: 1rpx solid #eee;
+  flex-shrink: 0;
 }
 
 .modal-title {
@@ -161,14 +162,17 @@
 }
 
 .modal-body {
-  padding: 30rpx;
   flex: 1;
-  overflow-y: auto;
+  min-height: 0;
+  max-height: 500rpx;
 }
 
 .content-preview {
   display: flex;
   flex-direction: column;
+  width: 100%;
+  padding: 30rpx;
+  box-sizing: border-box;
 }
 
 .preview-title {
@@ -183,8 +187,9 @@
   border-radius: 10rpx;
   padding: 20rpx;
   min-height: 200rpx;
-  max-height: 400rpx;
-  overflow-y: auto;
+  width: 100%;
+  word-wrap: break-word;
+  word-break: break-all;
 }
 
 .preview-content text {
@@ -199,6 +204,7 @@
   justify-content: space-between;
   padding: 30rpx;
   border-top: 1rpx solid #eee;
+  flex-shrink: 0;
 }
 
 .modal-btn {
@@ -220,6 +226,19 @@
 .confirm-btn {
   background-color: #007aff;
   color: white;
+}
+
+.delete-modal-content {
+  max-width: 600rpx;
+  min-width: 500rpx;
+  min-height: 300rpx;
+}
+
+.delete-confirm-text {
+  font-size: 32rpx;
+  color: #333;
+  text-align: center;
+  line-height: 1.6;
 }
 .dotPur{
 
@@ -446,6 +465,11 @@
   border-radius: 20rpx;
 }
 
+.copy-content-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
 .copy-content-text {
   display: block;
   font-size: 28rpx;
@@ -458,6 +482,18 @@
   border-radius: 8rpx;
   border: 1rpx solid #e0e8f0;
   min-height: 80rpx;
+}
+
+.copy-expand-btn {
+  margin-top: 10rpx;
+  text-align: right;
+  padding-right: 20rpx;
+}
+
+.copy-expand-text {
+  font-size: 26rpx;
+  color: #187e6e;
+  cursor: pointer;
 }
 
 

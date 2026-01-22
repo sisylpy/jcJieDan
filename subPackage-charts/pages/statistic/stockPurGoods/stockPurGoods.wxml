@@ -78,10 +78,10 @@
                 <view class="flex-column" style="flex: 1;">
                   <view class="flex-row-between">
                     <text class="font-bold">{{pur.nxDgssWeight}}({{goods.nxDgGoodsStandardname}})</text>
-                    <text class="purchase-info-value-amount mr-20">{{pur.nxDpgBuySubtotal}}元</text>
+                    <text class="purchase-info-value-amount mr-20">{{pur.nxDgssSubtotal}}元</text>
                   </view>
                   <view class="flex-row-between mt-5">
-                    <text class="purchase-date">{{pur.nxDpgBuyPrice}}元/{{goods.nxDgGoodsStandardname}}</text>
+                    <text class="purchase-date">{{pur.nxDgssPrice}}元/{{goods.nxDgGoodsStandardname}}</text>
                     <block wx:if="{{pur.purchaseDepartmentUser !== null}}">
                       <text class="purchase-date mr-20">{{pur.purchaseDepartmentUser.gbDuWxNickName}}</text>
                     </block>

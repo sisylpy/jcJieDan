@@ -54,7 +54,7 @@ Page({
               } else {
                 console.log("faileler")
                 wx.navigateTo({
-                  url: '../login/login',
+                  url: '../inviteCode/inviteCode',
                 })
               }
             })

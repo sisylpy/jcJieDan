@@ -18,13 +18,9 @@
   </view>
 
     <view class="flex-column">
-      <!-- <view class="flex-row" style="width: {{windowWidth - 40}}rpx; margin-top: 20rpx">
-        <text class="mr-10" style="width: 220rpx; text-align: right;">注册类型:</text>
-        <view class='what' style="width: {{windowWidth - 280}}rpx;">
-          <input class='input font-md mr-10' type='text' placeholder='选择经营类型' name='typeName' value='{{typeName}}' bindtap='showSelect' disabled="false"></input>
-        </view>
-      </view> -->
 
+    
+     
      
       <view class="flex-row" style="width: {{windowWidth - 40}}rpx; ">
         <text class="mr-10" style="width: 220rpx; text-align: right;">所在位置:</text>
@@ -98,6 +94,7 @@
           <input class='inputHalf middle'  placeholder='业务联系人' value='{{userName}}' bindinput="getUserName" bindconfirm="_canLogin"></input>
         </view>
       </view>
+
     </view>
 
 <!-- 预览已选头像(若有) -->
@@ -124,12 +121,6 @@
       </button>
     </view>
     
-    <!-- 开发工具调试按钮：跳过头像选择 -->
-    <!-- <view wx:if="{{canLogin && environment != 'wxwork'}}" class="flex-row-center mt-20">
-      <button class="debug-btn" bindtap="_registerWithDefaultAvatar" plain='true' style="width: {{windowWidth - 80}}rpx; border-color: #999; color: #666; font-size: 24rpx;">
-        🛠️ 开发工具调试：使用默认头像注册
-      </button>
-    </view> -->
   </view>
 </view>
 
