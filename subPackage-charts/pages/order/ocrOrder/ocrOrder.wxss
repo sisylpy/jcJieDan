@@ -307,9 +307,20 @@
 /* 订单列表展开状态 */
 .order-list-scroll-view {
   transition: height 0.3s ease, padding-top 0.3s ease;
+  background-color: transparent;
+  padding-top: 0;
 }
 
-.order-list-expanded {
-  /* 编辑时订单列表占据更多空间 */
+/* 固定在底部的播放器容器 */
+.fixed-player-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  padding: 20rpx 30rpx;
+  padding-bottom: calc(20rpx + env(safe-area-inset-bottom));
+  background: transparent;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 

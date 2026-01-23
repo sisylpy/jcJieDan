@@ -1,7 +1,7 @@
 <view class="flex-column page-bg" style="height: 100vh; overflow: {{isTTSReading && orderArrIndex >= 0 ? 'visible' : 'hidden'}};">
-  <back-navbar style="height: {{navBarHeight}}rpx;" title="文件识别下单" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="{{depName}}" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
 
-  <view class="flex-column" style="flex: 1; padding: {{navBarHeight + 20}}rpx 20rpx 20rpx 20rpx; overflow: {{isTTSReading && orderArrIndex >= 0 ? 'visible' : 'hidden'}};">
+  <view class="flex-column" style="flex: 1; padding: {{navBarHeight + 20}}rpx 0; overflow: {{isTTSReading && orderArrIndex >= 0 ? 'visible' : 'hidden'}};">
 
     <!-- 步骤1: 上传图片或Excel -->
     <block wx:if="{{currentStep === 'upload'}}">
@@ -29,8 +29,8 @@
     <block wx:if="{{currentStep === 'confirm'}}">
 
 
-      <!-- 朗读模式：上下布局（图片50% + 订单50%） -->
-      <view wx:if="{{isTTSReading}}" class="flex-column reading-mode-container" style="position: relative; flex: 1; min-height: 0; transform: translateY({{orderArrIndex >= 0 ? -((windowHeight / 2 - 200) / 3) : 0}}rpx); transition: transform 0.3s ease;">
+      <!-- 朗读模式/检查模式：上下布局（图片50% + 订单50%） -->
+      <view wx:if="{{isTTSReading || isCheckMode}}" class="flex-column reading-mode-container" style="position: relative; flex: 1; min-height: 0; transform: translateY({{orderArrIndex >= 0 ? -((windowHeight / 2 - 200) / 3) : 0}}rpx); transition: transform 0.3s ease;">
         <!-- 上半部分：图片显示区域 -->
         <view class="image-preview-container" style="border-bottom: 2px solid #ddd; position: relative; height: {{windowHeight / 2 - 200}}rpx; overflow: hidden;">
           <block wx:for="{{imageList}}" wx:key="id" wx:for-index="imgIndex">
@@ -42,33 +42,14 @@
               style="position: absolute; top: 0; left: 0; z-index: 1001; width: 100%; height: 100%; box-sizing: border-box;"
             ></ocrImagePreview>
           </block>
-          
-          <!-- TTS 播放器控制区（定位在图片底部） -->
-          <view style="position: absolute; bottom: 0; left: 0; right: 0; z-index: 1002; background-color: transparent;">
-            <ocrTTSPlayer
-              is-playing="{{isTTSPlaying}}"
-              is-loading="{{isTTSLoading}}"
-              is-paused="{{stoppedIndex >= 0}}"
-              current-text="{{currentReadingText}}"
-              current-index="{{currentTTSIndex}}"
-              total-count="{{ttsQueue.length}}"
-              error="{{ttsError}}"
-              order-count="{{orderArr.length}}"
-              bind:play="readOrderList"
-              bind:pause="pauseReading"
-              bind:continue="continueReading"
-              bind:restart="restartReading"
-              bind:close = "closeReading"
-            ></ocrTTSPlayer>
-          </view>
         </view>
 
         <!-- 下半部分：订单列表（编辑时占据更多空间） -->
-        <scroll-view scroll-y="true" class="order-list-scroll-view {{orderArrIndex >= 0 ? 'order-list-expanded' : ''}}" id="order-list-scroll-view-reading" style="height: {{orderArrIndex >= 0 ? windowHeight - navBarHeight - 200 : windowHeight / 2}}rpx;" scroll-top="{{scrollTop}}" scroll-with-animation="true" enhanced="true" show-scrollbar="false">
+        <scroll-view scroll-y="true" class="order-list-scroll-view {{orderArrIndex >= 0 ? 'order-list-expanded' : ''}}" id="order-list-scroll-view-reading" style="height: {{orderArrIndex >= 0 ? windowHeight - navBarHeight - 200 : windowHeight / 2}}rpx; padding-bottom: 160rpx;" scroll-top="{{scrollTop}}" scroll-with-animation="true" enhanced="true" show-scrollbar="false">
           <ocrOrderList
             list="{{orderArr}}"
             active-index="{{currentTTSIndex}}"
-            is-reading-mode="{{isTTSReading}}"
+            is-reading-mode="{{isTTSReading && !isCheckMode}}"
             is-playing="{{isTTSPlaying}}"
             stopped-index="{{stoppedIndex}}"
             order-arr-index="{{orderArrIndex}}"
@@ -85,6 +66,7 @@
             bind:downloadGoods="onOrderDownloadGoods"
             bind:showOperation="onOrderShowOperation"
             bind:scrollToItem="onScrollToItem"
+            bind:confirmSearch="confirmSearchGoods"
           ></ocrOrderList>
            <view  class="flex-column-center text-secondary font-xs" style="height: 200rpx;">没有订单了</view>
         </scroll-view>
@@ -93,36 +75,27 @@
 
       <!-- 非朗读模式：完整布局（订单占满） -->
       <view wx:else class="flex-column" style="flex: 1; min-height: 0; background-color: #f5f5f5;">
-        <view class="flex-row-between" wx:if="{{orderArr.length > 0}}">
-          <view class=" flex-row mr-40   mainBack_btn" bindtap="reuploadOrders">
+        <view class="flex-row-between p-20" wx:if="{{orderArr.length > 0}}">
+          <view class=" flex-row  mainBack_btn" bindtap="reuploadOrders">
             <image src="/images/add-active.png" class="icon-sm mr-10 ml-10"></image>
             <text class="font-xs pr-10">重新上传</text>
           </view>
-          <view class=" flex-row mr-40  mainBack_btn" bindtap="showCorrectionModal" wx:if="{{currentStep === 'confirm'}}">
+          <view class=" flex-row   mainBack_btn" bindtap="showCorrectionModal" wx:if="{{currentStep === 'confirm'}}">
             <image src="/images/edit-main.png" class="icon-sm mr-10 ml-10"></image>
-            <text class="font-xs pr-10">fAI调整</text>
+            <text class="font-xs pr-10">AI调整</text>
           </view>
+          
 
-          <!-- 非朗读模式下的播放按钮（简化版，只显示播放按钮） -->
-          <ocrTTSPlayer
-            is-playing="{{isTTSPlaying}}"
-            is-loading="{{isTTSLoading}}"
-            is-paused="{{stoppedIndex >= 0}}"
-            current-text="{{currentReadingText}}"
-            current-index="{{currentTTSIndex}}"
-            total-count="{{ttsQueue.length}}"
-            error="{{ttsError}}"
-            order-count="{{orderArr.length}}"
-            bind:play="readOrderList"
-            bind:pause="pauseReading"
-            bind:continue="continueReading"
-            bind:restart="restartReading"
-          ></ocrTTSPlayer>
+          <!-- 非朗读模式下的朗读模式按钮 -->
+          <view class="flex-row mainBack_btn" bindtap="enterReadingMode">
+            <image src="/images/add-active.png" class="icon-sm mr-10 ml-10"></image>
+            <text class="font-xs pr-10">检查</text>
+          </view>
 
         </view>
 
 
-        <scroll-view scroll-y="true" class="order-list-scroll-view" id="order-list-scroll-view-normal" style="height: {{windowHeight - 120 - navBarHeight}}rpx;" scroll-into-view="{{scrollIntoViewId}}" scroll-with-animation="true">
+        <scroll-view scroll-y="true" class="order-list-scroll-view" id="order-list-scroll-view-normal" style="height: {{windowHeight - 120 - navBarHeight}}rpx; padding-bottom: {{(isTTSReading || isCheckMode) ? '160rpx' : '0'}};" scroll-into-view="{{scrollIntoViewId}}" scroll-with-animation="true">
           <ocrOrderList
             list="{{orderArr}}"
             active-index="{{currentTTSIndex}}"
@@ -141,6 +114,7 @@
             bind:saveOrder="onOrderSaveOrder"
             bind:downloadGoods="onOrderDownloadGoods"
             bind:showOperation="onOrderShowOperation"
+            bind:confirmSearch="confirmSearchGoods"
           ></ocrOrderList>
           <view  class="flex-column-center font-xs text-secondary" style="height: 200rpx;">没有数据了！</view>
         </scroll-view>
@@ -160,12 +134,33 @@
 
   </view>
 
+  <!-- 固定在底部的 TTS 播放器（仅在确认订单页面且朗读/检查模式下显示，操作菜单打开时隐藏，因订单状态-2停止时隐藏） -->
+  <block wx:if="{{currentStep === 'confirm' && (isTTSReading || isCheckMode) && !playerHidden && !isStoppedByStatusMinus2}}">
+    <view class="fixed-player-container">
+      <ocrTTSPlayer
+        is-playing="{{isTTSPlaying}}"
+        is-loading="{{isTTSLoading}}"
+        is-paused="{{stoppedIndex >= 0}}"
+        current-text="{{currentReadingText}}"
+        current-index="{{currentTTSIndex}}"
+        total-count="{{ttsQueue.length}}"
+        error="{{ttsError}}"
+        order-count="{{orderArr.length}}"
+        is-reading-mode="{{isCheckMode}}"
+        bind:play="readOrderList"
+        bind:pause="pauseReading"
+        bind:continue="continueReading"
+        bind:restart="restartReading"
+        bind:close="closeReading"
+      ></ocrTTSPlayer>
+    </view>
+  </block>
 
 </view>
 
 <!-- pasteOperation 操作菜单 -->
 <view class='overlay {{showOperationPaste ? "show" : "hide"}}' catchtouchmove='ture' catchtap="hideMask">
-  <view class="nnn bg-white  font-lg">
+  <view class="nnn bg-white  font-lg" >
     <view class="center-content border-bottom">
       <text class="p-30">{{orderItem && orderItem.nxDoGoodsName ? orderItem.nxDoGoodsName : ''}}</text>
     </view>

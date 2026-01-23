@@ -60,7 +60,8 @@ Component({
    * 组件的初始数据
    */
   data: {
-    
+    lastSearchValue: '', // 上次搜索的值，用于避免重复搜索
+    hasConfirmed: false // 是否已按确认键
   },
 
   /**
@@ -179,16 +180,66 @@ Component({
     },
 
     /**
-     * 编辑订单名称
+     * 编辑订单名称（只更新名称，不触发搜索）
      */
     onEditOrderName: function(e) {
       const { index } = e.currentTarget.dataset;
       const value = e.detail.value;
       console.log('[ocrOrderList组件] 编辑订单名称:', { index, value });
+      // 只更新商品名称，不触发搜索
       this.triggerEvent('editName', {
         index: index,
         value: value
       });
+    },
+
+    /**
+     * 确认搜索（键盘确认按钮触发）
+     */
+    onConfirmSearch: function(e) {
+      const { index } = e.currentTarget.dataset;
+      const value = e.detail.value || this.properties.list[index]?.nxDoGoodsName || '';
+      console.log('[ocrOrderList组件] 确认搜索:', { index, value });
+      if (value && value.trim().length > 0) {
+        this.setData({
+          hasConfirmed: true,
+          lastSearchValue: value.trim()
+        });
+        this.triggerEvent('confirmSearch', {
+          index: index,
+          value: value.trim()
+        });
+      }
+    },
+
+    /**
+     * 失焦搜索（输入框失焦时触发，仅在未确认且值有变化时搜索）
+     */
+    onBlurSearch: function(e) {
+      const { index } = e.currentTarget.dataset;
+      const value = e.detail.value || this.properties.list[index]?.nxDoGoodsName || '';
+      const trimmedValue = value.trim();
+      console.log('[ocrOrderList组件] 失焦搜索:', { index, value, hasConfirmed: this.data.hasConfirmed, lastSearchValue: this.data.lastSearchValue });
+      
+      // 如果已经确认过，或者值与上次搜索相同，不重复搜索
+      if (this.data.hasConfirmed && this.data.lastSearchValue === trimmedValue) {
+        console.log('[ocrOrderList组件] 已确认过或值未变化，跳过搜索');
+        this.setData({
+          hasConfirmed: false // 重置确认状态
+        });
+        return;
+      }
+      
+      if (trimmedValue.length > 0) {
+        this.setData({
+          lastSearchValue: trimmedValue,
+          hasConfirmed: false
+        });
+        this.triggerEvent('confirmSearch', {
+          index: index,
+          value: trimmedValue
+        });
+      }
     },
 
     /**
@@ -197,6 +248,10 @@ Component({
     onFocusOrderIndex: function(e) {
       const { index, type } = e.currentTarget.dataset;
       console.log('[ocrOrderList组件] 聚焦订单:', { index, type });
+      // 重置确认状态，允许用户重新搜索
+      this.setData({
+        hasConfirmed: false
+      });
       this.triggerEvent('focus', {
         index: index,
         type: type

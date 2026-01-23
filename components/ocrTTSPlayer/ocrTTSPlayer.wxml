@@ -1,22 +1,63 @@
 <!-- TTS 播放器控制区 -->
 <view class="flex-column" style="background-color: transparent;">
-<block wx:if="{{!isPlaying && !isLoading && !isPaused }}">
-  <button  bindtap="onPlay" class="" style="font-size: 28rpx; border-radius: 40rpx; background-color: white; border: 1px solid green;">▶️ 检查</button>
-</block>
-
-<block wx:else="">
-  <view class="flex-column" style="align-items: center; height: 120rpx; background-color: transparent;">
-    <view class="flex-row" style="flex-shrink: 0; gap: 20rpx; padding: 0 20rpx;">
-      
-      <button wx:if="{{isPlaying || isLoading}}" bindtap="onPause" class="btn btn-warning" style="min-width: 160rpx; height: 64rpx; line-height: 64rpx; font-size: 28rpx; font-weight: 500; padding: 0 20rpx; margin-top: 40rpx;">⏸️ 暂停</button>
-      <button wx:if="{{isPaused && !isPlaying && !isLoading}}" bindtap="onColse" class="btn btn-warning" style="min-width: 160rpx; height: 64rpx; line-height: 64rpx; font-size: 28rpx; font-weight: 500; padding: 0 20rpx; margin-right: 20rpx; margin-top: 30rpx;">⏸️ 关闭</button>
-      <button wx:if="{{isPaused && !isPlaying && !isLoading}}" bindtap="onRestart" class="btn btn-warning" style="min-width: 160rpx; height: 64rpx; line-height: 64rpx; font-size: 28rpx; font-weight: 500; padding: 0 20rpx; margin-right: 20rpx;margin-top: 30rpx;">⏸️ 重读</button>
-      <button wx:if="{{isPaused && !isPlaying && !isLoading}}" bindtap="onContinue" class="btn btn-primary" style="min-width: 160rpx; height: 64rpx; line-height: 64rpx; font-size: 28rpx; font-weight: 500; padding: 0 20rpx;margin-top: 30rpx;">▶️ 继续</button>
+  <!-- 未播放状态：可拖拽的圆形播放按钮 -->
+  <!-- <block wx:if="{{!isPlaying && !isLoading && !isPaused && !isReadingMode && !isHidden}}">
+    <view 
+      class="play-button-container draggable-button"
+      style="left: {{buttonX}}rpx; top: {{buttonY}}rpx;"
+      catchtouchstart="onTouchStart"
+      catchtouchmove="onTouchMove"
+      catchtouchend="onTouchEnd"
+    >
+      <view class="play-button-circle">
+        <image src="/images/laba.png" class="play-icon-img" mode="aspectFit"></image>
+      </view>
     </view>
-    
-    
-  </view>
-</block>
+  </block> -->
+
+  <!-- 播放中/暂停状态：白色药丸形状播放器 -->
+  <!-- <block wx:else=""> -->
+    <view class="player-container">
+      <view class="player-pill">
+        <!-- 左侧按钮组 -->
+        <view class="player-controls-left">
+          <!-- 停止按钮 -->
+          <view wx:if="{{isPlaying || isLoading}}" bindtap="onPause" class="player-control">
+            <view class="control-icon stop-icon">⏸</view>
+            <text class="control-text">停止</text>
+          </view>
+          
+          <!-- 再朗读按钮 -->
+          <view wx:if="{{isPaused && !isPlaying && !isLoading}}" bindtap="onRestart" class="player-control">
+            <view class="control-icon replay-icon">↻</view>
+            <text class="control-text">再朗读</text>
+          </view>
+          
+          <!-- 关闭按钮 -->
+          <view wx:if="{{isPaused && !isPlaying && !isLoading}}" bindtap="onColse" class="player-control">
+            <view class="control-icon close-icon">✕</view>
+            <text class="control-text">关闭</text>
+          </view>
+        </view>
+        
+        <!-- 启动按钮（右侧）- 绿色小喇叭图标（可拖拽隐藏） -->
+        <view 
+          wx:if="{{isReadingMode && !isPlaying && !isLoading && !isPaused && !playButtonHidden}}" 
+          class="player-control play-control-right"
+          catchtouchstart="onPlayButtonTouchStart"
+          catchtouchmove="onPlayButtonTouchMove"
+          catchtouchend="onPlayButtonTouchEnd"
+        >
+          <image src="/images/laba.png" class="play-icon-green" mode="aspectFit" style="width: 48rpx; height: 48rpx;"></image>
+        </view>
+        <view wx:if="{{isPaused && !isPlaying && !isLoading}}" bindtap="onContinue" class="player-control play-control-right" style="margin-right: 20rpx;">
+          <image src="/images/laba.png" class="play-icon-green" mode="aspectFit" style="width: 48rpx; height: 48rpx;"></image>
+          <text class="control-text">继续</text>
+
+        </view>
+      </view>
+    </view>
+  <!-- </block> -->
  
   <view wx:if="{{error}}" style="margin-top: 20rpx; padding: 20rpx; background-color: #fee; border-radius: 8rpx; color: #c00; font-size: 24rpx;">
     <text style="font-weight: bold;">TTS错误:</text> {{error}}

@@ -55,6 +55,8 @@ Page({
     searchStr: '', // 搜索关键词
     // 操作菜单相关
     showOperationPaste: false, // 是否显示操作菜单
+    playerHidden: false, // 播放器是否隐藏（操作菜单打开时隐藏）
+    isStoppedByStatusMinus2: false, // 是否因为订单状态-2而停止
     orderPasteIndex: -1, // 当前操作的订单索引
     orderItem: null, // 当前操作的订单项
     findGoods: false, // 从添加临时商品页面返回后，是否需要更新订单
@@ -101,6 +103,7 @@ Page({
     correctionDefaultText: '', // 修正弹窗默认文本
     // TTS 朗读相关
     isTTSReading: false, // 是否正在朗读（用于控制布局）
+    isCheckMode: false, // 是否在检查模式（显示图片+播放器，但不朗读）
     isTTSPlaying: false, // 是否正在播放（播放锁）
     isTTSLoading: false, // 是否正在加载音频
     ttsQueue: [], // TTS 播放队列（存储文本）
@@ -176,9 +179,7 @@ Page({
     this._loadCache();
     // 加载简化版任务列表
     this._simpleLoadTasks();
-    // 检查简化版任务缓存中是否有当前部门的任务（说明还在请求中）
-    // 如果有任务，会设置 currentStep = 'recognizing'（覆盖缓存中的 currentStep）
-    // 如果没有任务，保持缓存中的 currentStep（如果有订单则是 'confirm'，否则是 'upload'）
+  
     this._checkSimpleTaskForCurrentDep();
     // 尝试执行简化版任务（如果有待执行的任务）
     this._simpleExecuteTasks();
@@ -217,7 +218,8 @@ Page({
           this.setData({
             stoppedIndex: currentTTSIndex,
             stoppedOrderRef: currentOrder,
-            isTTSPlaying: false
+            isTTSPlaying: false,
+            isStoppedByStatusMinus2: true // 标记是因为订单状态-2而停止
           });
           // 延迟一下，确保UI更新完成
           setTimeout(() => {
@@ -818,65 +820,125 @@ Page({
 
   editOrderName: function (e) {
     var index = e.currentTarget.dataset.index;
-    this.setData({
-      goodsName: e.detail.value,
-    })
-    if (e.detail.value.length > 0) {
-      var newName = e.detail.value;
+    var value = e.detail.value;
+    // 只更新商品名称，不触发搜索
+    if (value.length > 0) {
+      var newName = value;
       var dataName = "orderArr[" + index + "].nxDoGoodsName";
       var dataNameOriginal = "orderArr[" + index + "].nxDoGoodsNameOriginal";
-      // 确保 orderArrIndex 保持为当前索引，避免被重置为 -1
       this.setData({
         [dataName]: newName,
         [dataNameOriginal]: newName, // 同时更新原始商品名称
-        orderArrIndex: index, // 保持当前编辑的订单索引
+        goodsName: newName,
       })
-      this.getSearchString(e);
     } else {
       this.setData({
         strArr: [],
         nxArr: [],
         orderArrIndex: -1,
+        goodsName: '',
       })
     }
-    // this.getSearchString()
   },
 
   /**
-   * 根据商品名称搜索商品（输入时触发）
+   * 确认搜索商品（键盘确认按钮或失焦时触发）
    */
+  confirmSearchGoods: function (e) {
+    var index = e.detail.index;
+    var searchValue = e.detail.value;
+    console.log('[ocrOrder] 确认搜索商品:', { index, searchValue });
+    
+    if (!searchValue || searchValue.trim().length === 0) {
+      return;
+    }
+    
+    // 确保商品名称已更新
+    var dataName = "orderArr[" + index + "].nxDoGoodsName";
+    this.setData({
+      [dataName]: searchValue,
+      orderArrIndex: index, // 设置当前编辑的订单索引
+    });
+    
+    // 执行搜索
+    this.getSearchStringByValue(searchValue);
+  },
 
-  getSearchString: function (e) {
-    if (e.detail.value.length > 0) {
-      var data = {
-        disId: this.data.disId,
-        searchStr: e.detail.value,
-        depId: this.data.depId,
-      }
-      this.setData({
-        searchStr: e.detail.value,
-      })
-      load.showLoading("搜索商品中")
-      queryDisGoodsByQuickSearchWithDepId(data).then(res => {
-        load.hideLoading();
-        if (res.result.code == 0) {
-          this.setData({
-            strArr: res.result.data.disArr,
-            nxArr: res.result.data.nxArr,
-          })
-          // 搜索后立即保存到缓存
-          this._saveToStorage();
+  /**
+   * 根据商品名称搜索商品（根据传入的值搜索）
+   */
+  getSearchStringByValue: function (searchValue) {
+    if (!searchValue || searchValue.trim().length === 0) {
+      return;
+    }
+    
+    var data = {
+      disId: this.data.disId,
+      searchStr: searchValue.trim(),
+      depId: this.data.depId,
+    }
+    this.setData({
+      searchStr: searchValue.trim(),
+    })
+    load.showLoading("搜索商品中")
+    queryDisGoodsByQuickSearchWithDepId(data).then(res => {
+      load.hideLoading();
+      if (res.result.code == 0) {
+        const disArr = res.result.data.disArr || [];
+        const nxArr = res.result.data.nxArr || [];
+        const totalCount = disArr.length + nxArr.length;
+        
+        this.setData({
+          strArr: disArr,
+          nxArr: nxArr,
+        })
+        
+        // 搜索后立即保存到缓存
+        this._saveToStorage();
+        
+        // 如果有搜索结果，关闭键盘
+        if (totalCount > 0) {
+          wx.hideKeyboard();
         } else {
+          // 如果没有搜索结果，提示用户并关闭键盘
           wx.showToast({
-            title: res.result.msg,
-            icon: 'none'
-          })
-          this.setData({
-            nxArr: [],
-            strArr: []
-          })
+            title: '未找到相关商品',
+            icon: 'none',
+            duration: 2000
+          });
+          wx.hideKeyboard();
         }
+      } else {
+        wx.showToast({
+          title: res.result.msg || '搜索失败',
+          icon: 'none'
+        })
+        this.setData({
+          nxArr: [],
+          strArr: []
+        })
+        wx.hideKeyboard();
+      }
+    }).catch(err => {
+      load.hideLoading();
+      wx.showToast({
+        title: '搜索失败，请重试',
+        icon: 'none'
       })
+      this.setData({
+        nxArr: [],
+        strArr: []
+      })
+      wx.hideKeyboard();
+    })
+  },
+
+  /**
+   * 根据商品名称搜索商品（输入时触发）- 保留兼容性
+   */
+  getSearchString: function (e) {
+    if (e.detail && e.detail.value && e.detail.value.length > 0) {
+      this.getSearchStringByValue(e.detail.value);
     }
   },
 
@@ -1134,7 +1196,8 @@ Page({
     }
     // 关闭操作菜单
     this.setData({
-      showOperationPaste: false
+      showOperationPaste: false,
+      playerHidden: false // 关闭操作菜单时显示播放器
     });
     // 如果订单有 nxDepartmentOrdersId，说明已经保存到服务器，需要调用接口删除
     if (orderItem.nxDepartmentOrdersId) {
@@ -1235,7 +1298,8 @@ Page({
     }
     // 关闭操作菜单
     this.setData({
-      showOperationPaste: false
+      showOperationPaste: false,
+      playerHidden: false // 关闭操作菜单时显示播放器
     });
     // 参考 paste.js 的 editApply，先获取配送商品信息
     var applyItem = orderItem;
@@ -1635,6 +1699,7 @@ Page({
       orderPasteIndex: index,
       showOperationPaste: true,
       orderItem: this.data.orderArr[index],
+      playerHidden: true, // 显示操作菜单时隐藏播放器
     })
   },
 
@@ -1659,6 +1724,7 @@ Page({
     // 先关闭操作菜单
     this.setData({
       showOperationPaste: false,
+      playerHidden: false // 关闭操作菜单时显示播放器
     });
     // 保存当前订单索引
     this.setData({
@@ -1681,6 +1747,7 @@ Page({
       wx.setStorageSync('ocrOrderTTSState', {
         isTTSReading: true,
         stoppedIndex: currentIndex >= 0 ? currentIndex : -1,
+        isStoppedByStatusMinus2: false,
         currentTTSIndex: this.data.currentTTSIndex,
         ttsSessionId: this.data.ttsSessionId,
         isPaused: isPaused // 标记是否是暂停状态
@@ -1705,7 +1772,8 @@ Page({
 
   hideMask: function () {
     this.setData({
-      showOperationPaste: false
+      showOperationPaste: false,
+      playerHidden: false // 关闭操作菜单时显示播放器
     })
   },
 
@@ -1732,7 +1800,8 @@ Page({
   startReadingFromHere: function () {
     // 关闭操作菜单
     this.setData({
-      showOperationPaste: false
+      showOperationPaste: false,
+      playerHidden: false // 关闭操作菜单时显示播放器
     });
     // 获取当前订单索引
     var index = this.data.orderPasteIndex;
@@ -1755,7 +1824,8 @@ Page({
   addNewPasteOrderBefore: function () {
     // 关闭操作菜单
     this.setData({
-      showOperationPaste: false
+      showOperationPaste: false,
+      playerHidden: false // 关闭操作菜单时显示播放器
     });
     // 获取当前订单索引，用于在返回时插入新订单
     var index = this.data.orderPasteIndex;
@@ -1780,6 +1850,7 @@ Page({
       wx.setStorageSync('ocrOrderTTSState', {
         isTTSReading: true,
         stoppedIndex: currentIndex >= 0 ? currentIndex : -1,
+        isStoppedByStatusMinus2: false,
         currentTTSIndex: this.data.currentTTSIndex,
         ttsSessionId: this.data.ttsSessionId,
         isPaused: isPaused // 标记是否是暂停状态
@@ -1853,25 +1924,18 @@ Page({
           const initialY = (windowHeight * CANVAS_SCALE) / 2 - defaultHeight / 2;
           const imageTransformList = imageList.map(() => ({
             scale: 1,
-            // x: initialX,
-            // y: initialY,
+           
             width: defaultWidth,
             height: defaultHeight
           }));
-          // 先检查是否有识别任务（需要在恢复任务队列之后才能检查）
-          // currentStep 会在 _checkSimpleTaskForCurrentDep 中根据识别任务状态设置
-          // 如果没有识别任务，使用默认值（有订单则是 'confirm'，否则是 'upload'）
-          // 注意：如果后续检查到有任务，会被覆盖为 'recognizing'
           const defaultCurrentStep = orders.length > 0 ? 'confirm' : 'upload';
           this.setData({
             ocrOrderDepIndex: i,
             orderArr: orders,
             saveCount: saveCount,
-            currentStep: defaultCurrentStep, // 设置默认值，如果有任务会被 _checkSimpleTaskForCurrentDep 覆盖
-            // 恢复搜索相关数据
+            currentStep: defaultCurrentStep, // 设置默认值
             strArr: searchData.strArr || [],
             nxArr: searchData.nxArr || [],
-            // orderArrIndex: searchData.orderArrIndex !== undefined ? searchData.orderArrIndex : -1,
             searchStr: searchData.searchStr || "",
             // 恢复来源类型和相关文件信息
             sourceType: searchData.sourceType || null,
@@ -2223,7 +2287,9 @@ Page({
     if (!currentDepId) {
       return;
     }
+    
     const taskList = this.data.simpleTaskList || [];
+   
     // 检查是否有当前部门的任务（使用字符串比较，避免类型不一致）
     const hasCurrentDepTask = taskList.some(task => String(task.depId) === String(currentDepId));
     if (hasCurrentDepTask) {
@@ -4035,12 +4101,14 @@ Page({
     // 设置状态：开始加载（触发布局切换）
     this.setData({
       isTTSReading: true,
+      isCheckMode: false, // 进入朗读模式，关闭检查模式
       isTTSLoading: true,
       isTTSPlaying: false,
       ttsQueue: ttsQueue,
       currentTTSIndex: startIndex - 1, // 设置为 startIndex - 1，因为 playNextInQueue 会 +1
       stoppedIndex: -1,
       stoppedOrderRef: null,
+      isStoppedByStatusMinus2: false,
       ttsSessionId: sessionId,
       ttsError: '',
       currentReadingText: '',
@@ -4101,12 +4169,14 @@ Page({
     // 设置状态：开始加载（触发布局切换）
     this.setData({
       isTTSReading: true,
+      isCheckMode: false, // 进入朗读模式，关闭检查模式
       isTTSLoading: true,
       isTTSPlaying: false,
       ttsQueue: ttsQueue,
       currentTTSIndex: -1,
       stoppedIndex: -1,
       stoppedOrderRef: null,
+      isStoppedByStatusMinus2: false,
       ttsSessionId: sessionId,
       ttsError: '',
       currentReadingText: '',
@@ -4555,10 +4625,14 @@ Page({
     // 记录停止位置
     const stoppedIndex = this.data.currentTTSIndex;
     const orderArr = this.data.orderArr;
+    const stoppedOrder = orderArr[stoppedIndex] || null;
+    // 检查是否因为订单状态-2而停止
+    const isStoppedByStatusMinus2 = stoppedOrder && stoppedOrder.nxDoStatus == -2;
     this.setData({
       isTTSPlaying: false,
       stoppedIndex: stoppedIndex,
-      stoppedOrderRef: orderArr[stoppedIndex] || null
+      stoppedOrderRef: stoppedOrder,
+      isStoppedByStatusMinus2: isStoppedByStatusMinus2
     });
     // 暂停时保持朗读模式布局（不恢复）
     wx.showToast({
@@ -4587,7 +4661,8 @@ Page({
     // 从停止的位置继续播放（重新播放当前订单）
     this.setData({
       stoppedIndex: -1,
-      stoppedOrderRef: null
+      stoppedOrderRef: null,
+      isStoppedByStatusMinus2: false
     });
     // 继续播放
     this.playNextInQueue();
@@ -4615,6 +4690,7 @@ Page({
       stoppedIndex: -1,
       orderArrIndex: -1,
       stoppedOrderRef: null,
+      isStoppedByStatusMinus2: false,
       ttsAudio: null,
       currentReadingText: '',
       ttsError: '',
@@ -4628,14 +4704,25 @@ Page({
   closeReading() {
     this.setData({
       isTTSReading: false,
+      isCheckMode: false, // 同时关闭检查模式
       isTTSPlaying: false,
       isTTSLoading: false,
       currentTTSIndex: -1,
       stoppedIndex: -1,
       stoppedOrderRef: null,
+      isStoppedByStatusMinus2: false,
       ttsAudio: null,
       currentReadingText: '',
       ttsError: ''
+    });
+  },
+
+  /**
+   * 进入检查模式（显示图片+播放器，但不开始朗读）
+   */
+  enterReadingMode() {
+    this.setData({
+      isCheckMode: true
     });
   },
 
