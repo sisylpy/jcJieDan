@@ -752,6 +752,42 @@ function truncateString(str, maxLength) {
 
 // 格式化数量显示（如果有外包装，显示为：整数外包装数量 + 小包装数量）
 // 参数：quantity（数量）, cartonUnit（外包装单位）, itemsPerCarton（每箱数量）, itemUnit（最小单位）
+/** 折合基本单位均价等：保留 1 位小数 */
+function formatAboutPriceOneDecimal(val) {
+  if (val === null || val === undefined || val === '') {
+    return '';
+  }
+  var n = +val;
+  if (isNaN(n)) {
+    return '';
+  }
+  return n.toFixed(1);
+}
+
+/**
+ * 货架商品列表：折合基本单位平均单价（1位小数）。
+ * 优先 nxDgWillPriceTwoAboutPrice；否则 nxDgWillPriceTwo /（nxDgItemsPerCarton 或 nxDgWillPriceTwoWeight）。
+ */
+function shelfGoodsAvgFromCartonAbout(about, priceTwo, itemsPerCarton, weightTwo) {
+  var fromApi = formatAboutPriceOneDecimal(about);
+  if (fromApi !== '') {
+    return fromApi;
+  }
+  var p = +priceTwo;
+  var cnt = +itemsPerCarton;
+  if (!(cnt > 0)) {
+    cnt = +weightTwo;
+  }
+  if (isNaN(p) || !(cnt > 0)) {
+    return '';
+  }
+  var avg = p / cnt;
+  if (isNaN(avg)) {
+    return '';
+  }
+  return avg.toFixed(1);
+}
+
 function formatQuantityDisplay(quantity, cartonUnit, itemsPerCarton, itemUnit) {
   // WXS 中可以使用 console.log 打印日志
   console.log('=== formatQuantityDisplay 函数调用 ===');
@@ -850,6 +886,8 @@ module.exports = {
   getHowManyDays: getHowManyDays,
   formatDateTimeToChinese: formatDateTimeToChinese,
   formatQuantityDisplay: formatQuantityDisplay,
-  truncateString: truncateString
+  truncateString: truncateString,
+  formatAboutPriceOneDecimal: formatAboutPriceOneDecimal,
+  shelfGoodsAvgFromCartonAbout: shelfGoodsAvgFromCartonAbout
 
 }

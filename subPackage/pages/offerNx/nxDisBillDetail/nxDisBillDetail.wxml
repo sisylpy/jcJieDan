@@ -1,0 +1,142 @@
+<wxs src="../../../../utils/fn.wxs" module="tool" />
+
+
+
+<view class="flex clll_back">
+<back-navbar style="height: {{navBarHeight}}rpx;" title="{{name}}" avatar="/images/back-gray.png" button-text="设置"
+  bindnavbuttontap="toBack"></back-navbar>
+
+<view class=" " style="margin-top: {{navBarHeight}}rpx;">
+  <view class="flex-column p-20">
+  
+      <view class="bill-detail-card" wx:if="{{batchItem}}">
+        <view class="bill-detail-main">
+          <image wx:if="{{batchItem.offerNxDistributer.nxDistributerImg}}" src="{{url + batchItem.offerNxDistributer.nxDistributerImg}}" mode="aspectFill" class="bill-detail-avatar"></image>
+          <view wx:else class="bill-detail-avatar bill-detail-avatar-placeholder"></view>
+          <view class="bill-detail-info">
+            <view class="bill-detail-row">
+              <text class="text-secondary mr-10">协作商:</text>
+              <text class="">{{batchItem.offerNxDistributer.nxDistributerShowName}}</text>
+            </view>
+            <view class="bill-detail-row">
+              <text class="text-secondary mr-10">订单来源:</text>
+              <text class="">{{batchItem.orderNxDistributer.nxDistributerShowName}}</text>
+            </view>
+            <view class="bill-detail-tags pb-10">
+              <view class="status-badge status-settled" wx:if="{{batchItem.nxDbdStatus == 0}}">收货确认</view>
+              <view class="status-badge status-pending" wx:elif="{{batchItem.nxDbdStatus == 2}}">收款确认</view>
+              <text class="bill-type-text tag-offer" wx:if="{{batchItem.nxDbdOfferNxDisId == disId}}">销售单</text>
+              <text class="bill-type-text tag-purchase" wx:else="">进货单</text>
+            </view>
+          </view>
+        </view>
+        <view class="flex-row-between border-top pt-10">
+          <view>
+          <text>{{batchItem.nxDbdTime}}</text>
+          </view>
+
+          <view>
+            <text class="">合计:</text>
+          <text class="bill-detail-total">{{batchItem.nxDbdTotal}}元</text>
+          </view>
+        </view>
+      </view>
+
+    <view class="flex flex-row-default p-10 border-bottom  font-lg" wx:for="{{applyArr}}" wx:key="nxDistributerGoodsId"
+      wx:for-index="goodsIndex">
+      <text class="pt-10 mt-10">{{goodsIndex + 1}}.</text>
+      <view class="flex-column p-10" style="width:{{windowWidth - 100}}rpx;  ">
+        <view class="flex-row-between">
+          <view class="flex-row" style="width: {{windowWidth - 140}}rpx; ">
+            <text class="brand"
+              wx:if="{{item.nxDgGoodsBrand !== null && item.nxDgGoodsBrand.length > 0}}">{{item.nxDgGoodsBrand}}</text>
+            <text class="">{{item.nxDgGoodsName}}</text>
+
+            <block wx:if="{{item.nxDgGoodsStandardWeight !== 'null' && item.nxDgGoodsStandardWeight.length > 0}}">
+              <text class=""
+                wx:if="{{item.nxDgGoodsStandardname !== '斤'}}">({{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}})</text>
+            </block>
+            <block wx:else>
+              <text class="" wx:if="{{item.nxDgGoodsStandardname !== '斤'}}">({{item.nxDgGoodsStandardname}})</text>
+            </block>
+          </view>
+        </view>
+
+
+        <view class="flex-cloumn " style=" width: {{windowWidth - 160}}rpx; ">
+          <view class="flex-row-default pb-10" wx:for-item="order" wx:for="{{item.nxDepartmentOrdersEntities}}"
+            wx:for-index="orderIndex" wx:key="nxDepartmentOrdersId">
+
+            <view class="flex-column">
+            
+              <view class="flex flex-row" style="width:{{(windowWidth - 80)}}rpx; ">
+                <view class="half-row">
+                  <text class="text-secondary">订货:</text>
+                  <text>{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+                </view>
+                <view class="half-row">
+                  <text class="text-secondary">供货数量:</text>
+                  <text>{{order.nxDoWeight}}{{item.nxDgGoodsStandardname}}</text>
+                </view>
+              
+              </view>
+              <view class=" flex-row " style="width:{{(windowWidth - 80)}}rpx;;">     
+                <view class="half-row">
+                  <text class="text-secondary">单价:</text>
+                  <text>{{order.nxDoPrice}}元/{{item.nxDgGoodsStandardname}}</text>
+                </view>         
+                <view class="half-row">
+                  <text class="text-secondary">小计:</text>
+                  <text>{{order.nxDoSubtotal}}元</text>
+                </view>
+              </view>
+
+            </view>
+          </view>
+        </view>
+
+      </view>
+    </view>
+
+
+  </view>
+
+ 
+</view>
+
+</view>
+
+<!-- 订货方（进货单）：收货确认 / 申请收款 -->
+<block wx:if="{{batchItem.nxDbdOrderDisId == disId}}">
+  <block wx:if="{{batchItem.nxDbdStatus == 0}}">
+    <view class="bottom-action-bar">
+      <view class="bottom-action-btn bottom-action-btn-primary" bind:tap="confirmBill">
+        <text>{{billStatus == 2 ? '确认并且提交收款' : '确认收货'}}</text>
+      </view>
+      <view class="bottom-action-toggle {{billStatus == 2 ? 'is-paid' : ''}}" bind:tap="changeStatus">
+        <text class="toggle-icon">{{billStatus == 2 ? '✓' : '○'}}</text>
+        <text>已付款</text>
+      </view>
+    </view>
+  </block>
+  <block wx:if="{{batchItem.nxDbdStatus == 1}}">
+    <view class="bottom-action-bar">
+      <view class="bottom-action-btn bottom-action-btn-pay" bind:tap="changeBill" data-status="2">申请收款</view>
+    </view>
+  </block>
+</block>
+
+<!-- 供货方（销售单）：确认收款 -->
+<block wx:else="">
+  <block wx:if="{{batchItem.nxDbdStatus == 2}}">
+    <view class="bottom-action-bar">
+      <view class="bottom-action-btn bottom-action-btn-primary" bind:tap="finishBill">确认收款</view>
+    </view>
+  </block>
+</block>
+
+
+
+
+<saveBillModal wx:if="{{showPopupSave}}" type="{{popupType}}" warnContent="{{warnContent}}"
+  bind:closeSaveBill="closeSaveBill" bind:confirmSaveBill="confirmSaveBill" />

@@ -11,7 +11,7 @@
   <view class=" flex-row-between pl-20 pr-20 border-bottom bg-white">
     <view class="flex-row">
       <view class="p-20" bindtap="toDatePage">
-        <image src="../../../../../images/calender.png" class="icon"></image>
+        <image src="/images/calender.png" class="icon"></image>
       </view>
       <view class="flex-column pt-10">
         <view class="font-yuan">{{hanzi}}</view>
@@ -53,7 +53,7 @@
 
 
   <!--  -->
-    <block wx:if="{{type == 0}}">
+    <block wx:if="{{type == 10}}">
     <block wx:if="{{purUserArr.length > 0}}">
       <view class="flex-column border-bottom  p-20 bg-white" wx:for="{{purUserArr}}" wx:for-index="userIndex" wx:key="nxDistributerUserId">
 
@@ -63,7 +63,7 @@
             <view class="user-details">
               <view class="flex-row">
                 <text class="user-name">{{item.user.nxDiuWxNickName}}</text>
-                <text class="user-self-tag" wx:if="{{item.nxDistributerUserId == userInfo.nxDistributerUserId}}">(你自己)</text>
+                <text class="user-self-tag" wx:if="{{item.user.nxDistributerUserId == userInfo.nxDistributerUserId}}">(你自己)</text>
               </view>
             </view>
             <text class="user-expand-icon">{{item.expanded == true ? '▼' : '▶'}}</text>
@@ -85,10 +85,10 @@
         <view class="flex-column  bg-white" wx:if="{{item.expanded}}">
 
           <!-- 商品详情卡片 -->
-          <view class="flex-column border-bottom p-20" wx:for-item="goods" wx:key="nxDistributerGoodsId" wx:for="{{item.arr}}" id="goods-container-{{index}}">
+          <view class="flex-column border-bottom p-20" wx:for-item="goods" wx:key="nxDistributerGoodsId" wx:for="{{item.arr}}" id="goods-container-{{userIndex}}-{{index}}">
 
             <!-- 商品信息头部 -->
-            <view class="flex-row-between" bind:tap="showList" data-index="{{index}}">
+            <view class="flex-row-between" bind:tap="showList" data-user-index="{{userIndex}}" data-index="{{index}}">
               <view class="flex-row-default mb-20">
                 <image bindtap="showDialogBtn" data-item="{{goods}}" src="{{url + goods.nxDgGoodsFile}}" mode="aspectFill" class="goods-image mr-20" />
                 <view class="flex-column">
@@ -134,7 +134,7 @@
                   <view class="flex-row mr-20">
                     <view class="flex-column">
                       <view class="font-md flex-row">{{tool.transferDateString(pur.nxDpgPurchaseDate)}}</view>
-                      <text class="purchase-type">{{pur.nxDpgPurchaseType == 0 ? '自采' : '订货'}}</text>
+                      <text class="purchase-type">{{pur.nxDpgPurchaseType ==  10 ? '直接入库' : '订货'}}</text>
                     </view>
                   </view>
                   <!-- 中间采购信息 -->
@@ -166,7 +166,7 @@
                     <view class="stock-info-row">
                       <!-- 左侧：货架信息 -->
                       <view class="stock-department-info">
-                        <text class="font-bold">{{stock.nxDistributerGoodsShelfEntity.nxDgssName || '主货架'}}</text>
+                        <text class="font-bold">{{stock.shelfName}} L{{stock.nxDgsgShelfLayer}}-{{stock.nxDgsgShelfLayerSeq}}</text>
                       </view>
 
                       <!-- 右侧：金额信息对比 -->
@@ -176,7 +176,7 @@
                           <view class="column-label">入库</view>
                           <view class="column-content">
                             <text class="amount-text">{{stock.nxDgssSubtotal || 0}}元</text>
-                            <text class="weight-text">{{stock.nxDgssWeight || 0}}{{goods.nxDgGoodsStandardname}}</text>
+                            <text class="weight-text">{{stock.nxDgssWeight}}{{goods.nxDgGoodsStandardname}}</text>
                           </view>
                         </view>
 
@@ -275,10 +275,10 @@
         <view class="flex-column  bg-white" wx:if="{{item.expanded}}">
 
           <!-- 商品详情卡片 -->
-          <view class="flex-column border-bottom p-20" wx:for-item="goods" wx:key="nxDistributerGoodsId" wx:for="{{item.arr}}" id="goods-container-{{index}}">
+          <view class="flex-column border-bottom p-20" wx:for-item="goods" wx:key="nxDistributerGoodsId" wx:for="{{item.arr}}" id="goods-container-{{userIndex}}-{{index}}">
 
             <!-- 商品信息头部 -->
-            <view class="flex-row-between" bind:tap="showList" data-index="{{index}}">
+            <view class="flex-row-between" bind:tap="showList" data-user-index="{{userIndex}}" data-index="{{index}}">
               <view class="flex-row-default mb-20">
                 <image bindtap="showDialogBtn" data-item="{{goods}}" src="{{url + goods.nxDgGoodsFile}}" mode="aspectFill" class="goods-image mr-20" />
                 <view class="flex-column">
@@ -310,8 +310,6 @@
               </view>
             </view>
 
-
-            <!-- 采购详情 -->
             <!-- 采购批次列表 - 默认隐藏，点击showList后显示 -->
             <view class="flex-column purchase-row-container expandable-content {{goods.showPurchaseList ? 'expanded' : ''}}">
 
@@ -324,7 +322,7 @@
                   <view class="flex-row mr-20">
                     <view class="flex-column">
                       <view class="font-md flex-row">{{tool.transferDateString(pur.nxDpgPurchaseDate)}}</view>
-                      <text class="purchase-type">{{pur.nxDpgPurchaseType == 0 ? '自采' : '订货'}}</text>
+                      <text class="purchase-type">{{pur.nxDpgPurchaseType == 10 ? '自采' : '订货'}}</text>
                     </view>
                   </view>
                   <!-- 中间采购信息 -->

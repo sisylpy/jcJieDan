@@ -32,3 +32,10 @@
   border-radius: 10rpx;
   padding: 10rpx 10rpx;
 }
+
+/* 校验失败时，有问题的输入框淡蓝色 */
+.input-wrap-error .input {
+  border: 2rpx solid #0078ff !important;
+  background-color: rgba(0, 120, 255, 0.25) !important;
+}
+

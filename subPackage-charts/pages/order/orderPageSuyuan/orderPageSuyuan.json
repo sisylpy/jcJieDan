@@ -9,7 +9,6 @@
     "stockOutGoods": "/components/stockOutGoods/stockOutGoods",
     "myDismodalCashSingle": "/components/myDismodalCashSingle/myDismodalCashSingle",
     "editDriver": "/components/editDriver/editDriver",
-    "inputOrder": "/components/inputOrder/inputOrder",
     "editPrintStandard": "/components/editPrintStandard/editPrintStandard"
   }
 }

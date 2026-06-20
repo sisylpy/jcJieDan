@@ -98,6 +98,10 @@ Page({
     wx.navigateBack({
       delta: 1,
     })
+  },
+
+  onUnload(){
+    wx.removeStorageSync('goodsSetType');
   }
 
 

@@ -33,8 +33,14 @@
 
             <view class="circle_default mr-10"></view>
 
+            <!-- 协作订单：显示 [协作商名称]fatherDepartmentOrderCode（不含空格） -->
+            <block wx:if="{{order.nxDoCollaborativeNxDisId !== undefined && order.nxDoCollaborativeNxDisId !== -1}}">
+              <view class="flex-row ">
+                <text class="mr-10">[{{order.nxDoCollaborativeDistributerName}}]{{order.fatherDepartmentOrderCode || ''}}</text>
+              </view>
+            </block>
             <!-- 适配简化DTO：使用扁平化字段（数据已在js中统一格式化） -->
-            <block wx:if="{{order.gbDepName}}">
+            <block wx:elif="{{order.gbDepName}}">
               <view class="flex-row ">
                 <text>{{order.gbDepName}}</text>
               </view>

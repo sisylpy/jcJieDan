@@ -1,16 +1,13 @@
 {
+  "__usePrivacyCheck__": true,
   "pages": [
-   
     "pages/order/index/index",
     "pages/doing/index/index",
     "pages/purchase/index/index",
     "pages/stock/index/index",
     "pages/printLogin/printLogin",
     "pages/inviteCode/inviteCode",
-    "pages/login/login",
-
-    "pages/goods/goods"
-  
+    "pages/login/login"
   ],
   
   "subPackages": [{
@@ -22,7 +19,8 @@
     "pages/inviteAdmin/inviteAdmin",
     "pages/downLoadApp/downLoadApp",
     "pages/inviteLogin/inviteLogin",
-    
+    "pages/agreement/userAgreement/userAgreement",
+    "pages/agreement/privacyPolicy/privacyPolicy",
       "pages/customer/index/index",
       "pages/customer/choiceDep/choiceDep",
       "pages/customer/chefAi/chefAi", 
@@ -31,6 +29,7 @@
       "pages/customer/customerPage/customerPage",
       "pages/customer/customerGoods/customerGoods",
       "pages/customer/customerGoodsPrice/customerGoodsPrice",
+      "pages/customer/collNxDisGoodsPrice/collNxDisGoodsPrice",
       "pages/customer/customerGoodsGb/customerGoodsGb",
       "pages/customer/customerUsers/customerUsers",
       "pages/customer/customerPageGb/customerPageGb",
@@ -40,6 +39,7 @@
       "pages/customer/settleAccountGb/settleAccountGb",
       "pages/customer/issuePage/issuePage",
       "pages/customer/issuePageGb/issuePageGb",
+      "pages/customer/issuePageColl/issuePageColl",
       "pages/customer/issuePageGbReturn/issuePageGbReturn",
       "pages/customer/cashPage/cashPage",
       "pages/customer/addCustomer/addCustomer",
@@ -51,18 +51,14 @@
       "pages/customer/inviteGbPage/inviteGbPage",
       "pages/customer/gbAndBusiness/gbAndBusiness",
       "pages/customer/deliveryAddress/deliveryAddress",
-      "pages/customer/customerPdf/customerPdf",
-      "pages/customer/webview/webview",
-      "pages/order/writeWeightGb/writeWeightGb",
-      "pages/order/orderPageGb/orderPageGb",
-      "pages/order/writePriceGb/writePriceGb",
       "pages/shelf/index/index",
+      "pages/shelf/indexStock/indexStock",
       "pages/shelf/indexSuyuan/indexSuyuan",
       "pages/shelf/editShelf/editShelf",
       "pages/shelf/resGoodsListShelf/resGoodsListShelf",
       "pages/shelf/shelfGoodsSort/shelfGoodsSort",
       "pages/shelf/changeShelf/changeShelf",
-      "pages/shelf/disAddGoodsShelf/disAddGoodsShelf",
+      "pages/shelf/changeShelfLayer/changeShelfLayer",
       "pages/shelf/shelfGoodsSearch/shelfGoodsSearch",
       "pages/shelf/voiceAddGoods/voiceAddGoods",
       "pages/shelf/inventory/inventory",
@@ -86,13 +82,13 @@
       "pages/management/payPage/payPage",
       "pages/management/payPageMarket/payPageMarket",
       "pages/management/payDetail/payDetail",
-      "pages/supplier/supplierList/supplierList",
-      "pages/supplier/addSupplier/addSupplier",
-      "pages/supplier/appointSupplierList/appointSupplierList",
-      "pages/supplier/buyerCheckUnPay/buyerCheckUnPay",
-      "pages/supplier/batchDetail/batchDetail",
-      "pages/supplier/goodsIndex/goodsIndex",
-      "pages/supplier/supplierGoods/supplierGoods",
+
+       "pages/offerNx/offerNxDistributerList/offerNxDistributerList",
+       "pages/offerNx/inviteOfferDis/inviteOfferDis",
+       "pages/offerNx/nxDisBills/nxDisBills",
+       "pages/offerNx/nxDisBillDetail/nxDisBillDetail",
+       "pages/offerNx/nxBillBusiness/nxBillBusiness",
+     
 
       "pages/prepare/orderDepList/orderDepList",
       "pages/prepare/depOutOrder/depOutOrder",
@@ -100,6 +96,7 @@
       "pages/prepare/printWeightOrders/printWeightOrders",
       "pages/goods/disGoodsDetail/disGoodsDetail",
       "pages/goods/disGoodsPage/disGoodsPage",
+      "pages/goods/goods/goods",
       "pages/goods/searchGoods/searchGoods",
       "pages/goods/nxGoodsPicture/nxGoodsPicture",
       "pages/goods/linshiGoodsDis/linshiGoodsDis",
@@ -110,6 +107,7 @@
       "pages/goods/ailasGoodsList/ailasGoodsList",
       "pages/goods/disAddGoodsLinshi/disAddGoodsLinshi",
       "pages/goods/disUpdateGoodsLinshi/disUpdateGoodsLinshi",
+      "pages/goods/disRevertGoodsLinshi/disRevertGoodsLinshi",
       "pages/goods/goodsListExchange/goodsListExchange",
       "pages/goods/appointSupplierList/appointSupplierList",
       "pages/goods/updatePriceGoods/updatePriceGoods",
@@ -127,17 +125,14 @@
     "root": "subPackage-charts/",
     "name": "charts",
     "pages": [
+     
       "pages/statistic/index/index",
+      "pages/statistic/indexRetail/indexRetail",
       "pages/statistic/costGoodsByDate/costGoodsByDate",
       "pages/statistic/indexGoods/indexGoods",
       "pages/statistic/purchaseDeatil/purchaseDeatil",
       "pages/statistic/purGoodsByDate/purGoodsByDate",
       "pages/statistic/stockPurGoods/stockPurGoods",
-
-      "pages/supplier/index/index",
-      "pages/supplier/supplierDetail/supplierDetail",
-      "pages/supplier/supplierBills/supplierBills",
-
 
       "pages/sel/date/date",
       "pages/sel/searchDate/searchDate",
@@ -145,14 +140,18 @@
       "pages/stock/index/index",
         "pages/stock/stockList/stockList",
         "pages/stock/stockListOneDay/stockListOneDay",
-      
+        "pages/order/ocrPaste/ocrPaste",
       "pages/order/ocrOrder/ocrOrder",
-      "pages/order/ocrOrderTest/ocrOrderTest",
+      "pages/order/ocrUpload/ocrUpload",
       "pages/order/orderPrint/orderPrint",
       "pages/order/searchOrder/searchOrder",
       "pages/order/writePrice/writePrice",
       "pages/order/writeWeight/writeWeight",
       "pages/order/orderPage/orderPage",
+      "pages/order/orderPageGb/orderPageGb",
+      "pages/order/orderPageRetail/orderPageRetail",
+      "pages/order/orderPageColl/orderPageColl",
+      "pages/order/writePriceColl/writePriceColl",
       "pages/order/orderPageSuyuan/orderPageSuyuan",
       "pages/order/depList/depList",
       "pages/order/paste/paste",
@@ -160,24 +159,30 @@
       "pages/order/pSearchPrinter/pSearchPrinter",
       "pages/order/linshiOrderPage/linshiOrderPage",
       "pages/order/resGoodsList/resGoodsList",
-
+      "pages/order/retailGoodsList/retailGoodsList",
+      "pages/order/resGoodsListTask/resGoodsListTask",
       
       "pages/mangement/costGoodsFenxi/costGoodsFenxi",
       "pages/mangement/purGoodsFenxi/purGoodsFenxi",
       "pages/mangement/goodsFenxiCost/goodsFenxiCost",
       "pages/mangement/goodsFenxiPurchase/goodsFenxiPurchase",
 
-
+      "pages/route/mapNxDep/mapNxDep",
+      "pages/route/driver/driver",
+      "pages/route/deliveryRoute/deliveryRoute"
+    ]
+    }, {
+    "root": "subPackage-supplier/",
+    "name": "supplier",
+    "pages": [
       "pages/trans/fromOrderPageGb/fromOrderPageGb",
       "pages/trans/login/login",
       "pages/trans/supplierBills/supplierBills",
       "pages/trans/myPurchaseDetail/myPurchaseDetail",
       "pages/trans/settlePageGb/settlePageGb",
-      "pages/route/mapNxDep/mapNxDep",
-      "pages/route/driver/driver",
-      "pages/route/deliveryRoute/deliveryRoute"
-
-
+      "pages/supplier/index/index",
+      "pages/supplier/supplierDetail/supplierDetail",
+      "pages/supplier/supplierBills/supplierBills"
     ]
     }],
   "tabBar": {

@@ -6,42 +6,67 @@
 
   <view class="flex-column p-20" style="margin-top: {{navBarHeight}}rpx;">
 
-    <view class="flex-row font-lg border-bottom p-20">
-      <text class="mr-20">商品:</text>
-      <!-- 添加模式显示 disGoods，更新模式显示 shelfGoods.nxDistributerGoodsEntity -->
-      <text wx:if="{{isAddMode}}">{{disGoods.nxDgGoodsName}}</text>
+    <view class="flex-row-default font-lg border-bottom p-20">
+      <text class="mr-20 text-secondary">商品:</text>
+      <view class="flex-column">
+       <view>
+        <text wx:if="{{isAddMode}}">{{disGoods.nxDgGoodsName}}</text>
       <text wx:else>{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
+       </view>
+       <view class=" flex-row font-xs text-secondary" wx:if="{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname || (shelfGoods.nxDistributerGoodsEntity.nxDgItemsPerCarton !== null && shelfGoods.nxDistributerGoodsEntity.nxDgItemsPerCarton !== '')}}">
+                  <text class="mr-20" wx:if="{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}}">{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0 ? shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardWeight + '/' : ''}}{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+                  <text class="shelf-list-spec-gap" wx:if="{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname && shelfGoods.nxDistributerGoodsEntity.nxDgItemsPerCarton !== null && shelfGoods.nxDistributerGoodsEntity.nxDgItemsPerCarton !== ''}}"> </text>
+                  <view class="flex-row shelf-card-spec shelf-list-carton-inline" wx:if="{{shelfGoods.nxDistributerGoodsEntity.nxDgItemsPerCarton !== null && shelfGoods.nxDistributerGoodsEntity.nxDgItemsPerCarton !== ''}}">
+                    <text class="shelf-list-carton-main">{{shelfGoods.nxDistributerGoodsEntity.nxDgItemsPerCarton}}{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+                    <text class="shelf-list-carton-unit">/{{shelfGoods.nxDistributerGoodsEntity.nxDgCartonUnit}}</text>
+                  </view>
+                </view>
+      </view>
+    
+     
+    </view>
+
+    <view wx:if="{{selectedShelfId && anchorPicked}}" class="font-sm text-secondary p-20 bg-white border-bottom">
+      <view wx:if="{{selectedShelfName}}">货架：{{selectedShelfName}}</view>
+      <view class="mt-10">位置：L{{anchorNxDgsgSort}} - {{anchorNxDgsgShelfLayer}}</view>
     </view>
 
     <view class="flex-column">
-      <view class="p-20">货架:</view>
+      <view class="p-20">货架（点击进入该货架选参照商品）:</view>
        <scroll-view scroll-y="true" style="height: {{windowHeight - 500}}rpx; ">
-        <radio-group bindchange="shelfChange">
-        <label class="radio  bg-white p-20 flex-row-between font-lg  border-bottom {{shelfArr.length -1 == index ? 'is-last' :''}}" wx:for="{{shelfArr}}" wx:for-item="item">
-           
-          <view class="flex-row">
-          <text class="mr-10 text-secondary">{{index + 1}}.</text>
-          {{item.nxDistributerGoodsShelfName}}</view>
-          <!-- 添加模式：检查是否等于 selectedShelfId（且不为null）；更新模式：检查是否等于 shelf.nxDistributerGoodsShelfId -->
-          <checkbox value="{{index}}" checked="{{isAddMode ? (selectedShelfId != null && item.nxDistributerGoodsShelfId == selectedShelfId) : (shelf && item.nxDistributerGoodsShelfId == shelf.nxDistributerGoodsShelfId)}}" />
-        </label>
-      </radio-group>
-      
+        <view
+          class="radio bg-white p-20 flex-row-between font-lg border-bottom {{shelfArr.length -1 == index ? 'is-last' :''}}"
+          wx:for="{{shelfArr}}"
+          wx:for-item="item"
+          wx:key="nxDistributerGoodsShelfId"
+          bindtap="openShelfLayer"
+          data-id="{{item.nxDistributerGoodsShelfId}}"
+          data-name="{{item.nxDistributerGoodsShelfName}}"
+          hover-class="hover"
+        >
+          <view class="flex-row flex-1">
+            <text class="mr-10 text-secondary">{{index + 1}}.</text>
+            <text class="content">{{item.nxDistributerGoodsShelfName}}</text>
+          </view>
+          <text class="text-secondary font-sm" wx:if="{{selectedShelfId == item.nxDistributerGoodsShelfId}}">已选</text>
+          <text class="text-secondary font-sm" wx:else>选此货架 ›</text>
+        </view>
+
       <view style="height: 200rpx; " class="flex-column-center font-xs text-secondary">没有数据了！</view>
        </scroll-view>
-   
 
     </view>
-
-
 
   </view>
 
 
 
 
-<view class=" bottom_view" >
-   <view class=" p-20 center-content big_button {{canSave ? 'is-active' : ''}}"  bind:tap="{{canSave ? 'save' : ''}}">{{isAddMode ? '添加到货架' : '保存修改'}}</view>
- </view>
+<view class="bottom_view change-shelf-bottom">
+  <text class="change-shelf-save-hint" wx:if="{{!canSave}}">请上方点击货架进入列表，选好参照商品后再保存</text>
+  <view class="p-20 center-content big_button {{canSave ? 'is-active change-shelf-btn-ready' : 'change-shelf-btn-pending'}}" bindtap="onSaveTap">
+    {{isAddMode ? '添加到货架' : '保存修改'}}
+  </view>
+</view>
 
 </view>

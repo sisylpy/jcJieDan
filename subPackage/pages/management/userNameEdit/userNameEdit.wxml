@@ -9,7 +9,7 @@
     <view class="flex-row p-20 border-bottom" bind:tap="chooseLocation">
       <text class="mr-10 text-secondary">用户名:</text>
       <view class="flex-row font-sl">
-        <text>ding{{disInfo.nxDistributerLan}}</text>
+        <text>{{disInfo.nxDistributerLan}}</text>
       </view>
 
     </view>

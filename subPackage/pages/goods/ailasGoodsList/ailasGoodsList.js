@@ -8,10 +8,9 @@ import {
   disChangeLinshiToSub,
   disSaveLinshiToNxGoods,
   queryLinshiGoodsAndNxGoodsByQuickSearch,
-  helpSaveLinshi,
+
   delNxDisGoods,
   queryDisShelfGoods,
-  deleteShelfGoods
 }
 
 from '../../../../lib/apiDistributer'
@@ -19,8 +18,9 @@ from '../../../../lib/apiDistributer'
 
 import { 
   downDisGoods,
+  downDisGoodsAndSaveLinshiGoods
 
-}from '../../../../lib/apiibook'
+}from '../../../lib/apiibook'
 
 
 let itemWidth = 0;
@@ -611,27 +611,50 @@ Page({
     this.setData({
       item: e.currentTarget.dataset.item,
     })
+    // var dg = {
+    //   nxDgDistributerId: this.data.disId,
+    //   nxDgNxGoodsId: this.data.item.nxGoodsId,
+    //   nxDgGoodsName: this.data.item.nxGoodsName,
+    //   nxDgNxFatherId: this.data.fatherId,
+    //   nxDgNxFatherImg: this.data.fatherImg,
+    //   nxDgNxFatherName: this.data.fatherName,
+    //   nxDgGoodsDetail: this.data.item.nxGoodsDetail,
+    //   nxDgGoodsPlace: this.data.item.nxGoodsPlace,
+    //   nxDgGoodsBrand: this.data.item.nxGoodsBrand,
+    //   nxDgGoodsStandardname: this.data.item.nxGoodsStandardname,
+    //   nxDgGoodsStandardWeight: this.data.item.nxGoodsStandardWeight,
+    //   nxDgGoodsPinyin: this.data.item.nxGoodsPinyin,
+    //   nxDgGoodsPy: this.data.item.nxGoodsPy,
+    //   nxDgPullOff: 0,
+    //   nxDgGoodsStatus: 0,
+    //   nxDgNxGoodsFatherColor: this.data.color,
+    //   nxStandardEntities: this.data.item.nxGoodsStandardEntities,
+    //   nxAliasEntities: this.data.item.nxAliasEntities,
+    //   nxDgPurchaseAuto: -1,
+      
+    // };
+     var disGoodsName = e.currentTarget.dataset.item.nxGoodsName;
+     var linshiName = this.data.linshiGoods.nxDgGoodsName;
+
+     if(disGoodsName == linshiName){
+      console.log("disGoodsName",disGoodsName , "linshiNamelinshiName",linshiName)
+        this._downLoadAndSaveLinshi();
+     }else{
+        this._onlyDownLoadGoods();
+     }
+   
+      
+  },
+
+
+  _onlyDownLoadGoods(){
     var dg = {
       nxDgDistributerId: this.data.disId,
       nxDgNxGoodsId: this.data.item.nxGoodsId,
-      nxDgGoodsName: this.data.item.nxGoodsName,
-      nxDgNxFatherId: this.data.fatherId,
-      nxDgNxFatherImg: this.data.fatherImg,
-      nxDgNxFatherName: this.data.fatherName,
-      nxDgGoodsDetail: this.data.item.nxGoodsDetail,
-      nxDgGoodsPlace: this.data.item.nxGoodsPlace,
-      nxDgGoodsBrand: this.data.item.nxGoodsBrand,
-      nxDgGoodsStandardname: this.data.item.nxGoodsStandardname,
-      nxDgGoodsStandardWeight: this.data.item.nxGoodsStandardWeight,
-      nxDgGoodsPinyin: this.data.item.nxGoodsPinyin,
-      nxDgGoodsPy: this.data.item.nxGoodsPy,
-      nxDgPullOff: 0,
-      nxDgGoodsStatus: 0,
-      nxDgNxGoodsFatherColor: this.data.color,
-      nxStandardEntities: this.data.item.nxGoodsStandardEntities,
-      nxAliasEntities: this.data.item.nxAliasEntities,
-      nxDgPurchaseAuto: 1,
+      gbDisGoodsId: this.data.linshiId,
+     
     };
+
 
     load.showLoading("保存商品");
     downDisGoods(dg)
@@ -642,7 +665,7 @@ Page({
           
           // 从其他页面跳转过来，保持原有逻辑
           var pages = getCurrentPages();
-        var prevPage = pages[pages.length - 3]; //上一个页面
+        var prevPage = pages[pages.length - 2]; //上一个页面
         //直接调用上一个页面的setData()方法，把数据存到上一个页面中去
           if (prevPage && prevPage.setData) {
         prevPage.setData({
@@ -659,14 +682,45 @@ Page({
           });
         }
       })
-      .catch(err => {
-        load.hideLoading();
-        console.error('downLoadGoods error:', err);
-        wx.showToast({
-          title: '保存失败，请重试',
-          icon: 'none'
-        });
-      });
+  },
+
+
+  _downLoadAndSaveLinshi(){
+    var dg = {
+      nxDgDistributerId: this.data.disId,
+      nxDgNxGoodsId: this.data.item.nxGoodsId,
+      gbDisGoodsId: this.data.linshiId,
+     
+    };
+
+
+    load.showLoading("保存商品");
+    downDisGoodsAndSaveLinshiGoods(dg)
+      .then(res => {
+        if (res.result.code == 0) {
+          load.hideLoading();
+          // this.searchGoodsWithStr();
+          
+          // 从其他页面跳转过来，保持原有逻辑
+          var pages = getCurrentPages();
+        var prevPage = pages[pages.length - 2]; //上一个页面
+        //直接调用上一个页面的setData()方法，把数据存到上一个页面中去
+          if (prevPage && prevPage.setData) {
+        prevPage.setData({
+          update: true,
+          isFirstLoad: true
+            });
+          }
+          wx.navigateBack();
+       
+        } else {
+          load.hideLoading();
+          wx.showToast({
+            title: res.result.msg,
+            icon: 'none'
+          });
+        }
+      })
   },
 
 

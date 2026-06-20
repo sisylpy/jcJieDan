@@ -11,7 +11,8 @@
   padding: 0 20rpx;
   height: 100%;
   box-sizing: border-box;
-  margin-top: 180rpx;
+  /* margin-top 在 wxml 用 navBarHeight 动态设置，避免被自定义导航遮挡或留出过大空白 */
+  margin-top: 0;
 }
 
 
@@ -48,6 +49,11 @@
 .double_num{
   text-align: center;
   box-sizing:border-box;
+}
+
+/* 数字键盘按下态（hover-class="hoverKey"） */
+.hoverKey {
+  background-color: rgba(24, 126, 110, 0.22) !important;
 }
 
 .weightInput{
@@ -124,4 +130,291 @@
   height: 980rpx;
 
   
+}
+
+/* 多部门：与 writePrice 统一（子部门头 + 卡片 + 底部行布局） */
+.wp-multi-dep-section {
+  margin-bottom: 28rpx;
+  border-radius: 20rpx;
+  overflow: hidden;
+  background: #f4f6f5;
+  border: 1rpx solid rgba(24, 126, 110, 0.14);
+  box-shadow: 0 6rpx 24rpx rgba(0, 0, 0, 0.06);
+}
+
+.wp-multi-dep-header {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  background: linear-gradient(180deg, #ffffff 0%, #eef5f3 100%);
+}
+
+.wp-multi-dep-header-accent {
+  width: 10rpx;
+  flex-shrink: 0;
+  background: #187e6e;
+}
+
+.wp-multi-dep-header-body {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 22rpx 24rpx 22rpx 20rpx;
+  gap: 14rpx 18rpx;
+  border-bottom: 1rpx solid rgba(24, 126, 110, 0.1);
+}
+
+.wp-multi-dep-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1c2624;
+  flex: 1;
+  min-width: 200rpx;
+  line-height: 1.35;
+}
+
+.wp-multi-dep-meta {
+  font-size: 24rpx;
+  color: #7a8a86;
+  margin-left: auto;
+}
+
+.wp-multi-orders {
+  padding: 20rpx 18rpx 22rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.wp-multi-order-card {
+  background: #fff;
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2rpx 14rpx rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.wp-multi-order-title-row {
+  align-items: flex-start;
+  margin-bottom: 8rpx;
+}
+
+.wp-multi-weight-title-row {
+  align-items: flex-start;
+}
+
+.wp-multi-select-hit {
+  flex-shrink: 0;
+  padding: 12rpx 12rpx 12rpx 0;
+  margin-top: 2rpx;
+}
+
+.wp-multi-serial {
+  flex-shrink: 0;
+  min-width: 44rpx;
+  height: 44rpx;
+  line-height: 44rpx;
+  text-align: center;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #fff;
+  background: #187e6e;
+  border-radius: 12rpx;
+  margin-right: 16rpx;
+  margin-top: 4rpx;
+}
+
+.wp-multi-bottom-block {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.wp-multi-bottom-row {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.wp-multi-bottom-row-main {
+  align-items: center;
+}
+
+.wp-multi-row-spacer {
+  flex-shrink: 0;
+  width: 32rpx;
+  min-width: 32rpx;
+}
+
+.wp-multi-qty-with-input {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.wp-multi-qty-row,
+.wp-multi-remark-row {
+  box-sizing: border-box;
+}
+
+.wp-multi-remark-row {
+  flex: 1;
+  min-width: 0;
+}
+
+.wp-multi-remark-line {
+  margin-top: 8rpx;
+  align-items: flex-start;
+}
+
+.wp-multi-bottom-right {
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.wp-multi-weight-input {
+  width: 220rpx !important;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  margin: 0 0 0 12rpx !important;
+}
+
+.wp-multi-weight-std-row {
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.wp-multi-print-std {
+  line-height: 60rpx;
+  font-size: 28rpx;
+  margin-left: 8rpx;
+  color: #333;
+  flex-shrink: 0;
+}
+
+/* ========== 出库页视觉体系：琥珀/橙色主调，与「写单价」页青色区分 ========== */
+.ww-outbound-page {
+  background: #fdf8f3;
+}
+
+.ww-mode-strip {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14rpx;
+  padding: 18rpx 24rpx;
+  background: linear-gradient(90deg, #fff7ed 0%, #ffedd5 55%, #fffbeb 100%);
+  border-bottom: 1rpx solid rgba(234, 88, 12, 0.22);
+  box-sizing: border-box;
+}
+
+.ww-mode-strip-icon {
+  flex-shrink: 0;
+  font-size: 22rpx;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+  padding: 8rpx 20rpx;
+  border-radius: 999rpx;
+  letter-spacing: 1rpx;
+}
+
+.ww-mode-strip-text {
+  font-size: 26rpx;
+  color: #9a3412;
+  line-height: 1.4;
+}
+
+.ww-single-order-card {
+  margin: 16rpx 0;
+  padding: 20rpx 18rpx;
+  background: #fff;
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(234, 88, 12, 0.14);
+  box-shadow: 0 4rpx 18rpx rgba(194, 65, 12, 0.06);
+  border-left: 8rpx solid #ea580c;
+  box-sizing: border-box;
+}
+
+.ww-outbound-input-wrap {
+  margin-top: 12rpx;
+  align-items: center;
+}
+
+.ww-weight-input {
+  color: #9a3412 !important;
+  border-color: rgba(234, 88, 12, 0.45) !important;
+  background: #fffdfb;
+}
+
+.ww-weight-input.is-active {
+  border: 2rpx solid #ea580c !important;
+  box-shadow: 0 0 0 4rpx rgba(234, 88, 12, 0.12);
+}
+
+.ww-outbound-page .analog_cursor {
+  background: #ea580c;
+}
+
+.ww-outbound-dep-section {
+  background: #fff7ed;
+  border-color: rgba(234, 88, 12, 0.2);
+  box-shadow: 0 8rpx 28rpx rgba(194, 65, 12, 0.08);
+}
+
+.ww-outbound-dep-header {
+  background: linear-gradient(180deg, #ffffff 0%, #ffedd5 100%);
+}
+
+.ww-outbound-dep-accent {
+  background: linear-gradient(180deg, #f97316 0%, #c2410c 100%);
+  width: 12rpx !important;
+}
+
+.ww-outbound-order-card {
+  border: 1rpx solid rgba(234, 88, 12, 0.12);
+}
+
+.ww-outbound-serial {
+  background: linear-gradient(135deg, #f97316 0%, #c2410c 100%) !important;
+  box-shadow: 0 4rpx 10rpx rgba(194, 65, 12, 0.25);
+}
+
+.ww-batch-outbound-wrap {
+  padding-top: 8rpx;
+}
+
+.ww-batch-outbound {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #fff;
+  letter-spacing: 2rpx;
+}
+
+.ww-batch-outbound--on {
+  background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+  box-shadow: 0 8rpx 24rpx rgba(194, 65, 12, 0.35);
+}
+
+.ww-batch-outbound--off {
+  background: #d6d3d1 !important;
+  color: #787c7b !important;
+  box-shadow: none;
+}
+
+.ww-keyboard-outbound.liziBack {
+  background: linear-gradient(180deg, #fff7ed 0%, #ffedd5 100%) !important;
+  border-top: 1rpx solid rgba(234, 88, 12, 0.25);
+}
+
+.ww-keyboard-outbound .hoverKey {
+  background-color: rgba(234, 88, 12, 0.2) !important;
+}
+
+.ww-keyboard-outbound .double_num {
+  color: #9a3412;
+  font-weight: 500;
 }

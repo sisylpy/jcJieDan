@@ -2674,7 +2674,12 @@ Page({
     const {
       stockId,
       restWeight,
-      sellingPrice
+      sellingPrice,
+      sellingPriceCarton,
+      nxDgssProduceDate,
+      nxDgssShelfLife,
+      nxDgssShelfLifeUnit,
+      nxDgssExpiryDate
     } = e.detail || {}
     if (!stockId) {
       console.warn('confirmStockDetail 缺少 stockId', e)
@@ -2703,6 +2708,11 @@ Page({
       stockId,
       restWeight,
       sellingPrice,
+      sellingPriceCarton,
+      nxDgssProduceDate,
+      nxDgssShelfLife,
+      nxDgssShelfLifeUnit,
+      nxDgssExpiryDate,
       disId: this.data.disId,
       userId: this.data.userId
     }).then(res => {
@@ -2728,13 +2738,21 @@ Page({
               stock.nxDistributerGoodsShelfStockId === stockId
             );
             if (stockIndex !== -1) {
-              // 更新该批次的信息
               const updatedStockList = [...stockList];
-              updatedStockList[stockIndex] = {
-                ...updatedStockList[stockIndex],
+              const prev = updatedStockList[stockIndex];
+              const merged = {
+                ...prev,
                 nxDgssRestWeight: restWeight,
-                nxDgssSellingPrice: sellingPrice
+                nxDgssSellingPrice: sellingPrice,
+                nxDgssProduceDate: nxDgssProduceDate,
+                nxDgssShelfLife: nxDgssShelfLife,
+                nxDgssShelfLifeUnit: nxDgssShelfLifeUnit,
+                nxDgssExpiryDate: nxDgssExpiryDate
               };
+              if (sellingPriceCarton != null && sellingPriceCarton !== '') {
+                merged.nxDgssSellingPriceCarton = sellingPriceCarton;
+              }
+              updatedStockList[stockIndex] = merged;
               this.updateStockInList(goodsId, shelfGoodsId, updatedStockList, null, isUnshelf);
             }
           }

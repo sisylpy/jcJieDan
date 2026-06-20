@@ -26,7 +26,6 @@ import {
 
 Page({
 
-
   onShow() {
 
     let windowInfo = wx.getWindowInfo();
@@ -37,11 +36,8 @@ Page({
       statusBarHeight: globalData.statusBarHeight * globalData.rpxR,
     });
 
-
-
     this._initData();
 
-   
   },
 
   /**

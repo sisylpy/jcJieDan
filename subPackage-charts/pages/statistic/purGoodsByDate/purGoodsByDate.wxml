@@ -146,7 +146,7 @@
                   <view class="stock-info-row">
                     <!-- 左侧：货架信息 -->
                     <view class="stock-department-info">
-                      <text class="font-bold">{{stock.shelfName}}</text>
+                      <text class="font-bold">{{stock.shelfName}} L{{stock.nxDgsgShelfLayer}}-{{stock.nxDgsgShelfLayerSeq}}</text>
                     </view>
 
                     <!-- 右侧：金额信息对比 -->

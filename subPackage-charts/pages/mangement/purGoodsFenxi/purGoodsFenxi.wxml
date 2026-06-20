@@ -32,8 +32,6 @@
 
   <view class="flex-column p-20" wx:if="{{mapEveryDay !== null}}">
 
-   
-
     <view class="flex-column bg-white radius-10 border p-20 mt-30">
       <view class="flex-column p-20" style="height: 400rpx;">
         <view class="flex-row-between">

@@ -2,7 +2,9 @@
 
   <back-navbar style="height: {{navBarHeight}}rpx;" title="{{depName}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
-  <view class="flex-column p-10" style="position: relative; overflow: visible;">
+  <view class="flex-column" >
+   
+      
     <view class="flex-column p-20" wx:if="{{orderArr.length == 0}}">
       <view class="flex-row p-10">
         <text>录音时长：{{duration}}秒</text>
@@ -10,13 +12,16 @@
       </view>
       <view class="flex-row">
 
-        <textarea class="mr-20 p-20 sentence {{sentence !== null ? 'is-active' : ''}}" value="{{sentence}}" style="width: {{windowWidth - 220}}rpx; height: {{orderArr.length == 0 ? windowHeight  - navBarHeight -  140 : windowHeight  - navBarHeight - 300}}rpx; font-size: 42rpx; margin-right: 20rpx;" bindinput="onInput" maxlength="-1" />
+        <view class="flex-column" style="flex: 1;">
+          <textarea class="mr-20 p-20 sentence {{sentence !== null ? 'is-active' : ''}}" value="{{sentence}}" style="width: {{windowWidth - 220}}rpx; height: {{windowHeight - navBarHeight - 140}}rpx; font-size: 42rpx; margin-right: 20rpx;" bindinput="onInput" maxlength="-1" />
+        </view>
 
         <view class="flex-column center-content flex-1 ">
 
           <view bindtap="{{isRecording ? 'stopRecord' : 'startRecord'}}" class="third_btn  mb-20 {{isRecording ? 'recording' : ''}}" hover-class="thirdHover" style="text-align: center; font-size: 32rpx; margin-bottom: 40rpx;"> {{isRecording ? '停止录音' : '开始录音'}}</view>
+        
+          <view bindtap="formatContent" class="third_btn mb-20" hover-class="{{sentence == null ? 'thirdHover' : ''}}">预览</view>
           <view bindtap="aiRecogniseFirst" class="third_btn mt-10 mb-20">AI识别</view>
-
           <view class="" style="border: 1px solid #c9f1eb; width: 100%;height: 1rpx; margin-bottom: 40rpx;"></view>
 
           <view bindtap="clearSentence" class="third_btn mt-10">清除</view>
@@ -33,19 +38,17 @@
           <view class="flex-row bg-gray radius-10 p-10" bindtap="againPaste">
             <text>重新粘贴</text>
           </view>
-          <!-- <view class="flex-row bg-success radius-10 p-10" bindtap="againAi">
-            <text>再次AI识别</text>
-          </view> -->
+       
 
           <text bindtap="pasteSearchGoods" class='mainBack_new_btn mr-20'>保存订单</text>
         </view>
       </block>
       
       <!-- 状态2：saveCount != null 时，已保存订单状态，不显示保存按钮 -->
-
     </view>
 
-    <scroll-view scroll-y="true" style="height: {{windowHeight - navBarHeight - (saveCount == null ? 120 : 40)}}rpx; overflow: visible;" wx:if="{{orderArr.length > 0}}" class="table">
+    <scroll-view scroll-y="true" scroll-into-view="{{scrollIntoViewId}}" scroll-with-animation="true"
+      style="height: {{windowHeight - navBarHeight - (saveCount == null ? 120 : 40)}}rpx; width: {{windowWidth}}rpx;  overflow: visible;" wx:if="{{orderArr.length > 0}}" class="table">
 
       <!-- 状态1：saveCount == null 时显示草稿编辑界面 -->
       <block wx:if="{{saveCount == null}}">
@@ -55,23 +58,27 @@
           <text class="" style="width: {{windowWidth * 3 / 20}}rpx;">数量</text>
           <text class="" style="width: {{windowWidth * 3 / 20}}rpx; ">规格</text>
         </view>
-        <view class="p-20  flex-row border-bottom" wx:for="{{orderArr}}" wx:for-index="orderIndex" wx:key="orderIndex">
+        <view id="paste-order-item-{{orderIndex}}" class="p-20 flex-row border-bottom" wx:for="{{orderArr}}" wx:for-index="orderIndex" wx:key="orderIndex">
           <view class="flex-column">
             <view class="flex-row-default">
               <view class="flex-row font-bold" style="width: {{windowWidth * 11 / 20}}rpx; ">
                 <text class="mr-10 text-secondary">{{orderIndex + 1}}.</text>
                 <!-- name -->
-                <view class="flex-column">
+                <view class="flex-column {{invalidOrderIndex == orderIndex && invalidOrderField == 'name' ? 'input-wrap-error' : ''}}">
                   <input class="input" style="width: {{windowWidth / 2 - 80}}rpx; " type="text" bindinput="editOrder" data-type="name" data-index="{{orderIndex}}" value="{{item.nxDoGoodsName}}" />
                 </view>
               </view>
               <!-- ../name -->
 
               <!-- quantity -->
-              <input class="input  p-10 mr-10" type="number" bindinput="editOrder" data-type="quantity" data-index="{{orderIndex}}" value="{{item.nxDoQuantity}}" style="width: {{windowWidth / 7 - 20}}rpx; " />
+              <view class="{{invalidOrderIndex == orderIndex && invalidOrderField == 'quantity' ? 'input-wrap-error' : ''}}">
+                <input class="input p-10 mr-10" type="number" bindinput="editOrder" data-type="quantity" data-index="{{orderIndex}}" value="{{item.nxDoQuantity}}" style="width: {{windowWidth / 7 - 20}}rpx; " />
+              </view>
               <!-- ../quantity -->
               <!-- standard -->
-              <input class="input p-10 mr-10" type="text" bindinput="editOrder" data-type="standard" data-index="{{orderIndex}}" value="{{item.nxDoStandard}}" style="width: {{windowWidth / 7}}rpx;" />
+              <view class="{{invalidOrderIndex == orderIndex && invalidOrderField == 'standard' ? 'input-wrap-error' : ''}}">
+                <input class="input p-10 mr-10" type="text" bindinput="editOrder" data-type="standard" data-index="{{orderIndex}}" value="{{item.nxDoStandard}}" style="width: {{windowWidth / 7}}rpx;" />
+              </view>
 
               <!-- ../standard -->
 
@@ -111,12 +118,12 @@
 
       <view class="flex-column" wx:else="">
 
-        <view class="flex-row">
-            <text class="mainBack_new_btn" bind:tap="clearSave" style="width: {{windowWidth / 6}}rpx; margin-left: 10rpx;" wx:if="{{hasCache}}">除缓存</text>
+        <view class="flex-row p-20" >
+            <text class="mainBack_new_btn third-row mr-20" bind:tap="clearSave" wx:if="{{hasCache}}">除缓存</text>
 
-            <text class="mainBack_new_btn" bind:tap="reuploadOrders" style="width: {{windowWidth / 6}}rpx; margin-left: 10rpx;" wx:if="{{hasCache}}">重新上传</text>
+            <text class="mainBack_new_btn third-row mr-20" bind:tap="reuploadOrders" wx:if="{{hasCache}}">重新上传</text>
             
-            <text class="mainBack_new_btn" bind:tap="showCorrectionModal" style="width: {{windowWidth / 6}}rpx; margin-left: 10rpx;" wx:if="{{hasCache}}">调整订单内容</text>
+            <text class="mainBack_new_btn third-row mr-20" bind:tap="showCorrectionModal" wx:if="{{hasCache}}">调整订单</text>
            </view>
 
         <view class="flex-row border-bottom" style="padding: 10rpx;">
@@ -126,8 +133,8 @@
          
         </view>
 
-        <view class="flex-row-default border-bottom" wx:for="{{orderArr}}" wx:for-index="orderIndex" wx:key="orderIndex" style="position: relative; width: {{windowWidth - 140}}rpx;">
-          <view class="flex-row-default  p-20 " style="width: 100%;">
+        <view class="flex-row-default border-bottom p-20" wx:for="{{orderArr}}" wx:for-index="orderIndex" wx:key="orderIndex" style="position: relative; width: {{windowWidth - 40}}rpx;">
+          <view class="flex-row-default font-lg" >
             <text class="mr-10">{{orderIndex + 1}}.</text>
 
             <block wx:if="{{item.nxDoStatus == -2}}">
@@ -305,7 +312,7 @@
 
             <block wx:else="">
                <view class="flex-column">
-                <view class="flex-row" style="width: {{windowWidth - 240}}rpx;">
+                <view class="flex-row" style="width: {{windowWidth - 220}}rpx; ">
                 <text class="half-row">{{item.nxDoGoodsName}}</text>
                 <text class="quarter-row">{{item.nxDoQuantity}}</text>
                 <text class="quarter-row">{{item.nxDoStandard}}</text>
@@ -334,17 +341,12 @@
             </block>
           </view>
 
-          <view class="flex-row" wx:if="{{item.nxDoStatus == -2}}">
-            <view class="p-20" bindtap="addDisAlias" data-index="{{orderIndex}}" >
-              <text class="mainColor big five-weight">@</text>
-            </view>
-          </view>
-
-          <view class="flex-row" wx:else="">
-            <view class="p-20 ">
+          
+          <view class="flex-row">
+            <view class="">
               <image src="/images/correct-2.png" mode="aspectFill" class="icon" />
             </view>
-            <view class="p-20 " bindtap="showOperation" data-index="{{orderIndex}}" data-id="{{applyItem.nxDepartmentOrdersId}}">
+            <view class="" bindtap="showOperation" data-index="{{orderIndex}}" data-id="{{applyItem.nxDepartmentOrdersId}}" >
               <image src="/images/points.png" mode="aspectFill" class="icon" />
             </view>
           </view>
@@ -378,8 +380,9 @@
     <view class="flex-column">
       <view class="flex-row p-30 border-bottom" catchtap="delOrder" hover-class="hover">
         <image src="/images/edit.png" class="icon mr-20"></image>
-        <text class="">删除订单</text>
+        <text class="">删除数据</text>
       </view>
+     
 
       <view class="flex-row p-30 " catchtap="addRemark" hover-class="hover">
         <image src="/images/edit.png" class="icon mr-20"></image>
@@ -404,11 +407,16 @@
 <view class='overlay {{showOperation ? "show" : "hide"}}' catchtouchmove='ture' catchtap="hideMask">
   <view class="nnn bg-white font-lg">
 
-    <view class="center-content  border-bottom p-20">
+    <view class="center-content  border-bottom pt-20 pb-10">
       <text class="">{{applyItem.nxDoGoodsNameOriginal}}</text>
     </view>
 
-    <view class="flex-row p-30" catchtap="editApply" hover-class="hover">
+    <view class="flex-row p-30 border-bottom" catchtap="addDisAlias" hover-class="hover">
+        <image src="/images/edit.png" class="icon mr-20"></image>
+        <text class="">添加新商品</text>
+      </view>
+
+    <view class="flex-row p-30  border-bottom" catchtap="editApply" hover-class="hover">
       <image src="/images/edit.png" class="icon mr-20"></image>
       <text class="">修改订单</text>
     </view>
@@ -417,7 +425,7 @@
       <image src="../../../../images/add-bold-2.png" class="icon mr-20"></image>
       <text class="">在之前加新订单</text>
     </view>
-
+    <view style="height: 40rpx;"></view>
   </view>
 
 </view>

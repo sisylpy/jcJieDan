@@ -8,7 +8,7 @@ import {
   depGetGoodsStockListAll,
   disGetDayStockBySearchDay,
   changeDepStockToAnotherDep
-} from '../../../../lib/apiDistributerGb.js'
+} from '../../../lib/apiDistributerGb.js'
 
 import {
   saveDepWasteGoodsStock,

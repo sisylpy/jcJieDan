@@ -121,8 +121,9 @@
 
             <!-- 第二行 -->
             <!-- 部门信息区域 -->
-            <!-- 成本详情列表 - 默认隐藏，点击showList后显示 -->
+            <!-- 成本详情列表 - 默认隐藏，点击商品行 showList 后显示 -->
             <!-- 注意：NX系统返回的详情结构可能与GB不同，需要根据实际接口调整 -->
+            <view class="flex-column" wx:if="{{item.showCostList}}">
             <view wx:if="{{item.nxDistributerGoodsShelfStockReduceEntities}}" class="flex-column" wx:for="{{item.nxDistributerGoodsShelfStockReduceEntities}}"  wx:for-item="reduceDay" wx:for-index="reduceIndex" wx:key="reduceIndex"  >
              
                 <!-- 整体卡片容器 -->
@@ -143,22 +144,22 @@
                         <block wx:if="{{reduceDay.nxDgssrType == 0}}">
                           <view class="stock-amount">{{reduceDay.nxDgssrProduceSubtotal}}元</view>
                           <view class="stock-quantity">{{reduceDay.nxDgssrProduceWeight}}{{item.nxDgGoodsStandardname}}</view>
-                          <view class="stock-type sales-type">售出</view>
+                          <view class="stock-type sales-type">{{reduceDay.doUserName}}售出</view>
                         </block>
                         <block wx:if="{{reduceDay.nxDgssrType == 2}}">
                           <view class="stock-amount">{{reduceDay.nxDgssrWasteSubtotal}}元</view>
                           <view class="stock-quantity">{{reduceDay.nxDgssrWasteWeight}}{{item.nxDgGoodsStandardname}}</view>
-                          <view class="stock-type waste-type">盘库损耗</view>
+                          <view class="stock-type waste-type">{{reduceDay.doUserName}}盘库损耗</view>
                         </block>
                         <block wx:if="{{reduceDay.nxDgssrType == 3}}">
                           <view class="stock-amount">{{reduceDay.nxDgssrLossSubtotal}}元</view>
                           <view class="stock-quantity">{{reduceDay.nxDgssrLossWeight}}{{item.nxDgGoodsStandardname}}</view>
-                          <view class="stock-type loss-type">损耗</view>
+                          <view class="stock-type loss-type">{{reduceDay.doUserName}}损耗</view>
                         </block>
                         <block wx:if="{{reduceDay.nxDgssrType == 4}}">
                           <view class="stock-amount">{{reduceDay.nxDgssrReturnSubtotal}}元</view>
                           <view class="stock-quantity">{{reduceDay.nxDgssrReturnWeight}}{{item.nxDgGoodsStandardname}}</view>
-                          <view class="stock-type return-type">退货</view>
+                          <view class="stock-type return-type">{{reduceDay.doUserName}}退货</view>
                         </block>
                       </view>
 
@@ -175,6 +176,7 @@
 
                 </view>
               <!-- </view> -->
+            </view>
             </view>
 
           </view>
@@ -299,8 +301,9 @@
 
             <!-- 第二行 -->
             <!-- 部门信息区域 -->
-            <!-- 成本详情列表 - 默认隐藏，点击showList后显示 -->
+            <!-- 成本详情列表 - 默认隐藏，点击商品行 showList 后显示 -->
             <!-- 注意：NX系统返回的详情结构可能与GB不同，需要根据实际接口调整 -->
+            <view class="flex-column" wx:if="{{item.showCostList}}">
             <view wx:if="{{item.nxDistributerGoodsShelfStockReduceEntities}}" class="flex-column" wx:for="{{item.nxDistributerGoodsShelfStockReduceEntities}}"  wx:for-item="reduceDay" wx:for-index="reduceIndex" wx:key="reduceIndex"  >
              
                 <!-- 整体卡片容器 -->
@@ -318,7 +321,7 @@
 
                       <!-- 中间价格数量区域 -->
                       <view class="stock-info-center">
-                        <block wx:if="{{reduceDay.nxDgssrType == 0}}">
+                        <block wx:if="{{reduceDay.nxDgssrType == 1}}">
                           <view class="stock-amount">{{reduceDay.nxDgssrProduceSubtotal}}元</view>
                           <view class="stock-quantity">{{reduceDay.nxDgssrProduceWeight}}{{item.nxDgGoodsStandardname}}</view>
                           <view class="stock-type sales-type">售出</view>
@@ -331,7 +334,7 @@
                         <block wx:if="{{reduceDay.nxDgssrType == 3}}">
                           <view class="stock-amount">{{reduceDay.nxDgssrLossSubtotal}}元</view>
                           <view class="stock-quantity">{{reduceDay.nxDgssrLossWeight}}{{item.nxDgGoodsStandardname}}</view>
-                          <view class="stock-type loss-type">损耗</view>
+                          <view class="stock-type loss-type">{{reduceDay.doUserName}}损耗</view>
                         </block>
                         <block wx:if="{{reduceDay.nxDgssrType == 4}}">
                           <view class="stock-amount">{{reduceDay.nxDgssrReturnSubtotal}}元</view>
@@ -353,6 +356,7 @@
 
                 </view>
               <!-- </view> -->
+            </view>
             </view>
 
           </view>
@@ -479,8 +483,9 @@
 
             <!-- 第二行 -->
             <!-- 部门信息区域 -->
-            <!-- 成本详情列表 - 默认隐藏，点击showList后显示 -->
+            <!-- 成本详情列表 - 默认隐藏，点击商品行 showList 后显示 -->
             <!-- 注意：NX系统返回的详情结构可能与GB不同，需要根据实际接口调整 -->
+            <view class="flex-column" wx:if="{{item.showCostList}}">
             <view wx:if="{{item.nxDistributerGoodsShelfStockReduceEntities}}" class="flex-column" wx:for="{{item.nxDistributerGoodsShelfStockReduceEntities}}"  wx:for-item="reduceDay" wx:for-index="reduceIndex" wx:key="reduceIndex"  >
              
                 <!-- 整体卡片容器 -->
@@ -516,7 +521,7 @@
                         <block wx:if="{{reduceDay.nxDgssrType == 4}}">
                           <view class="stock-amount">{{reduceDay.nxDgssrReturnSubtotal}}元</view>
                           <view class="stock-quantity">{{reduceDay.nxDgssrReturnWeight}}{{item.nxDgGoodsStandardname}}</view>
-                          <view class="stock-type return-type">退货</view>
+                          <view class="stock-type return-type">{{reduceDay.doUserName}}退货</view>
                         </block>
                       </view>
 
@@ -533,6 +538,7 @@
 
                 </view>
               <!-- </view> -->
+            </view>
             </view>
 
           </view>

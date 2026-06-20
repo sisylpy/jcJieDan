@@ -53,12 +53,13 @@ Page({
 
     var value = wx.getStorageSync('userInfo');
     if (value) {
+      var sid = value.nxDistributerEntity.nxDistributerId;
       this.setData({
         userInfo: value,
-        disId: value.nxDistributerEntity.nxDistributerId,
+        disId: sid,
         disInfo: value.nxDistributerEntity,
       })
-      this._getTodayCustomer();
+      this._getTodayCustomer(sid);
     } else {
       this._login();
     }
@@ -79,6 +80,20 @@ Page({
   },
 
 
+
+  /** 静默登录失败时清除本地 userInfo，避免与 inviteCode「有缓存就回首页」形成死循环 */
+  _clearSessionAndGoInviteCode() {
+    try {
+      wx.removeStorageSync('userInfo');
+      wx.removeStorageSync('disInfo');
+      wx.removeStorageSync('loginType');
+    } catch (e) {
+      console.warn('_clearSessionAndGoInviteCode', e);
+    }
+    wx.navigateTo({
+      url: '../../inviteCode/inviteCode',
+    });
+  },
 
   _login() {
     var that = this;
@@ -118,7 +133,7 @@ Page({
                       disInfo: res.result.data.disInfo,
                       disId: res.result.data.disInfo.nxDistributerId,
                     })
-                    that._getTodayCustomer();
+                    return that._getTodayCustomer(res.result.data.disInfo.nxDistributerId);
                   } else if (res.result.data.userInfo.nxDiuAdmin == 3) {
                     wx.redirectTo({
                       url: '../../../subPackage/pages/downLoadApp/downLoadApp',
@@ -130,9 +145,7 @@ Page({
                     title: '企业微信登录失败，请重试',
                     icon: 'none'
                   })
-                  wx.navigateTo({
-                    url: '../../inviteCode/inviteCode',
-                  })
+                  that._clearSessionAndGoInviteCode();
                 }
               })
               .catch((error) => {
@@ -141,9 +154,7 @@ Page({
                   title: '网络连接失败',
                   icon: 'none'
                 })
-                wx.navigateTo({
-                  url: '../../inviteCode/inviteCode',
-                })
+                that._clearSessionAndGoInviteCode();
               })
           }
         },
@@ -153,9 +164,7 @@ Page({
             title: '企业微信登录失败',
             icon: 'none'
           })
-          wx.navigateTo({
-            url: '../../inviteCode/inviteCode',
-          })
+          that._clearSessionAndGoInviteCode();
         }
       })
     } else {
@@ -182,7 +191,7 @@ Page({
                       disInfo: res.result.data.disInfo,
                       disId: res.result.data.disInfo.nxDistributerId,
                     })
-                    that._getTodayCustomer();
+                    return that._getTodayCustomer(res.result.data.disInfo.nxDistributerId);
                   } else if (res.result.data.userInfo.nxDiuAdmin == 3) {
                     wx.redirectTo({
                       url: '../../../subPackage/pages/downLoadApp/downLoadApp',
@@ -191,12 +200,21 @@ Page({
 
                 } else {
                   console.log("登录失败")
-                  wx.navigateTo({
-                    url: '../../inviteCode/inviteCode',
-                  })
+                  that._clearSessionAndGoInviteCode();
                 }
               })
+              .catch((err) => {
+                console.error('disLogin fail', err)
+                that._clearSessionAndGoInviteCode();
+              })
           }
+        },
+        fail(err) {
+          console.error('wx.login fail', err)
+          wx.showToast({
+            title: '微信登录失败',
+            icon: 'none'
+          })
         }
       })
     }
@@ -205,11 +223,17 @@ Page({
 
   /**
    * 获取客户订单
+   * @param {string} [disIdFromLogin] 登录返回的 disId，避免 setData 异步导致 this.data.disId 未更新
    */
-  _getTodayCustomer() {
+  _getTodayCustomer(disIdFromLogin) {
     var that = this;
+    const disId = disIdFromLogin !== undefined ? disIdFromLogin : this.data.disId;
+    if (!disId) {
+      console.warn('_getTodayCustomer: disId 为空');
+      return Promise.resolve();
+    }
     load.showLoading("获取今日订单");
-    disGetTodayOrderCustomer(this.data.disId).then(res => {
+    return disGetTodayOrderCustomer(disId).then(res => {
       load.hideLoading();
       console.log(res.result.data)
       if (res.result.code == 0) {
@@ -255,6 +279,12 @@ Page({
           icon: 'none'
         })
       }
+    }).catch(() => {
+      load.hideLoading();
+      wx.showToast({
+        title: '获取订单失败',
+        icon: 'none'
+      })
     })
   },
 

@@ -1,0 +1,146 @@
+page {
+  background-color: #fff;
+}
+
+.page-root {
+  height: 100%;
+  width: 100%;
+  background-color: #fff;
+}
+
+.main-scroll {
+  box-sizing: border-box;
+  background-color: #fff;
+}
+
+.section-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #333;
+  padding-top: 24rpx;
+}
+
+.shelf-list-wrap {
+  padding: 20rpx;
+}
+
+.shelf-list-item {
+  display: flex;
+  align-items: flex-start;
+  background-color: #fff;
+  border-radius: 24rpx;
+  border: 1px solid #e5e5e5;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 仅待调整商品卡片：淡蓝底 */
+.adjust-goods-item {
+  margin-bottom: 20rpx;
+  background: linear-gradient(180deg, #f5f9ff 0%, #ecf3fb 100%);
+  border: 1rpx solid rgba(120, 160, 210, 0.28);
+  box-shadow: 0 4rpx 16rpx rgba(80, 120, 180, 0.08);
+}
+
+.shelf-list-thumb {
+  width: 160rpx;
+  height: 160rpx;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+  border-radius: 16rpx;
+  overflow: hidden;
+  background-color: #f5f5f5;
+}
+
+.shelf-list-img {
+  width: 100%;
+  height: 100%;
+}
+
+.shelf-list-img.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shelf-list-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.shelf-list-title {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.shelf-list-brand {
+  font-size: 26rpx;
+  color: #0a8a72;
+  padding: 0 14rpx;
+  background-color: rgba(10, 138, 114, 0.12);
+  border-radius: 12rpx;
+}
+
+.shelf-list-title-text {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+.shelf-list-name {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.shelf-list-spec {
+  font-size: 26rpx;
+  color: #7a8594;
+}
+
+.shelf-list-stock {
+  display: flex;
+  align-items: flex-start;
+  font-size: 26rpx;
+  color: #666;
+  gap: 12rpx;
+  margin-top: 16rpx;
+}
+
+.shelf-list-stock-label {
+  color: #666;
+}
+
+.shelf-card-stock {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  flex: 1;
+  align-items: flex-start;
+}
+
+.stock-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e9efff;
+  color: #3171ff;
+  padding: 8rpx 22rpx;
+  border-radius: 20rpx;
+  font-size: 28rpx;
+  line-height: 1.2;
+}
+
+.stock-empty {
+  color: #999;
+}
+
+.list-anchor-item:active {
+  background-color: #f8f8f8;
+}

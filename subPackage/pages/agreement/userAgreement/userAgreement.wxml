@@ -1,0 +1,40 @@
+
+
+
+<back-navbar style="height: {{navBarHeight}}rpx;" title="用户服务协议" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+<view class="agreement-container" >
+  <view class="agreement-content">
+    <text class="title">京采接单 用户服务协议</text>
+    <text class="update-time">更新日期：2024年</text>
+    
+    <text class="section-title">一、协议的范围</text>
+    <text class="section-content">1.1 本协议是您与京采接单（以下简称"本平台"）之间关于您使用本平台小程序服务所订立的协议。</text>
+    <text class="section-content">1.2 请您务必审慎阅读、充分理解各条款内容。您使用本平台服务即视为您已阅读并同意接受本协议的约束。</text>
+    
+    <text class="section-title">二、服务说明</text>
+    <text class="section-content">2.1 京采接单是一款面向批发市场配送商户的专业接单管理小程序，提供订单管理、商品管理、采购管理、库存管理等服务。</text>
+    <text class="section-content">2.2 本平台有权根据业务发展需要调整服务内容，并将通过小程序内公告等方式通知用户。</text>
+    
+    <text class="section-title">三、用户注册与账号</text>
+    <text class="section-content">3.1 您需要完成邀请码验证并注册账号后方可使用本平台服务。</text>
+    <text class="section-content">3.2 您应保证所填写的注册信息真实、准确、完整，并承担因信息不实导致的责任。</text>
+    <text class="section-content">3.3 您应妥善保管账号信息，对使用该账号进行的所有活动承担责任。</text>
+    
+    <text class="section-title">四、用户行为规范</text>
+    <text class="section-content">4.1 您在使用本平台服务时，应遵守国家法律法规，不得利用本平台从事违法违规活动。</text>
+    <text class="section-content">4.2 您不得干扰、破坏本平台的正常运行，不得传播病毒、恶意代码等。</text>
+    
+    <text class="section-title">五、知识产权</text>
+    <text class="section-content">本平台服务所包含的软件、界面、文字、图片、商标等知识产权均归本平台或相关权利人所有。</text>
+    
+    <text class="section-title">六、免责声明</text>
+    <text class="section-content">在法律允许的范围内，本平台对因不可抗力、网络故障等原因导致的服务中断或数据丢失不承担责任。</text>
+    
+    <text class="section-title">七、协议修改</text>
+    <text class="section-content">本平台有权根据需要修改本协议，修改后的协议将在小程序内公布。您继续使用服务即视为接受修改后的协议。</text>
+    
+    <text class="section-title">八、联系我们</text>
+    <text class="section-content">如您对本协议有任何疑问，请通过小程序内客服功能与我们联系。</text>
+  </view>
+</view>

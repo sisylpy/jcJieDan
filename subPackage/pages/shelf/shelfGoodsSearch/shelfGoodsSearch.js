@@ -15,14 +15,19 @@ import {
   updatePurchaseGoods,
   updateDisStock,
   setShelfLayer,
-  clearShelfLayer
+  clearShelfLayer,
+  staffRecievePurGoods
 } from '../../../../lib/apiDistributer';
 
+import {cancleDownDisGoods} from '../../../lib/apiibook'
 
 
 Page({
   data: {
     placeHolder: "输入商品名称或拼音字母、首字母",
+    searchString: '',
+    /** 进入页面自动聚焦搜索框；失焦后置 false，便于再次点击聚焦 */
+    searchInputFocus: false,
     showOperation: false,
     isEditGoods: false,
     isUnshelfSelected: false,
@@ -46,6 +51,11 @@ Page({
     shelfItem: null,
     userId: null,
     userInfo: null,
+    /** 返回货架首页时是否触发刷新（仅在有变更时置 true） */
+    needNotifyParentRefresh: false,
+    update: false,
+    /** 与 wxml 搜索区高度一致：上下 padding 30*2 + 输入区 88（rpx），用于内容区 padding-top 避免被遮挡 */
+    searchBarOffsetRpx: 148,
   },
 
 
@@ -53,21 +63,58 @@ Page({
     const app = getApp();
     const globalData = app.globalData;
 
+    const searchName = options.searchName ? decodeURIComponent(options.searchName) : '';
+
     this.setData({
       windowWidth: globalData.windowWidth * globalData.rpxR,
       windowHeight: globalData.windowHeight * globalData.rpxR,
       navBarHeight: globalData.navBarHeight * globalData.rpxR,
       url: apiUrl.server,
       disId: options.disId,
-    })
+      searchString: searchName,
+      needNotifyParentRefresh: false,
+      update: false,
+    }, () => {
+      if (searchName && searchName.length > 0) {
+        this.getSearchString();
+      }
+    });
 
-    // 获取用户信息
     var value = wx.getStorageSync('userInfo');
     if (value) {
       this.setData({
         userInfo: value,
         userId: value.nxDistributerUserId,
-      })
+      });
+    }
+
+    var disInfo = wx.getStorageSync('disInfo');
+    if (disInfo) {
+      this.setData({
+        disInfo: disInfo,
+      });
+    }
+  },
+
+  onReady() {
+    const focus = () => this.setData({ searchInputFocus: true });
+    if (typeof wx.nextTick === 'function') {
+      wx.nextTick(focus);
+    } else {
+      setTimeout(focus, 50);
+    }
+  },
+
+  onSearchInputBlur() {
+    this.setData({ searchInputFocus: false });
+  },
+
+  onShow() {
+    if (this.data.update) {
+      this.setData({
+        update: false,
+        needNotifyParentRefresh: true,
+      });
     }
   },
 
@@ -83,7 +130,8 @@ Page({
       }, 0);
       return {
         ...item,
-        totalRestWeight
+        totalRestWeight,
+        sameShelfGoods: Array.isArray(item.sameShelfGoods) ? item.sameShelfGoods : []
       };
     });
   },
@@ -110,20 +158,26 @@ Page({
 
 
   getString(e){
-    console.log("searchindindidnid");
-   
-      var string = e.detail.value;
-      string = string.replace(/\s*/g, "");
-      if(string.length > 0){
-        this.setData({
-          searchString: string
-        })
-      }else{
-        this.setData({
-          searchString: ""
-        })
-      }
+    var string = e.detail.value;
+    string = string.replace(/\s*/g, "");
+    this.setData({
+      searchString: string || ""
+    })
+  },
 
+  delSearch() {
+    this.setData({
+      searchString: "",
+      disSearchArr: [],
+      unShelfGoodsList: [],
+    })
+  },
+
+  // 刷新货架商品数据（供其他页面调用）
+  refreshShelfGoods() {
+    if (this.data.searchString && this.data.searchString.length > 0) {
+      this.getSearchString();
+    }
   },
 
   getSearchString(e) {
@@ -186,7 +240,7 @@ Page({
              searchString: "",
              applyItem: "",
              editApply: false,
-             isSearching: true,
+             searchInputFocus: true,
            })
           that.getSearchStringPlaceHolder();
 
@@ -278,7 +332,7 @@ Page({
         depSearchArr: [],
         disSearchArr: [],
         searchResult: false,
-        isSearching: true,
+        searchInputFocus: true,
 
       })
 
@@ -334,6 +388,7 @@ Page({
       isEditGoods: true,
       disGoods: disGoods,
       shelfGoods: fakeShelfGoods,
+      shelfItem: null,
       isUnshelfSelected: true,
     })
   },
@@ -457,13 +512,13 @@ Page({
     }
     // 清除 ailasGoodsList 标记（如果跳转到 disGoodsDetail）
     wx.removeStorageSync('fromAilasGoodsList');
-    if(this.data.disGoods.nxDgNxGoodsId != null && this.data.disGoods.nxDgNxGoodsId != '' 
+    if(this.data.disGoods.nxDgNxGoodsId != null && this.data.disGoods.nxDgNxGoodsId != ''
        && this.data.disGoods.nxDgNxGoodsId > 0){
         wx.setStorageSync('disGoods', this.data.disGoods)
-
         wx.navigateTo({
-          url: '../../goods/disGoodsDetail/disGoodsDetail?id=' + id,
+          url: '../../goods/disGoodsPage/disGoodsPage?disGoodsId=' + id + '&from=shelfGoodsSearch',
         })
+       
        }else{
   
     wx.setStorageSync('linshiGoods', this.data.disGoods)
@@ -479,7 +534,7 @@ Page({
   
   },
 
-  // 打开订货弹窗
+  // 打开订货弹窗subPackage/pages/goods/disGoodsDetail/disGoodsDetail
   // toOpenDisPlanPurchase(){
   //   // 获取商品信息（从 shelfGoods 中获取）
   //   console.log("indotuutot");
@@ -538,9 +593,21 @@ Page({
     })
   },
   // 打开采购入库弹窗（直接生成采购商品并入库）
-  toOpenInputPurSock(){
-    const disGoods = this.data.shelfGoods ? this.data.shelfGoods.nxDistributerGoodsEntity : this.data.disGoods;
-    // 初始化采购商品数据
+  toOpenInputPurSock() {
+    const shelfGoods = this.data.shelfGoods;
+    if (!shelfGoods) {
+      console.warn('toOpenInputPurSock: shelfGoods is undefined');
+      return;
+    }
+    const disGoods = shelfGoods.nxDistributerGoodsEntity;
+    if (!disGoods) {
+      console.warn('toOpenInputPurSock: disGoods is undefined');
+      return;
+    }
+    // 根据 nxDgCartonUnit 是否为 null 决定使用哪个规格
+    const standardName = disGoods.nxDgCartonUnit !== null && disGoods.nxDgCartonUnit !== undefined && disGoods.nxDgCartonUnit !== '' ?
+      disGoods.nxDgCartonUnit :
+      disGoods.nxDgGoodsStandardname;
     const purGoodsItem = {
       nxDpgDisGoodsId: disGoods.nxDistributerGoodsId,
       nxDpgDisGoodsFatherId: disGoods.nxDgDfgGoodsFatherId,
@@ -549,27 +616,92 @@ Page({
       nxDpgBuyQuantity: "",
       nxDpgBuySubtotal: "",
       nxDpgExpectPrice: "",
-      nxDpgStandard: disGoods.nxDgGoodsStandardname,
+      nxDpgStandard: standardName,
       nxDpgDistributerId: this.data.disId,
-      isShowTools: false, // 等待入库，默认 false
+      isShowTools: false,
       nxDistributerGoodsEntity: disGoods
     };
+
     this.setData({
-      showInputPurStock: true,
       item: purGoodsItem,
       disGoods: disGoods,
-      applyStandardName: disGoods.nxDgGoodsStandardname,
+      applyStandardName: standardName,
       windowHeight: this.data.windowHeight,
       windowWidth: this.data.windowWidth,
       showOperation: false
-    })
+    });
+
+    this.setData({
+      showInputPurStock: true,
+    });
   },
 
   // 取消采购入库
-  cancleInputPurStock(){
+  cancleInputPurStock() {
     this.setData({
       showInputPurStock: false,
-    })
+      item: null,
+    });
+  },
+
+  /**
+   * 接收采购商品（与货架首页操作菜单一致）
+   */
+  receivePurGoods() {
+    const shelfGoods = this.data.shelfGoods;
+    if (!shelfGoods || !shelfGoods.shelfPurGoods) {
+      return;
+    }
+    if (shelfGoods.shelfPurGoods.nxDpgStatus == 1) {
+      wx.showToast({
+        title: '采购未完成',
+        icon: 'none'
+      });
+      return;
+    }
+
+    const goodsName = shelfGoods.nxDistributerGoodsEntity?.nxDgGoodsName || '该商品';
+    const purGoods = shelfGoods.shelfPurGoods;
+
+    wx.showModal({
+      title: '确认接收',
+      content: `确定要接收商品"${goodsName}"吗？`,
+      success: (res) => {
+        if (res.confirm) {
+          const data = {
+            purGoodsId: purGoods.nxDistributerPurchaseGoodsId,
+            userId: this.data.userId
+          };
+          load.showLoading("接收商品中");
+          staffRecievePurGoods(data).then(res => {
+            load.hideLoading();
+            if (res.result.code == 0) {
+              wx.showToast({
+                title: '商品接收成功',
+                icon: 'success'
+              });
+              this.setData({
+                showOperation: false,
+                isEditGoods: false,
+              });
+              this.refreshAfterStockOperation();
+            } else {
+              wx.showToast({
+                title: res.result.msg,
+                icon: 'none'
+              });
+            }
+          }).catch(err => {
+            load.hideLoading();
+            console.error('receivePurGoods error:', err);
+            wx.showToast({
+              title: '接收失败，请重试',
+              icon: 'none'
+            });
+          });
+        }
+      }
+    });
   },
 
   // 处理采购入库确认
@@ -687,42 +819,37 @@ Page({
     })
   },
 
-  confirmInputPurStock(e){
-    // 从组件获取数据
+  confirmInputPurStock(e) {
     const item = e.detail.item;
-    
-    // 获取商品基本信息
+
     const disGoods = this.data.disGoods || item.nxDistributerGoodsEntity;
     const goodsId = disGoods.nxDistributerGoodsId;
     const fatherGoodsId = disGoods.nxDgDfgGoodsFatherId;
     const grandGoodsId = disGoods.nxDgDfgGoodsGrandId;
-    
-    // 获取采购相关数据
-    const buyQuantity = item.nxDpgBuyQuantity || item.nxDpgQuantity || "";
+
+    let buyQuantity = item.nxDpgBuyQuantity || item.nxDpgQuantity || "";
     const buyPrice = item.nxDpgBuyPrice || "";
     const buySubtotal = item.nxDpgBuySubtotal || "";
     const expectPrice = item.nxDpgExpectPrice || "";
     const standard = item.nxDpgStandard || disGoods.nxDgGoodsStandardname || "";
     const isShowTools = item.isShowTools || false;
-    
-    // 验证必填字段
+
     if (!buyQuantity || buyQuantity.length == 0) {
       wx.showToast({
         title: '采购数量不能为空',
         icon: 'none'
-      })
+      });
       return;
     }
-    
+
     if (!buyPrice || buyPrice.length == 0) {
       wx.showToast({
         title: '采购单价不能为空',
         icon: 'none'
-      })
+      });
       return;
     }
-    
-    // 构建采购商品数据
+
     const purGoods = {
       nxDpgDisGoodsId: goodsId,
       nxDpgDisGoodsFatherId: fatherGoodsId,
@@ -734,48 +861,69 @@ Page({
       nxDpgExpectPrice: expectPrice,
       nxDpgDistributerId: this.data.disId,
       nxDpgInputType: 1,
-      nxDpgPurchaseType: 10,
       isShowTools: isShowTools,
       nxDpgPurUserId: this.data.userInfo ? this.data.userInfo.nxDistributerUserId : null
+    };
+
+    purGoods.nxDgssPrice = buyPrice;
+    if (expectPrice) {
+      purGoods.nxDgssSellingPrice = expectPrice;
     }
-    
-    // 如果有到货日期，添加
+
+    if (disGoods && disGoods.nxDgCartonUnit !== null && disGoods.nxDgCartonUnit !== undefined && disGoods.nxDgCartonUnit !== '') {
+      if (item.nxDgssPriceCarton) {
+        purGoods.nxDgssPriceCarton = item.nxDgssPriceCarton;
+      }
+      if (item.nxDgssSellingPriceCarton) {
+        purGoods.nxDgssSellingPriceCarton = item.nxDgssSellingPriceCarton;
+      }
+    }
+
     if (this.data.arriveDate) {
       purGoods.nxDpgPurchaseDate = this.data.arriveDate;
     }
-    
+
+    if (this.data.shelfGoods && this.data.shelfGoods.nxDistributerGoodsShelfGoodsId) {
+      purGoods.nxDistributerGoodsShelfGoodsId = this.data.shelfGoods.nxDistributerGoodsShelfGoodsId;
+    }
+
+    if (item.nxDpgProduceDate) purGoods.nxDpgProduceDate = item.nxDpgProduceDate;
+    if (item.nxDpgShelfLife !== '' && item.nxDpgShelfLife != null) purGoods.nxDpgShelfLife = item.nxDpgShelfLife;
+    if (item.nxDpgShelfLifeUnit) purGoods.nxDpgShelfLifeUnit = item.nxDpgShelfLifeUnit;
+    if (item.nxDpgExpiryDate) purGoods.nxDpgExpiryDate = item.nxDpgExpiryDate;
+
     var loadingText = this.data.isEditPurchase ? "修改进货商品" : "保存进货商品";
     var successText = this.data.isEditPurchase ? "进货商品修改成功" : "进货商品保存成功";
-    
-    load.showLoading(loadingText)
+
+    load.showLoading(loadingText);
     disSavePurGoodsSaveStock(purGoods).then(res => {
       if (res.result.code == 0) {
         wx.showToast({
           title: successText,
           icon: 'success'
-        })
+        });
         load.hideLoading();
         this.setData({
           showInputPurStock: false,
           showOperation: false,
           isEditPurchase: false,
-        })
-        // 刷新搜索结果
+          item: null,
+        });
         this.refreshAfterStockOperation();
-      }else{
+      } else {
         load.hideLoading();
         wx.showToast({
           title: res.result.msg || '保存失败',
           icon: 'none'
-        })
+        });
       }
     }).catch(err => {
       load.hideLoading();
       wx.showToast({
         title: '保存失败，请重试',
         icon: 'none'
-      })
-    })
+      });
+    });
   },
 
   showStock(){
@@ -834,7 +982,16 @@ Page({
   },
 
   confirmStockDetail(e){
-    const { stockId, restWeight, sellingPrice } = e.detail || {}
+    const {
+      stockId,
+      restWeight,
+      sellingPrice,
+      sellingPriceCarton,
+      nxDgssProduceDate,
+      nxDgssShelfLife,
+      nxDgssShelfLifeUnit,
+      nxDgssExpiryDate
+    } = e.detail || {}
     if (!stockId) {
       console.warn('confirmStockDetail 缺少 stockId', e)
       wx.showToast({
@@ -849,6 +1006,11 @@ Page({
       stockId,
       restWeight,
       sellingPrice,
+      sellingPriceCarton,
+      nxDgssProduceDate,
+      nxDgssShelfLife,
+      nxDgssShelfLifeUnit,
+      nxDgssExpiryDate,
       disId: this.data.disId,
       userId: this.data.userId
     }).then(res => {
@@ -1111,31 +1273,75 @@ Page({
     })
   },
 
+  /**
+   * 删除货架商品（从货架移除，商品将出现在非货架商品中）
+   */
   deleteGoods() {
-    load.showLoading("删除货架商品中");
-    deleteShelfGoods(this.data.shelfGoods.nxDistributerGoodsShelfGoodsId)
-    .then(res => {
-      load.hideLoading();
-      if (res.result.code == 0) {
-        wx.showToast({
-          title: '删除成功',
-          icon: 'success'
-        })
-        this.setData({
-          showOperation: false,
-          isEditGoods: false,
-          item: "",
-          shelfGoods: "",
-        })
-        // 刷新搜索结果
-        this.refreshAfterStockOperation();
-      } else {
-        wx.showToast({
-          title: res.result.msg || '删除失败',
-          icon: 'none'
-        })
+    const shelfGoods = this.data.shelfGoods;
+    if (!shelfGoods || !shelfGoods.nxDistributerGoodsShelfGoodsId) {
+      wx.showToast({ title: '商品数据异常', icon: 'none' });
+      return;
+    }
+
+    var  stockArr =  this.data.shelfGoods.nxDisGoodsShelfStockEntities.length;
+    if (stockArr > 0) {
+      wx.showToast({
+        title: '有库存，不能删除货架商品',
+        icon: 'none'
+      });
+      return;
+    }
+
+    
+    const goodsName = shelfGoods.nxDistributerGoodsEntity?.nxDgGoodsName || '该商品';
+    wx.showModal({
+      title: '确认删除',
+      content: `确定要从货架移除「${goodsName}」吗？删除后该商品将显示在"非货架商品"中。`,
+      success: (res) => {
+        if (!res.confirm) return;
+        load.showLoading("删除货架商品中");
+        deleteShelfGoods(shelfGoods.nxDistributerGoodsShelfGoodsId)
+          .then(res => {
+            load.hideLoading();
+            if (res.result.code == 0) {
+              // 从 disSearchArr 中移除该货架商品，并添加到 unShelfGoodsList
+              const shelfGoodsId = shelfGoods.nxDistributerGoodsShelfGoodsId;
+              const disSearchArr = (this.data.disSearchArr || []).map(shelf => {
+                if (!shelf.nxDisGoodsShelfGoodsEntities) return shelf;
+                const filtered = shelf.nxDisGoodsShelfGoodsEntities.filter(
+                  g => g.nxDistributerGoodsShelfGoodsId !== shelfGoodsId
+                );
+                return { ...shelf, nxDisGoodsShelfGoodsEntities: filtered };
+              }).filter(shelf => 
+                shelf.nxDisGoodsShelfGoodsEntities && shelf.nxDisGoodsShelfGoodsEntities.length > 0
+              );
+              const disGoods = shelfGoods.nxDistributerGoodsEntity;
+              const goodsWithStock = disGoods ? {
+                ...disGoods,
+                nxDisGoodsShelfStockEntities: shelfGoods.nxDisGoodsShelfStockEntities || []
+              } : null;
+              const newUnshelf = goodsWithStock ? this._formatUnShelfGoodsList([goodsWithStock]) : [];
+              const unShelfGoodsList = [...(this.data.unShelfGoodsList || []), ...newUnshelf];
+              this.setData({
+                disSearchArr,
+                unShelfGoodsList,
+                showOperation: false,
+                isEditGoods: false,
+                item: "",
+                shelfGoods: "",
+                needNotifyParentRefresh: true,
+              });
+              wx.showToast({ title: '删除成功', icon: 'success' });
+            } else {
+              wx.showToast({ title: res.result.msg || '删除失败', icon: 'none' });
+            }
+          })
+          .catch(() => {
+            load.hideLoading();
+            wx.showToast({ title: '删除失败，请重试', icon: 'none' });
+          });
       }
-    })
+    });
   },
 
   /**
@@ -1157,15 +1363,72 @@ Page({
     })
   },
 
-  onUnload(){
-    // 页面卸载时，标记需要刷新
-    var pages = getCurrentPages();
-    if(pages.length > 1){
-      var prevPage = pages[pages.length - 2];
-      prevPage.setData({
-        update: true
-      })
+
+
+
+  /**
+   * 删除非货架商品（彻底删除配送商品）
+   */
+  deleteDisGoods() {
+    const disGoods = this.data.disGoods;
+    if (!disGoods) {
+      wx.showToast({ title: '商品数据异常', icon: 'none' });
+      return;
     }
-  }
+    const goodsName = disGoods.nxDgGoodsName || '该商品';
+    wx.showModal({
+      title: '确认删除',
+      content: `确定要删除「${goodsName}」吗？删除后该商品将无法恢复。`,
+      success: (res) => {
+        if (!res.confirm) return;
+        const data = {
+          disId: this.data.disId,
+          disGoodsId: disGoods.nxDistributerGoodsId,
+          disGoodsFatherId: disGoods.nxDgDfgGoodsFatherId,
+        };
+        load.showLoading("删除商品");
+        cancleDownDisGoods(data).then(res => {
+          load.hideLoading();
+          if (res.result.code == 0) {
+            // 从非货架商品列表中移除
+            const disGoodsId = disGoods.nxDistributerGoodsId;
+            const unShelfGoodsList = (this.data.unShelfGoodsList || []).filter(
+              item => item.nxDistributerGoodsId !== disGoodsId
+            );
+            this.setData({
+              unShelfGoodsList,
+              showOperation: false,
+              isEditGoods: false,
+              disGoods: null,
+              isUnshelfSelected: false,
+              needNotifyParentRefresh: true,
+            });
+            wx.showToast({ title: '删除成功', icon: 'success' });
+          } else {
+            wx.showToast({ title: res.result.msg || '删除失败', icon: 'none' });
+          }
+        }).catch(() => {
+          load.hideLoading();
+          wx.showToast({ title: '删除失败，请重试', icon: 'none' });
+        });
+      }
+    });
+  },
+
+
+
+  onUnload() {
+    if (!this.data.needNotifyParentRefresh) {
+      return;
+    }
+    var pages = getCurrentPages();
+    if (pages.length < 2) {
+      return;
+    }
+    var prevPage = pages[pages.length - 2];
+    if (prevPage && typeof prevPage.setData === 'function') {
+      prevPage.setData({ update: true });
+    }
+  },
 
 })

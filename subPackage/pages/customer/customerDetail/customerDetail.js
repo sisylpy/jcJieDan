@@ -12,8 +12,16 @@ import {
   deleteGroupDep,
 
   updateDepUserAdmin,
-  updateGroupName
+  updateGroupName,
 
+  // 标签相关API
+  disGetLabelData,
+  disSyncDepartmentLabels,
+  deleteDepartmentLabel,
+  saveLabel,
+  updateLabel,
+  deleteLabel,
+  disGetLabels
 }
 from '../../../../lib/apiDistributer'
 
@@ -92,7 +100,10 @@ Page({
         formattedEarliestTime: this.formatSecondsToTime(depInfoValue.nxDepartmentEarliestDeliveryTime) || '',
         formattedLatestTime: this.formatSecondsToTime(depInfoValue.nxDepartmentLatestDeliveryTime) || '',
       })
-    }
+
+        // 获取客户标签用于页面显示
+        this._getDepLabels();
+      }
 
     var disInfo = wx.getStorageSync('disInfo');
  if(disInfo){
@@ -929,6 +940,8 @@ Page({
         });
         // 更新格式化时间显示
         this.updateFormattedTimeDisplay();
+        // 获取客户标签
+        this._getDepLabels();
       } else {
         wx.showToast({
           title: res.result.msg,
@@ -936,8 +949,319 @@ Page({
         });
       }
     });
-  }
+  },
 
+  // ============ 标签管理相关方法 ============
+
+  // ============ 获取客户标签 ============
+  
+  // 获取客户已选标签并显示在页面上
+  _getDepLabels() {
+    const { disId, depFatherId } = this.data;
+    
+    disGetLabelData({ disId, depFatherId }).then(res => {
+      if (res.result.code == 0) {
+        const labelList = res.result.labelList || [];
+        const selectedLabelIds = res.result.selectedLabelIds || [];
+        
+        // 获取已选标签详情
+        const selectedLabels = labelList.filter(label => 
+          selectedLabelIds.includes(label.nxDistributerLabelId)
+        );
+        
+        // 将标签添加到 depInfo 中用于页面显示
+        this.setData({
+          'depInfo.selectedLabels': selectedLabels
+        });
+        
+        console.log('客户标签已加载:', selectedLabels);
+      }
+    }).catch(err => {
+      console.error('获取客户标签失败', err);
+    });
+  },
+
+  // 显示标签编辑弹窗
+  showLabelModal() {
+    const { disId, depFatherId } = this.data;
+    
+    load.showLoading('加载中...');
+    
+    disGetLabelData({ disId, depFatherId }).then(res => {
+      load.hideLoading();
+      console.log('标签数据响应:', res);
+      
+      const result = res.result;
+      if (result.code == 0) {
+        // API直接返回数据结构，不是嵌套在data里
+        const labelList = result.labelList || [];
+        const selectedLabelIds = result.selectedLabelIds || [];
+        
+        // 处理标签列表，添加选中状态
+        const processedLabels = labelList.map(label => ({
+          ...label,
+          selected: selectedLabelIds.includes(label.nxDistributerLabelId)
+        }));
+        
+        // 获取已选标签
+        const selectedLabels = processedLabels.filter(l => l.selected);
+        
+        this.setData({
+          showLabelModal: true,
+          labelList: processedLabels,
+          selectedLabelIds: selectedLabelIds || [],
+          selectedLabels: selectedLabels,
+          newLabelName: ''
+        });
+      } else {
+        wx.showToast({
+          title: result.msg || '获取标签失败',
+          icon: 'none'
+        });
+      }
+    }).catch(err => {
+      load.hideLoading();
+      console.error('获取标签失败', err);
+      wx.showToast({
+        title: '网络错误',
+        icon: 'none'
+      });
+    });
+  },
+
+  // 隐藏标签弹窗
+  hideLabelModal() {
+    this.setData({
+      showLabelModal: false
+    });
+  },
+
+  // 切换标签选中状态
+  toggleLabel(e) {
+    const labelId = e.currentTarget.dataset.id;
+    const { labelList, selectedLabelIds } = this.data;
+    
+    let newSelectedIds = [...selectedLabelIds];
+    let newSelectedLabels = [...this.data.selectedLabels];
+    
+    if (newSelectedIds.includes(labelId)) {
+      // 取消选中
+      newSelectedIds = newSelectedIds.filter(id => id !== labelId);
+      newSelectedLabels = newSelectedLabels.filter(l => l.nxDistributerLabelId !== labelId);
+    } else {
+      // 选中
+      newSelectedIds.push(labelId);
+      const label = labelList.find(l => l.nxDistributerLabelId === labelId);
+      if (label) {
+        newSelectedLabels.push(label);
+      }
+    }
+    
+    // 更新标签列表中的选中状态
+    const newLabelList = labelList.map(label => ({
+      ...label,
+      selected: newSelectedIds.includes(label.nxDistributerLabelId)
+    }));
+    
+    this.setData({
+      labelList: newLabelList,
+      selectedLabelIds: newSelectedIds,
+      selectedLabels: newSelectedLabels
+    });
+  },
+
+  // 获取新增标签名称
+  getNewLabelName(e) {
+    this.setData({
+      newLabelName: e.detail.value
+    });
+  },
+
+  // 添加新标签
+  addNewLabel() {
+    const { newLabelName, disId, labelList } = this.data;
+    
+    if (!newLabelName || newLabelName.trim() === '') {
+      wx.showToast({
+        title: '请输入标签名称',
+        icon: 'none'
+      });
+      return;
+    }
+    
+    load.showLoading('添加中...');
+    
+    saveLabel({
+      nxDlDistributerId: disId,
+      nxDlName: newLabelName.trim(),
+      nxDlSort: 0,
+      nxDlStatus: 1
+    }).then(res => {
+      load.hideLoading();
+      console.log('新增标签响应:', res);
+      if (res.result.code == 0) {
+        // 返回数据可能是 res.result 或 res.result.data
+        const newLabel = res.result.data || res.result;
+        
+        // 添加到标签列表
+        const newLabelList = [...labelList, { ...newLabel, selected: false }];
+        
+        this.setData({
+          labelList: newLabelList,
+          newLabelName: ''
+        });
+        
+        wx.showToast({
+          title: '添加成功',
+          icon: 'success'
+        });
+      } else {
+        wx.showToast({
+          title: res.result.msg || '添加失败',
+          icon: 'none'
+        });
+      }
+    }).catch(err => {
+      load.hideLoading();
+      wx.showToast({
+        title: '网络错误',
+        icon: 'none'
+      });
+    });
+  },
+
+  // 删除配送商标签（左边列表）- 影响所有使用该标签的客户
+  deleteDistributerLabel(e) {
+    const labelId = e.currentTarget.dataset.id;
+    const label = e.currentTarget.dataset.label;
+    
+    wx.showModal({
+      title: '确认删除配送商标签',
+      content: `删除"${label.nxDlName}"后，所有使用该标签的客户都会失去这个标签，是否继续？`,
+      success: (res) => {
+        if (res.confirm) {
+          this._doDeleteDistributerLabel(labelId);
+        }
+      }
+    });
+  },
+
+  _doDeleteDistributerLabel(labelId) {
+    load.showLoading('删除中...');
+    
+    deleteLabel(labelId).then(res => {
+      load.hideLoading();
+      
+      if (res.result.code == 0) {
+        const { labelList, selectedLabelIds } = this.data;
+        
+        // 从列表中移除
+        const newLabelList = labelList.filter(l => l.nxDistributerLabelId !== labelId);
+        const newSelectedIds = selectedLabelIds.filter(id => id !== labelId);
+        const newSelectedLabels = this.data.selectedLabels.filter(l => l.nxDistributerLabelId !== labelId);
+        
+        this.setData({
+          labelList: newLabelList,
+          selectedLabelIds: newSelectedIds,
+          selectedLabels: newSelectedLabels
+        });
+        
+        wx.showToast({
+          title: '删除成功',
+          icon: 'success'
+        });
+      } else {
+        wx.showToast({
+          title: res.result.msg || '删除失败',
+          icon: 'none'
+        });
+      }
+    }).catch(err => {
+      load.hideLoading();
+      wx.showToast({
+        title: '网络错误',
+        icon: 'none'
+      });
+    });
+  },
+
+  // 保存客户标签
+  saveCustomerLabels() {
+    const { depFatherId, disId, selectedLabelIds } = this.data;
+    
+    load.showLoading('保存中...');
+    
+    disSyncDepartmentLabels({
+      depFatherId,
+      disId,
+      labelIds: selectedLabelIds
+    }).then(res => {
+      load.hideLoading();
+      
+      if (res.result.code == 0) {
+        wx.showToast({
+          title: '保存成功',
+          icon: 'success'
+        });
+        
+        this.setData({
+          showLabelModal: false,
+          update: true  // 标记需要刷新
+        });
+        
+        // 刷新客户信息
+        this._getDepInfo();
+      } else {
+        wx.showToast({
+          title: res.result.msg || '保存失败',
+          icon: 'none'
+        });
+      }
+    }).catch(err => {
+      load.hideLoading();
+      wx.showToast({
+        title: '网络错误',
+        icon: 'none'
+      });
+    });
+  },
+
+  // 移除客户的标签（右边列表）- 只影响当前客户
+  removeSelectedLabel(e) {
+    const labelId = e.currentTarget.dataset.id;
+    const { depId, labelList, selectedLabelIds, selectedLabels } = this.data;
+    
+    const newSelectedIds = selectedLabelIds.filter(id => id !== labelId);
+    const newSelectedLabels = selectedLabels.filter(l => l.nxDistributerLabelId !== labelId);
+    
+    // 更新标签列表中的选中状态
+    const newLabelList = labelList.map(label => ({
+      ...label,
+      selected: newSelectedIds.includes(label.nxDistributerLabelId)
+    }));
+    
+    // 先更新本地状态
+    this.setData({
+      labelList: newLabelList,
+      selectedLabelIds: newSelectedIds,
+      selectedLabels: newSelectedLabels
+    });
+    
+    // 调用API删除部门标签关系
+    deleteDepartmentLabel(depId, labelId).then(res => {
+      if (res.result.code == 0) {
+        wx.showToast({ title: '已移除', icon: 'success' });
+      } else {
+        // 失败则恢复原状态
+        this.setData({
+          labelList,
+          selectedLabelIds,
+          selectedLabels
+        });
+        wx.showToast({ title: '移除失败', icon: 'none' });
+      }
+    });
+  }
 
 
 

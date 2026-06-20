@@ -1,58 +1,171 @@
 <view class="flex flex-column">
 
-<!-- 调试信息显示 -->
+  <!-- 调试信息显示 -->
 
 
-<custom-navbar style="height: {{navBarHeight}}rpx; " title="订单" avatar="{{userInfo && userInfo.nxDiuWxAvartraUrl ? url + userInfo.nxDiuWxAvartraUrl : ''}}" button-text="设置" bindnavbuttontap="onNavButtonTap"></custom-navbar>
+  <custom-navbar style="height: {{navBarHeight}}rpx; " title="订单"
+    avatar="{{userInfo && userInfo.nxDiuWxAvartraUrl ? url + userInfo.nxDiuWxAvartraUrl : ''}}" button-text="设置"
+    bindnavbuttontap="onNavButtonTap"></custom-navbar>
 
-<view class="content  flex-column" >
-  <view class="flex  flex-row-between bg-white border-bottom" style=" height: {{viewBarHeight}}rpx; ">
-      <view class="flex" >
+  <view class="content  flex-column">
+    <view class="flex  flex-row-between bg-white border-bottom" style=" height: {{viewBarHeight}}rpx; ">
+      <view class="flex">
         <view class=" button-container mr-30 ml-20" bindtap="toUnPay" wx:if="{{unPayCount > 0}}">
-        <image src="/images/money-2.png" class="icon"></image>
-        <view class="badge {{unPayCount > 0 ? 'show' : 'hide'}}">{{unPayCount}}</view>
-      </view>
+          <image src="/images/money-2.png" class="icon"></image>
+          <view class="badge {{unPayCount > 0 ? 'show' : 'hide'}}">{{unPayCount}}</view>
+        </view>
 
-      <!-- <view class=" button-container mr-30" bindtap="toUnPayGb" wx:if="{{unPayGbBills  > 0}}">
+
+        <view class=" button-container ml-20 mr-30" bindtap="toLinshiGoods">
+          <image src="/images/icon_goods_active.png" class="icon"></image>
+          <view class="badge {{linshiTotal > 0 ? 'show' : 'hide'}}">{{linshiTotal}}</view>
+        </view>
+
+        <view class=" button-container mr-30 ml-20" bindtap="toUnSettleBill">
+          <image src="/images/warn-3.png" class="icon"></image>
+          <view class="badge {{nxBillCount > 0 ? 'show' : 'hide'}}">{{nxBillCount}}</view>
+        </view>
+        <!-- <view class="flex" >
+        <view class=" button-container mr-30 ml-20" bindtap="toUnPay" wx:if="{{nxBillCount > 0}}">
+        <image src="/images/money-2.png" class="icon"></image>
+        <view class="badge {{nxBillCount > 0 ? 'show' : 'hide'}}">{{nxBillCount}}</view>
+      </view> -->
+
+        <!-- <view class=" button-container mr-30" bindtap="toUnPayGb" wx:if="{{unPayGbBills  > 0}}">
         <image src="/images/jjcg.png" class="icon"></image>
         <view class="badge {{unPayGbBills > 0 ? 'show' : 'hide'}}">{{unPayGbBills}}</view>
       </view> -->
-      <view class=" button-container ml-20 mr-30" bindtap="toLinshiGoods" >
-        <image src="/images/icon_goods_active.png" class="icon"></image>
-        <view class="badge {{linshiTotal > 0 ? 'show' : 'hide'}}">{{linshiTotal}}</view>
-      </view>
 
-      <view class=" button-container mr-40" bindtap="addSearchOrder" data-type="buyingPrice" wx:if="{{nxDepArr.length  > 0  || returnList.length > 0 || gbDisArrApp.length > 0}}">
-        <image src="/images/search-active.png" class="icon" ></image>
-      </view>
-      </view>
-   
-  
-    <view class="flex flex-row p-20" style="height: {{viewBarHeight}}rpx; " >
-      
-      <view class="button-container mr-40" bindtap="addDepOrder">
-        <image src="/images/add-active.png" class="icon"></image>
+
+
       </view>
 
 
+      <view class="flex flex-row p-20" style="height: {{viewBarHeight}}rpx; ">
+
+
+
+        <!-- <view class=" button-container mr-30" bindtap="toLinshiOrderPage" wx:if="{{disInfo.nxDistributerAppId !== -1}}">
+        <image src="/images/edit-main.png" class="icon"></image>
+        <view class="badge {{unDoTotal > 0 ? 'show' : 'hide'}}">{{unDoTotal}}</view>
+      </view> -->
+
+        <view class=" button-container mr-40" bindtap="addSearchOrder" data-type="buyingPrice"
+          wx:if="{{nxDepArr.length  > 0  || returnList.length > 0 || gbDisArrApp.length > 0 || platformCustomers.length > 0}}">
+          <image src="/images/search-active.png" class="icon"></image>
+        </view>
+
+        <view class=" button-container mr-40" bindtap="toRetailGoods" wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+          <image src="/images/customer.png" class="icon"></image>
+        </view>
+
+        <view class="button-container mr-40" bindtap="addDepOrder">
+          <image src="/images/add-active.png" class="icon"></image>
+        </view>
+
+      </view>
     </view>
-  </view>
 
-
-  <view class="{{nxDepArr.length == 0  && returnList.length == 0 && gbDisArrApp.length == 0 && simpleTaskList.length == 0? 'show' : 'hide'}} ">
-    <view class="flex-column center-content" style="height: {{windowHeight - 500}}rpx;">
-      <image class="empty_image" src="../../../images/xiuxi.png"></image>
-      <text class="font-xl p-20">暂时无客户下单</text>
-      <text class=" darktext-secondary">这里只显示没有配送的订单</text>
+    <!-- 待解析任务：横向滚动，置顶 -->
+    <view class="task-scroll-wrap" wx:if="{{taskArr.length > 0}}">
+      <scroll-view scroll-x="true" class="task-scroll-view" enhanced="{{true}}" show-scrollbar="{{false}}">
+        <view class="task-scroll-inner">
+          <view class="task-card" wx:for="{{taskArr}}" wx:for-item="task" wx:key="nxOcrTaskId" bindtap="toOcrDep"
+            data-item="{{task}}" hover-class="task-card-hover">
+            <block wx:if="{{task.nxOcrTaskStatus == 0}}">
+              <view class="task-card-loading">
+                <image src="/images/loading.gif" class="task-loading-icon"></image>
+                <text class="task-dep-name">{{task.nxOcrTaskDepartmentName}}</text>
+                <text class="task-status-text">识别中...</text>
+              </view>
+            </block>
+            <block wx:else>
+              <view class="task-card-body" wx:if="{{task.nxOcrTaskType == 1}}">
+                <image src="{{url + task.nxOcrTaskImagePath}}" mode="aspectFill" class="task-thumb"
+                  data-image="{{url + task.nxOcrTaskImagePath}}" />
+                <view class="task-info">
+                  <text class="task-dep-name">{{task.nxOcrTaskDepartmentName}}</text>
+                  <block wx:if="{{task.nxOcrTaskPendingOrders > 0}}">
+                    <view class="flex-row">
+                      <text class="task-stats mr-10">订单:</text>
+                      <view class="text-success task-stats">{{task.nxOcrTaskCompletedOrders}}</view>
+                      <view class="task-stats"> /{{task.nxOcrTaskTotalOrders}}个</view>
+                    </view>
+                  </block>
+                  <block wx:else="">
+                    <view class="task-stats">订单: {{task.nxOcrTaskTotalOrders}}个</view>
+                  </block>
+                </view>
+              </view>
+              <view class="task-card-body" wx:elif="{{task.nxOcrTaskType == 2}}">
+                <view class="task-thumb">
+                  <view class="task-file-name">{{task.nxOcrTaskFileName}}</view>
+                </view>
+                <view class="task-info">
+                  <text class="task-dep-name">{{task.nxOcrTaskDepartmentName}}</text>
+                  <block wx:if="{{task.nxOcrTaskPendingOrders > 0}}">
+                    <view class="flex-row">
+                      <text class="task-stats mr-10">订单:</text>
+                      <view class="text-success task-stats">{{task.nxOcrTaskCompletedOrders}}</view>
+                      <view class="task-stats"> /{{task.nxOcrTaskTotalOrders}}个</view>
+                    </view>
+                  </block>
+                  <block wx:else="">
+                    <view class="task-stats">订单: {{task.nxOcrTaskTotalOrders}}个</view>
+                  </block>
+                </view>
+              </view>
+              <!-- <view class="task-card-body" wx:elif="{{task.nxOcrTaskType == 3}}">
+              <view class="task-thumb">
+                <text class="task-file-name">{{task.nxOcrTaskFileName}}</text>
+              </view>
+              <view class="task-info">
+                <text class="task-dep-name">{{task.nxOcrTaskDepartmentName}}</text>
+                <text class="task-stats">{{task.nxOcrTaskTotalOrders}}/{{task.nxOcrTaskCompletedOrders}}</text>
+              </view>
+            </view> -->
+              <view class="task-card-body" wx:else>
+                <view class="task-file-icon">
+                  <image src="/images/edit-main.png" mode="aspectFit" class="task-icon-img"></image>
+                </view>
+                <view class="task-info">
+                  <text class="task-dep-name">{{task.nxOcrTaskDepartmentName}}</text>
+                  <block wx:if="{{task.nxOcrTaskPendingOrders > 0}}">
+                    <view class="flex-row">
+                      <text class="task-stats mr-10">订单:</text>
+                      <view class="text-success task-stats">{{task.nxOcrTaskCompletedOrders}}</view>
+                      <view class="task-stats"> /{{task.nxOcrTaskTotalOrders}}个</view>
+                    </view>
+                  </block>
+                  <block wx:else="">
+                    <view class="task-stats">订单: {{task.nxOcrTaskTotalOrders}}个</view>
+                  </block>
+                </view>
+              </view>
+            </block>
+          </view>
+        </view>
+      </scroll-view>
     </view>
-  </view>
 
-  <view wx:if="{{nxDepArr.length  > 0  || returnList.length > 0 || gbDisArrApp.length > 0 || simpleTaskList.length > 0}}" class="flex-1">
-    <scroll-view scroll-y="true" class="scroll-content" style="height: 100%;" show-scrollbar="true" enhanced="{{true}}" bounces="{{true}}">
-    
-      <!-- returnList -->
+    <view
+      class="{{nxDepArr.length == 0  && returnList.length == 0 && gbDisArrApp.length == 0 && taskArr.length == 0 && offerArr.length == 0 && platformCustomers.length == 0 ? 'show' : 'hide'}} ">
+      <view class="flex-column center-content" style="height: {{windowHeight - 500}}rpx;">
+        <image class="empty_image" src="../../../images/xiuxi.png"></image>
+        <text class="font-xl p-20">暂时无客户下单</text>
+        <text class=" darktext-secondary">这里只显示没有配送的订单</text>
+      </view>
+    </view>
 
-      <!-- <view class="flex-row-between p-20 border-bottom bg-white" wx:for="{{unPayGbBills}}" bind:tap="openAccountBill" data-id="{{item.nxDepartmentBillId}}" data-dep="{{item.gbDepartmentEntity}}">
+    <view
+      wx:if="{{nxDepArr.length  > 0  || returnList.length > 0 || gbDisArrApp.length > 0 || taskArr.length > 0 || offerArr.length > 0 || platformCustomers.length > 0}}"
+      class="flex-1">
+      <scroll-view scroll-y="true" class="scroll-content" style="height: 100%;" show-scrollbar="true"
+        enhanced="{{true}}" bounces="{{true}}">
+
+        <!-- returnList -->
+
+        <!-- <view class="flex-row-between p-20 border-bottom bg-white" wx:for="{{unPayGbBills}}" bind:tap="openAccountBill" data-id="{{item.nxDepartmentBillId}}" data-dep="{{item.gbDepartmentEntity}}">
      
      <view class="flex-column">
           <view class="flex-row">
@@ -80,19 +193,68 @@
         </view>
     </view> -->
 
-    
-     <!-- returnList -->
+        <!-- offerList -->
 
-      <view class="flex-row-between p-20 border-bottom bg-white" wx:for="{{returnList}}" wx:key="nxDepartmentBillId" bind:tap="openAccountBill" data-id="{{item.nxDepartmentBillId}}" data-dep="{{item.gbDepartmentEntity}}">
-     
-       <view class="flex-column">
+
+        <view class="flex-row-between p-20 border-bottom bg-white" wx:for="{{offerArr}}" wx:key="nxDistributerId"
+          bind:tap="toNxDisOrders" data-id="{{item.nxDistributerId}}" data-name="{{item.nxDistributerName}}"
+          hover-class="hover">
+          <view class="flex-row-default" style="width: {{windowWidth - 120}}rpx; ">
+            <image src="{{url + item.nxDistributerImg}}" mode="aspectFill" class="url_item mr-20" />
+
+            <view class="flex-column">
+              <view class="flex-row">
+                <text class="font-lg">{{item.nxDistributerShowName}}</text>
+              </view>
+              <view class="flex-row" style="width: {{windowWidth - 240}}rpx;">
+                <view class="flex-row half-row">
+                  <text class="mr-10 text-secondary ">订单:</text>
+                  <text class="five-weight">{{item.aaa.totalCount}}个</text>
+                </view>
+                <view class="flex-row half-row">
+                  <text class="mr-10 text-secondary ">金额:</text>
+                  <text class="five-weight">{{item.aaa.twoSubtotal}}元</text>
+                </view>
+              </view>
+              <view class="flex-row" style="width: {{windowWidth - 240}}rpx; ">
+                <view class="flex-row half-row">
+                  <text class="mr-10 text-secondary ">有单价:</text>
+                  <text
+                    class="{{item.aaa.hasPrice == item.aaa.totalCount ? '' : 'mainColor'}} five-weight">{{item.aaa.hasPrice}}个</text>
+                </view>
+                <view class="flex-row half-row">
+                  <text class="mr-10 text-secondary ">已出库:</text>
+                  <text
+                    class="{{item.aaa.pickCount == item.aaa.totalCount ? '' : 'mainColor'}} five-weight">{{item.aaa.pickCount}}个</text>
+                </view>
+              </view>
+            </view>
+
+
+          </view>
+
+
+          <view class="flex-row with-mr-20">
+
+            <image src="/images/arrow-right-3.png" class="icon"></image>
+
+          </view>
+        </view>
+
+
+        <!-- returnList -->
+
+        <view class="flex-row-between p-20 border-bottom bg-white" wx:for="{{returnList}}" wx:key="nxDepartmentBillId"
+          bind:tap="openAccountBill" data-id="{{item.nxDepartmentBillId}}" data-dep="{{item.gbDepartmentEntity}}">
+
+          <view class="flex-column">
             <view class="flex-row">
               <text class="mr-20">{{item.gbDepartmentEntity.gbDepartmentName}}</text>
             </view>
             <view class="flex-row">
               <text class="mr-20">{{item.nxDbDate}}</text>
             </view>
-           
+
           </view>
 
           <view class="flex-row with-mr-20">
@@ -109,211 +271,281 @@
               <image src="../../../../images/points.png" class="icon"></image>
             </view>
           </view>
-      </view>
+        </view>
 
-
-      <!-- 缓存任务部门（当没有部门数据但有缓存任务时显示） -->
-      <block wx:if="{{simpleTaskList.length > 0}}">
-        <view class="plr-20 pt-10 pb-10  flex-row-between  border-bottom bg-white" wx:for="{{simpleTaskList}}" wx:for-item="item" wx:key="taskId" bindtap="toOcrDep" data-item="{{item}}"  >
-         
-         <view class="flex-column font-md">
-            <view class="flex flex-row align-center" >
-              <text class="mr-10">{{item.depName}}</text>
-              <image src="/images/loading.gif" class="loading-icon" style="width: 32rpx; height: 32rpx;"></image>
+        <!-- 平台客户（独立接口） -->
+        <block wx:if="{{platformCustomers.length > 0}}">
+          <view class="customer-section-header">平台客户</view>
+          <view
+            class="plr-20 pt-10 pb-10 flex-row-between border-bottom bg-white"
+            wx:for="{{platformCustomers}}" wx:for-item="item" wx:key="_rowKey"
+            bindtap="toPlatformDepOrders"
+            data-item="{{item}}" hover-class="hover">
+            <view class="flex-column font-md">
+              <view class="flex flex-row align-center">
+                <text class="font-xl text-secondary">{{index + 1}}.</text>
+                <text class="platform-tag mr-10">{{item.platformLabel || '平台客户'}}</text>
+                <text class="font-xl mr-20">{{item.displayName || item.gbDepartmentName || item.dep.nxDepartmentAttrName}}</text>
+                <text wx:if="{{item.unDo > 0}}" class="text-danger">({{item.unDo}}个待处理)</text>
+                <view class="ml-20 flex-row" wx:if="{{item.finishCount == item.totalCount && item.unDo == 0}}">
+                  <image src="/images/a-mti-chenggongshi.png" mode="aspectFill" class="icon-md" />
+                </view>
+              </view>
+              <view wx:if="{{item.gbDepartmentName}}" class="flex flex-row">
+                <text class="mr-10 text-secondary">京采饭店:</text>
+                <text class="five-weight">{{item.gbDepartmentName}}</text>
+              </view>
+              <view class="flex flex-row">
+                <view class="flex-row half-row">
+                  <text class="mr-10 text-secondary ">商品:</text>
+                  <text class="five-weight">{{item.totalCount}}个</text>
+                </view>
+                <view class="flex-row half-row">
+                  <text class="mr-10 text-secondary ">金额:</text>
+                  <text class="five-weight">{{item.twoSubtotal}}元</text>
+                </view>
+              </view>
+              <view class="flex flex-row " style="width: {{windowWidth - 80}}rpx;">
+                <view class="flex-row half-row">
+                  <text class="mr-10 text-secondary ">有单价:</text>
+                  <text
+                    class="{{item.hasPrice == item.totalCount ? '' : 'mainColor'}} five-weight">{{item.hasPrice}}个</text>
+                </view>
+                <view class="flex-row half-row">
+                  <text class="mr-10 text-secondary ">已出库:</text>
+                  <text
+                    class="five-weight {{item.totalCount == item.hasWeight ? '' : 'mainColor'}}">{{item.hasWeight}}个</text>
+                </view>
+              </view>
             </view>
-            <text class="font-sm text-secondary">识别中...</text>
+            <view>
+              <image src="../../../images/arrow-right-3.png" class="icon"></image>
+            </view>
           </view>
-        
-         <view>
-           <image src="../../../images/arrow-right-3.png" class="icon"></image>
-         </view>
+        </block>
 
-       </view>
-      </block>
+        <!-- nx_department：我的客户 -->
+        <block wx:if="{{customerSections.length > 0}}">
+        <block wx:for="{{customerSections}}" wx:for-item="section" wx:key="key" wx:for-index="sectionIndex">
+          <view wx:if="{{section.title}}" class="customer-section-header">{{section.title}}</view>
+          <view
+            class="plr-20 pt-10 pb-10 flex-row-between border-bottom bg-white {{sectionIndex === customerSections.length - 1 && index === section.items.length - 1 ? 'is-last' : ''}}"
+            wx:for="{{section.items}}" wx:for-item="item" wx:key="_rowKey"
+            bindtap="{{item.dep.nxDepartmentSettleType !== 2 ? 'toDepOrders' : 'toDepOrdersRetail'}}"
+            data-id="{{item.dep.nxDepartmentId}}" data-name="{{item.dep.nxDepartmentAttrName}}"
+            data-depsub="{{item.dep.nxDepartmentSubAmount}}" data-gbid="-1" data-resid="-1"
+            data-nxdisid="{{item.dep.nxDepartmentDisId}}" data-gbdisid="-1" data-comid="-1" hover-class="hover"
+            data-item="{{item.dep}}">
 
-      
-
-      <!-- nx_department -->
-      <view class="plr-20 pt-10 pb-10  flex-row-between  border-bottom bg-white {{nxDepArr.length == parentIndex + 1 ? 'is-last' : ''}}" wx:for="{{nxDepArr}}" wx:for-item="item" wx:key="nxDepartmentId" bindtap="{{item.dep.nxDepartmentSettleType == 0 ? 'toDepOrders' : 'toDepOrders'}}" data-id="{{item.dep.nxDepartmentId}}" data-name="{{item.dep.nxDepartmentAttrName}}" data-depsub="{{item.dep.nxDepartmentSubAmount}}" data-gbid="-1" data-resid="-1" data-nxdisid="{{item.dep.nxDepartmentDisId}}" data-gbdisid="-1" data-comid="-1" hover-class="hover" data-item="{{item.dep}}">
-       
-          <view class="flex-column font-md">
-            <view class="flex flex-row align-center">
-              <!-- <text wx:if="{{item.dep.nxDepartmentPickName !== null}}">{{item.dep.nxDepartmentPickName}}-</text> -->
-              <text  class="font-xl text-secondary">{{index + 1}}.</text>
-              <text class="font-xl mr-20">{{item.dep.nxDepartmentAttrName}}</text>
-              <text wx:if="{{item.unDo > 0}}" class="text-danger">({{item.unDo}}个待处理)</text>
-              <!-- 如果有缓存任务，显示加载 icon -->
-              <view class="ml-20 flex-row" wx:if="{{item.hasCacheTask}}">
-                <image src="/images/add.png" mode="aspectFill" class="loading-icon" style="width: 32rpx; height: 32rpx;"></image>
+            <view class="flex-column font-md">
+              <view class="flex flex-row align-center">
+                <text class="font-xl text-secondary">{{index + 1}}.</text>
+                <text class="font-xl mr-20">{{item.dep.nxDepartmentAttrName}}</text>
+                <text wx:if="{{item.unDo > 0}}" class="text-danger">({{item.unDo}}个待处理)</text>
+                <view class="ml-20 flex-row" wx:if="{{item.hasCacheTask}}">
+                  <image src="/images/add.png" mode="aspectFill" class="loading-icon"
+                    style="width: 32rpx; height: 32rpx;"></image>
+                </view>
+                <view class="ml-20 flex-row" wx:if="{{item.finishCount == item.totalCount && item.unDo == 0}}">
+                  <image src="/images/a-mti-chenggongshi.png" mode="aspectFill" class="icon-md" />
+                </view>
               </view>
-              <view  class="ml-20 flex-row" wx:if="{{item.finishCount == item.totalCount && item.unDo == 0}}">
-              <image src="/images/a-mti-chenggongshi.png" mode="aspectFill" class="icon-md"/>
+
+              <view class="flex flex-row">
+                <view class="flex-row half-row">
+                  <text class="mr-10 text-secondary ">商品:</text>
+                  <text class="five-weight">{{item.totalCount}}个</text>
+                </view>
+                <view class="flex-row half-row">
+                  <text class="mr-10 text-secondary ">金额:</text>
+                  <text class="five-weight">{{item.twoSubtotal}}元</text>
+                </view>
+              </view>
+
+              <view class="flex flex-row " style="width: {{windowWidth - 80}}rpx;">
+                <view class="flex-row half-row">
+                  <text class="mr-10 text-secondary ">有单价:</text>
+                  <text
+                    class="{{item.hasPrice == item.totalCount ? '' : 'mainColor'}} five-weight">{{item.hasPrice}}个</text>
+                </view>
+                <view class="flex-row half-row">
+                  <text class="mr-10 text-secondary ">已出库:</text>
+                  <text
+                    class="five-weight {{item.totalCount == item.hasWeight ? '' : 'mainColor'}}">{{item.hasWeight}}个</text>
+                </view>
               </view>
             </view>
 
-            <view class="flex flex-row">
+            <view>
+              <image src="../../../images/arrow-right-3.png" class="icon"></image>
+            </view>
+          </view>
+        </block>
+        </block>
+        <!-- 兜底：分组数据为空时仍展示 nxDepArr -->
+        <block wx:elif="{{nxDepArr.length > 0}}">
+          <view
+            class="plr-20 pt-10 pb-10 flex-row-between border-bottom bg-white"
+            wx:for="{{nxDepArr}}" wx:for-item="item" wx:key="dep.nxDepartmentId"
+            bindtap="{{item.dep.nxDepartmentSettleType !== 2 ? 'toDepOrders' : 'toDepOrdersRetail'}}"
+            data-id="{{item.dep.nxDepartmentId}}" data-name="{{item.dep.nxDepartmentAttrName}}"
+            data-depsub="{{item.dep.nxDepartmentSubAmount}}" data-gbid="-1" data-resid="-1"
+            data-nxdisid="{{item.dep.nxDepartmentDisId}}" data-gbdisid="-1" data-comid="-1" hover-class="hover"
+            data-item="{{item.dep}}">
+            <view class="flex-column font-md">
+              <view class="flex flex-row align-center">
+                <text class="font-xl text-secondary">{{index + 1}}.</text>
+                <text class="font-xl mr-20">{{item.dep.nxDepartmentAttrName}}</text>
+              </view>
+            </view>
+            <view>
+              <image src="../../../images/arrow-right-3.png" class="icon"></image>
+            </view>
+          </view>
+        </block>
+
+
+        <!-- gb_department -->
+        <view class="flex-row-between mt-10 bg-white border-bottom" wx:for="{{gbDisArr}}" wx:for-item="dis"
+          wx:key="gbDistributerPurchaseBatchId" bindtap="toPurOrders" data-id="{{dis.gbDistributerPurchaseBatchId}}"
+          hover-class="hover" data-supplier="{{dis.nxJrdhSupplierEntity}}" data-batch="{{dis}}">
+          <view class="flex-column p-20 ">
+            <view class="flex-row-between " style="width: {{windowWidth - 140}}rpx;">
+              <view class="flex-row">
+                <image src="{{url + dis.nxJrdhPurEntity.gbDuWxAvartraUrl}}" mode="aspectFill" class="url" />
+                <text class="font-lg-2">{{dis.nxJrdhPurEntity.gbDuWxNickName}}</text>
+                <block wx:if="{{dis.gbDpbStatus == 1}}">
+                  <image src="/images/a-mti-chenggongshi.png" mode="aspectFill" class="icon-md" />
+                </block>
+                <block wx:elif="{{dis.gbDpbStatus == 2}}">
+                  <image src="/images/a-mti-chenggongshi.png" mode="aspectFill" class="icon-md mr-10" />
+                  <!--  -->
+                  <image src="/images/save-active.png" mode="aspectFill" class="icon-md" />
+
+                </block>
+              </view>
+            </view>
+
+            <view class="flex flex-row font-lg">
 
               <view class="flex-row half-row">
                 <text class="mr-10 text-secondary ">商品:</text>
-                <text class="five-weight">{{item.totalCount}}个</text>
+                <text class="five-weight">{{dis.gbDPGEntities.length}}个</text>
               </view>
+
               <view class="flex-row half-row">
-                <text class="mr-10 text-secondary ">金额:</text>
-                <text class="five-weight">{{item.twoSubtotal}}元</text>
+                <text class="mr-10 text-secondary ">总计:</text>
+                <text class=" five-weight">{{dis.gbDpbSubtotal == null ? '0' :dis.gbDpbSubtotal }}元</text>
               </view>
 
             </view>
 
-            <view class="flex flex-row " style="width: {{windowWidth - 80}}rpx;">
-
-              <view class="flex-row half-row">
-                <text class="mr-10 text-secondary ">有单价:</text>
-                <text class="{{item.hasPrice == item.totalCount ? '' : 'mainColor'}} five-weight">{{item.hasPrice}}个</text>
-              </view>
-
-              <view class="flex-row half-row">
-                <text class="mr-10 text-secondary ">已出库:</text>
-                <text class="five-weight {{item.totalCount == item.hasWeight ? '' : 'mainColor'}}">{{item.hasWeight}}个</text>
-              </view>
-            </view>
-
           </view>
-       
-        <view>
-          <image src="../../../images/arrow-right-3.png" class="icon"></image>
-        </view>
 
-      </view>
-
-
-      <!-- gb_department -->
-      <view class="flex-row-between mt-10 bg-white border-bottom" wx:for="{{gbDisArr}}" wx:for-item="dis" wx:key="gbDistributerPurchaseBatchId" bindtap="toPurOrders" data-id="{{dis.gbDistributerPurchaseBatchId}}" hover-class="hover" data-supplier="{{dis.nxJrdhSupplierEntity}}" data-batch="{{dis}}">
-        <view class="flex-column p-20 " >
-          <view class="flex-row-between " style="width: {{windowWidth - 140}}rpx;">
-            <view class="flex-row">
-              <image src="{{url + dis.nxJrdhPurEntity.gbDuWxAvartraUrl}}" mode="aspectFill" class="url"/>
-              <text class="font-lg-2">{{dis.nxJrdhPurEntity.gbDuWxNickName}}</text>  
-              <block wx:if="{{dis.gbDpbStatus == 1}}">
-                <image src="/images/a-mti-chenggongshi.png" mode="aspectFill" class="icon-md"/>
-              </block> 
-              <block wx:elif="{{dis.gbDpbStatus == 2}}">
-                <image src="/images/a-mti-chenggongshi.png" mode="aspectFill" class="icon-md mr-10"/>
-                 <!--  -->
-                 <image src="/images/save-active.png" mode="aspectFill" class="icon-md"/>
-
-              </block> 
-            </view>                     
+          <view class="flex-column">
+            <image src="/images/arrow-right-3.png" mode="aspectFill" class="icon mr-20" />
           </view>
-          
-          <view class="flex flex-row font-lg">
 
-            <view class="flex-row half-row">
-              <text class="mr-10 text-secondary ">商品:</text>
-              <text class="five-weight">{{dis.gbDPGEntities.length}}个</text>
-            </view>
-
-            <view class="flex-row half-row">
-              <text class="mr-10 text-secondary ">总计:</text>
-              <text class=" five-weight">{{dis.gbDpbSubtotal == null ? '0' :dis.gbDpbSubtotal }}元</text>
-            </view> 
-          
-          </view>
-        
         </view>
-
-        <view class="flex-column">
-          <image src="/images/arrow-right-3.png" mode="aspectFill" class="icon mr-20"/>
-        </view>
-     
-      </view>
 
         <!-- gb_departmentApp -->
         <view class="flex-column" wx:for="{{gbDisArrApp}}" wx:for-item="dis" wx:key="gbDepFatherId">
-        <view class="flex-column p-20 liziBack">
-          <view class="flex-row-between normal">
-            <text>{{dis.dis.gbDistributerName}}</text>
-            <!-- wx:if="{{dis.dis.nxDistributerGbDistributerEntity.nxDgdGbPayMethod == 1}}" -->
-            <block>
-              <view bindtap="toPurGoods" data-id="{{dis.dis.appSupplierDepartment.gbDepartmentId}}" data-name="{{dis.dis.gbDistributerName}}" data-disid="{{dis.dis.gbDistributerId}}">
-                <image src="../../../images/money-3.png" mode="aspectFill" class="icon" />
-                <image src="../../../images/arrow-right-3.png" mode="aspectFill" class="icon" />
-              </view>
-            </block>
-          </view>
-        </view>
-
-        <view class="p-20 bg-white flex-row-between with-border-bottom-shadow {{gbDisArr.length == parentIndex + 1 ? 'is-last' : ''}}" wx:for="{{dis.arr}}" wx:for-item="item" wx:key="gbDepartmentId" bindtap="toDepOrdersGb" data-id="-1" data-item="{{item.gbDep}}" data-name="{{item.gbDep.gbDepartmentName}}" data-time="{{dis.dis.gbDistributerSettleTimes}}" data-gbid="{{item.gbDep.gbDepartmentId}}" data-resid="-1" data-nxdisid="-1" data-gbdisid="{{item.gbDep.gbDepartmentDisId}}"  data-todepid="{{dis.dis.appSupplierDepartment.gbDepartmentId}}" data-comid="-1" hover-class="hover">
-          <view class="flex-row-default" style="width:{{windowWidth - 80}}rpx;  ">
-            <view class="flex-column">
-              <view class="flex-row">
-                <text class="normal margin-right">{{item.gbDep.gbDepartmentName}}</text>
-              </view>
-              <view class="flex-row small" style="width: {{windowWidth - 80}}rpx;">
-
-                <view class="flex-row third-row">
-                  <text class="margin-l-right gray">出库订单:</text>
-                  <text>{{item.chukuOrder}}个</text>
+          <view class="flex-column p-20 liziBack">
+            <view class="flex-row-between normal">
+              <text>{{dis.orderDisId.gbDistributerName}}</text>
+              <!-- wx:if="{{dis.dis.nxDistributerGbDistributerEntity.nxDgdGbPayMethod == 1}}" -->
+              <block>
+                <view bindtap="toPurGoods" data-id="{{dis.orderDisId.appSupplierDepartment.gbDepartmentId}}"
+                  data-name="{{dis.orderDisId.gbDistributerName}}" data-disid="{{dis.orderDisId.gbDistributerId}}">
+                  <image src="../../../images/money-3.png" mode="aspectFill" class="icon" />
+                  <image src="../../../images/arrow-right-3.png" mode="aspectFill" class="icon" />
                 </view>
-
-                <view class="flex-row third-row">
-                  <text class="margin-l-right gray">订货订单:</text>
-                  <text class="">{{item.wxOrder}}个</text>
-                </view>
-
-                <view class="flex-row third-row">
-                  <text class="margin-l-right gray">采购订单:</text>
-                  <text>{{item.zicaiOrder}}个</text>
-                </view>
-              </view>
-
-              <view class="flex-row small" style="width: {{windowWidth - 80}}rpx; ">
-                <view class="flex-row third-row">
-                  <text class="margin-l-right gray">出库完成:</text>
-                  <text class="{{item.chukuOrderFinished == item.chukuOrder ? '' : 'mainColor'}}">{{item.chukuOrderFinished}}个</text>
-                </view>
-                <view class="flex-row third-row">
-                  <text class="margin-l-right gray">订货完成:</text>
-                  <text class="{{item.wxOrderFinished == item.wxOrder ? '' : 'mainColor'}}">{{item.wxOrderFinished}}个</text>
-                </view>
-                <view class="flex-row third-row">
-                  <text class="margin-l-right gray">采购完成:</text>
-                  <text class="{{item.zicaiOrderFinished == item.zicaiOrder ? '' : 'mainColor'}}">{{item.zicaiOrderFinished}}个</text>
-                </view>
-              </view>
-
-              <view class="flex-row small" style="width: {{windowWidth - 80}}rpx; ">
-                <view class="flex-row third-row">
-                  <text class="margin-l-right gray">未写价格:</text>
-                  <text class="">{{item.hasNotPrice}}个</text>
-                </view>
-                <view class="flex-row third-row">
-                  <text class="margin-l-right gray">已写价格:</text>
-                  <text class="{{item.hasNotPrice > 0 ? 'mainColor' : ''}}">{{item.hasPrice}}个</text>
-                </view>
-                <view class="flex-row third-row">
-                  <text class="margin-l-right gray">小计:</text>
-                  <text>{{item.twoSubtotal}}元</text>
-                </view>
-
-              </view>
-
+              </block>
             </view>
           </view>
 
-          <view>
-            <image src="../../../images/arrow-right-3.png" class="icon"></image>
+          <view
+            class="p-20 bg-white flex-row-between with-border-bottom-shadow {{gbDisArr.length == parentIndex + 1 ? 'is-last' : ''}}"
+            wx:for="{{dis.arr}}" wx:for-item="item" wx:key="gbDepartmentId" bindtap="toDepOrdersGb" data-id="-1"
+            data-item="{{item.gbDep}}" data-name="{{item.gbDep.gbDepartmentName}}"
+            data-time="{{dis.orderDisId.gbDistributerSettleTimes}}" data-gbid="{{item.gbDep.gbDepartmentId}}" data-resid="-1"
+            data-nxdisid="-1" data-gbdisid="{{item.gbDep.gbDepartmentDisId}}"
+            data-todepid="{{dis.orderDisId.appSupplierDepartment.gbDepartmentId}}" data-comid="-1" hover-class="hover">
+            <view class="flex-row-default" style="width:{{windowWidth - 80}}rpx;  ">
+              <view class="flex-column">
+                <view class="flex-row">
+                  <text class="normal margin-right">{{item.gbDep.gbDepartmentName}}</text>
+                </view>
+                <view class="flex-row small" style="width: {{windowWidth - 80}}rpx;">
+
+                  <view class="flex-row third-row">
+                    <text class="margin-l-right gray">出库订单:</text>
+                    <text>{{item.chukuOrder}}个</text>
+                  </view>
+
+                  <view class="flex-row third-row">
+                    <text class="margin-l-right gray">订货订单:</text>
+                    <text class="">{{item.wxOrder}}个</text>
+                  </view>
+
+                  <view class="flex-row third-row">
+                    <text class="margin-l-right gray">采购订单:</text>
+                    <text>{{item.zicaiOrder}}个</text>
+                  </view>
+                </view>
+
+                <view class="flex-row small" style="width: {{windowWidth - 80}}rpx; ">
+                  <view class="flex-row third-row">
+                    <text class="margin-l-right gray">出库完成:</text>
+                    <text
+                      class="{{item.chukuOrderFinished == item.chukuOrder ? '' : 'mainColor'}}">{{item.chukuOrderFinished}}个</text>
+                  </view>
+                  <view class="flex-row third-row">
+                    <text class="margin-l-right gray">订货完成:</text>
+                    <text
+                      class="{{item.wxOrderFinished == item.wxOrder ? '' : 'mainColor'}}">{{item.wxOrderFinished}}个</text>
+                  </view>
+                  <view class="flex-row third-row">
+                    <text class="margin-l-right gray">采购完成:</text>
+                    <text
+                      class="{{item.zicaiOrderFinished == item.zicaiOrder ? '' : 'mainColor'}}">{{item.zicaiOrderFinished}}个</text>
+                  </view>
+                </view>
+
+                <view class="flex-row small" style="width: {{windowWidth - 80}}rpx; ">
+                  <view class="flex-row third-row">
+                    <text class="margin-l-right gray">未写价格:</text>
+                    <text class="">{{item.hasNotPrice}}个</text>
+                  </view>
+                  <view class="flex-row third-row">
+                    <text class="margin-l-right gray">已写价格:</text>
+                    <text class="{{item.hasNotPrice > 0 ? 'mainColor' : ''}}">{{item.hasPrice}}个</text>
+                  </view>
+                  <view class="flex-row third-row">
+                    <text class="margin-l-right gray">小计:</text>
+                    <text>{{item.twoSubtotal}}元</text>
+                  </view>
+
+                </view>
+
+              </view>
+            </view>
+
+            <view>
+              <image src="../../../images/arrow-right-3.png" class="icon"></image>
+            </view>
           </view>
         </view>
-      </view>
 
-      <view class="" style="height: 200rpx; line-height: 200rpx;background-color: rgb(240, 240, 240); margin-bottom:120rpx;">
+        <view class=""
+          style="height: 200rpx; line-height: 200rpx;background-color: rgb(240, 240, 240); margin-bottom:120rpx;">
 
-        <view class="p-20 text-secondary text-center">没有数据啦！</view>
-      </view>
+          <view class="p-20 text-secondary text-center">没有数据啦！</view>
+        </view>
 
-    </scroll-view>
+      </scroll-view>
+    </view>
   </view>
-</view>
 
 
 </view>
@@ -334,3 +566,7 @@
 </view>
 
 </view> -->
+
+<!-- 图片预览组件 -->
+<imagePreviewModal show="{{showImagePreview}}" image-urls="{{previewImageUrls}}" current-index="{{previewCurrentIndex}}"
+  bindclose="onCloseImagePreview" bindchange="onPreviewImageChange"></imagePreviewModal>

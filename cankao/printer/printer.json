@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "连接打印机",
-  "usingComponents": {
-    "back-navbar": "/components/back-navbar/back-navbar"
-
-  }
-}

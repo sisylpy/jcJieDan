@@ -259,10 +259,17 @@ Page({
 
 
   deleteDepGoods(e){
+    console.log(("deleteDepGoodsdeleteDepGoods"))
     deleteDepGoods(e.currentTarget.dataset.id).then(
       res =>{
         if(res.result.code == 0){
           this._getResGoodsWithOrders();
+        }else{
+          wx.showToast({
+            title: res.result.msg,
+            icon: 'none'
+          })
+
         }
       }
     )

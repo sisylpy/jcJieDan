@@ -5,7 +5,7 @@ import apiUrl from '../../../../config.js'
 import {
   getMendianStockTypePeriod,
   
-} from '../../../../lib/apiDistributerGb.js'
+} from '../../../lib/apiDistributerGb.js'
 
 
 Page({

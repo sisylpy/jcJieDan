@@ -1,0 +1,106 @@
+<wxs src="../../../../utils/fn.wxs" module="tool" />
+
+<view class="flex clll_back">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="{{name}}" avatar="/images/back-gray.png" button-text="设置"
+    bindnavbuttontap="toBack"></back-navbar>
+
+  <view class=" " style="margin-top: {{navBarHeight}}rpx;">
+    <view class="flex-column p-20">
+
+      <view class=" p-20 flex-row-between bg-white radius-20">
+
+        <view class="flex-column">
+          <view class="flex-row-wrap font-lg">
+            <text class="">订货商:</text>
+            <text>{{name}}</text>
+          </view>
+          <view class="flex-row ">
+            <text class="">单号:</text>
+            <text>{{tradeNo}}</text>
+          </view>
+
+          <view class="flex-row">
+
+            <text class="">合计:</text>
+            <text class="total ">{{total}}元</text>
+
+          </view>
+        </view>
+        <view class="flex-row">
+          <image src="{{url +  batchItem.offerNxDistributer.nxDistributerImg}}" mode="aspectFill" class="url_item" />
+        </view>
+
+      </view>
+
+      <view class="flex flex-row-default p-10 border-bottom  font-lg" wx:for="{{applyArr}}"
+        wx:key="nxDistributerGoodsId" wx:for-index="goodsIndex">
+        <text class="pt-10 mt-10">{{goodsIndex + 1}}.</text>
+        <view class="flex-column p-10" style="width:{{windowWidth - 100}}rpx;  ">
+          <view class="flex-row-between">
+            <view class="flex-row" style="width: {{windowWidth - 140}}rpx; ">
+              <text class="brand"
+                wx:if="{{item.nxDgGoodsBrand !== null && item.nxDgGoodsBrand.length > 0}}">{{item.nxDgGoodsBrand}}</text>
+              <text class="">{{item.nxDgGoodsName}}</text>
+
+              <block wx:if="{{item.nxDgGoodsStandardWeight !== 'null' && item.nxDgGoodsStandardWeight.length > 0}}">
+                <text class=""
+                  wx:if="{{item.nxDgGoodsStandardname !== '斤'}}">({{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}})</text>
+              </block>
+              <block wx:else>
+                <text class="" wx:if="{{item.nxDgGoodsStandardname !== '斤'}}">({{item.nxDgGoodsStandardname}})</text>
+              </block>
+            </view>
+          </view>
+
+
+          <view class="flex-cloumn " style=" width: {{windowWidth - 160}}rpx; ">
+            <view class="flex-row-default pb-10" wx:for-item="order" wx:for="{{item.nxDepartmentOrdersEntities}}"
+              wx:for-index="orderIndex" wx:key="nxDepartmentOrdersId">
+
+              <view class="flex-column">
+
+                <view class="flex flex-row" style="width:{{(windowWidth - 80)}}rpx; ">
+                  <view class="half-row">
+                    <text class="text-secondary">订货:</text>
+                    <text>{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+                  </view>
+                  <view class="half-row">
+                    <text class="text-secondary">供货数量:</text>
+                    <text>{{order.nxDoWeight}}{{item.nxDgGoodsStandardname}}</text>
+                  </view>
+
+                </view>
+                <view class=" flex-row " style="width:{{(windowWidth - 80)}}rpx;;">
+                  <view class="half-row">
+                    <text class="text-secondary">单价:</text>
+                    <text>{{order.nxDoPrice}}元/{{item.nxDgGoodsStandardname}}</text>
+                  </view>
+                  <view class="half-row">
+                    <text class="text-secondary">小计:</text>
+                    <text>{{order.nxDoSubtotal}}元</text>
+                  </view>
+                </view>
+
+              </view>
+            </view>
+          </view>
+
+        </view>
+      </view>
+
+
+    </view>
+
+
+  </view>
+
+</view>
+<view class=" bottom_view clll_back p-20">
+  <view class=" p-20 center-content "
+    style="width: {{windowWidth - 120}}rpx; padding: 20rpx 20rpx; background-color: rgb(5, 177, 114); color: #FFF; border-radius: 40rpx;"
+    bind:tap="saveBill">确认配货并发送</view>
+</view>
+
+
+<saveBillModal wx:if="{{showPopupSave}}" type="{{popupType}}" warnContent="{{warnContent}}"
+  bind:closeSaveBill="closeSaveBill" bind:confirmSaveBill="confirmSaveBill" />

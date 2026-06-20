@@ -1,3 +1,20 @@
+<!-- 隐私授权弹窗：符合微信平台运营规范3.4，收集用户信息前需取得用户同意 -->
+<view class="privacy-mask" wx:if="{{showPrivacy}}">
+  <view class="privacy-modal">
+    <view class="privacy-title">用户协议与隐私政策</view>
+    <view class="privacy-desc">感谢您使用京采接单。我们非常重视您的个人信息和隐私保护。请您阅读并同意以下协议后继续使用：</view>
+    <view class="privacy-links">
+      <text class="link" bindtap="handleOpenUserAgreement">《用户服务协议》</text>
+      <text class="link" bindtap="handleOpenPrivacyPolicy">《隐私政策》</text>
+    </view>
+    <view class="privacy-tip">我们将在您同意后收集必要信息以提供配送管理服务，包括：账号信息、联系信息、位置信息等。详见隐私政策。</view>
+    <view class="privacy-btns">
+      <button class="privacy-btn secondary" bindtap="handleOpenPrivacyContract">查看微信隐私指引</button>
+      <button id="agree-privacy-btn" class="privacy-btn primary" open-type="agreePrivacyAuthorization" bindagreeprivacyauthorization="handleAgreePrivacy">同意并继续</button>
+    </view>
+  </view>
+</view>
+
 <view class='flex-column'>
   <back-navbar style="height: {{navBarHeight}}rpx;" title="邀请码认证" avatar="/images/logo.jpg" button-text="返回" bindnavbuttontap="toBack"></back-navbar>
   
@@ -36,6 +53,7 @@
     </view>
   </view>
 </view>
+
 
 
 

@@ -1,0 +1,81 @@
+<view class='invite-page flex-column flex'>
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="{{pageTitle}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+  <view class="invite-content">
+    <!-- 邀请方（自己打开自己分享的链接） -->
+    <block wx:if="{{isInviter}}">
+      <view class="invite-banner invite-banner-green">
+        <image src="/images/hezuowoshou.png" class="invite-banner-icon"></image>
+        <text class="invite-banner-text">等待接收方确认...</text>
+      </view>
+      <view class="invite-card">
+        <view class="flex-row-default">
+          <view class="invite-avatar1">
+          <image src="{{url + disInfo.nxDistributerImg}}" mode="aspectFill" class="url_item mr-20" />
+          </view>
+          <view class="invite-card-main">
+            <text class="partner-name">{{disInfo.nxDistributerName || disName}}</text>
+            <text class="invite-card-desc">地址: {{disInfo.nxDistributerAddress}}</text>
+            <text class="invite-card-desc"> 邀请人: {{userInfo.nxDiuWxNickName}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="invite-card">
+        <view class="invite-detail-row">
+          <image src="/images/user-group.png" class="invite-detail-icon"></image>
+          <text class="invite-detail-text">邀请方: {{disInfo && disInfo.nxDistributerName ? disInfo.nxDistributerName : disName}}</text>
+        </view>
+        <view class="invite-detail-row">
+          <image src="/images/calender.png" class="invite-detail-icon"></image>
+          <text class="invite-detail-text">邀请时间: {{inviteTime}}</text>
+        </view>
+        <view class="invite-detail-row">
+          <image src="/images/icon_goods_active.png" class="invite-detail-icon"></image>
+          <text class="invite-detail-text">邀请方式: {{inviteType === 1 ? '邀请成为我的供货商' : '邀请购买我的产品'}}</text>
+        </view>
+      </view>
+      <view class="invite-btns">
+        <view class="invite-btn invite-btn-secondary" bind:tap="toBack">取消邀请</view>
+      </view>
+    </block>
+
+    <!-- 被邀请方（别人打开链接） -->
+    <block wx:if="{{isInvitee}}">
+      <view class="invite-banner invite-banner-green">
+        <image src="/images/hezuowoshou.png" class="invite-banner-icon"></image>
+        <text class="invite-banner-text">邀请后等待接收</text>
+      </view>
+      <view class="invite-card">
+        <view class="flex-row-default">
+          <view class="">
+            <image src="{{url + disInfo.nxDistributerImg}}" mode="aspectFill" class="url_item mr-20" />
+          </view>
+          <view class="invite-card-main">
+            <text class="partner-name">{{disName}}</text>  
+            <text class="invite-card-desc">地址: {{disInfo.nxDistributerAddress}}</text>
+            <text class="invite-card-desc"> 邀请人: {{userInfo.nxDiuWxNickName}}</text>
+          </view>
+        </view>
+      </view>
+      <view class="invite-card">
+        <view class="invite-detail-row">
+          <image src="/images/user-group.png" class="invite-detail-icon"></image>
+          <text class="invite-detail-text">发起方: {{disName}}</text>
+        </view>
+        <view class="invite-detail-row">
+          <image src="/images/calender.png" class="invite-detail-icon"></image>
+          <text class="invite-detail-text">邀请时间: {{inviteTime}}</text>
+        </view>
+        <view class="invite-detail-row">
+          <image src="/images/icon_goods_active.png" class="invite-detail-icon"></image>
+          <text class="invite-detail-text">邀请方式: {{inviteType === 1 ? '邀请您成为对方的供货商' : '邀请您购买对方的产品'}}</text>
+        </view>
+      </view>
+      <text class="invite-accept-tip">接受此邀请后，您将与对方配送商建立协作关系。</text>
+      <view class="invite-btns invite-btns-row">
+        <view class="invite-btn invite-btn-primary" bind:tap="saveOfferNxDis">接受</view>
+        <view class="invite-btn invite-btn-secondary" bind:tap="toBack">拒绝</view>
+      </view>
+    </block>
+  </view>
+</view>

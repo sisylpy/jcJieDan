@@ -19,11 +19,13 @@ Page({
   data: {
     canLogin: false,
     accept: false,
+    agreeProtocol: false,  // 是否同意用户协议和隐私政策（符合平台规范3.4）
     address: null,
     disName: null,
     userName: null,
     phone: null,
     showSelect: false,
+    showPrivacy: false,  // 隐私授权弹窗
     downloadAllGoods: false, // 是否下载全部商品
     
     longitude: 0,
@@ -56,6 +58,8 @@ Page({
 
     this._login();
 
+    // 检查隐私授权状态（符合微信平台规范3.4）
+    this._checkPrivacyAuth();
 
     if(options.cityId == null){
       this.setData({
@@ -84,6 +88,31 @@ Page({
 
 
 
+
+  _checkPrivacyAuth() {
+    if (!wx.getPrivacySetting) return;
+    wx.getPrivacySetting({
+      success: (res) => {
+        if (res.needAuthorization) {
+          this.setData({ showPrivacy: true });
+        }
+      },
+      fail: () => {},
+      complete: () => {}
+    });
+  },
+
+  handleAgreePrivacy() {
+    this.setData({ showPrivacy: false });
+  },
+
+  handleOpenPrivacyContract() {
+    wx.openPrivacyContract({
+      success: () => {},
+      fail: () => {},
+      complete: () => {}
+    });
+  },
 
   _aaa() {
     wx.login({
@@ -206,7 +235,9 @@ Page({
       phone: this.data.phone
     });
     
-    if (this.data.disName !== null && this.data.userName !== null && this.data.marketId !== -1 && this.data.address !== null && this.data.phone !== null) {
+    const basicOk = this.data.disName !== null && this.data.userName !== null && this.data.marketId !== -1 && this.data.address !== null && this.data.phone !== null;
+    const canLogin = basicOk && this.data.agreeProtocol;
+    if (basicOk && this.data.agreeProtocol) {
       console.log("✅ 所有条件满足，canLogin = true");
       console.log("当前 environment:", this.data.environment);
       console.log("应该显示的按钮:", this.data.environment === 'wxwork' ? '企业微信注册按钮' : '普通注册按钮');
@@ -221,8 +252,36 @@ Page({
     }
   },
 
+  onAgreeProtocolChange(e) {
+    this.setData({
+      agreeProtocol: e.detail.value.length > 0
+    });
+    this._canLogin();
+  },
+
+  toUserAgreement() {
+    wx.navigateTo({
+      url: '/subPackage/pages/agreement/userAgreement/userAgreement'
+    });
+  },
+
+  toPrivacyPolicy() {
+    wx.navigateTo({
+      url: '/subPackage/pages/agreement/privacyPolicy/privacyPolicy'
+    });
+  },
+
   tishi() {
     console.log("tishi 被点击，当前数据:", this.data);
+    
+    if (!this.data.agreeProtocol) {
+      wx.showToast({
+        title: '请先阅读并同意《用户服务协议》和《隐私政策》',
+        icon: 'none',
+        duration: 3000
+      });
+      return;
+    }
     
     // 检查缺少哪些信息
     const missing = [];

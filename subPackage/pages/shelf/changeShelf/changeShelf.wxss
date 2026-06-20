@@ -60,3 +60,27 @@ page {
   /* margin-left: 20rpx; */
   /* margin-right: 60rpx; */
 }
+
+.change-shelf-bottom {
+  flex-direction: column;
+  align-items: stretch;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.change-shelf-save-hint {
+  display: block;
+  text-align: center;
+  font-size: 24rpx;
+  color: #888;
+  padding: 12rpx 28rpx 0;
+  line-height: 1.4;
+}
+
+.change-shelf-btn-pending {
+  opacity: 0.92;
+}
+
+.change-shelf-btn-ready {
+  font-weight: 600;
+  box-shadow: 0 8rpx 20rpx rgba(24, 126, 110, 0.35);
+}

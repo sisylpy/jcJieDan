@@ -4,7 +4,7 @@
 
 
 <view class="flex flex-column">
- <back-navbar style="height: {{navBarHeight}}rpx;" title="{{goodsSetType == 'shelf' ? '添加货架商品' : '设置出库/采购'}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+ <back-navbar style="height: {{navBarHeight}}rpx;" title="{{goodsSetType == 'shelf' ? '添加货架商品' : '设置出库/采购/停用'}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
   <view class="flex-column" >
   

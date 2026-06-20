@@ -3,7 +3,7 @@
 
 
 <view class="flex flex-column">
- <back-navbar style="height: {{navBarHeight}}rpx;" title="{{setType == 'shelf' ? '添加货架商品' : '设置出库/采购'}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+ <back-navbar style="height: {{navBarHeight}}rpx;" title="{{setType == 'shelf' ? '添加货架商品' : '设置出库/采购/停用'}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
 
   <view class="flex-column " style="padding-bottom: 200rpx;" >
@@ -13,7 +13,9 @@
     </view>
 
     <view class="flex-row-between border-bottom bg-white p-20 " wx:for="{{goodsList}}" >
-				<view class="flex-row  pb-10 " style="width:{{windowWidth - 100}}rpx;">
+
+        <view class="flex-column">
+        	<view class="flex-row  pb-10 " style="width:{{windowWidth - 100}}rpx;">
 					<text class="mr-10">{{index + 1}}.</text>
 					<text class="brand"
 						wx:if="{{item.nxDgGoodsBrand !== null && item.nxDgGoodsBrand.length > 0}}">{{item.nxDgGoodsBrand}}</text>
@@ -23,7 +25,19 @@
           <text class="">{{item.nxDgGoodsStandardname}}</text>
 						<text class=" "
 							wx:if="{{item.nxDgGoodsStandardWeight !== null && item.nxDgGoodsStandardWeight.length > 0}}">({{item.nxDgGoodsStandardWeight}})</text>
-				</view>		
+				</view>	
+
+        <view class="flex-row  pb-10 " style="width:{{windowWidth - 100}}rpx;">
+					<text class="mr-10 text-white">{{index + 1}}.</text>
+					 <text>出库方式:</text>
+					<text class="mr-20" >{{item.nxDgPurchaseAuto == -1 ? '出库' : '采购'}}</text>
+					<text class="gray" 	wx:if="{{item.nxDgGoodsDetail !== null && item.nxDgGoodsDetail.length > 0}}">{{item.nxDgGoodsDetail}}</text>
+         
+				</view>	
+
+        
+        </view>
+				
 			
        <view class="flex-column" wx:if="{{setType == 'suppler'}}">
           <checkbox  checked="{{item.nxDgSupplierId == supplierId ? 'true' : ''}}" bindtap="choiceGoods"   data-id="{{item.nxDistributerGoodsId}}" />
@@ -45,20 +59,26 @@
 </view>
 
 
-<view class=" bottom_view" >
+<view class=" bottom_view " >
   <block wx:if="{{setType == 'autoPurchase'}}">
     <view class="" style="background-color: rgb(230, 230, 230); border-top: 1px solid #e5e5e5; width: {{windowWidth }}rpx; padding: 20rpx 20rpx; height: 100rpx; ">
     <view class="flex-row" style="justify-content: center; align-items: center; line-height: 60rpx;">
-      <view class="buy-amount" style="background-color: #ff9800; color: #fff; margin-right: 20rpx; width: 300rpx;" bindtap="setGoodsType" data-type="-1">
-        <text>设为出库商品</text>
+      <view class="buy-amount mr-20" style="background-color: #ff3c00; color: #fff;  width: 30%; " bindtap="setGoodsType" data-type="-2">
+        <text>设为停用</text>
       </view>
-      <view class="buy-amount" style="background-color: #4CAF50; color: #fff; width: 300rpx;" bindtap="setGoodsType" data-type="1">
-        <text>设为采购商品</text>
+      <view class="buy-amount mr-20" style="background-color: #ff9800; color: #fff;  width: 30%;" bindtap="setGoodsType" data-type="-1">
+        <text>设为出库</text>
+      </view>
+      <view class="buy-amount" style="background-color: #4CAF50; color: #fff; width: 30%;" bindtap="setGoodsType" data-type="1">
+        <text>设为采购</text>
       </view>
     </view>
   </view>
   </block>
   <block wx:else="">
-    <view class="p-20 center-content big_button is-active"  bind:tap="saveGoods">保存商品</view>
+  <block wx:if="{{setType == 'shelf'}}">
+    <view class="p-20 center-content big_button is-active"  bind:tap="saveGoods">保存{{shelfItem.nxDistributerGoodsShelfName}}货架商品</view>
+  </block>
+   
   </block>
  </view>

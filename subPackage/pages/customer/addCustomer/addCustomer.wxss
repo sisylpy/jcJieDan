@@ -1,3 +1,42 @@
+/* 名称输入区域 */
+.name-field {
+  padding: 24rpx 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.name-field:last-of-type {
+  border-bottom: none;
+}
+
+.name-label {
+  display: block;
+  font-size: 30rpx;
+  color: #333;
+  font-weight: 500;
+  margin-bottom: 16rpx;
+}
+
+.name-input {
+  width: 95%;
+  height: 80rpx;
+  padding: 0 20rpx;
+  font-size: 30rpx;
+  border: 1px solid #e5e5e5;
+  border-radius: 12rpx;
+  background: #fafafa;
+  margin-bottom: 12rpx;
+}
+
+.name-input:focus {
+  background: #fff;
+  border-color: #147062;
+}
+
+.name-hint {
+  font-size: 24rpx;
+  color: #999;
+  line-height: 1.5;
+}
 
 .depments{
   margin-left: 10rpx;
@@ -82,4 +121,13 @@ input {
   height: 100rpx;
   margin-top: 10px;
   margin-left: 4rpx;
+}
+
+/* 保存按钮尽量宽 */
+.bottom_view .big_button {
+  width: 92%;
+  height: 80rpx;
+  line-height: 80rpx;
+  box-sizing: border-box;
+  margin-bottom: 20rpx;
 }

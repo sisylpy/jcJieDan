@@ -227,9 +227,39 @@
   align-items: center;
 }
 
-.bottom-tip-text {
-  font-size: 28rpx;
-  color: #999;
+.dep-section-header {
+  padding: 10rpx 8rpx 4rpx;
+  font-size: 22rpx;
+  color: #666;
+  background: #eef2f6;
   text-align: center;
+  width: 100%;
+}
+
+.platform-tag {
+  display: inline-block;
+  padding: 2rpx 10rpx;
+  font-size: 22rpx;
+  line-height: 32rpx;
+  color: #fff;
+  background: #187e6e;
+  border-radius: 6rpx;
+  flex-shrink: 0;
+}
+
+.platform-tag-sm {
+  display: inline-block;
+  padding: 0 6rpx;
+  font-size: 18rpx;
+  line-height: 28rpx;
+  color: #fff;
+  background: #187e6e;
+  border-radius: 4rpx;
+  margin-bottom: 4rpx;
+}
+
+.goods-qty-summary {
+  width: 100%;
+  flex-wrap: wrap;
 }
 

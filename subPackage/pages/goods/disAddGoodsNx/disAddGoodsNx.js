@@ -2,7 +2,7 @@ var app = getApp();
 
 import {
   disSaveDisGoods,
-} from '../../../../lib/apiibook'
+} from '../../../lib/apiibook'
 
 import apiUrl from '../../../../config.js'
 var load = require('../../../../lib/load.js');

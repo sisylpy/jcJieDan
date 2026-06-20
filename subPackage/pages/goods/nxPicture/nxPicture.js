@@ -2,7 +2,7 @@ import apiUrl from '../../../../config.js'
 
 import {
   disGetGoods
-} from '../../../../lib/apiibook'
+} from '../../../lib/apiibook'
 
 Page({
 

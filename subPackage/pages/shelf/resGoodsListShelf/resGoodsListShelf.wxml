@@ -40,7 +40,7 @@
             </view>
           </view>
           <view class="section-body">
-            <view class="card1 result-card p-20" wx:for="{{nxArr}}" wx:key="goodsIndex" wx:for-index="goodsIndex" wx:for-item="goods">
+            <view class="result-card p-20" wx:for="{{nxArr}}" wx:key="goodsIndex" wx:for-index="goodsIndex" wx:for-item="goods">
               <!-- 已上架商品（显示货架名称） -->
               <block wx:if="{{goods.goodsType == 'shelfGoods'}}">
                 <view class="card-title font-md">

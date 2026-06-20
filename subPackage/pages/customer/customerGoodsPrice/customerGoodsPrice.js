@@ -72,7 +72,6 @@ Page({
 
   // /////
   _initData() {
-    var that = this;
     load.showLoading("获取数据");
     var data = {
       depFatherId: this.data.depFatherId,

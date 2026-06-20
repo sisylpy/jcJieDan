@@ -5,10 +5,11 @@ var dateUtils = require('../../../../utils/dateUtil');
 import apiUrl from '../../../../config.js'
 
 import {
- 
- 
-  getOrderPageWithTraceReport
+  getOrderPageWithTraceReport,
+  updateOrder,
 } from '../../../../lib/apiDepOrder'
+
+import { resolveNxDoCostPriceLevel } from '../../../../lib/retailPriceLevel'
 
 
 Page({
@@ -871,21 +872,17 @@ Page({
 
 
   changeStandard: function (e) {
+    const lv = e.detail.level != null ? Number(e.detail.level) : 1;
+    const stdName = e.detail.applyStandardName;
+    const dis = this.data.applyItem && this.data.applyItem.nxDistributerGoodsEntity;
+    const levelTwoStandard = dis ? dis.nxDgWillPriceTwoStandard : "";
+    const printStd = lv === 2 || stdName === levelTwoStandard ? levelTwoStandard : dis ? dis
+      .nxDgGoodsStandardname : "";
     this.setData({
-      applyStandardName: e.detail.applyStandardName,
-      priceLevel: e.detail.level,
+      applyStandardName: stdName,
+      priceLevel: lv,
+      printStandard: printStd,
     })
-    var levelTwoStandard = this.data.applyItem.nxDistributerGoodsEntity.nxDgWillPriceTwoStandard;
-    if (this.data.applyStandardName == levelTwoStandard) {
-      this.setData({
-        printStandard: levelTwoStandard
-      })
-    } else {
-      this.setData({
-        printStandard: this.data.applyItem.nxDistributerGoodsEntity.nxDgGoodsStandardname
-      })
-    }
-    console.log("thisdaprinfir", this.data.printStandard)
   },
 
   hideMaskGoods() {
@@ -1066,12 +1063,14 @@ Page({
     }
     this.setData({
       show: false,
+      showCash: false,
       editApply: false,
       applyItem: "",
       item: "",
       applyNumber: "",
       applyStandardName: "",
       printStandard: "",
+      priceLevel: 1,
     })
   },
 
@@ -1098,14 +1097,16 @@ Page({
    * @param {} e 
    */
   _updateDisOrder(e) {
+    const std = e.detail.applyStandardName;
+    const dis = this.data.applyItem && this.data.applyItem.nxDistributerGoodsEntity;
 
     var dg = {
       id: this.data.applyItem.nxDepartmentOrdersId,
       weight: e.detail.applyNumber,
-      standard: e.detail.applyStandardName,
+      standard: std,
       remark: e.detail.applyRemark,
       printStandard: this.data.printStandard,
-      priceLevel: this.data.priceLevel
+      priceLevel: resolveNxDoCostPriceLevel(dis, std),
     };
     updateOrder(dg).then(res => {
       load.showLoading("修改订单")
@@ -1134,7 +1135,8 @@ Page({
       applyItem: "",
       applyNumber: "",
       depStandardArr: [],
-
+      showCash: false,
+      priceLevel: 1,
     })
 
     if (this.data.isSearching) {
@@ -1986,7 +1988,7 @@ Page({
 
     if (arr.length > 0) {
       load.showLoading("保存数据中");
-      if(this.data.disInfo.nxDistributerBusinessTypeId > 1){
+      if(this.data.disInfo.nxDistributerBusinessTypeId > 2){
         giveOrderWeightListForStockShelfGoods(arr).then(res => {
           load.hideLoading();
           if (res.result.code == 0) {

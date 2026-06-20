@@ -6,7 +6,30 @@
   <back-navbar style="height: {{navBarHeight}}rpx;" title="客户" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
 
-  <view class=" bg-white flex-row-reverse plr-20  border-bottom-text-secondary" style="height:100rpx; width: {{windowWidth - 40}}rpx; margin-top: {{navBarHeight}}rpx; ">
+  <view class=" bg-white flex-row plr-20  border-bottom-text-secondary" style="height:100rpx; width: {{windowWidth - 40}}rpx; margin-top: {{navBarHeight}}rpx; justify-content: space-between; align-items: center;">
+    <!-- 标签筛选区域 -->
+    <scroll-view scroll-x class="label-filter-scroll">
+      <view class="label-filter-container">
+        <!-- 全部按钮始终显示 -->
+        <view 
+          class="label-filter-item {{selectedLabelId === null ? 'active' : ''}}" 
+          bindtap="filterByLabel" 
+          data-id="{{null}}"
+        >
+          全部
+        </view>
+      
+        <view 
+          class="label-filter-item {{selectedLabelId === item.nxDistributerLabelId ? 'active' : ''}}" 
+          wx:for="{{labelList}}" 
+          wx:key="nxDistributerLabelId"
+          bindtap="filterByLabel" 
+          data-id="{{item.nxDistributerLabelId}}"
+        >
+          {{item.nxDlName}}
+        </view>
+      </view>
+    </scroll-view>
 
     <view class="newBtnBack flex-column-center" bindtap="addNewCustomer">
       <image src="../../../../images/add.png" class="icon"></image>
@@ -44,7 +67,7 @@
     </view>
 
     <view bindtap="toCustomerPage" data-item="{{item}}" hover-class="hover" data-type="0" class="border-bottom flex-row-between bg-white p-20" wx:for="{{myCustomerArrOne}}">
-      <view class="flex-column">
+      <view class="flex-column" >
         <view class="flex-row">
           <text class="mr-20">{{index + 1}}.</text>
           <text class='font-lg'>{{item.nxDepartmentAttrName}}</text>
@@ -53,32 +76,8 @@
           <text class="mr-20 text-white">{{index + 1}}.</text>
 
           <view class="flex-column font-sm">
-
-            <!-- <view class="flex-row-between" style="width: {{windowWidth - 160}}rpx; ">
-            <view class="flex-row half-row" >
-              <text class="mr-10 text-secondary">部门:</text>
-            <text class="">{{item.nxDepartmentEntities.length == '0' ? '无' : '多部门'}}</text>
-            </view>
-            <view class="flex-row half-row" >
-              <text class="mr-10 text-secondary">配送单格式:</text>
-            <block wx:if="{{item.nxDepartmentPrintName == 'ApplyPanel'}}">
-              <text class="">一张一列</text>
-            </block>
-            <block wx:elif="{{item.nxDepartmentPrintName == 'ApplyFiftyPanel'}}">
-              <text class="">一张二列</text>
-            </block>
-            <block wx:else="">
-              <text class="">半张二列</text>
-            </block>
-            </view>
-          </view> -->
-
-
-            <view class="flex-row" style="width: {{windowWidth - 140}}rpx; ">
-              <view class="flex-row half-row">
-                <text class="mr-10 text-secondary">配送单显示:</text>
-                <text>{{item.nxDepartmentAttrName}}</text>
-              </view>
+            <view class="flex-row-between" style="width: {{windowWidth - 140}}rpx; ">
+             
               <view class="flex-row half-row">
                 <text class="mr-10 text-secondary">配送单格式:</text>
                 <block wx:if="{{item.nxDepartmentPrintName == 'ApplyPanel'}}">
@@ -100,9 +99,21 @@
                   <text class="">三分之一张两列</text>
                 </block>
               </view>
+
+              <view class="flex-row half-row">
+              <view class="flex-row ">
+                <text class="mr-10 text-secondary flex-fixed">客户标签:</text>
+                <view class="flex-row-wrap">
+                  <text class="customer-label-tag mr-10 " wx:for="{{item.nxDistributerLabelEntities}}" wx:for-item="label">{{label.nxDlName}}</text> 
+                </view>
+
+              </view>
+
             </view>
 
-            <view class="flex-row-between" style="width: {{windowWidth - 160}}rpx; " wx:if="{{item.nxDepartmentWorkingStatus == -1}}">
+            </view>
+
+            <view class="flex-row-between" style="width: {{windowWidth - 160}}rpx; " wx:if="{{item.nxDepartmentWorkingStatus !== 0}}">
               <view class="flex-row ">
                 <text class="mr-10 text-secondary">未开通</text>
               </view>
@@ -113,10 +124,8 @@
           </view>
         </view>
       </view>
-      <view wx:if="{{item.nxDepartmentWorkingStatus == 0}}">
+      <view >
         <image src="../../../../images/arrow-right-3.png" class="icon-md plr-20"></image>
-
-        <!-- <image src="../../../../images/arrow-right-3.png" class="icon-md plr-20"></image> -->
       </view>
     </view>
   </view>
@@ -145,10 +154,7 @@
           <view class="flex-column font-sm">
 
             <view class="flex-row-between" style="width: {{windowWidth - 160}}rpx; ">
-              <view class="flex-row half-row">
-                <text class="mr-10 text-secondary">配送路线:</text>
-                <view>{{item.nxDepartmentPickName}}</view>
-              </view>
+             
               <view class="flex-row half-row">
                 <text class="mr-10 text-secondary">配送单格式:</text>
                 <block wx:if="{{item.nxDepartmentPrintName == 'ApplyPanel'}}">
@@ -170,17 +176,20 @@
                   <text class="">三分之一张两列</text>
                 </block>
               </view>
-            </view>
-
-
-            <view class="flex-row" style="width: {{windowWidth - 160}}rpx; ">
-              <view class="flex-row ">
-                <text class="mr-10 text-secondary">录音时长:</text>
-                <text class="mainColor">{{item.nxDepartmentRecordMinutes}}</text>
-                <text class="text-secondary">秒</text>
+              <view class="flex-row half-row">
+              <view class="flex-row-default">
+                <text class="mr-10 text-secondary flex-fixed">客户标签:</text>
+                <view class="flex-row-wrap">
+                  <text class="customer-label-tag mr-10 " wx:for="{{item.nxDistributerLabelEntities}}" wx:for-item="label">{{label.nxDlName}}</text> 
+                </view>
+                              
               </view>
 
             </view>
+            </view>
+
+
+          
           </view>
         </view>
 

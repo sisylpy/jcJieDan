@@ -108,6 +108,7 @@ Page({
       gbDepFatherId: this.data.gbDepFatherId,
       resFatherId:  this.data.resFatherId,
       orderBy: this.data.orderBy,
+      disId: this.data.disId,
     }
     load.showLoading("获取订单中")
     getOrderPage(data)

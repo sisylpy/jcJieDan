@@ -141,6 +141,18 @@
   box-sizing: border-box;
 }
 
+.stock-content-full {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20rpx;
+  padding: 0 10rpx;
+  box-sizing: border-box;
+}
+
 .stock-text {
   font-size: 26rpx;
   color: #666;
@@ -276,6 +288,34 @@
   font-size: 28rpx;
   color: #666;
   margin-left: 10rpx;
+}
+
+.flex-shelf-life {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.shelf-life-num {
+  flex: 1;
+  min-width: 0;
+}
+
+.shelf-life-unit {
+  width: 160rpx;
+  flex-shrink: 0;
+}
+
+.picker-tap {
+  min-height: 70rpx;
+  line-height: 70rpx;
+  box-sizing: border-box;
+}
+
+.picker-placeholder {
+  color: #999;
+  font-size: 28rpx;
 }
 
 /* 按钮区域 */

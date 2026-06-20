@@ -1,0 +1,962 @@
+/* 货架页：防止 flex 子项被长文本/角标撑出屏宽 */
+.main {
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.main .flex-1 {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.main .flex-1 scroll-view {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.main .flex-1 .flex-column {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* 缩略图双列容器：占满右侧滚动区，避免百分比子项溢出 */
+.main scroll-view .flex-row-wrap.p-20 {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.shelf-toolbar {
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.shelf-toolbar-left {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.shelf-toolbar-actions {
+  flex-shrink: 0;
+}
+
+.left {
+  width: 15vw;
+}
+
+.left-item {
+  padding: 30rpx 20rpx;
+  background-color: rgb(247, 247, 247);
+}
+
+.left-active {
+  background-color: #fff;
+  border-left: 6rpx solid #167063;
+  background-color: #b8e6d0 !important; /* 更强烈的绿色背景，表示已点击且可操作 */
+  border-left: 6rpx solid #0d5d4f !important; /* 更深的绿色边框 */
+  font-weight: 700; /* 加粗文字 */
+  color: #0d5d4f !important; /* 深绿色文字，更强烈的对比 */
+  box-shadow: 0 4rpx 12rpx rgba(22, 112, 99, 0.3); /* 更强的阴影效果，更突出 */
+  transform: scale(1.02); /* 轻微放大，增强视觉反馈 */
+}
+
+
+.circle{
+  
+  /* z-index: 998; */
+  background: #04328c;
+  border-radius: 20rpx;
+  width: 80rpx;
+  height: 50rpx;
+  line-height: 50rpx;
+  margin-left: -25rpx;
+  margin-top: -125rpx;
+  font-size: 26rpx;
+  color: #fff;
+  
+}
+
+.circle_list{
+  background: #04328c;
+  border-radius: 20rpx;
+  width: 80rpx;
+  height: 50rpx;
+  line-height: 50rpx;
+  font-size: 26rpx;
+  color: #fff;
+}
+
+.circle_list.gray{
+  background: #374947;
+}
+
+
+.circle_list.green{
+  background-color: #0a868a;
+}
+.his_price{
+  background-color: #ececec;
+  color: rgb(14, 26, 192);
+  padding: 4rpx 16rpx;
+  border-radius: 10rpx;
+
+}
+
+.circle.gray{
+  background: #374947;
+}
+
+.circle.green{
+  background-color: #0a868a;
+}
+
+.border-radius-40{
+  border-radius: 40rpx;
+  border: 1px solid lightgray;
+
+
+}
+
+
+/* 货架商品类型筛选菜单 */
+.filter-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.35);
+  z-index: 10000;
+}
+
+.filter-menu-panel {
+  position: fixed;
+  left: 20rpx;
+  z-index: 10001;
+  border-radius: 16rpx;
+  overflow: hidden;
+  box-shadow: 0 16rpx 32rpx rgba(0, 0, 0, 0.12);
+  min-width: 200rpx;
+}
+
+.filter-menu-item {
+  color: #515151;
+  padding: 24rpx 32rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.filter-menu-item:last-child {
+  border-bottom: none;
+}
+
+.filter-menu-item.active {
+  color: #167063;
+  font-weight: 600;
+}
+
+.shelf-tools-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.35);
+  z-index: 10000;
+}
+
+.shelf-tools-panel {
+  position: fixed;
+  right: 40rpx;
+  z-index: 10001;
+  border-radius: 20rpx;
+  overflow: hidden;
+  box-shadow: 0 16rpx 32rpx rgba(0, 0, 0, 0.12);
+}
+
+.shelf-layer-picker-overlay {
+  z-index: 10002;
+}
+
+.shelf-layer-picker-modal {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 560rpx;
+  max-height: 70vh;
+  border-radius: 20rpx;
+  z-index: 10003;
+  overflow: hidden;
+  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.18);
+}
+
+.shelf-layer-picker-scroll {
+  max-height: 55vh;
+}
+
+.shelf-layer-divider {
+  width: 100%;
+  padding: 20rpx 0 30rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.divider-line {
+  flex: 1;
+  height: 4rpx;
+  background-color: #12a085;
+  border-radius: 4rpx;
+}
+
+.divider-text {
+  margin: 0 26rpx;
+  font-size: 26rpx;
+  color: #0a8a72;
+  font-weight: 600;
+}
+
+.shelf-list-wrap {
+  padding: 20rpx;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.shelf-list-item {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  background-color: #fff;
+  border-radius: 24rpx;
+  border: 1px solid #e5e5e5;
+  padding: 20rpx;
+  margin-bottom: 20rpx;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* 第一行：图 + 标题（库存另起一行占满宽） */
+.shelf-list-top-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* 库存区：从图片下缘起与卡片同宽 */
+.shelf-list-stock-full {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  margin-top: 8rpx;
+  padding-top: 0;
+}
+
+.shelf-list-same-goods-full {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.shelf-list-thumb {
+  width: 160rpx;
+  height: 160rpx;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+  border-radius: 16rpx;
+  overflow: hidden;
+  background-color: #f5f5f5;
+}
+
+.shelf-list-img {
+  width: 100%;
+  height: 100%;
+}
+
+.shelf-list-img.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shelf-list-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+  overflow-x: hidden;
+  overflow-y: visible;
+}
+
+.shelf-list-title {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 12rpx;
+}
+
+.shelf-list-brand {
+  font-size: 26rpx;
+  color: #0a8a72;
+  padding: 0 14rpx;
+  background-color: rgba(10, 138, 114, 0.12);
+  border-radius: 12rpx;
+}
+
+.shelf-list-title-text {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8rpx;
+}
+
+/* 列表：序号+层级+名称同一行；规格与大包装同一行 */
+.shelf-list-line-full {
+  flex: 0 0 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 层序、品牌、品名为并列 flex；品名区可多行换行以显示全称 */
+.shelf-list-title-line1 {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.shelf-title-prefix,
+.shelf-title-brand {
+  flex-shrink: 0;
+  line-height: 1.35;
+}
+
+.shelf-title-name-wrap {
+  flex: 1;
+  min-width: 0;
+  overflow: visible;
+}
+
+.shelf-title-name-text {
+  display: block;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+
+/* 规格 + 大包装：允许整行折行，避免右侧撑出屏幕 */
+.shelf-list-spec-carton-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  min-width: 0;
+  margin-bottom: 0;
+  padding-bottom: 0;
+  /* gap: 0 8rpx; */
+  /* row-gap: 6rpx; */
+}
+
+.shelf-list-spec-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.shelf-list-spec-gap {
+  flex-shrink: 0;
+  color: #b0b8c2;
+  font-size: 28rpx;
+  line-height: 1.35;
+}
+
+.shelf-list-carton-inline {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.shelf-list-carton-main,
+.shelf-list-carton-unit {
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.shelf-list-name {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.shelf-list-spec {
+  font-size: 28rpx;
+  color: #5c6570;
+}
+
+.shelf-list-stock {
+  display: flex;
+  align-items: flex-start;
+  font-size: 28rpx;
+  color: #454545;
+  gap: 12rpx;
+  margin-top: 16rpx;
+  min-width: 0;
+}
+
+.shelf-list-stock .shelf-card-stock {
+  flex: 1;
+  min-width: 0;
+}
+
+.shelf-list-stock-label {
+  color: #666;
+  flex-shrink: 0;
+}
+
+/* 相同货架：卡片 / 列表统一结构，置于库存下方 */
+.shelf-same-goods-row {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  font-size: 28rpx;
+  color: #454545;
+  gap: 12rpx;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.shelf-list-same-goods {
+  margin-top: 12rpx;
+}
+
+/* 同架紧跟规格行：与规格同属 title-text 列，仅用父级 gap，不再额外顶距 */
+.shelf-list-title-text .shelf-list-same-under-spec {
+  margin-top: 0;
+}
+
+.shelf-same-goods-chips {
+  flex: 1;
+  min-width: 0;
+}
+
+.stock-num {
+  color: #147062;
+  font-weight: 600;
+}
+
+.stock-empty {
+  color: #999;
+}
+
+.overlay .popup {
+  top: 12% !important;
+  transform: translate(-50%, 0) !important;
+  width: 92% !important;
+  border-radius: 28rpx;
+  overflow: hidden;
+  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.18);
+}
+
+.shelf-list-tag {
+  margin-left: 20rpx;
+  display: flex;
+  align-items: center;
+}
+
+.shelf-card-wrap {
+  width: 48%;
+  margin: 0 2% 24rpx 0;
+  position: relative;
+  box-sizing: border-box;
+  max-width: 48%;
+  min-width: 0;
+}
+.shelf-card-wrap:nth-child(2n) {
+  margin-right: 0;
+}
+
+.shelf-card {
+  background: #ffffff;
+  border-radius: 28rpx;
+  padding: 24rpx;
+  box-shadow: 0 12rpx 32rpx rgba(0, 0, 0, 0.06);
+  border: 1rpx solid #e9eff2;
+  min-height: 220rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 16rpx;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.shelf-card-header {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+.shelf-card-brand {
+  font-size: 24rpx;
+  padding: 4rpx 18rpx;
+  color: #0a8a72;
+  background: rgba(18, 160, 133, 0.12);
+  border-radius: 20rpx;
+}
+
+.shelf-card-title {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+.sameShelf{
+  border: 1px solid rgb(224, 71, 0);
+  border-radius: 10rpx;
+  padding: 4rpx 10rpx;
+  background-color: #f8feff;
+  color: rgb(204, 1, 1);
+  font-size: 24rpx;
+  font-weight: 500;
+  
+  
+}
+
+.shelf-card-name {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #1f2f3d;
+}
+
+.shelf-card-spec {
+  font-size: 28rpx;
+  color: #454d56;
+  /* font-size: 40rpx; */
+  /* color: #04328c; */
+}
+
+
+
+/* 左侧菜单已点击状态（允许点击右侧商品） */
+.left-clicked {
+  background-color: #b8e6d0 !important; /* 更强烈的绿色背景，表示已点击且可操作 */
+  border-left: 6rpx solid #0d5d4f !important; /* 更深的绿色边框 */
+  font-weight: 700; /* 加粗文字 */
+  color: #0d5d4f !important; /* 深绿色文字，更强烈的对比 */
+  box-shadow: 0 4rpx 12rpx rgba(22, 112, 99, 0.3); /* 更强的阴影效果，更突出 */
+  transform: scale(1.02); /* 轻微放大，增强视觉反馈 */
+}
+
+
+.shelf-card-stock {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  flex: 1;
+  align-items: flex-start;
+}
+
+.stock-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e9efff;
+  color: #3171ff;
+  padding: 8rpx 22rpx;
+  border-radius: 20rpx;
+  font-size: 28rpx;
+  line-height: 1.2;
+}
+
+.shelf-card-empty {
+  color: #b0b7c3;
+  font-size: 26rpx;
+}
+
+.shelf-card-tag {
+  position: absolute;
+  top: 10rpx;
+  right: 0;
+}
+.shelf-card-tag .circle {
+  margin: 0;
+  width: 90rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  border-radius: 28rpx;
+  font-size: 24rpx;
+  
+}
+
+/* 图片弹窗样式 */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100rpx);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.image-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 20rpx;
+  width: 90%;
+  max-width: 600rpx;
+  max-height: 80%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s ease;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 30rpx;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.close-btn {
+  width: 60rpx;
+  height: 60rpx;
+  border-radius: 50%;
+  background: #f5f5f5;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 40rpx;
+  color: #666;
+  transition: all 0.3s ease;
+}
+
+.close-btn:active {
+  background: #e0e0e0;
+  transform: scale(0.95);
+}
+
+.modal-body {
+  padding: 30rpx;
+  text-align: center;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.modal-image {
+  width: 100%;
+  max-height: 500rpx;
+  border-radius: 12rpx;
+  margin-bottom: 20rpx;
+  animation: scaleIn 0.4s ease 0.1s both;
+  transition: transform 0.3s ease;
+}
+
+.image-info {
+  text-align: left;
+  margin-top: 20rpx;
+}
+
+.goods-name {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 10rpx;
+}
+
+.goods-standard {
+  display: block;
+  font-size: 28rpx;
+  color: #666;
+}
+
+/* 固定货架名称区域 */
+.shelf-header-fixed {
+  position: relative;
+  z-index: 100;
+  background-color: #fff;
+}
+
+/* ========== 库存批次：与 stockList 采购行一致（缩略卡片内） ========== */
+.shelf-card-stock-rows {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  align-items: stretch;
+  gap: 12rpx;
+}
+
+.shelf-card-stock-rows .shelf-stock-batch-card.purchase-row-content {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+  background: #ffffff;
+  border-radius: 6rpx;
+  padding: 10rpx;
+  margin-bottom: 0;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+}
+
+.shelf-card-stock-rows .shelf-stock-batch-inner.flex-row {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: stretch;
+  flex-wrap: wrap;
+  width: 100%;
+  min-width: 0;
+}
+
+.shelf-card-stock-rows .purchase-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8rpx;
+  min-height: 56rpx;
+  flex: 1;
+  min-width: 120rpx;
+}
+
+.shelf-card-stock-rows .purchase-section:first-child {
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 8rpx;
+  background: rgba(0, 0, 0, 0.03);
+  border-radius: 6rpx;
+  margin-right: 8rpx;
+  min-height: 72rpx;
+  min-width: 140rpx;
+}
+
+.shelf-card-stock-rows .purchase-date {
+  font-size: 22rpx;
+  color: #666;
+  font-weight: 500;
+}
+
+.shelf-card-stock-rows .purchase-info.purchase-inbound {
+  flex: 1;
+  min-width: 100rpx;
+  background-color: #e4eefc;
+  border-radius: 6rpx;
+  margin-right: 8rpx;
+  padding: 6rpx 4rpx;
+  min-height: 56rpx;
+  text-align: center;
+}
+
+.shelf-card-stock-rows .purchase-info-column.purchase-inbound {
+  flex: 1;
+  min-width: 100rpx;
+  background: rgba(76, 175, 80, 0.05);
+  border-radius: 6rpx;
+  margin-right: 8rpx;
+  padding: 6rpx 4rpx;
+  min-height: 56rpx;
+  text-align: center;
+}
+
+.shelf-card-stock-rows .purchase-info-column.purchase-rest {
+  flex: 1;
+  min-width: 100rpx;
+  background: rgba(255, 152, 0, 0.08);
+  border-radius: 6rpx;
+  padding: 6rpx 4rpx;
+  min-height: 56rpx;
+  text-align: center;
+}
+
+.shelf-card-stock-rows .purchase-info.purchase-inbound .column-label {
+  color: #2f73c1;
+  font-size: 18rpx;
+  font-weight: 600;
+}
+
+.shelf-card-stock-rows .purchase-info.purchase-inbound .amount-text {
+  color: #2f73c1;
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.shelf-card-stock-rows .purchase-info.purchase-inbound .weight-text {
+  color: #2f73c1;
+  font-size: 18rpx;
+  font-weight: 500;
+}
+
+.shelf-card-stock-rows .purchase-price {
+  color: #2f73c1 !important;
+  font-size: 18rpx !important;
+  font-weight: 500 !important;
+}
+
+.shelf-card-stock-rows .purchase-info-column.purchase-inbound .column-label {
+  color: #4caf50;
+  font-size: 18rpx;
+  font-weight: 600;
+}
+
+.shelf-card-stock-rows .purchase-info-column.purchase-inbound .amount-text {
+  color: #4caf50;
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.shelf-card-stock-rows .purchase-info-column.purchase-inbound .weight-text {
+  color: #4caf50;
+  font-size: 18rpx;
+  font-weight: 500;
+}
+
+.shelf-card-stock-rows .purchase-info-column.purchase-rest .column-label {
+  color: #ff9800;
+  font-size: 20rpx;
+  font-weight: 700;
+}
+
+.shelf-card-stock-rows .purchase-info-column.purchase-rest .amount-text {
+  color: #ff9800;
+  font-size: 22rpx;
+  font-weight: 600;
+}
+
+.shelf-card-stock-rows .purchase-info-column.purchase-rest .weight-text {
+  color: #ff9800;
+  font-size: 18rpx;
+  font-weight: 500;
+}
+
+.shelf-card-stock-rows .purchase-info-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+
+.shelf-card-stock-rows .column-label {
+  font-size: 18rpx;
+  font-weight: 600;
+  margin-bottom: 4rpx;
+  text-align: center;
+}
+
+.shelf-card-stock-rows .column-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rpx;
+  width: 100%;
+  min-width: 0;
+}
+
+.shelf-card-stock-rows .amount-text {
+  font-size: 22rpx;
+  font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.shelf-card-stock-rows .weight-text {
+  font-size: 18rpx;
+  text-align: center;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.shelf-card-stock-rows .rest-amount {
+  color: #ff9800 !important;
+  font-size: 24rpx !important;
+  font-weight: 700 !important;
+}
+
+.shelf-card-stock-rows .rest-weight {
+  color: #ff9800 !important;
+  font-size: 20rpx !important;
+  font-weight: 600 !important;
+}
+
+.shelf-card-stock-rows .comparison-divider {
+  display: none;
+}
+
+.shelf-card-stock-rows .flex-column-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.shelf-card-stock-rows .font-sm {
+  font-size: 22rpx;
+  color: #555;
+  text-align: center;
+}

@@ -1,0 +1,23 @@
+<view class="popup-overlay" catchtap="onClose">
+  <view class="popup-content" catchtap="stopPropagation">
+    <text class="popup-title">{{titleText}}</text>
+    <scroll-view wx:if="{{list.length > 0}}" scroll-y class="dep-scroll" show-scrollbar="{{true}}">
+      <radio-group class="radio-group" value="{{selectedDepId}}" bindchange="onRadioChange">
+        <label class="dep-row" wx:for="{{list}}" wx:key="depId">
+          <radio class="dep-radio" value="{{item.depId}}" />
+          <view class="dep-body">
+            <text class="dep-name">#{{item.depName}}</text>
+            <text class="dep-total">合计 ¥{{item.depSubtotal != null ? item.depSubtotal : '--'}}</text>
+          </view>
+        </label>
+      </radio-group>
+    </scroll-view>
+    <view wx:else class="empty-tip">
+      <text>暂无子部门下全部订单均为已完成（status=2）</text>
+    </view>
+    <view class="flex flex-row-between btn-row">
+      <view class="cancel-button half-row" bindtap="onClose">取消</view>
+      <view class="confirm-button half-row {{selectedDepId ? '' : 'btn-disabled'}}" bindtap="onConfirm">{{confirmLabel}}</view>
+    </view>
+  </view>
+</view>

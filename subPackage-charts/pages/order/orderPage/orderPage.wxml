@@ -1,6 +1,6 @@
 <wxs src="../../../../utils/fn.wxs" module="tool" />
 
-<view class="page-root1 flex flex-column">
+<view class="flex flex-column">
 
   <back-navbar style="height: {{navBarHeight}}rpx;" title="{{name}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
@@ -13,12 +13,9 @@
 
     <view class="flex flex-row mr-30" bind:tap="toChangeKg">
       <view class="button-container">
-        <image src="{{isKgMode ? '../../../../images/gongjin.png' : '../../../../images/jianjin.png'}}" class="icon"></image>
+        <image src="{{isKgMode ? '../../../../images/jianjin.png' : '../../../../images/gongjin.png'}}" class="icon"></image>
       </view>
     </view>
-
-
-
     <view class="flex flex-row mr-30" bindtap="printPick" data-type="paste" data-id="-1">
       <view class="button-container">
         <image src="../../../../images/print-4.png" class="icon"></image>
@@ -29,43 +26,89 @@
         <image src="../../../../images/car.png" class="icon"></image>
       </view>
     </view> -->
-
-
     <view class="flex flex-row mr-30 ml-20" bindtap="recognizeOrder" data-type="paste" data-id="-1">
       <view class="button-container">
+
         <image src="../../../../images/tupianshibie.png" class="icon"></image>
+        <view class="badge {{imageTaskCount > 0 ? 'show' : 'hide'}}">{{imageTaskCount}}</view>
+
       </view>
     </view>
-
 
     <view class="flex flex-row mr-30" bindtap="toAddOrder" data-type="paste" data-id="-1">
       <view class="button-container">
         <image src="../../../../images/paste-2.png" class="icon"></image>
+        <view class="badge {{pastTaskCount > 0 ? 'show' : 'hide'}}">{{pastTaskCount}}</view>
       </view>
     </view>
-
 
     <view class="flex flex-row mr-30" bindtap="toAddOrder" data-type="resGoods">
       <view class="button-container">
         <image src="../../../../images/edit-main.png" class="icon"></image>
       </view>
     </view>
-
   </view>
 
-  <view class="content flex-1 flex-column">
-    <scroll-view scroll-y="true" class="scroll-content " show-scrollbar="true">
+  <view class="content flex-column">
+    <scroll-view scroll-y="true" class="scroll-content1 " show-scrollbar="true" style="height: {{windowHeight - navBarHeight - statusBarHeight - 40}}rpx; ">
+
+    <!-- 。。 -->
+    <view class="flex-column" wx:if="{{taskArr.length > 0}}">     
+    <!-- 待解析任务：横向滚动，置顶 -->
+  <view class="task-scroll-wrap" wx:if="{{taskArr.length > 0}}">
+    <scroll-view scroll-x="true" class="task-scroll-view" enhanced="{{true}}" show-scrollbar="{{false}}">
+      <view class="task-scroll-inner">
+        <view class="task-card" wx:for="{{taskArr}}" wx:for-item="task" wx:key="nxOcrTaskId" bind:tap="getTaskOrder" data-item="{{task}}"  hover-class="hover">
+          <!-- 识别中 -->
+          <block wx:if="{{task.nxOcrTaskStatus == 0}}">
+            <view class="task-card-loading">
+              <image src="/images/loading.gif" class="task-loading-icon"></image>
+              <text class="task-dep-name">{{task.nxOcrTaskDepartmentName}}</text>
+              <text class="task-status-text">识别中...</text>
+            </view>
+          </block>
+          <!-- 已完成：按类型展示 -->
+          <block wx:else>
+            
+            <!-- 类型3：粘贴 -->
+            <view class="task-card-body" >
+              <view class="task-thumb">
+                <text class="task-file-name">{{task.nxOcrTaskFileName}}</text>
+
+                <!-- <image src="/images/paste.png" mode="aspectFit" class="task-icon-img"></image> -->
+              </view>
+              <view class="task-info">
+                <!-- <text class="task-type-tag">粘贴</text> -->
+                <!-- <text class="task-file-name">{{task.nxOcrTaskFileName || '未命名'}}</text> -->
+                <text class="task-dep-name">{{task.nxOcrTaskDepartmentName}}</text>
+                <text class="task-stats">{{task.nxOcrTaskCompletedOrders}}/{{task.nxOcrTaskTotalOrders}}</text>
+              </view>
+            </view>
+          
+          </block>
+        </view>
+      </view>
+    </scroll-view>
+  </view>
+
+  <!-- ../ -->
+
+
+
+      </view> 
+
       <!-- 订单数据 -->
 
       <block wx:if="{{depHasSubs == 0}}">
+        <view class="flex flex-row-between  border-bottom p-10 {{order.nxDoPurchaseStatus == 4 ? 'bg-white' :'liziBack'}}  {{order.nxDoPurchaseStatus == 5 ? 'liziDelivery' : ''}} {{order.nxDoPurchaseStatus == 3 ? 'liziClock' : ''}}  {{order.nxDoPurchaseStatus == 1 ? 'liziCollBack' : ''}}" wx:for="{{applyArr}}" wx:for-item="order" wx:key="nxDepartmentOrdersId" wx:for-index="applyIndex">
 
-        <view class="flex flex-row-between  border-bottom p-10 {{order.nxDoPurchaseStatus == 4 ? 'bg-white' :'liziBack'}}  {{order.nxDoPurchaseStatus == 5 ? 'liziDelivery' : ''}} {{order.nxDoPurchaseStatus == 3 ? 'liziClock' : ''}}" wx:for="{{applyArr}}" wx:for-item="order" wx:key="nxDepartmentOrdersId" wx:for-index="applyIndex">
-
-          <block wx:if="{{order.nxDoStatus  >  -2}}">
+          <block wx:if="{{order.nxDoStatus  > -1}}">
             <view class="flex flex font-md">
               <text class="mr-10">{{applyIndex + 1}}.</text>
               <view class="flex-cloumn" style="width: {{windowWidth - 140}}rpx; ">
                 <view class="flex-row-wrap align-center">
+                  <text wx:if="{{order.isPlatformOrder == 1}}" class="platform-tag mr-10">{{order.platformLabel || '平台'}}</text>
+                  <text class="font-xs mainColor" wx:if="{{order.nxDistributerGoodsEntity.nxDgDistributerId !== nxDisId}}">[{{order.nxDistributerGoodsEntity.nxDgDistributerName}}]</text>
                   <text class="brand" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsBrand !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0}}">{{order.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
                   <text class="font-bold mr-10">{{order.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
                   <text class="font-xs" wx:if="{{order.nxDepartmentDisGoodsEntity !== null && order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName !== order.nxDistributerGoodsEntity.nxDgGoodsName && order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName !== order.nxDoGoodsName}}">({{order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName}})</text>
@@ -73,14 +116,18 @@
                   <text class="font-sm" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsPlace !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsPlace.length > 0}}">({{order.nxDistributerGoodsEntity.nxDgGoodsPlace}})</text>
 
                   <text class="font-sm" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsDetail.length > 0 && order.nxDistributerGoodsEntity.nxDgGoodsDetail !==  'null'}}">{{order.nxDistributerGoodsEntity.nxDgGoodsDetail}}</text>
-                  <block wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0}}">
-                    <text class="mr-20" style="font-size: 30rpx;">({{order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight}}/{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
-                  </block>
-                  <block wx:if="{{order.nxDistributerGoodsEntity.nxDgCartonUnit !== null }}">
-                    <text class="" style="font-size: 30rpx;" wx:if="{{order.nxDistributerGoodsEntity.nxDgItemsPerCarton !== null }}">*{{order.nxDistributerGoodsEntity.nxDgItemsPerCarton}}{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname}}/</text>
-                    <text class="mr-20" style="font-size: 30rpx;">{{order.nxDistributerGoodsEntity.nxDgCartonUnit}}</text>
+
+                  <block wx:if="{{order.nxDistributerGoodsEntity.nxDgItemsPerCarton !== null &&  order.nxDistributerGoodsEntity.nxDgItemsPerCarton !== ''}}">
+                    <text class="" style="font-size: 30rpx;" >({{order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight}}*{{order.nxDistributerGoodsEntity.nxDgItemsPerCarton}}{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
                   </block>
 
+                  <block wx:else="">
+                    <block wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0}}">
+                    <text class="mr-20" style="font-size: 30rpx;">({{order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight}}/{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+                  </block>
+                 
+                  </block>
+                 
                   <text class="mr-20" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname !== order.nxDoPrintStandard}}">({{order.nxDoPrintStandard}})</text>
 
                   <text class="">订:{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
@@ -107,6 +154,11 @@
                     <text>元</text>
                   </view>
                 </view>
+                <view wx:if="{{order.isPlatformOrder == 1}}" class="flex-row font-sl text-secondary pl-20">
+                  <text class="mr-15">期望:{{order._displayExpectPrice}}</text>
+                  <text class="mr-15">实际:{{order._displayActualPrice}}</text>
+                  <text>差价:{{order._displayPriceDiff}}</text>
+                </view>
 
               </view>
             </view>
@@ -117,7 +169,6 @@
             <view wx:else="" class="button-container-white" bindtap="openOperation" data-order="{{order}}" data-subname="" data-id="{{order.nxDistributerGoodsEntity.nxDistributerGoodsId}}" data-name="{{order.nxDistributerGoodsEntity.nxDgGoodsName}}" data-type="goods" data-color="{{order.nxDistributerGoodsEntity.nxDgNxGoodsFatherColor}}" data-goods="{{order.nxDistributerGoodsEntity}}" data-depid="{{depFatherId}}" hover-class="hover">
               <image src="../../../../images/points.png" class="icon"></image>
             </view>
-
           </block>
 
           <block wx:else="">
@@ -149,30 +200,29 @@
             <text class=" text-primary">#{{dep.depName}}</text>
             <text>¥:{{dep.depSubtotal}}元</text>
           </view>
-
           <view class="flex flex-row border-bottom  p-10 {{order.nxDoPurchaseStatus == 4 ? 'bg-white' :'liziBack'}} {{order.nxDoPurchaseStatus  == 5 ? 'liziDelivery' : ''}} {{order.nxDoPurchaseStatus  == 3 ? 'liziClock' : ''}}" wx:for="{{dep.depOrders}}" wx:for-item="order" wx:key="nxDepartmentOrdersId" wx:for-index="applyIndex">
-            <block wx:if="{{order.nxDoStatus  >  -2}}">
+            <block wx:if="{{order.nxDoStatus  >  -1}}">
               <view class="flex-row-default font-md">
                 <text class="mr-10">{{applyIndex + 1}}.</text>
                 <view class="flex-cloumn" style="width: {{windowWidth - 160}}rpx; ">
                   <view class="flex-row-wrap align-center">
+                    <text wx:if="{{order.isPlatformOrder == 1}}" class="platform-tag mr-10">{{order.platformLabel || '平台'}}</text>
                     <text class="brand" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsBrand !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0}}">{{order.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
                     <text class="font-bold ">{{order.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
                     <text class="font-xs" wx:if="{{order.nxDepartmentDisGoodsEntity !== null && order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName !== order.nxDistributerGoodsEntity.nxDgGoodsName}}">({{order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName}})</text>
                     <text class="font-xs ml-10 mr-10" wx:if="{{order.nxDoGoodsName !== '' && order.nxDoGoodsName !== order.nxDistributerGoodsEntity.nxDgGoodsName}}">({{order.nxDoGoodsName}})</text>
                     <text class="" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsPlace !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsPlace.length > 0}}">{{order.nxDistributerGoodsEntity.nxDgGoodsPlace}}</text>
                     <text class="" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsDetail.length > 0 && order.nxDistributerGoodsEntity.nxDgGoodsDetail !==  'null'}}">{{order.nxDistributerGoodsEntity.nxDgGoodsDetail}}</text>
+                    <block wx:if="{{order.nxDistributerGoodsEntity.nxDgCartonUnit !== null }}">
+                    <text class="" style="font-size: 30rpx;" wx:if="{{order.nxDistributerGoodsEntity.nxDgItemsPerCarton !== null &&  order.nxDistributerGoodsEntity.nxDgItemsPerCarton !== ''}}">{{order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight}}*{{order.nxDistributerGoodsEntity.nxDgItemsPerCarton}}{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname}}/</text>
+                  </block>
+                  <block wx:else="">
                     <block wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0}}">
                       <text class="mr-20" style="font-size: 30rpx;">({{order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight}}/{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
                     </block>
-                  
-                    <block wx:if="{{order.nxDistributerGoodsEntity.nxDgCartonUnit !== null }}">
-                    <text class="" style="font-size: 30rpx;" wx:if="{{order.nxDistributerGoodsEntity.nxDgItemsPerCarton !== null }}">{{order.nxDistributerGoodsEntity.nxDgItemsPerCarton}}{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname}}/</text>
-                    <text class="mr-20" style="font-size: 30rpx;">{{order.nxDistributerGoodsEntity.nxDgCartonUnit}}</text>
                   </block>
-
-                  <text class="mr-20" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname !== order.nxDoPrintStandard}}">({{order.nxDoPrintStandard}})</text>
-                  
+                 
+                  <text class="mr-20" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname !== order.nxDoPrintStandard}}">({{order.nxDoPrintStandard}})</text>  
                     <text class="">订:{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
                     <text class="text-danger font-sl" wx:if="{{order.nxDoRemark !== null  && order.nxDoRemark.length > 0}}">({{order.nxDoRemark}})</text>
                   </view>
@@ -204,7 +254,6 @@
                       <text class=" text-secondary">单价:</text>
                       <text class="{{order.nxDoPrice == '0.1' ||  order.nxDoPrice == ''  ? 'text-danger' : ''}}" wx:if="{{order.nxDoPrice !== null}}">{{order.nxDoPrice == 0.1  ||  order.nxDoPrice == '' ?  '-' : order.nxDoPrice }}</text>
                       <text>/{{order.nxDoPrintStandard}}</text>
-
                     </view>
 
                     <view class="third-row" wx:if="{{order.nxDoSubtotal !== null || order.nxDoSubtotal == '' }}">
@@ -212,6 +261,11 @@
                       <text class="{{order.nxDoPrice == '0.1' ||  order.nxDoPrice == ''  ? 'text-danger' : ''}}">{{order.nxDoPrice == 0.1  ||  order.nxDoPrice == ''  ?  '-' : order.nxDoSubtotal}}</text>
                       <text>元</text>
                     </view>
+                  </view>
+                  <view wx:if="{{order.isPlatformOrder == 1}}" class="flex-row font-sl text-secondary pl-20">
+                    <text class="mr-15">期望:{{order._displayExpectPrice}}</text>
+                    <text class="mr-15">实际:{{order._displayActualPrice}}</text>
+                    <text>差价:{{order._displayPriceDiff}}</text>
                   </view>
                 </view>
               </view>
@@ -311,6 +365,10 @@
       <text>{{applyItem.nxDoQuantity}}{{applyItem.nxDoStandard}}</text>
     </view>
 
+    <view class="flex-row p-30 border-bottom" bindtap="toOpenTask" hover-class="hover" wx:if="{{applyItem.nxDoPurchaseStatus < 4 && applyItem.nxDoOcrTaskId !== null}}" >
+      <image src="../../../../images/Focus-Auto-2.png" class="icon mr-20 ml-20"></image>
+      <text class="">打开识别</text>
+    </view>
     <view class="flex-row p-30 border-bottom" bindtap="toEditApply" hover-class="hover" wx:if="{{applyItem.nxDoPurchaseStatus < 4}}">
       <image src="../../../../images/edit.png" class="icon mr-20 ml-20"></image>
       <text class="">修改订货</text>
@@ -338,7 +396,7 @@
 
     <view class="flex flex-row p-30 border-bottom" catchtap="toResGoods" hover-class="hover" data-id="{{applyItem.nxDepartmentOrdersId}}">
       <image src="../../../../images/add.png" class="icon mr-20 ml-20"></image>
-      <text class="">(在之前) 添加新订单</text>
+      <text class="">(在之前)添加新订单</text>
     </view>
 
 
@@ -417,10 +475,14 @@
       <image src="/images/edit.png" class="icon mr-20"></image>
       <text class="">搜索商品</text>
     </view>
+    <view class="flex-row p-30 border-bottom" bindtap="toOpenTask" hover-class="hover" wx:if="{{applyItem.nxDoPurchaseStatus < 4 && applyItem.nxDoOcrTaskId !== null}}" >
+      <image src="../../../../images/Focus-Auto-2.png" class="icon mr-20 ml-20"></image>
+      <text class="">打开识别</text>
+    </view>
 
     <view class="flex-row p-30" catchtap="confirmDepApplyGoods" hover-class="hover" wx:if="{{applyItem.nxDoIsAgent == 1}}">
       <image src="/images/add.png" class="icon mr-20"></image>
-      <text class="">加为临时商品</text>
+      <text class="">保存新配送商品</text>
     </view>
 
     <view class="flex-row p-30" catchtap="delApplyPaste" hover-class="hover">
@@ -454,3 +516,4 @@
 
 <!-- 打印规格修改 tip 弹窗组件 -->
 <editPrintStandard wx:if="{{showPrintTip}}" show="{{true}}" order="{{currentEditOrder}}" printStandard="{{editPrintStandard}}" bind:confirm="onPrintStandardConfirm" bind:cancel="cancelEditPrintStandard" />
+

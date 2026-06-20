@@ -7,7 +7,7 @@ var dateUtils = require('../../../../utils/dateUtil');
 import {
   disGetDayStockByGreatId,
   
-} from '../../../../lib/apiDistributerGb.js'
+} from '../../../lib/apiDistributerGb.js'
 
 Page({
 

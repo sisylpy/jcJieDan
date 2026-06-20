@@ -18,7 +18,7 @@ import {
 
 } from '../../../../lib/apiDistributer'
 //
-import {cancleDownDisGoods} from '../../../../lib/apiibook'
+import {cancleDownDisGoods} from '../../../lib/apiibook'
 
 Page({
   data:{
@@ -611,15 +611,31 @@ Page({
         load.hideLoading();
         var pages = getCurrentPages();
         var prevPage1 = pages[pages.length - 2];
-        var arr = prevPage1.data.goodsList; // 注意：goosList 可能是拼写错误，应该是 goodsList？
-        const index = Number(this.data.editIndex); // 或者 parseInt(...)
-        
-        arr.splice(index, 1);
-        // 更新 prevPage1 的数据
-        prevPage1.setData({
-          goodsList: arr
-        });
-        
+
+        // 判断上一页是否有 goodsList（商品列表页面）
+        if (prevPage1 && prevPage1.data.goodsList && prevPage1.data.goodsList.length > 0) {
+          var arr = prevPage1.data.goodsList;
+          const index = Number(this.data.editIndex);
+
+          if (arr && arr.length > index) {
+            arr.splice(index, 1);
+            // 更新 prevPage1 的数据
+            prevPage1.setData({
+              goodsList: arr
+            });
+          }
+        }
+
+        // 如果是从货架商品搜索页面打开的，通知上一页刷新
+        if (this.data.from === 'shelfGoodsSearch' && prevPage1 && prevPage1.refreshShelfGoods) {
+          prevPage1.refreshShelfGoods();
+        }
+
+        // 如果是从货架首页打开的，通知上一页刷新
+        if (this.data.from === 'shelfIndex' && prevPage1 && prevPage1.refreshShelfGoods) {
+          prevPage1.refreshShelfGoods();
+        }
+
         wx.navigateBack({
           delta: 1
         })
@@ -1048,6 +1064,13 @@ Page({
         icon: 'none'
       });
     });
-  }
+  },
+
+
+  onUnload() {
+    wx.removeStorageSync('disGoods');
+    wx.removeStorageSync('notUpdate');
+  },
+
 
 })

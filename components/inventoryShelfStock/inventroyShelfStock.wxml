@@ -21,10 +21,25 @@
       </view>
     </view>
 
-    <!-- 批次列表 -->
-    <scroll-view class="stock-list" scroll-y="true">
-      <view style="text-align: left; font: 18rpx; color: gray; padding: 20rpx 20rpx;">修改库存:</view>
-      <view class="stock-item" wx:for="{{stockList}}" wx:key="index" bindtap="selectStock" data-index="{{index}}">
+    <!-- 盘库模式选择 -->
+    <view class="inventory-mode-selector">
+      <view class="mode-title">请选择盘库方式：</view>
+      <radio-group bindchange="onInventoryModeChange">
+        <label class="mode-label">
+          <radio value="1" checked="{{inventoryMode == 1}}" />
+          <text>按批次盘库（精确）</text>
+        </label>
+        <label class="mode-label">
+          <radio value="2" checked="{{inventoryMode == 2}}" />
+          <text>按总数盘库（批量）</text>
+        </label>
+      </radio-group>
+    </view>
+
+    <!-- 按批次模式时显示批次列表 -->
+    <scroll-view class="stock-list" scroll-y="true" wx:if="{{inventoryMode == 1}}">
+      <view style="text-align: left; font: 18rpx; color: gray; padding: 20rpx 20rpx;">选择批次（精确盘库）：</view>
+      <view class="stock-item {{selectedStock && selectedStock.nxDistributerGoodsShelfStockId === item.nxDistributerGoodsShelfStockId ? 'selected' : ''}}" wx:for="{{stockList}}" wx:key="index" bindtap="selectStock" data-index="{{index}}">
         <view class="stock-content">
           <text class="stock-text" wx:if="{{item.nxDgssDate}}">入库日期 <text class="stock-number">{{tool.getAttrDate(item.nxDgssDate)}}</text></text>
           <text class="stock-divider" wx:if="{{item.nxDgssDate}}">·</text>
@@ -41,9 +56,32 @@
           <text class="stock-divider">·</text>
           <text class="stock-text">建议售价 <text class="stock-number">¥{{item.nxDgssSellingPrice}}</text></text>
         </view>
+        <!-- 选中标记 -->
+        <view class="selected-tag" wx:if="{{selectedStock && selectedStock.nxDistributerGoodsShelfStockId === item.nxDistributerGoodsShelfStockId}}">已选择</view>
       </view>
-     
     </scroll-view>
+
+    <!-- 按总数模式时显示确认按钮 -->
+    <view class="stock-list" wx:if="{{inventoryMode == 2}}">
+      <view style="text-align: left; font: 18rpx; color: gray; padding: 20rpx 20rpx;">批量盘库说明：</view>
+      <view style="padding: 20rpx; color: #666; font-size: 28rpx;">
+        <text>系统将按批次顺序自动分配损耗（先进先出）</text>
+      </view>
+      <view class="info-row" style="padding: 20rpx;">
+        <text class="label">商品总剩余：</text>
+        <text class="value">{{totalRestWeightDisplay}}{{goodsInfo.nxDgGoodsStandardname}}</text>
+      </view>
+    </view>
+
+    <!-- 确认按钮 -->
+    <view class="modal-footer">
+      <view class="btn cancel" bindtap="closeStockList">
+        <text>取消</text>
+      </view>
+      <view class="btn confirm" bindtap="confirmModeSelect">
+        <text>确定</text>
+      </view>
+    </view>
 
   </view>
 </view>
@@ -59,6 +97,11 @@
 
     <!-- 批次信息 -->
     <view class="stock-info-display">
+      <!-- 当前盘库模式提示 -->
+      <view class="info-row" style="color: #666; font-size: 24rpx;">
+        <text>当前模式：{{inventoryMode == 1 ? '按批次盘库' : '按总数盘库'}}</text>
+        <text wx:if="{{inventoryMode == 1 && selectedStock}}"> · 批次：{{tool.getAttrDate(selectedStock.nxDgssDate)}}</text>
+      </view>
       <view class="info-row">
         <text class="label">总剩余数量：</text>
         <text class="value">{{totalRestWeightDisplay}}{{goodsInfo.nxDgGoodsStandardname}}</text>
@@ -98,6 +141,9 @@
     <view class="modal-footer">
       <view class="btn cancel" bindtap="closeEditModal">
         <text>取消</text>
+      </view>
+      <view class="btn cancel" style="margin-right: 20rpx;" bindtap="backToStockList">
+        <text>返回</text>
       </view>
       <view class="btn confirm {{canSubmit ? '' : 'disabled'}}" catchtap="submit">
         <text>确定</text>

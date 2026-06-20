@@ -15,7 +15,11 @@ import {
   saveDisPurGoodsBatch,
   saveDisPurGoodsBatchByDep,
   deletePlanPurchase,
+  disGetPurchasingBatch,
+  deleteDisPurBatchItem,
+  updatePasteBatch,
   deleteDisBatch,
+  disGetOfferDis
 } from '../../../lib/apiDepOrder'
 
 Component({
@@ -72,8 +76,10 @@ Component({
       const viewBarHeightRpx = viewBarHeight * rpxRatio;
       const tabBarHeightRpx = 100;
   
-      const contentHeight = (screenHeight - navBarHeight - tabBarHeight) * rpxRatio;
-
+      // const contentHeight = (screenHeight - navBarHeight - tabBarHeight) * rpxRatio;
+      // const tabBarHeightRpx = 100;
+  
+      const contentHeight = (screenHeight - navBarHeight - tabBarHeight - viewBarHeight) * rpxRatio;
       this.setData({ 
         contentHeight: contentHeight,
         navBarHeight: navBarHeightRpx,
@@ -88,6 +94,14 @@ Component({
         statusBarHeight: globalData.statusBarHeight * globalData.rpxR,
         url: apiUrl.server,
         scrollViewTop: 0,
+
+
+        tabs_wx:[  
+          { name: "未采购", amount: "" },
+        { name: "采购中", amount: "" }
+      ],
+        innerCurrent: 0,
+
         
         // 重置分页相关数据
         currentPage: 1,
@@ -126,6 +140,7 @@ Component({
         if (disValue) {
           this.setData({
             disInfo: disValue,
+            disType: disValue.nxDistributerType,
           })
         }
       }
@@ -1234,8 +1249,13 @@ Component({
              
               this.getTabBar().setData({
                 stockCount: res.result.data.stockCount,
-                unPurCount: res.result.data.unPurCount,
                 puringCount: res.result.data.puringCount,
+                collCount: res.result.data.collCount,
+              })
+
+              this.setData({
+                'tabs_wx[0].amount': res.result.data.unPurCount,
+                'tabs_wx[1].amount': res.result.data.havePurCount,
               })
              
               return this._getPageData();
@@ -1269,10 +1289,13 @@ Component({
              
               this.getTabBar().setData({
                 stockCount: res.result.data.stockCount,
-                unPurCount: res.result.data.unPurCount,
                 puringCount: res.result.data.puringCount,
+                collCount: res.result.data.collCount,
               })
-             
+              this.setData({
+                'tabs_wx[0].amount': res.result.data.unPurCount,
+                'tabs_wx[1].amount': res.result.data.havePurCount,
+              })
               // 如果有部门，默认选中第一个
               if (res.result.data.arr.length > 0) {
                 return this._loadDepartmentGoods(res.result.data.arr[0].depId, 0);
@@ -1479,8 +1502,16 @@ Component({
               uniqueKey: goodsId + '-' + orderId + '-' + orderIndex, // 添加唯一key
             };
             
+            // 协作订单：保留协作商名称和部门编码
+            const collabId = order.nxDoCollaborativeNxDisId;
+            const isCollaborative = collabId !== undefined && collabId !== null && collabId !== -1 && String(collabId) !== '-1';
+            if (isCollaborative) {
+              convertedOrder.nxDoCollaborativeNxDisId = collabId;
+              convertedOrder.nxDoCollaborativeDistributerName = order.nxDoCollaborativeDistributerName;
+              convertedOrder.fatherDepartmentOrderCode = order.fatherDepartmentOrderCode || (order.nxDepartmentEntity && order.nxDepartmentEntity.fatherDepartmentEntity ? order.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentOrderCode : null);
+            }
             // 扁平化部门信息
-            if (order.nxDepartmentEntity) {
+            else if (order.nxDepartmentEntity) {
               const dep = order.nxDepartmentEntity;
               convertedOrder.depName = dep.fatherDepartmentEntity 
                 ? `${dep.fatherDepartmentEntity.nxDepartmentOrderCode}.${dep.nxDepartmentOrderCode}`
@@ -1488,7 +1519,7 @@ Component({
               convertedOrder.nxDepartmentAttrName = dep.nxDepartmentAttrName;
               convertedOrder.nxDepartmentOrderCode = dep.nxDepartmentOrderCode;
               if (dep.fatherDepartmentEntity) {
-                convertedOrder.fatherDepartmentOrderCode = dep.fatherDepartmentEntity.nxDepartmentAttrName;
+                convertedOrder.fatherDepartmentOrderCode = dep.fatherDepartmentEntity.nxDepartmentOrderCode;
               }
             }
             
@@ -2332,6 +2363,31 @@ Component({
       return temp;
     },
 
+
+
+    // saveBatchOrder(e) {
+    //   var arr = this._getSelectedArrPurData();
+    //   var batch = {
+    //     nxDpbDistributerId: this.data.disId,
+    //     nxDPGEntities: arr,
+    //     nxDPBPurUserId: this.data.userInfo.nxDistributerUserId,
+    //     nxDpbPurchaseType: 3,
+    //   }
+      
+    //   // 如果是按客户模式，添加部门ID
+    //   if (this.data.viewMode === 'department' && this.data.selectedDepId) {
+    //     batch.nxDpbNxDepartmentFatherId = this.data.selectedDepId;
+    //   }
+      
+    //   wx.setStorageSync('batch', batch); 
+    //   wx.navigateTo({
+    //     url: '/subPackage/pages/offerNx/offerNxDisOrder/offerNxDisOrder?disId=' + this.data.disId,
+    //   }) 
+    
+    // },
+
+  
+
     saveBatchOrder(e) {
       var arr = this._getSelectedArrPurData();
       var batch = {
@@ -2360,6 +2416,10 @@ Component({
             selectedArr: []
           })
           console.log("batchId=" + res.result.data + "&retName=" + that.data.disInfo.nxDistributerName + "&disId=" + that.data.disId + "&purUserId=" + that.data.userInfo.nxDistributerUserId + '&fromBuyer=1')
+          wx.navigateTo({
+            url: 'url',
+          })
+
           wx.navigateToMiniProgram({
             appId: 'wx1ea78d3f33234284',
             path: 'pages/txs/prepareBatch/prepareBatch?batchId=' + res.result.data + '&retName=' + that.data.disInfo.nxDistributerName + '&disId=' + that.data.disId + '&purUserId=' + that.data.userInfo.nxDistributerUserId + '&fromBuyer=1',
@@ -2393,7 +2453,6 @@ Component({
       })
     },
 
-  
 
 
 
@@ -2656,8 +2715,462 @@ Component({
 
 
 
+  onTab1ClickSub: function (e) {
+    var that = this;
+    if (this.data.innerCurrent === e.currentTarget.dataset.current) {
+      return false;
+    } else {
+      that.setData({
+        innerCurrent: e.currentTarget.dataset.current,
+        currentTabOrder: e.currentTarget.dataset.current
+      })
+    }
+  },
 
+
+
+
+  // Event handler for inner swiper change
+  onInnerSwiperChange(e) {
+    this.setData({
+      innerCurrent: e.detail.current,
+    });
+    var that = this;
+    that.setData({
+      innerCurrent: e.detail.current,    
+      // 重置下拉刷新状态
+      refresherTriggered1: false,
+      refresherTriggered2: false,
+
+    });
+  
+    if (that.data.innerCurrent == 0) {
+      this._initData();
+    }else{
      
+      this._getPurchasingBatch()
+    }
+   
+   
+    
+  },
+
+
+  _getPurchasingBatch() {
+    load.showLoading("获取进货商铺");
+    var data = {
+      disId: this.data.disId,
+      type: 1
+    }
+     var that = this;
+    disGetPurchasingBatch(data)
+      .then(res => {
+        load.hideLoading();
+        console.log(res.result.data)
+        if (res.result.code == 0) {
+          // 为每个批次添加展开状态字段
+          this.setData({
+            batchArr: res.result.data.arr,
+          })
+          
+          that.getTabBar().setData({
+            stockCount: res.result.data.stockCount,
+            puringCount: res.result.data.puringCount,
+            collCount: res.result.data.collCount,
+          })
+          this.setData({
+            'tabs_wx[0].amount': res.result.data.unPurCount,
+            'tabs_wx[1].amount': res.result.data.havePurCount,
+          })
+         
+        } else {
+          wx.showToast({
+            title: res.result.msg,
+            icon: 'none'
+          });
+        }
+      })
+  },
+
+
+  cancelDisBatchItem(e) {
+    // 显示删除确认弹窗
+    const goodsId = e.currentTarget.dataset.id;
+    const goodsName = e.currentTarget.dataset.name || '该商品';
+    this.setData({
+      showDeleteConfirmModal: true,
+      deleteGoodsId: goodsId,
+      deleteGoodsName: goodsName
+    });
+  },
+
+    // 确认删除商品
+    confirmDeleteBatchItem() {
+      if (!this.data.deleteGoodsId) {
+        return;
+      }
+      
+      load.showLoading("删除中");
+      deleteDisPurBatchItem(this.data.deleteGoodsId)
+        .then(res => {
+          load.hideLoading();
+          if (res.result.code == 0) {
+            // 关闭确认弹窗
+            this.setData({
+              showDeleteConfirmModal: false,
+              deleteGoodsId: null,
+              deleteGoodsName: ''
+            });
+            
+            // 重新加载数据
+            this._getPurchasingBatch();
+          } else {
+            wx.showToast({
+              title: res.result.msg || '删除失败',
+              icon: 'none'
+            });
+          }
+        })
+        
+    },
+
+    // 取消删除
+    cancelDeleteBatchItem() {
+      this.setData({
+        showDeleteConfirmModal: false,
+        deleteGoodsId: null,
+        deleteGoodsName: ''
+      });
+    },
+     
+
+
+
+    // 再次复制功能
+    pasteAgain(e) {
+      const batch = e.currentTarget.dataset.batch;
+      console.log('再次复制批次:', batch);
+      
+      if (batch && batch.nxDpbPasteContent) {
+        // 复制到剪贴板
+        wx.setClipboardData({
+          data: batch.nxDpbPasteContent,
+          success(res) {
+            wx.showToast({
+              title: '复制成功',
+              icon: 'success',
+              duration: 2000
+            });
+          },
+          fail(err) {
+            console.error('复制失败:', err);
+            wx.showToast({
+              title: '复制失败，请重试',
+              icon: 'none',
+              duration: 2000
+            });
+          }
+        });
+      } else {
+        wx.showToast({
+          title: '没有可复制的内容',
+          icon: 'none',
+          duration: 2000
+        });
+      }
+    },
+
+
+          updatePasteBatchContent(e){
+       // 获取批次ID和索引
+       const batchId = e.currentTarget.dataset.batchId;
+       const batchIndex = e.currentTarget.dataset.batchIndex;
+       if (!batchId) {
+         wx.showToast({
+           title: '批次ID不存在',
+           icon: 'none'
+         });
+         return;
+       }
+       
+       // 从batchArr中获取批次数据
+       const batchArr = this.data.batchArr;
+       if (!batchArr || batchIndex >= batchArr.length) {
+         wx.showToast({
+           title: '批次数据不存在',
+           icon: 'none'
+         });
+         return;
+       }
+       
+       const batch = batchArr[batchIndex];
+       
+       if (!batch || batch.nxDistributerPurchaseBatchId != batchId) {
+         wx.showToast({
+           title: '批次数据不匹配',
+           icon: 'none'
+         });
+         return;
+       }
+       
+       // 从缓存读取 onlyGoodsNameAndTotal 设置
+       var onlyGoodsNameAndTotal = wx.getStorageSync('onlyGoodsNameAndTotal');
+       if (onlyGoodsNameAndTotal === undefined || onlyGoodsNameAndTotal === null || onlyGoodsNameAndTotal === '') {
+         onlyGoodsNameAndTotal = false;
+       }
+       
+       // 生成复制内容
+       let content = this._generatePasteContentFromBatch(batch, onlyGoodsNameAndTotal);
+       
+       // 显示确认弹窗
+       this.setData({
+         showConfirmModal: true,
+         pasteContent: content,
+         tempBatch: batch, // 临时保存批次数据
+         onlyGoodsNameAndTotal: onlyGoodsNameAndTotal
+       });
+     },
+
+     // 切换是否只复制商品名称和采购总数
+     changeShowOrder(e) {
+       const value = e.detail.value;
+       this.setData({
+         onlyGoodsNameAndTotal: value
+       });
+       // 保存到缓存
+       wx.setStorageSync('onlyGoodsNameAndTotal', value);
+       // 重新生成预览内容
+       if (this.data.tempBatch) {
+         let content = this._generatePasteContentFromBatch(this.data.tempBatch, value);
+         this.setData({
+           pasteContent: content
+         });
+       }
+     },
+
+     // 关闭确认弹窗
+     closeConfirmModal() {
+       this.setData({
+         showConfirmModal: false,
+         pasteContent: '',
+         tempBatch: null
+       });
+     },
+
+     // 阻止事件冒泡
+     stopPropagation() {
+       // 空函数，用于阻止事件冒泡
+     },
+
+     // 阻止滚动穿透
+     preventScroll() {
+       // 空函数，用于阻止滚动穿透
+       return false;
+     },
+
+     // 确认更新复制内容
+     confirmUpdatePasteContent() {
+       const batch = this.data.tempBatch;
+       const pasteContent = this.data.pasteContent; // 保存复制内容
+       console.log('确认更新时的批次数据:', batch);
+       console.log('准备复制的原始内容:', pasteContent);
+       
+       if (!batch) {
+         wx.showToast({
+           title: '批次数据不存在',
+           icon: 'none'
+         });
+         return;
+       }
+       
+       // 尝试不同的批次ID字段
+       let batchId = batch.nxDistributerPurchaseBatchId || batch.id || batch.batchId;
+       console.log('使用的批次ID:', batchId);
+       
+       if (!batchId) {
+         wx.showToast({
+           title: '批次ID不存在',
+           icon: 'none'
+         });
+         return;
+       }
+       
+       var data = {
+         content: pasteContent,
+         batchId: batchId
+       }
+       
+       console.log('发送的数据:', data);
+       load.showLoading("更新中");
+       updatePasteBatch(data).then(res =>{
+         load.hideLoading();
+         if(res.result.code == 0){
+           this.setData({
+             showConfirmModal: false,
+             pasteContent: '',
+             tempBatch: null
+           });
+           
+           // 复制内容到剪贴板
+           console.log('准备复制的内容:', pasteContent);
+           console.log('内容长度:', pasteContent ? pasteContent.length : 0);
+           
+           wx.setClipboardData({
+             data: pasteContent,
+             success: () => {
+               console.log('复制成功');
+               wx.showToast({
+                 title: '更新成功，已复制到剪贴板',
+                 icon: 'success',
+                 duration: 2000
+               });
+             },
+             fail: (err) => {
+               console.log('复制失败:', err);
+               wx.showToast({
+                 title: '更新成功，复制失败',
+                 icon: 'none',
+                 duration: 2000
+               });
+             }
+           });
+           
+           this._getPasteBatch();
+         } else {
+           wx.showToast({
+             title: res.result.msg,
+             icon: 'none'
+           });
+         }
+       }).catch(err => {
+         load.hideLoading();
+         console.error('更新失败:', err);
+         wx.showToast({
+           title: '更新失败，请重试',
+           icon: 'none'
+         });
+       })
+     },
+
+     // 生成复制内容的方法
+     _generatePasteContent() {
+       let content = "";
+       const batch = this.data.batch;
+       
+       if (batch && batch.nxDPGEntities && batch.nxDPGEntities.length > 0) {
+         for (let i = 0; i < batch.nxDPGEntities.length; i++) {
+           const item = batch.nxDPGEntities[i];
+           if (item.nxDpgQuantity && item.nxDpgQuantity > 0) {
+             const goodsName = item.nxDistributerGoodsEntity.nxDgGoodsName;
+             const quantity = item.nxDpgQuantity;
+             const standard = item.nxDpgStandard || item.nxDistributerGoodsEntity.nxDgGoodsStandardname;
+             content += `${i + 1}, ${goodsName} ${quantity}${standard}\n`;
+           }
+         }
+       }
+       
+       console.log('生成的复制内容:', content);
+       return content;
+     },
+
+     // 从批次数据生成复制内容的方法
+     _generatePasteContentFromBatch(batch, onlyGoodsNameAndTotal = false) {
+       let content = "";
+       
+       // 如果有部门名称，在复制内容前面加上部门名称
+       if (batch && batch.nxDpbNxDepartmentName) {
+         content += `${batch.nxDpbNxDepartmentName}\n`;
+       }
+       
+       if (batch && batch.nxDPGEntities && batch.nxDPGEntities.length > 0) {
+         for (let i = 0; i < batch.nxDPGEntities.length; i++) {
+           const item = batch.nxDPGEntities[i];
+           const goodsName = item.nxDistributerGoodsEntity && item.nxDistributerGoodsEntity.nxDgGoodsName;
+           if (!goodsName) {
+             continue;
+           }
+           
+           // 获取订单列表
+           const orders = item.nxDistributerGoodsEntity && item.nxDistributerGoodsEntity.nxDepartmentOrdersEntities;
+           
+           // 如果没有订单，跳过
+           if (!orders || orders.length === 0) {
+             continue;
+           }
+           
+           // 使用采购数量（如果有），否则不显示总数量
+           const quantity = item.nxDpgQuantity;
+           const goodsStandard = item.nxDpgStandard || (item.nxDistributerGoodsEntity && item.nxDistributerGoodsEntity.nxDgGoodsStandardname) || '';
+           
+           // 如果只显示商品名称和总数，且有采购数量，则输出
+           if (onlyGoodsNameAndTotal) {
+             if (quantity && quantity !== null && quantity !== undefined && quantity !== '') {
+               content += `${i + 1}, ${goodsName} ${quantity}${goodsStandard || ''}\n`;
+             } else {
+               // 没有采购数量，只显示商品名称
+               content += `${i + 1}, ${goodsName}\n`;
+             }
+           } else {
+             // 显示商品和订单详情
+             // 如果有采购数量，先输出商品信息
+             if (quantity && quantity !== null && quantity !== undefined && quantity !== '') {
+               content += `${i + 1}, ${goodsName} ${quantity}${goodsStandard || ''}\n`;
+             } else {
+               // 没有采购数量，只输出商品名称
+               content += `${i + 1}, ${goodsName}\n`;
+             }
+             
+            // 输出订单详情
+            for (let j = 0; j < orders.length; j++) {
+              const order = orders[j];
+              // 获取部门名称
+              let depName = '';
+              // 协作订单：优先使用 [协作商名称]fatherDepartmentOrderCode（不含空格）
+              const collabId = order.nxDoCollaborativeNxDisId;
+              const isCollaborative = collabId !== undefined && collabId !== null && collabId !== -1 && String(collabId) !== '-1';
+              if (isCollaborative) {
+                depName = '[' + (order.nxDoCollaborativeDistributerName || '') + ']';
+                const fatherCode = order.fatherDepartmentOrderCode || (order.nxDepartmentEntity && order.nxDepartmentEntity.fatherDepartmentEntity ? order.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentOrderCode : null);
+                if (fatherCode) {
+                  depName += fatherCode;
+                }
+              } else if (order.gbDepartmentEntity) {
+                 if (order.gbDepartmentEntity.fatherGbDepartmentEntity) {
+                   depName = `${order.gbDepartmentEntity.fatherGbDepartmentEntity.gbDepartmentName}.${order.gbDepartmentEntity.gbDepartmentName}`;
+                 } else {
+                   depName = order.gbDepartmentEntity.gbDepartmentName;
+                 }
+               } else if (order.nxRestrauntEntity) {
+                 depName = order.nxRestrauntEntity.nxRestrauntAttrName;
+               } else if (order.nxDepartmentEntity) {
+                 if (order.nxDepartmentEntity.fatherDepartmentEntity) {
+                   depName = `${order.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentAttrName}.${order.nxDepartmentEntity.nxDepartmentName}`;
+                 } else {
+                   depName = order.nxDepartmentEntity.nxDepartmentName;
+                 }
+               }
+               
+               const orderQuantity = order.nxDoQuantity || '';
+               const orderStandard = order.nxDoStandard || '';
+               const orderRemark = order.nxDoRemark && order.nxDoRemark !== 'null' && order.nxDoRemark.length > 0 ? order.nxDoRemark : '';
+               
+               // 输出订单信息：部门名称 数量规格 (备注)
+               let orderLine = `   ${depName} ${orderQuantity}${orderStandard}`;
+               if (orderRemark) {
+                 orderLine += ` (${orderRemark})`;
+               }
+               content += orderLine + '\n';
+             }
+           }
+         }
+       }
+       
+       return content;
+     },
+     
+
+
+
 
     // methods
   },

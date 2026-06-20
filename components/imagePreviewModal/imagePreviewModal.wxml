@@ -1,0 +1,33 @@
+<!-- 图片预览弹窗 -->
+<view class="preview-modal {{show ? 'show' : ''}}" catchtouchmove="preventDefault">
+  <view class="preview-bg" catchtap="closePreview"></view>
+  <view class="preview-content">
+    <view class="preview-header">
+      <!-- <text class="preview-title">{{currentIndex + 1}} / {{imageUrls.length}}</text> -->
+      <text></text>
+      <text class="preview-close" catchtap="closePreview">×</text>
+    </view>
+    <view class="preview-image-container" catchtap="closePreview">
+      <image
+        wx:if="{{currentImage}}"
+        src="{{currentImage}}"
+        mode="aspectFit"
+        class="preview-image"
+        lazy-load="{{false}}"
+        bindload="onImageLoad"
+        binderror="onImageError"
+      />
+      <view wx:else class="preview-empty">
+        <text class="preview-empty-text">图片加载中...</text>
+      </view>
+    </view>
+    <view class="preview-footer">
+      <view class="preview-nav-btn" catchtap="prevImage" wx:if="{{imageUrls.length > 1}}">
+        <text>上一张</text>
+      </view>
+      <view class="preview-nav-btn" catchtap="nextImage" wx:if="{{imageUrls.length > 1}}">
+        <text>下一张</text>
+      </view>
+    </view>
+  </view>
+</view>

@@ -4,7 +4,7 @@ var load = require('../../../../lib/load.js');
 var dateUtils = require('../../../../utils/dateUtil')
 
 import {
-  getOrderPage,
+  getOrderPageByDis,
   giveOrderPrice
 } from '../../../../lib/apiDepOrder.js'
 
@@ -39,6 +39,7 @@ Page({
     if (disValue) {
       this.setData({
         disInfo: disValue,
+        disId: disValue.nxDistributerId,
       })
     }
 
@@ -64,14 +65,16 @@ Page({
 
   _initData() {
     var data = {
+      disId: this.data.disInfo.nxDistributerId,
       depFatherId: this.data.depFatherId,
       gbDepFatherId: this.data.gbDepFatherId,
       resFatherId: this.data.resFatherId,
       orderBy: "time",
     }
     load.showLoading("获取订单中")
-    getOrderPage(data)
+    getOrderPageByDis(data)
       .then(res => {
+        console.log("wirpricie", res.result.data);
         if (res.result.code == 0) {
           load.hideLoading();
           this.setData({

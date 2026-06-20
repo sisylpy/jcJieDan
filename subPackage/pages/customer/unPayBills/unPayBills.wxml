@@ -2,7 +2,7 @@
 	<import src='../../../../template/billPay/billPay.wxml' />
 
   
-  <view class="flex flex-column height-100">
+  <view class="flex flex-column">
 
     <back-navbar style="height: {{navBarHeight}}rpx;" title="未结账现金账单" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
     
@@ -43,6 +43,7 @@
 			
 	
   </view>
+  <view class="flex-column-center" style="height: 100rpx;"> 没有数据了！</view>
 	</view>
 
 </view>
@@ -51,18 +52,18 @@
 
 <view class="overlay {{isTishi ? 'show' : ''}}">
 
-<view class="body  flex-column" style="width: {{windowWidth - 100}}rpx;">
-  <view class="margin_bottom center-content flex-column">
+<view class="popup" >
+  <view class=" center-content flex-column">
 
-    <view class="tishiView" style="width:{{windowWidth/5}}rpx; height:{{windowWidth/5}}rpx; margin-top:-{{windowWidth/10 + 10}}rpx; z-index: 9999;border-radius: 50%;">
+    <!-- <view class="tishiView" style="width:{{windowWidth/5}}rpx; height:{{windowWidth/5}}rpx; margin-top:-{{windowWidth/10 + 10}}rpx; z-index: 9999;border-radius: 50%;">
       <image src="../../../../images/xiuxi.png" class="tishi_icon" style="width:{{windowWidth/5 -80}}rpx; height:{{windowWidth/5 - 80}}rpx;  border-radius: 50%; margin-top:40rpx; margin-left: 40rpx;"></image>
-    </view>
+    </view> -->
 
     <view class="flex-column-center sentence">
        <text class="small">客户已完成付款，结账确认以后</text>
         <text class="font-lg">订单状态不可修改！</text>
     </view>
-      <view class="p-20 flex-row-between "  style="width:{{windowWidth - 200}}rpx; " >
+      <view class="p-20 flex-row-between big_full_padding"  style="width:{{windowWidth - 200}}rpx; " >
         <view class="third-row center-content p-10 hover">
          <text class="" bindtap="cancleSettle">取消</text>
         </view>

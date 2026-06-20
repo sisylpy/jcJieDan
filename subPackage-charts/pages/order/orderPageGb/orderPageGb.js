@@ -61,7 +61,6 @@ Page({
 
 _initData() {
   
-
   nxDisGetGbBatchOrders(this.data.batchId)
     .then(res => {
       console.log("printdata", res.result.data);

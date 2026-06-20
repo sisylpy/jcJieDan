@@ -39,6 +39,7 @@ Page({
     hide: false,
     scrollTop: 0,
     choiceAll: false,
+    hasPerCarton: null,
     hasCartonUnit: null, // 外包装查询条件：1-有外包装，0-无外包装，null-不筛选
     hasTraceReport: null, // 溯源查询条件：1-有溯源，0-无溯源，null-不筛选
     // 分页相关
@@ -53,6 +54,17 @@ Page({
     refresherTriggered: false,
     // tabbar 高度
     tabBarHeight: 120,
+    // 货架价格弹窗
+    showShelfPriceModal: false,
+    shelfPriceModalItem: null,
+    shelfPriceModalGoodsIndex: -1,
+    // 搜索相关
+    searchStr: '',
+    allGoodsList: [],
+    // 显示模式：true-详细模式，false-简洁模式
+    showDetailMode: true,
+    // 展开的商品索引（简洁模式下使用）
+    expandedIndex: -1,
   },
 
   // 本地变量跟踪加载状态
@@ -83,6 +95,14 @@ Page({
       }
     }
 
+    var hasPerCarton = null;
+    if (options.hasPerCarton !== undefined && options.hasPerCarton !== '') {
+      if (options.hasPerCarton === 'null') {
+        hasPerCarton = null;
+      } else {
+        hasPerCarton = parseInt(options.hasPerCarton);
+      }
+    }
     // 从 URL 参数读取溯源筛选条件
     var hasTraceReport = null;
     if (options.hasTraceReport !== undefined && options.hasTraceReport !== '') {
@@ -100,6 +120,7 @@ Page({
       name: options.name,
       hasCartonUnit: hasCartonUnit,
       hasTraceReport: hasTraceReport,
+      hasPerCarton: hasPerCarton
     })
     
     console.log('📦 从 goods 页面传递的外包装筛选条件:', hasCartonUnit);
@@ -215,6 +236,10 @@ Page({
     if (this.data.hasCartonUnit != null && this.data.hasCartonUnit !== undefined) {
       data.hasCartonUnit = this.data.hasCartonUnit;
     }
+     // 添加外包装查询条件（只有当值不为 null 且不为 undefined 时才添加）
+     if (this.data.hasPerCarton != null && this.data.hasPerCarton !== undefined) {
+      data.hasPerCarton = this.data.hasPerCarton;
+    }
     // 添加溯源查询条件（只有当值不为 null 且不为 undefined 时才添加）
     if (this.data.hasTraceReport != null && this.data.hasTraceReport !== undefined) {
       data.hasTraceReport = this.data.hasTraceReport;
@@ -260,6 +285,7 @@ Page({
         this.setData({
           totalCount: pageData.totalCount,
           goodsList: finalGoodsList,
+          allGoodsList: finalGoodsList,
           totalPage: pageData.totalPage || 1,
           hasMore: this.data.currentPage < (pageData.totalPage || 1),
           isLoading: false
@@ -414,6 +440,117 @@ Page({
   },
 
   /**
+   * 预览商品图片
+   */
+  /**
+   * 搜索输入
+   */
+  onSearchInput(e) {
+    const searchStr = e.detail.value.trim();
+    this.setData({ searchStr });
+    this._filterGoods(searchStr);
+  },
+
+  /**
+   * 搜索确认
+   */
+  onSearchInputConfirm(e) {
+    const searchStr = e.detail.value.trim();
+    this.setData({ searchStr });
+    this._filterGoods(searchStr);
+  },
+
+  /**
+   * 清除搜索词
+   */
+  clearSearch() {
+    this.setData({
+      searchStr: '',
+      goodsList: this.data.allGoodsList,
+      totalCount: this.data.allGoodsList.length
+    });
+  },
+
+  /**
+   * 切换显示模式
+   */
+  toggleViewMode() {
+    this.setData({
+      showDetailMode: !this.data.showDetailMode,
+      expandedIndex: -1
+    });
+  },
+
+  /**
+   * 点击商品行（简洁模式下展开详情）
+   */
+  onGoodsItemTap(e) {
+    if (this.data.showDetailMode) {
+      // 详细模式下跳转到详情页
+      this.toGoodsDetailPage(e);
+      return;
+    }
+    // 简洁模式下
+    const index = e.currentTarget.dataset.index;
+    if (this.data.expandedIndex === index) {
+      // 已展开：跳转到详情页
+      this.toGoodsDetailPage(e);
+      return;
+    }
+    // 未展开：展开详情
+    this.setData({
+      expandedIndex: index
+    });
+  },
+
+  /**
+   * 过滤商品列表
+   */
+  _filterGoods(searchStr) {
+    const allGoodsList = this.data.allGoodsList;
+    if (!searchStr) {
+      this.setData({
+        goodsList: allGoodsList,
+        totalCount: allGoodsList.length
+      });
+      return;
+    }
+    const filteredList = allGoodsList.filter(item => {
+      const goodsName = item.nxDgGoodsName || '';
+      const brand = item.nxDgGoodsBrand || '';
+      const alias = item.nxDistributerAliasEntities || [];
+      const aliasStr = alias.map(a => a.nxDaAliasName).join('');
+      const searchLower = searchStr.toLowerCase();
+      return goodsName.toLowerCase().includes(searchLower) ||
+        brand.toLowerCase().includes(searchLower) ||
+        aliasStr.toLowerCase().includes(searchLower);
+    });
+    this.setData({
+      goodsList: filteredList,
+      totalCount: filteredList.length
+    });
+  },
+
+  /**
+   * 预览商品图片
+   */
+  previewImage(e) {
+    const item = e.currentTarget.dataset.item;
+    let imageUrl = '';
+    if (item.nxDgGoodsFileLarge && item.nxDgGoodsFileLarge !== 'null') {
+      imageUrl = this.data.url + item.nxDgGoodsFileLarge;
+    } else if (item.nxDgGoodsFile && item.nxDgGoodsFile !== 'null' && item.nxDgGoodsFile !== 'goodsImage/logo.jpg') {
+      imageUrl = this.data.url + item.nxDgGoodsFile;
+    }
+    if (imageUrl) {
+      wx.previewImage({
+        urls: [imageUrl],
+        current: imageUrl
+      });
+    }
+  },
+
+  /**
    * 打开修改图片页面
    */
   toEditGoodsImage(e) {
@@ -427,6 +564,71 @@ Page({
 
 
 
+
+  /**
+   * 货架型专业批发商（businessTypeId==3）：弹窗编辑 nxDgWillPriceOne / nxDgWillPriceTwo
+   */
+  openShelfGoodsPriceModal(e) {
+    const typeId = Number(this.data.disInfo && this.data.disInfo.nxDistributerBusinessTypeId);
+    if (!this.data.disInfo || typeId !== 3) {
+      return;
+    }
+    const goodsIndex = Number(e.currentTarget.dataset.index);
+    const list = this.data.goodsList || [];
+    const item = list[goodsIndex];
+    if (!item) {
+      return;
+    }
+    let entity;
+    try {
+      entity = JSON.parse(JSON.stringify(item));
+    } catch (err) {
+      entity = Object.assign({}, item);
+    }
+    this.setData({
+      showShelfPriceModal: true,
+      shelfPriceModalItem: entity,
+      shelfPriceModalGoodsIndex: goodsIndex,
+    });
+  },
+
+  onShelfPriceModalCancel() {
+    this.setData({
+      showShelfPriceModal: false,
+      shelfPriceModalItem: null,
+      shelfPriceModalGoodsIndex: -1,
+    });
+  },
+
+  onShelfPriceModalConfirm(e) {
+    const updated = e.detail && e.detail.item;
+    const idx = this.data.shelfPriceModalGoodsIndex;
+    if (!updated || idx < 0) {
+      this.onShelfPriceModalCancel();
+      return;
+    }
+    load.showLoading('保存价格');
+    disUpdateBuyingPrice(updated)
+      .then(res => {
+        load.hideLoading();
+        if (res.result.code === 0) {
+          const path = `goodsList[${idx}]`;
+          this.setData({
+            [path]: updated,
+            showShelfPriceModal: false,
+            shelfPriceModalItem: null,
+            shelfPriceModalGoodsIndex: -1,
+          });
+          wx.showToast({ title: '已保存', icon: 'success' });
+        } else {
+          wx.showToast({ title: res.result.msg || '保存失败', icon: 'none' });
+        }
+      })
+      .catch(() => {
+        load.hideLoading();
+        wx.showToast({ title: '保存失败', icon: 'none' });
+      });
+  },
 
   toBack() {
     wx.navigateBack({

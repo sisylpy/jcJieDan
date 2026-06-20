@@ -1,0 +1,167 @@
+.page-root {
+  height: 100vh;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+}
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.scroll-content {
+  /* flex: 1; */
+  min-height: 0;
+}
+
+.iconB {
+  width: 20px;
+  height: 20px;
+  /* margin-bottom: 2px; */
+}
+
+.icon-button {
+ 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.button-text{
+  font-size: 26rpx;
+}
+
+
+
+
+
+/* 待解析任务：横向滚动卡片 */
+.task-scroll-wrap {
+  flex-shrink: 0;
+  background: #fff;
+  border-bottom: 1rpx solid #eee;
+  padding: 16rpx 0;
+}
+.task-scroll-view {
+  white-space: nowrap;
+  width: 100%;
+}
+.task-scroll-inner {
+  display: inline-flex;
+  flex-direction: row;
+  padding: 0 20rpx;
+  gap: 20rpx;
+}
+.task-card {
+  flex-shrink: 0;
+  width: 200rpx;
+  height: 170rpx;
+  background: #f8f9fa;
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+.task-card-hover {
+  background: #eef1f4;
+}
+.task-card-loading {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16rpx;
+}
+.task-loading-icon {
+  width: 36rpx;
+  height: 36rpx;
+  margin-bottom: 8rpx;
+}
+.task-dep-name {
+  font-size: 26rpx;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.task-status-text {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 4rpx;
+}
+.task-card-body {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 12rpx;
+}
+.task-thumb {
+  width: 100%;
+  height: 80rpx;
+  border-radius: 8rpx;
+  flex-shrink: 0;
+}
+.task-file-icon {
+  width: 56rpx;
+  height: 56rpx;
+  background: #e8ecf0;
+  border-radius: 10rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-bottom: 8rpx;
+}
+.task-icon-img {
+  width: 32rpx;
+  height: 32rpx;
+}
+.task-info {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.task-type-tag {
+  font-size: 20rpx;
+  color: #8b9dc3;
+  margin-bottom: 4rpx;
+}
+.task-file-name {
+  font-size: 32rpx;
+  color: #555;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 4rpx;
+  background-color: #FFF;
+}
+
+.task-stats {
+  font-size: 22rpx;
+  color: #262626;
+  margin-bottom: 20rpx;
+}
+
+.page-root {
+  height: 100vh;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+}
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.scroll-content {
+  flex: 1;
+  min-height: 0;
+}

@@ -8,6 +8,67 @@ import {
 import apiUrl from '../../../../config.js'
 var load = require('../../../../lib/load.js');
 
+/**
+ * 将标准重量单位从中文转换为英文标准单位
+ * @param {string} standardWeight - 标准重量字符串，如 "500g", "1kg", "500毫升", "1升", "2斤" 等
+ * @returns {string} 转换后的标准单位字符串，如 "500g", "1kg", "500ml", "1L" 等
+ */
+function convertStandardWeightUnit(standardWeight) {
+  if (!standardWeight || typeof standardWeight !== 'string') {
+    return standardWeight || '';
+  }
+
+  // 单位映射表：中文单位 -> 英文单位
+  const unitMap = {
+    '升': 'L',
+    '毫升': 'ml',
+    '斤': 'Kg',  // 注意：1斤=0.5kg，但这里只转换单位，不转换数值
+    '公斤': 'Kg',
+    '千克': 'Kg',
+    '克': 'g'
+  };
+
+  // 去除首尾空格
+  let value = standardWeight.trim();
+  
+  // 如果已经是空字符串，直接返回
+  if (!value) {
+    return value;
+  }
+
+  // 匹配数字和单位（支持小数和空格）
+  // 匹配模式：数字部分（可能包含小数点）+ 可选的空格 + 单位部分（中文或英文）
+  const match = value.match(/^([\d.]+)\s*([^\d\s]+)$/);
+  
+  if (match) {
+    const numberPart = match[1]; // 数字部分
+    let unitPart = match[2].trim(); // 单位部分，去除首尾空格
+    
+    // 检查单位是否是中文单位
+    if (unitMap[unitPart]) {
+      // 如果是中文单位，转换为英文单位
+      return numberPart + unitMap[unitPart];
+    } else {
+      // 如果已经是英文单位（g/kg/ml/L），直接返回
+      // 验证是否为标准单位
+      const standardUnits = ['g', 'kg', 'ml', 'L', 'G', 'KG', 'ML'];
+      if (standardUnits.includes(unitPart)) {
+        // 统一转换为小写（L保持大写）
+        if (unitPart.toUpperCase() === 'L') {
+          return numberPart + 'L';
+        } else {
+          return numberPart + unitPart.toLowerCase();
+        }
+      }
+      // 如果不是标准单位，返回原值
+      return value;
+    }
+  }
+  
+  // 如果没有匹配到数字+单位的模式，返回原值
+  return value;
+}
+
 Page({
 
 
@@ -37,7 +98,7 @@ Page({
     // 解码 URL 参数（如果使用 encodeURIComponent 编码过）
     var goodsName = options.goodsName ? decodeURIComponent(options.goodsName) : '';
     var standard = options.standard ? decodeURIComponent(options.standard) : '';
-    var standardWeight = options.standardWeight ? decodeURIComponent(options.standardWeight) : '';
+    var standardWeight = options.standardWeight ? convertStandardWeightUnit(decodeURIComponent(options.standardWeight)) : '';
     var cartonUnit = options.cartonUnit ? decodeURIComponent(options.cartonUnit) : '';
     var itemsPerCarton = options.itemsPerCarton ? decodeURIComponent(options.itemsPerCarton) : '';
 
@@ -186,8 +247,10 @@ Page({
       })
     }
     if (e.currentTarget.dataset.type == 2) {
+      // 转换标准重量单位：将中文单位转换为英文标准单位
+      const convertedValue = convertStandardWeightUnit(e.detail.value);
       this.setData({
-        [standardWeightData]: e.detail.value
+        [standardWeightData]: convertedValue
       })
     }
     if (e.currentTarget.dataset.type == 3) {
@@ -283,6 +346,8 @@ Page({
               goodsId: res.result.data.nxDistributerGoodsId,
               findGoods: true,
               name: this.data.goods.nxDgGoodsName,
+              standard: this.data.nxDgGoodsStandardname,
+              item: this.data.goods,
             })
             wx.navigateBack({delta: 1})
     

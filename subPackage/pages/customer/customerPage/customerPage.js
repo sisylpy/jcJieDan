@@ -9,7 +9,8 @@ import {
   getDepInfo,
   deleteBill,
   deleteBillAgain,
-  deleteBillReturn
+  deleteBillReturn,
+  downloadBillExcel
 } from '../../../../lib/apiDistributer'
 
 
@@ -309,6 +310,58 @@ openDetail(){
   })
 },
 
+  /**
+   * 下载账单Excel（需后端实现 download/downloadBillExcelNx 接口，并在响应头返回文件名）
+   */
+  downloadBillExcel() {
+    const billId = this.data.id;
+    if (!billId) {
+      wx.showToast({ title: '账单信息异常', icon: 'none' });
+      return;
+    }
+    this.hideMask();
+    load.showLoading('生成Excel中...');
+    downloadBillExcel(billId)
+      .then(({ arrayBuffer, fileName }) => {
+        const fs = wx.getFileSystemManager();
+        const savePath = `${wx.env.USER_DATA_PATH}/${fileName}`;
+        fs.writeFile({
+          filePath: savePath,
+          data: arrayBuffer,
+          encoding: 'binary',
+          success: () => {
+            load.hideLoading();
+            wx.openDocument({
+              filePath: savePath,
+              fileType: 'xlsx',
+              showMenu: true,
+              success: () => {},
+              fail: (err) => {
+                console.error('打开文档失败:', err);
+                wx.showModal({
+                  title: '提示',
+                  content: '文件已保存，请使用办公软件打开',
+                  showCancel: false
+                });
+              }
+            });
+          },
+          fail: (err) => {
+            load.hideLoading();
+            console.error('保存失败:', err);
+            wx.showToast({ title: '保存失败', icon: 'none' });
+          }
+        });
+      })
+      .catch((err) => {
+        load.hideLoading();
+        wx.showToast({
+          title: err.message || '下载失败',
+          icon: 'none'
+        });
+      });
+  },
+
 toOpenPrint() {
     
   wx.navigateToMiniProgram({
@@ -399,7 +452,12 @@ toBack(){
   wx.navigateBack({
     delta: 1,
   })
-}
+},
+
+onUnload() {
+  wx.removeStorageSync('depInfo');
+},
+
 
 
 

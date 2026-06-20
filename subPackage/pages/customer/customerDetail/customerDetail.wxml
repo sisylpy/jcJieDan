@@ -49,9 +49,18 @@
         <text class="mr-10 text-secondary">定价类型:</text>
         <text class="">{{depInfo.nxDepartmentType == 'unFixed' ? '市场变动' : '固定'}}</text>
       </view>
-      
+      <view class="flex-row-between p-20 border-bottom" bind:tap="showLabelModal" hover-class="hover">
+        <text class="mr-10 text-secondary shrink_fix">客户标签:</text>
+        <view class="flex-row flex-wrap" style="flex: 1; justify-content: flex-end;">
+          <text wx:if="{{!depInfo.selectedLabels || depInfo.selectedLabels.length === 0}}" class="text-secondary">暂无标签，点击添加</text>
+          <view class="label-tag-small mr-10" wx:for="{{depInfo.selectedLabels}}" wx:key="nxDistributerLabelId">
+            <text>{{item.nxDlName}}</text>
+          </view>
+          <image src="/images/arrow-right-3.png" mode="aspectFill" class="icon"/>
+        </view>
+      </view>
       <!-- 配送设置 -->
-      <!-- <view class="flex-row-between p-20 border-bottom" bind:tap="showLocationTimeModal" hover-class="hover">
+      <view class="flex-row-between p-20 border-bottom" bind:tap="showLocationTimeModal" hover-class="hover">
         <text class="mr-20 text-secondary shrink_fix">配送设置:</text>
         <view class="flex-row">
           <text class="delivery-status {{depInfo.nxDepartmentLat ? 'set' : 'unset'}}">{{depInfo.nxDepartmentLat ? '已设置位置' : '未设置位置'}}</text>
@@ -59,30 +68,30 @@
           <text class="delivery-status {{depInfo.nxDepartmentEarliestDeliveryTime ? 'set' : 'unset'}}">{{depInfo.nxDepartmentEarliestDeliveryTime ? '已设置时间' : '未设置时间'}}</text>
           <image src="/images/arrow-right-3.png" mode="aspectFill" class="icon"/>
         </view>
-      </view> -->
+      </view> 
       
       <!-- 配送地址信息查看 -->
-      <!-- <view class="flex-row-between p-20 border-bottom" >
+      <view class="flex-row-between p-20 border-bottom" >
         <text class="mr-20 text-secondary shrink_fix">配送地址信息:</text>
         <view class="flex-row">
           <text class="delivery-status set">{{depInfo.nxDepartmentAddress}}</text>
         </view>
-      </view> -->
+      </view>
       
       <!-- 配送时间信息查看 -->
-      <!-- <view class="flex-row-between p-20 border-bottom" >
+      <view class="flex-row-between p-20 border-bottom" >
         <text class="mr-20 text-secondary shrink_fix">配送时间信息:</text>
         <view class="flex-row">
           <text class="delivery-status set">{{formattedEarliestTime}} - {{formattedLatestTime}}</text>
         </view>
-      </view> -->
+      </view>
        <!-- 配送时间信息查看 -->
-       <!-- <view class="flex-row-between p-20 border-bottom" >
+        <view class="flex-row-between p-20 border-bottom" >
         <text class="mr-20 text-secondary shrink_fix">卸货时间:</text>
         <view class="flex-row">
           <text class="delivery-status set">{{depInfo.nxDepartmentUnloadDuration}}分钟</text>
         </view>
-      </view> -->
+      </view>
       <view class="flex-row p-20 border-bottom">
         <text class="mr-10 text-secondary">配送单格式:</text>
         <block wx:if="{{depInfo.nxDepartmentPrintName == 'ApplyPanel'}}">
@@ -443,6 +452,82 @@
       <view class="flex flex-row border-bottom p-20 {{depInfo.nxDepartmentEntities.length -1 == index ? 'is-last' : ''}} flex-row-default" wx:for="{{depInfo.nxDepartmentEntities}}" wx:key="nxDepartmentId" wx:for-item="dep" bindtap="selectDepartment" data-item="{{dep}}" hover-class="hover">
         <text class=''>{{dep.nxDepartmentName}}</text>
       </view>
+    </view>
+  </view>
+</view>
+
+<!-- 客户标签管理弹窗 -->
+<view class='overlay {{showLabelModal ? "show" : ""}}' catchtap="hideLabelModal">
+  <view class='popup label-popup bg-white' catchtap="stopPropagation">
+    <!-- 标题栏 -->
+    <view class="flex-row-between p-20 border-bottom">
+      <text class="font-lg font-bold">客户标签管理</text>
+      <view bindtap="hideLabelModal">
+        <image src="/images/close-2.png" mode="aspectFill" class="icon-sm" />
+      </view>
+    </view>
+    
+    <!-- 标签内容区域 -->
+    <view class="label-content">
+      <!-- 全部标签（配送商标签） -->
+      <view class="label-section">
+        <view class="flex-row-between p-20 border-bottom" style="background: #f5f5f5;">
+          <text class="text-secondary font-sm">全部标签（配送商标签）</text>
+          <view class="flex-row">
+            <input class="new-label-input" placeholder="新标签名称" value="{{newLabelName}}" bindinput="getNewLabelName" />
+            <view class="btn-add-label" bindtap="addNewLabel">+</view>
+          </view>
+        </view>
+        
+        <!-- 标签列表 -->
+        <scroll-view scroll-y class="label-list">
+          <view class="p-20 border-bottom" wx:for="{{labelList}}" wx:key="nxDistributerLabelId">
+            <view class="flex-row-between">
+              <view class="flex-row" bindtap="toggleLabel" data-id="{{item.nxDistributerLabelId}}">
+                <image src="{{item.selected ? '/images/selected-2.png' : '/images/radiobuttonunselect-2.png'}}" mode="aspectFill" class="icon-sm mr-10" />
+                <text>{{item.nxDlName}}</text>
+              </view>
+              <view class="btn-delete-label" bindtap="deleteDistributerLabel" data-id="{{item.nxDistributerLabelId}}" data-label="{{item}}">
+                <text class="text-danger font-sm">删除</text>
+              </view>
+            </view>
+          </view>
+          
+          <!-- 无标签提示 -->
+          <view class="p-40 center-content" wx:if="{{labelList.length === 0}}">
+            <text class="text-secondary">暂无标签，请添加</text>
+          </view>
+        </scroll-view>
+      </view>
+      
+      <!-- 已选标签（当前客户的标签） -->
+      <view class="selected-section">
+        <view class="p-20 border-bottom" style="background: #f5f5f5;">
+          <text class="text-secondary font-sm">已选标签（当前客户） ({{selectedLabels.length}})</text>
+        </view>
+        
+        <scroll-view scroll-y class="selected-list">
+          <view class="p-20 border-bottom" wx:for="{{selectedLabels}}" wx:key="nxDistributerLabelId">
+            <view class="flex-row-between">
+              <text>{{item.nxDlName}}</text>
+              <view class="btn-remove-label" bindtap="removeSelectedLabel" data-id="{{item.nxDistributerLabelId}}">
+                <text class="text-danger font-sm">移除</text>
+              </view>
+            </view>
+          </view>
+          
+          <!-- 无已选标签提示 -->
+          <view class="p-40 center-content" wx:if="{{selectedLabels.length === 0}}">
+            <text class="text-secondary">点击上方标签添加</text>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
+    
+    <!-- 底部按钮 -->
+    <view class="flex-row p-20 border-top">
+      <view class="flex-1 p-20 center-content bg-light mr-10" bindtap="hideLabelModal">取消</view>
+      <view class="flex-1 p-20 center-content bg-success" bindtap="saveCustomerLabels">保存</view>
     </view>
   </view>
 </view>

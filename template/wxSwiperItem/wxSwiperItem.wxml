@@ -1,5 +1,5 @@
 <template name="wxSwiperItem">
-  <swiper-item class='' wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+  <swiper-item class='' >
     <!-- 下拉刷新容器 -->
     <scroll-view scroll-y="true" refresher-enabled="true" refresher-triggered="{{refresherTriggered3}}" bindrefresherrefresh="onRefresh3" style="height: {{contentHeight}}rpx;">
       <!-- emptyView -->

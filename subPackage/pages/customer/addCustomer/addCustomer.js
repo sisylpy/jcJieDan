@@ -15,7 +15,10 @@ Page({
     canSave: false,
     hasSubs: 0,
     myInPutIndex: -1,
-    nxDepartmentEntities: []
+    nxDepartmentEntities: [],
+    customerName: '',
+    labelPrintName: '',
+    orderName: '',
   },
 
 
@@ -171,40 +174,34 @@ Page({
 
 
 
-  //群名称输入
+  // 名称输入（客户名称/标签打印名称/订货名称）
   bindKeyInput: function (e) {
-    
-    if(e.detail.value.length > 0){
-      this.setData({
-        inputValue: e.detail.value,
-        inputed: true,
-      })
-      this._ifCanSave();
-    }else{
-      this.setData({
-        inputValue: "" ,
-        inputed: false ,
-        canSave: false, 
-      })
+    var type = e.currentTarget.dataset.type;
+    var value = e.detail.value;
+    var key = type == 0 ? 'customerName' : (type == 1 ? 'labelPrintName' : 'orderName');
+    var update = { [key]: value };
+    if (type == 0) {
+      update.inputValue = value;
+      update.inputed = value.length > 0;
+      // 输入客户名称时，默认将标签打印名称和订货名称赋为相同值
+      update.labelPrintName = value;
+      update.orderName = value;
     }
-   
+    this.setData(update);
+    this._ifCanSave();
   },
 
   _ifCanSave(){
-     if(this.data.hasSubs > 0){
-      if(this.data.addFinished && this.data.inputValue.length > 0){
-        this.setData({
-          canSave: true,
-        })
+    var hasName = (this.data.customerName || this.data.inputValue || '').length > 0;
+    if(this.data.hasSubs > 0){
+      if(this.data.addFinished && hasName){
+        this.setData({ canSave: true });
+      } else {
+        this.setData({ canSave: false });
       }
-     }else{
-       if(this.data.inputValue.length > 0){
-        this.setData({
-          canSave: true,
-        })
-       }
-
-     }
+    } else {
+      this.setData({ canSave: hasName });
+    }
   },
 
 toSave(e){
@@ -218,11 +215,12 @@ toSave(e){
     })
   }
   var dep = {  
-    nxDdDistributerId:this.data.disId,
+    nxDdDistributerId: this.data.disId,
     nxDepartmentEntity: {
       nxDepartmentFatherId: 0,
-      nxDepartmentName: this.data.inputValue,
-      nxDepartmentAttrName: this.data.inputValue,
+      nxDepartmentName: this.data.customerName || this.data.inputValue,
+      nxDepartmentAttrName: this.data.labelPrintName || this.data.customerName || this.data.inputValue,
+      nxDepartmentOrderCode: (this.data.orderName !== undefined && this.data.orderName !== null) ? String(this.data.orderName) : '',
       nxDepartmentType: "unFixed",
        nxDepartmentPrintName: "ApplyHalfPanel",
       nxDepartmentSettleType: this.data.type,

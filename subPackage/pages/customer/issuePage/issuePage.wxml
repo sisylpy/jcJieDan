@@ -50,10 +50,24 @@
       	<view class="flex-row-between" >
       	<view class="flex-row " style="width: {{windowWidth - 60}}rpx;">
 					<text class="">{{index + 1}}.</text>
-					<view class="goods_name flex-row" wx:if="{{orders.nxDistributerGoodsEntity !== null}}">
-						<text class="brand"
+					<view class="goods_name flex-column" wx:if="{{orders.nxDistributerGoodsEntity !== null}}">
+						<view class="flex-row">
+              <text class="brand"
 							wx:if="{{orders.nxDistributerGoodsEntity.nxDgGoodsBrand !== null && orders.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0}}">{{orders.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
 						<text class="">{{orders.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
+            </view> 
+              
+            <text class="shelf-card-spec" wx:if="{{orders.nxDistributerGoodsEntity.nxDgGoodsStandardname && orders.nxDistributerGoodsEntity.nxDgGoodsStandardname !== '斤'}}">{{orders.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && orders.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0 ? orders.nxDistributerGoodsEntity.nxDgGoodsStandardWeight + '/' : ''}}{{orders.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+
+            <block wx:if="{{orders.nxDistributerGoodsEntity.nxDgItemsPerCarton !== null && orders.nxDistributerGoodsEntity.nxDgItemsPerCarton !== ''}}">
+                            <view class="flex-row shelf-card-spec">
+                              <text class="">{{orders.nxDistributerGoodsEntity.nxDgItemsPerCarton}}{{orders.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+                              <text>/{{orders.nxDistributerGoodsEntity.nxDgCartonUnit}}</text>
+                            </view>
+                          </block>
+               
+
+           
 					</view>
           <view wx:else="" class="goods_name text-danger">商品已删除</view>
 						<view class="weight" >{{orders.nxDoWeight}}{{orders.nxDoPrintStandard}}</view>

@@ -2,7 +2,7 @@
 
 
 <view class="flex flex-column">
-<back-navbar  style="height: {{navBarHeight}}rpx;" title="供货商" avatar="/images/back-3.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+<back-navbar  style="height: {{navBarHeight}}rpx;" title="选择日期" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
 <view class='navbar bg-white border-bottom'>
   <block wx:for="{{tabs}}" wx:for-item="tabs" wx:key="id">

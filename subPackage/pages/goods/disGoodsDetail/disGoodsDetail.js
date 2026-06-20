@@ -70,8 +70,18 @@ Page({
     }
     var disInfo = wx.getStorageSync('disInfo');
     if(disInfo){
+      var businessTypeId = disInfo.nxDistributerBusinessTypeId;
+      var items = [
+        { name: '-1', value: '出库' },
+        { name: '1', value: '采购' },
+      ];
+      if (businessTypeId > 2) {
+        items.push({ name: '2', value: '自动订货' });
+      }
       this.setData({
-        disInfo: disInfo
+        disInfo: disInfo,
+        businessTypeId: businessTypeId,
+        items: items,
       })
     }
   },
@@ -106,32 +116,11 @@ Page({
     })
   },
   radioChangePurType: function (e) {
-    console.log(e);
     var value = e.detail.value;
-    console.log(value);
-    if(value < 2){
-      var detail = "goods.nxDgPurchaseAuto";
-      this.setData({
-        [detail]: value,
-      })
-      // var data = "goods.nxDgSupplierId";
-      // if(value !== 2){
-      //   this.setData({
-      //     [data]: null,
-      //   })
-  
-      // }
-    }else{
-      wx.showToast({
-        title: '直接选择指定供货商',
-        icon: 'none'
-      })
-      var detail = "goods.nxDgPurchaseAuto";
-      this.setData({
-        [detail]: this.data.goods.nxDgPurchaseAuto,
-      })
-    }
-   
+    var detail = "goods.nxDgPurchaseAuto";
+    this.setData({
+      [detail]: value,
+    })
   },
 
 
@@ -311,7 +300,7 @@ Page({
     if (e.currentTarget.dataset.type == 10) {
       var itemsPerCarton = "goods.nxDgItemsPerCarton";
       this.setData({
-        [itemsPerCarton]: eValue ? parseInt(eValue) : null
+        [itemsPerCarton]: eValue === '' || eValue === undefined ? null : eValue
       })
     }
     

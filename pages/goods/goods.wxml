@@ -1,11 +1,14 @@
 <wxs src="../../utils/fn.wxs" module="tool" />
 
+<image-preview-modal show="{{showImagePreview}}" imageUrls="{{previewImageUrls}}" currentIndex="{{previewCurrentIndex}}" bindclose="onPreviewClose" />
+
 
 <view class="flex flex-column height-100">
 
   <!-- <custom-navbar style="height: {{navBarHeight}}rpx;" title="商品" avatar="{{url + userInfo.nxDiuWxAvartraUrl}}" button-text="设置" bindnavbuttontap="onNavButtonTap"></custom-navbar> -->
 
-  <back-navbar style="height: {{navBarHeight}}rpx;" title="商品" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="商品" avatar="/images/back-gray.png" button-text="设置"
+    bindnavbuttontap="toBack"></back-navbar>
   <!-- 页面内容 -->
   <view class="content" style="margin-top: {{navBarHeight}}rpx;">
 
@@ -14,15 +17,15 @@
       <view class="flex flex-row p-20 mainColor">
 
         <text class="" wx:if="{{goodsType == '99'}}">全部商品</text>
+        <text class="" wx:elif="{{goodsType == '-2'}}">停用商品</text>
         <text class="" wx:elif="{{goodsType == '-1'}}">库房商品</text>
         <text class="" wx:elif="{{goodsType == '1'}}">自采商品</text>
-        <text class="" wx:elif="{{goodsType == '11' && disInfo.nxDistributerBusinessTypeId > 2}}">自动订货(供货商)</text>
+        <text class="" wx:elif="{{goodsType == '11' && disInfo.nxDistributerBusinessTypeId > 2}}">自动订货</text>
+        <text class="" wx:elif="{{goodsType == '13' && disInfo.nxDistributerBusinessTypeId > 5}}">协作伙伴</text>
         <view class="" style="border-radius: 50%;" bindtap="openFilterMenu" hover-class="hover">
           <image src="../../images/points.png" class="icon mr-10 ml-10"></image>
         </view>
-
       </view>
-
 
       <view class="flex flex-row">
 
@@ -35,7 +38,8 @@
           <view class="badge {{buyPriceCount > 0 ? 'show' : 'hide'}}">{{buyPriceCount}}</view>
         </view> -->
 
-        <view class="button-container mr-40"   wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}" hover-class="button-hover" bindtap="toUpdatePriceGoods" data-type="sell">
+        <view class="button-container mr-40" wx:if="{{disInfo.nxDistributerBusinessTypeId > 5}}"
+          hover-class="button-hover" bindtap="toUpdatePriceGoods" data-type="sell">
           <image src="../../images/warn-3.png" class="button-image"></image>
           <view class="badge {{priceCount > 0 ? 'show' : 'hide'}}">{{priceCount}}</view>
         </view>
@@ -43,12 +47,6 @@
         <view class="button-container mr-40" hover-class="button-hover" bindtap="beginSearch" data-type="buyingPrice">
           <image src="../../images/search-3.png" class="button-image"></image>
         </view>
-
-       
-
-        <!-- <view bindtap="toCustomerServicePages" hover-class="hoverIcon">
-        <image src="../../images/points.png" class="icon"></image>
-      </view> -->
 
       </view>
 
@@ -62,7 +60,9 @@
     <view class="main" wx:else="">
       <scroll-view class="left-menu" scroll-y="true" style="height: {{contentHeight}}rpx; width: {{leftMenuWidth}}rpx;">
         <block wx:for="{{grandList}}" wx:key="nxDistributerFatherGoodsId" wx:for-index="grandIndex">
-          <view class="category-item {{leftGreatId === item.nxDistributerFatherGoodsId ? 'active' : ''}}" bindtap="changeGreatGrand" data-id="{{item.nxDistributerFatherGoodsId}}" data-index="{{grandIndex}}" data-name="{{item.nxDfgFatherGoodsName}}">
+          <view class="category-item {{leftGreatId === item.nxDistributerFatherGoodsId ? 'active' : ''}}"
+            bindtap="changeGreatGrand" data-id="{{item.nxDistributerFatherGoodsId}}" data-index="{{grandIndex}}"
+            data-name="{{item.nxDfgFatherGoodsName}}">
             <text class="">{{item.nxDfgFatherGoodsName}}</text>
             <text>({{item.goodsCount}})</text>
           </view>

@@ -4,8 +4,9 @@ var load = require('../../../../lib/load.js');
 var dateUtils = require('../../../../utils/dateUtil')
 
 import {
-  getOrderPageToOutWeight,
+  getOrderPageToOutWeightByDis,
   updateOrderWeight,
+  giveOrderWeightListForStockShelfGoods,
   giveOrderWeightListForStockAndFinish
 } from '../../../../lib/apiDepOrder.js'
 
@@ -45,7 +46,13 @@ Page({
         disId: disValue.nxDistributerId
       })
     }
-
+    var userInfo = wx.getStorageSync('userInfo');
+    if (userInfo) {
+      this.setData({
+        userInfo: userInfo,
+        userId: userInfo.nxDistributerUserId
+      })
+    }
     // 获取初始数据
     this._initData();
 
@@ -72,6 +79,7 @@ Page({
 
   _initData(){
     var data = {
+      disId: this.data.disInfo.nxDistributerId,
       depFatherId: this.data.depFatherId,
       gbDepFatherId: this.data.gbDepFatherId,
       resFatherId:  this.data.resFatherId,
@@ -79,13 +87,32 @@ Page({
     }
     load.showLoading("获取订单中");
     var that = this;
-    getOrderPageToOutWeight(data)
+    getOrderPageToOutWeightByDis(data)
       .then(res => {
+        console.log("zahuishaaa" , res);
+
         if (res.result.code == 0) {
           load.hideLoading();
-          if(res.result.data.arr.length > 0){
+          var rawArr = (res.result.data && Array.isArray(res.result.data.arr)) ? res.result.data.arr : [];
+          if(rawArr.length > 0){
+            // 兼容接口返回 depOrders 字段，统一到 list，避免后续 list.length 报错
+            var normalizedArr = rawArr;
+            if (Number(this.data.depHasSubs) > 0) {
+              normalizedArr = rawArr.map(function (dep) {
+                if (!dep || typeof dep !== 'object') {
+                  return { list: [] };
+                }
+                if (Array.isArray(dep.list)) {
+                  return dep;
+                }
+                if (Array.isArray(dep.depOrders)) {
+                  return Object.assign({}, dep, { list: dep.depOrders });
+                }
+                return Object.assign({}, dep, { list: [] });
+              });
+            }
             this.setData({
-              applyArr: res.result.data.arr,
+              applyArr: normalizedArr,
             })
             that._checkCanSave();
           }else{
@@ -498,11 +525,14 @@ Page({
     
     if(depHasSubs > 0){
       console.log("--- 处理有子部门的情况 ---");
-      var arr = this.data.applyArr;
+      var arr = Array.isArray(this.data.applyArr) ? this.data.applyArr : [];
       console.log("applyArr 长度:", arr.length);
       
       for(var i = 0; i < arr.length; i++){
-        var list = arr[i].list;
+        var depItem = arr[i] || {};
+        var list = Array.isArray(depItem.list)
+          ? depItem.list
+          : (Array.isArray(depItem.depOrders) ? depItem.depOrders : []);
         console.log(`部门[${i}] list 长度:`, list.length);
         
         if(list.length > 0){
@@ -599,24 +629,56 @@ Page({
 
   saveStock() {
     var arrNeed = this.data.saveArr;
+    var pickUserId = this.data.userId;
+    if ((pickUserId === undefined || pickUserId === null || pickUserId === '') && this.data.userInfo) {
+      pickUserId = this.data.userInfo.nxDistributerUserId;
+    }
+    if (arrNeed.length > 0 && pickUserId !== undefined && pickUserId !== null && pickUserId !== '') {
+      for (var p = 0; p < arrNeed.length; p++) {
+        arrNeed[p].nxDoPickUserId = pickUserId;
+      }
+    }
     console.log("varrneneelelel" , arrNeed.length);
     if (arrNeed.length > 0) {
-      load.showLoading("保存数据中");
-      giveOrderWeightListForStockAndFinish(arrNeed).then(res => {
-        load.hideLoading();
-        if (res.result.code == 0) { 
+      load.showLoading("保存数据中");  if(this.data.disInfo.nxDistributerBusinessTypeId > 2){
+        giveOrderWeightListForStockShelfGoods(arrNeed).then(res => {
+          load.hideLoading();
+          if (res.result.code == 0) {
+            this._initData();
+          } else {
+            wx.showToast({
+              title: 'res.result.msg',
+              icon: 'none'
+            })
+          }
+        })
+      }else{
+        giveOrderWeightListForStockAndFinish(arrNeed).then(res => {
+          load.hideLoading();
+          if (res.result.code == 0) {
+            this._initData();
+          } else {
+            wx.showToast({
+              title: 'res.result.msg',
+              icon: 'none'
+            })
+          }
+        })
+      }
+      // giveOrderWeightListForStockAndFinish(arrNeed).then(res => {
+      //   load.hideLoading();
+      //   if (res.result.code == 0) { 
 
-        this._initData();
-
-      
+      //   this._initData();
          
-        }else{
-          wx.showToast({
-            title: 'res.result.msg',
-            icon: 'none'
-          })
-        }
-      })
+      //   }else{
+      //     wx.showToast({
+      //       title: 'res.result.msg',
+      //       icon: 'none'
+      //     })
+      //   }
+      // })
+
     }else{
       wx.showToast({
         title: '没有可以出库的订单',

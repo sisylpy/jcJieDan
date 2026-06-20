@@ -48,11 +48,15 @@ Component({
     stockList: [],
     selectedStock: null,
     goodsInfo: null,
-    operationType: 2, // 1=使用，3=损耗，4=退货，2=盘库（废弃接口改为盘库）
+    operationType: 2, // 1=使用，3=损耗，4=退货，2=盘库
     inputWeight: '',
     reason: '',
     canSubmit: false,
-    totalRestWeightDisplay: '0'
+    totalRestWeightDisplay: '0',
+    // 盘库模式：1=按批次盘库（推荐），2=按总数盘库
+    inventoryMode: 1,
+    // 当前选择的批次剩余数量（用于按批次盘库时的校验）
+    selectedStockRestWeight: 0
   },
 
   observers: {
@@ -71,12 +75,18 @@ Component({
     },
     'totalRestWeight': function(value) {
       console.log('总剩余库存变更:', value)
-      const formatted = this.formatWeight(value)
-      this.setData({
-        totalRestWeightDisplay: formatted,
-        // 盘库模式：默认输入框显示总剩余数量
-        inputWeight: formatted
-      })
+      // 只有在编辑弹窗显示时才更新 inputWeight
+      if (this.data.showEditModal) {
+        const formatted = this.formatWeight(value)
+        this.setData({
+          totalRestWeightDisplay: formatted,
+          inputWeight: formatted
+        })
+      } else {
+        this.setData({
+          totalRestWeightDisplay: this.formatWeight(value)
+        })
+      }
     }
   },
 
@@ -135,18 +145,19 @@ Component({
       this.setData({
         goodsInfo,
         stockList,
-        showStockList: false,
-        showEditModal: true,
+        showStockList: true,  // 默认显示批次列表，让用户选择盘库模式
+        showEditModal: false, // 不直接显示编辑弹窗
         selectedStock: null,
-        operationType: 2, // 盘库模式，默认选择盘库
-        inputWeight: formattedWeight, // 默认显示总剩余数量
+        operationType: 2, // 盘库模式
+        inventoryMode: 1, // 默认按批次盘库
+        inputWeight: '', // 不默认填充，等待用户选择模式后再填充
         reason: '',
-        canSubmit: true, // 有默认值，可以提交
-        totalRestWeightDisplay: formattedWeight
+        canSubmit: false,
+        totalRestWeightDisplay: formattedWeight,
+        selectedStockRestWeight: 0
       })
       
-      console.log('=== 设置完成，showStockList应为true ===')
-      console.log('当前showStockList:', this.data.showStockList)
+      console.log('=== 设置完成，显示批次列表让用户选择盘库模式 ===')
     },
 
     // 阻止事件冒泡
@@ -157,20 +168,45 @@ Component({
       const index = e.currentTarget.dataset.index
       const selectedStock = this.data.stockList[index]
       
-      console.log('=== 选择批次 ===')
+      console.log('=== 选择批次（盘库模式）===')
       console.log('批次索引:', index)
       console.log('选中批次:', selectedStock)
+      
+      // 获取选中批次的剩余数量
+      const restWeight = parseFloat(selectedStock.nxDgssRestWeight || 0)
       
       this.setData({
         selectedStock,
         showStockList: false,
         showEditModal: true,
-        operationType: 1, // 默认选择使用
-        inputWeight: '',
-        reason: ''
+        operationType: 2, // 盘库
+        inventoryMode: 1, // 按批次盘库
+        inputWeight: this.formatWeight(restWeight), // 默认显示该批次的剩余数量
+        reason: '',
+        selectedStockRestWeight: restWeight
       })
       
       this.checkCanSubmit()
+    },
+
+    // 切换盘库模式
+    onInventoryModeChange(e) {
+      const mode = parseInt(e.detail.value)
+      console.log('=== 切换盘库模式 ===')
+      console.log('新模式:', mode, mode === 1 ? '按批次盘库' : '按总数盘库')
+      
+      const totalWeight = parseFloat(this.data.totalRestWeightDisplay || 0)
+      
+      this.setData({
+        inventoryMode: mode,
+        inputWeight: this.formatWeight(totalWeight), // 重置输入框
+        selectedStock: mode === 1 ? this.data.selectedStock : null, // 按批次时保留选中批次，按总数时清空
+        canSubmit: mode === 2 // 按总数模式可以直接提交，按批次需要先选择批次
+      })
+      
+      if (mode === 2) {
+        this.checkCanSubmit()
+      }
     },
 
     // 操作类型改变
@@ -207,22 +243,41 @@ Component({
 
     // 检查是否可以提交
     checkCanSubmit() {
-      const { inputWeight, totalRestWeight } = this.data
+      const { inputWeight, totalRestWeight, inventoryMode, selectedStock, selectedStockRestWeight } = this.data
       console.log('=== checkCanSubmit ===')
       console.log('inputWeight:', inputWeight)
       console.log('totalRestWeight:', totalRestWeight)
+      console.log('inventoryMode:', inventoryMode)
+      console.log('selectedStock:', selectedStock)
 
       const input = parseFloat(inputWeight)
-      const total = parseFloat(totalRestWeight)
+      let maxWeight = 0
+      let canSubmit = false
 
-      // 盘库模式：输入数量必须 >= 0，且 <= 总剩余数量
-      const canSubmit = !!inputWeight &&
-                        !isNaN(input) &&
-                        input >= 0 &&
-                        !isNaN(total) &&
-                        total >= 0 &&
-                        input <= total
+      if (inventoryMode === 1) {
+        // 按批次盘库：需要选择批次，输入不能超过批次剩余
+        if (!selectedStock) {
+          console.log('按批次盘库需要先选择批次')
+          canSubmit = false
+        } else {
+          maxWeight = parseFloat(selectedStockRestWeight || selectedStock.nxDgssRestWeight || 0)
+          canSubmit = !!inputWeight &&
+                      !isNaN(input) &&
+                      input >= 0 &&
+                      input <= maxWeight
+        }
+      } else {
+        // 按总数盘库：输入不能超过总剩余
+        maxWeight = parseFloat(totalRestWeight)
+        canSubmit = !!inputWeight &&
+                    !isNaN(input) &&
+                    input >= 0 &&
+                    !isNaN(maxWeight) &&
+                    maxWeight >= 0 &&
+                    input <= maxWeight
+      }
 
+      console.log('maxWeight:', maxWeight)
       console.log('canSubmit计算结果:', canSubmit)
       this.setData({ canSubmit })
       console.log('设置后canSubmit:', this.data.canSubmit)
@@ -245,6 +300,28 @@ Component({
         showStockList: false
       })
       this.triggerEvent('close')
+    },
+
+    // 确认选择盘库模式
+    confirmModeSelect() {
+      const { inventoryMode, selectedStock } = this.data
+      console.log('=== 确认盘库模式 ===')
+      console.log('模式:', inventoryMode, inventoryMode === 1 ? '按批次' : '按总数')
+      console.log('选中批次:', selectedStock)
+
+      if (inventoryMode === 1 && !selectedStock) {
+        wx.showToast({
+          title: '请先选择一个批次',
+          icon: 'none'
+        })
+        return
+      }
+
+      // 关闭模式选择弹窗，打开编辑弹窗
+      this.setData({
+        showStockList: false,
+        showEditModal: true
+      })
     },
 
     // 关闭编辑弹窗
@@ -338,25 +415,34 @@ Component({
         return
       }
       
-      // 盘库模式（type=2）：计算损耗 = 总剩余数量 - 输入数量
-      let actualWeight = weight
+      // 盘库模式（type=2）：计算损耗 = 账面剩余 - 输入数量（实际剩余）
+      let waste = 0
       if (operationType === 2) {
-        const totalRestWeight = parseFloat(this.data.totalRestWeight || 0)
+        let restWeight = 0
+        if (this.data.inventoryMode === 1 && this.data.selectedStock) {
+          // 按批次盘库：基于选中批次的剩余数量计算
+          restWeight = parseFloat(this.data.selectedStockRestWeight || this.data.selectedStock.nxDgssRestWeight || 0)
+        } else {
+          // 按总数盘库：基于总剩余数量计算
+          restWeight = parseFloat(this.data.totalRestWeight || 0)
+        }
         const inputWeight = parseFloat(weight || 0)
-        actualWeight = totalRestWeight - inputWeight // 损耗 = 账面 - 实际
+        waste = restWeight - inputWeight // 损耗 = 账面 - 实际
+        
         console.log('盘库损耗计算:', {
-          totalRestWeight,
+          restWeight,
           inputWeight,
-          actualWeight: actualWeight
+          waste: waste,
+          inventoryMode: this.data.inventoryMode
         })
         
         // 如果损耗 <= 0，设置为0
-        if (actualWeight <= 0) {
-          actualWeight = 0
+        if (waste <= 0) {
+          waste = 0
         }
       }
       
-      console.log('请求参数:', { disId, disGoodsId, weight: actualWeight, userId: this.data.userId })
+      console.log('请求参数:', { disId, disGoodsId, weight: waste, userId: this.data.userId })
       
       load.showLoading('提交中...')
       
@@ -411,9 +497,25 @@ Component({
       const requestParams = {
         disId,
         disGoodsId,
-        weight: actualWeight,
-        userId
+        waste: waste,  // 使用 waste 字段名（后端接口要求）
+        operatorId: userId  // 使用 operatorId（后端接口要求）
       };
+
+      // 按批次盘库时，添加 stockId
+      if (operationType === 2 && this.data.inventoryMode === 1 && this.data.selectedStock) {
+        const stockId = this.data.selectedStock.nxDistributerGoodsShelfStockId
+        if (stockId) {
+          requestParams.stockId = stockId
+          console.log('按批次盘库，添加stockId:', stockId)
+        }
+      }
+
+      if (operationType === 1 || operationType === 3 || operationType === 4) {
+        const sgid = this.data.shelfGoods && this.data.shelfGoods.nxDistributerGoodsShelfGoodsId
+        if (sgid != null && sgid !== '') {
+          requestParams.shelfGoodsId = sgid
+        }
+      }
       
       // 如果是盘库操作，添加盘库周期参数
       if (operationType === 2) {

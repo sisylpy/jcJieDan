@@ -37,6 +37,15 @@
             <view class="goods-details">
               <text class="flex-row font-xs ">第{{stockIndex + 1}}/{{oneDay.arr.length}}个</text>
               <text class="goods-name">{{goods.nxDgGoodsName || goods.gbDgGoodsName}}</text>
+              <view class="flex-row text-secondary font-xs" wx:if="{{goods.nxDgGoodsStandardname || (goods.nxDgItemsPerCarton !== null && goods.nxDgItemsPerCarton !== '')}}">
+                            <text class="" wx:if="{{goods.nxDgGoodsStandardname}}">{{goods.nxDgGoodsStandardWeight !== 'null' && goods.nxDgGoodsStandardWeight.length > 0 ? goods.nxDgGoodsStandardWeight + '/' : ''}}{{goods.nxDgGoodsStandardname}}</text>
+                            <text class="shelf-list-spec-gap" wx:if="{{goods.nxDgGoodsStandardname && goods.nxDgItemsPerCarton !== null && goods.nxDgItemsPerCarton !== ''}}"> * </text>
+                            <view class="flex-row shelf-card-spec shelf-list-carton-inline" wx:if="{{goods.nxDgItemsPerCarton !== null && goods.nxDgItemsPerCarton !== ''}}">
+                              <text class="shelf-list-carton-main">{{goods.nxDgItemsPerCarton}}{{goods.nxDgGoodsStandardname}}</text>
+                              <text class="shelf-list-carton-unit">/{{goods.nxDgCartonUnit}}</text>
+                            </view>
+                          </view>
+                          <!-- ././ -->
             </view>
           </view>
 

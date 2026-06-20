@@ -1,12 +1,28 @@
 <view class='flex-column '>
 
-  <back-navbar style="height: {{navBarHeight}}rpx;" title="添加客户" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="添加客户" avatar="/images/back-gray.png" button-text="设置"
+    bindnavbuttontap="toBack"></back-navbar>
 
-  <view class='flex-column p-20 bg-white' style='margin-top: {{navBarHeight}}rpx;' >
-    <view class='flex-row p-20'>
-      <text class="sub-title mr-10 text-secondary">客户名称:</text>
-      <input class="font-lg" focus="true" bindblur="bindKeyInput" style="width:{{windowWidth /2}}rpx;" placeholder="" style="width:{{windowWidth /2}}rpx;" />
+  <view class='flex-column p-20 bg-white' style='margin-top: {{navBarHeight}}rpx;'>
+    <view class="name-field">
+      <text class="name-label">客户名称</text>
+      <input class="name-input" focus="true" bindinput="bindKeyInput" bindblur="bindKeyInput" data-type="0"
+        value="{{customerName}}" placeholder="请输入客户/店铺名称" />
+      <text class="name-hint">用于内部管理和配送单打印，建议填写真实店铺名称</text>
     </view>
+    <view class="name-field">
+      <text class="name-label">标签打印名称</text>
+      <input class="name-input" bindinput="bindKeyInput" bindblur="bindKeyInput" data-type="1"
+        value="{{labelPrintName}}" placeholder="商品标签上显示的名称" />
+      <text class="name-hint">打印商品标签时显示，可与客户名称不同，便于区分</text>
+    </view>
+    <view class="name-field">
+      <text class="name-label">订货名称</text>
+      <input class="name-input" bindinput="bindKeyInput" bindblur="bindKeyInput" data-type="2"
+        value="{{orderName}}" placeholder="协作或采购时显示的名称" />
+      <text class="name-hint">协作商家或对外采购时显示，建议用保密代号保护隐私</text>
+    </view>
+
 
     <view class="flex-row p-20 font-lg">
       <view class='mr-10 text-secondary'>付款方式:</view>
@@ -54,14 +70,19 @@
     </view>
 
     <view class='type p-20 font-lg' wx:if="{{hasSubs == 2}}">
-   
+
       <view class="selcet_content">
         <text class="text-secondary" style="margin-right:10rpx; margin-top:0rpx;">一共有</text>
         <view class="flex-row" style="margin-right:20rpx;" catchtap="showNumber">
           <view class="flex-column">
-            <input class="numInput" style="width:{{windowWidth / 3}}rpx; font-size: 40rpx;  height: 90rpx; line-height: 90rpx; padding-left: 20rpx;" disabled="true" value="{{selNumber}}"></input>
-            <scroll-view scroll-y class="result {{showNumber ? 'is-active' : ''}}" style="width: {{windowWidth/3 + 30}}rpx; margin-top: 92rpx;">
-              <view style="width:{{windowWidth/3}}rpx; " class="flex-column result-row" wx:for="23456789" wx:for-item="item" wx:key="index" wx:for-index="index" catchtap="selIndex" data-index="{{index}}" hover-class="hover">
+            <input class="numInput"
+              style="width:{{windowWidth / 3}}rpx; font-size: 40rpx;  height: 90rpx; line-height: 90rpx; padding-left: 20rpx;"
+              disabled="true" value="{{selNumber}}"></input>
+            <scroll-view scroll-y class="result {{showNumber ? 'is-active' : ''}}"
+              style="width: {{windowWidth/3 + 30}}rpx; margin-top: 92rpx;">
+              <view style="width:{{windowWidth/3}}rpx; " class="flex-column result-row" wx:for="23456789"
+                wx:for-item="item" wx:key="index" wx:for-index="index" catchtap="selIndex" data-index="{{index}}"
+                hover-class="hover">
                 {{item}}
               </view>
             </scroll-view>
@@ -73,10 +94,15 @@
       </view>
     </view>
 
-    <view class='depments flex-column'  wx:if="{{selNumber  > 0}}">
+    <view class='depments flex-column' wx:if="{{selNumber  > 0}}">
       <view class="pt-10 pb-10 text-secondary font-md">部门名称:</view>
       <view class="dep_content {{selNumber !== '' ? 'is-active' : ''}} flex-column">
-        <input wx:for="{{nxDepartmentEntities}}"  wx:key="index" wx:for-index="inputIndex" class="numInput {{inputIndex == myInPutIndex ? 'is-active' : ''}}" style="width:{{windowWidth/2}}rpx; height: 90rpx; line-height: 90rpx;padding-left: 10rpx; margin-bottom:20rpx;" bindinput="getDepartmentName" data-index="{{inputIndex}}" value="{{item.nxDepartmentName}}" adjust-position="true" placeholder="部门名称" confirm-type='{{inputIndex == selNumber -1 ? "done" : "next"}}' hold-keyboard="true" bindconfirm='clickConfirm' focus='{{focusIndex == inputIndex ? "true" : ""}}'></input>
+        <input wx:for="{{nxDepartmentEntities}}" wx:key="index" wx:for-index="inputIndex"
+          class="numInput {{inputIndex == myInPutIndex ? 'is-active' : ''}}"
+          style="width:{{windowWidth/2}}rpx; height: 90rpx; line-height: 90rpx;padding-left: 10rpx; margin-bottom:20rpx;"
+          bindinput="getDepartmentName" data-index="{{inputIndex}}" value="{{item.nxDepartmentName}}"
+          adjust-position="true" placeholder="部门名称" confirm-type='{{inputIndex == selNumber -1 ? "done" : "next"}}'
+          hold-keyboard="true" bindconfirm='clickConfirm' focus='{{focusIndex == inputIndex ? "true" : ""}}'></input>
       </view>
     </view>
   </view>
@@ -86,6 +112,7 @@
 
 
 
-<view class=" bottom_view" >
-   <view class=" p-20 center-content big_button {{canSave ? 'is-active' : ''}}"  bind:tap="{{canSave ? 'toSave' : ''}}">保存</view>
- </view>
+<view class=" bottom_view">
+  <view class=" p-20 center-content big_button {{canSave ? 'is-active' : ''}}" bind:tap="{{canSave ? 'toSave' : ''}}">保存
+  </view>
+</view>

@@ -1,4 +1,14 @@
 
+.platform-tag {
+  display: inline-block;
+  padding: 2rpx 10rpx;
+  font-size: 22rpx;
+  line-height: 32rpx;
+  color: #fff;
+  background: #187e6e;
+  border-radius: 6rpx;
+}
+
 .aaa {
   position: fixed;
   left: 0;

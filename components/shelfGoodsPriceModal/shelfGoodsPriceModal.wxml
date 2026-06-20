@@ -1,0 +1,49 @@
+<view class="sgpm-mask" wx:if="{{show}}" catchtouchmove="noop">
+  <view class="sgpm-sheet" catchtap="noopInner">
+    <view class="sgpm-head">
+      <view class="sgpm-title-line">
+        <text class="sgpm-brand" wx:if="{{editItem.nxDgGoodsBrand && editItem.nxDgGoodsBrand !== 'null' && editItem.nxDgGoodsBrand.length > 0}}">{{editItem.nxDgGoodsBrand}}</text>
+        <text class="sgpm-name">{{editItem.nxDgGoodsName}}</text>
+      </view>
+      <view class="sgpm-spec-line" wx:if="{{editItem.nxDgGoodsStandardname || (editItem.nxDgItemsPerCarton !== null && editItem.nxDgItemsPerCarton !== '') || (editItem.nxDgWillPriceTwoWeight !== null && editItem.nxDgWillPriceTwoWeight !== '')}}">
+        <text class="sgpm-spec" wx:if="{{editItem.nxDgGoodsStandardname}}">{{editItem.nxDgGoodsStandardWeight !== 'null' && editItem.nxDgGoodsStandardWeight.length > 0 ? editItem.nxDgGoodsStandardWeight + '/' : ''}}{{editItem.nxDgGoodsStandardname}}</text>
+        <text wx:if="{{editItem.nxDgGoodsStandardname && ((editItem.nxDgItemsPerCarton !== null && editItem.nxDgItemsPerCarton !== '') || (editItem.nxDgWillPriceTwoWeight !== null && editItem.nxDgWillPriceTwoWeight !== ''))}}"> </text>
+        <text class="sgpm-carton" wx:if="{{(editItem.nxDgItemsPerCarton !== null && editItem.nxDgItemsPerCarton !== '') || (editItem.nxDgWillPriceTwoWeight !== null && editItem.nxDgWillPriceTwoWeight !== '')}}">{{editItem.nxDgItemsPerCarton || editItem.nxDgWillPriceTwoWeight}}{{editItem.nxDgGoodsStandardname}}<text wx:if="{{editItem.nxDgWillPriceTwoStandard || editItem.nxDgCartonUnit}}">/{{editItem.nxDgWillPriceTwoStandard || editItem.nxDgCartonUnit}}</text></text>
+      </view>
+    </view>
+
+    <view class="sgpm-body">
+      <view class="sgpm-row">
+        <view class="sgpm-label-wrap">
+          <text class="sgpm-level">一级</text>
+          <text class="sgpm-label">零售单价（{{editItem.nxDgGoodsStandardname || '基本单位'}}）</text>
+        </view>
+        <view class="sgpm-input-row">
+          <input class="sgpm-input" type="digit" value="{{editItem.nxDgWillPriceOne}}" placeholder="0" bindinput="onWillOne" hold-keyboard="true" />
+          <text class="sgpm-suffix" wx:if="{{editItem.nxDgGoodsStandardname}}">元/{{editItem.nxDgGoodsStandardname}}</text>
+        </view>
+      </view>
+
+      <view class="sgpm-row" wx:if="{{hasCarton}}">
+        <view class="sgpm-label-wrap">
+          <text class="sgpm-level">二级</text>
+          <text class="sgpm-label">大包装（{{editItem.nxDgWillPriceTwoStandard || editItem.nxDgCartonUnit}}）</text>
+        </view>
+        <view class="sgpm-input-row">
+          <input class="sgpm-input" type="digit" value="{{editItem.nxDgWillPriceTwo}}" placeholder="0" bindinput="onWillTwo" hold-keyboard="true" />
+          <text class="sgpm-suffix">元/{{editItem.nxDgWillPriceTwoStandard || editItem.nxDgCartonUnit}}</text>
+        </view>
+        <view class="sgpm-about" wx:if="{{displayTwoAboutPrice}}">
+          <text class="sgpm-about-label">折合基本单位均价</text>
+          <text class="sgpm-about-value">{{displayTwoAboutPrice}}</text>
+          <text class="sgpm-about-unit" wx:if="{{editItem.nxDgGoodsStandardname}}">元/{{editItem.nxDgGoodsStandardname}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="sgpm-actions">
+      <view class="sgpm-btn sgpm-btn--ghost" bindtap="onCancel" hover-class="sgpm-hover">取消</view>
+      <view class="sgpm-btn sgpm-btn--primary" bindtap="onConfirm" hover-class="sgpm-hover">完成</view>
+    </view>
+  </view>
+</view>

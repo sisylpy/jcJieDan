@@ -107,7 +107,7 @@
       <text class="title">操作类型：</text>
       <radio-group bindchange="typeChange">
       <label class="radio-label">
-          <radio value="1" checked="{{operationType == 1}}" />使用
+          <radio value="1" checked="{{operationType == 1}}" />销售
         </label>
         <label class="radio-label">
           <radio value="3" checked="{{operationType == 3}}" />损耗
@@ -115,9 +115,9 @@
         <label class="radio-label">
           <radio value="4" checked="{{operationType == 4}}" />退货
         </label>
-        <label class="radio-label">
+        <!-- <label class="radio-label">
           <radio value="2" checked="{{operationType == 2}}" />盘库
-        </label>
+        </label> -->
          <label class="radio-label">
           <radio value="5" checked="{{operationType == 5}}" />调出
         </label>
@@ -164,8 +164,8 @@
       <view class="btn cancel" bindtap="closeEditModal">
         <text>取消</text>
       </view>
-      <!-- 调出操作但未选择批次时，显示"选择批次"按钮 -->
-      <view wx:if="{{operationType == 5 && !selectedStock}}" class="btn confirm" catchtap="backToStockList">
+      <!-- 未选择批次时，显示"选择批次"按钮 -->
+      <view wx:if="{{!selectedStock}}" class="btn confirm" catchtap="backToStockList">
         <text>选择批次</text>
       </view>
       <view wx:else class="btn confirm {{canSubmit ? '' : 'disabled'}}" catchtap="submit">

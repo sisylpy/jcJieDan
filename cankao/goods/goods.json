@@ -1,8 +1,0 @@
-{
-  "usingComponents": {
-    "custom-navbar": "/components/custom-navbar/custom-navbar",
-    "stockOutGoods": "/components/stockOutGoods/stockOutGoods"
-
-
-  }
-}

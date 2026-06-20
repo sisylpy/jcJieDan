@@ -1,6 +1,7 @@
 var load = require('../../../../lib/load.js');
 var esc = require("../../../../utils/GPutils/esc.js");
 var dateUtils = require('../../../../utils/dateUtil');
+var platformDisplay = require('../../../../utils/platformOrderDisplay.js');
 
 import apiUrl from '../../../../config.js'
 
@@ -9,6 +10,7 @@ import {
   updateOrder,
   deleteOrder,
   phoneGetToFillDepOrders,
+  depFatherGetTaskListJustCount,
   phoneGetToFillDepOrdersWithKg,
   phoneGetToFillDepOrdersWithJin,
   saveAccountBillPhoneFeiE,
@@ -17,13 +19,17 @@ import {
   receiveReturnApplyNx,
   giveOrderWeightListForStockAndFinish,
   giveOrderWeightListForStockShelfGoods,
+  giveOrderPrice,
   cancelOutOrder,
   deliveryOrder,
   cancleDeliveryOrder,
   updateDepPickName,
-  confirmDepApplyGoods
+  confirmDepApplyGoods,
+  
 
 } from '../../../../lib/apiDepOrder'
+
+import { resolveNxDoCostPriceLevel } from '../../../../lib/retailPriceLevel'
 
 import {
   disSaveStandard,
@@ -47,7 +53,9 @@ Page({
 
 
 
-    this._initData();
+    // this._initData();
+
+    this._initTaskList();
 
     // 2，打印初始化参数
     var list = []
@@ -124,21 +132,100 @@ Page({
         disId: userInfo.nxDiuDistributerId,
         deviceId: userInfo.nxDiuPrintDeviceId,
         disInfo: userInfo.nxDistributerEntity,
+        businessTypeId: userInfo.nxDistributerEntity.nxDistributerBusinessTypeId,
       })
     }
     var depInfo = wx.getStorageSync('depItem');
     this.setData({
       depInfo: depInfo,
-      depSettleType: depInfo.nxDepartmentSettleType,
-      depFatherId: depInfo.nxDepartmentId,
-      depId: depInfo.nxDepartmentId,
-      depName: depInfo.nxDepartmentAttrName,
+      depSettleType: depInfo && depInfo.nxDepartmentSettleType,
+      // 拉单路由以 URL 参数为准（平台 GB 客户 depFatherId=-1、gbDepFatherId=routeGbDepFatherId）
+      depFatherId: options.depFatherId,
+      gbDepFatherId: options.gbDepFatherId,
+      depId: depInfo && depInfo.nxDepartmentId,
+      depName: options.name || (depInfo && depInfo.nxDepartmentAttrName),
     })
+    console.log('[orderPage] 路由参数 depFatherId=', options.depFatherId, 'gbDepFatherId=', options.gbDepFatherId);
   },
 
 
-  _initData() {
 
+
+  _initTaskList(){
+    this._fetchTaskList();
+  },
+
+  _fetchTaskList() {
+    depFatherGetTaskListJustCount(this.data.depFatherId).then(res => {
+      let taskArr = [];
+      if (res.result && res.result.code == 0 && res.result.data !== undefined) {
+        taskArr = Array.isArray(res.result.data) ? res.result.data : [];
+      } else if (Array.isArray(res.result)) {
+        taskArr = res.result;
+      }
+      this.setData({ taskArr });
+      this._checkAndStartTaskStatusTimer(taskArr);
+     
+      this._initData();
+    });
+  },
+
+  _checkAndStartTaskStatusTimer(taskArr) {
+    if (this._taskStatusTimer) {
+      clearInterval(this._taskStatusTimer);
+      this._taskStatusTimer = null;
+    }
+    if (taskArr && taskArr.length > 0) {
+      this._taskStatusTimer = setInterval(() => {
+        depFatherGetTaskListJustCount(this.data.depFatherId).then(res => {
+          let data = [];
+          if (res.result && res.result.code == 0 && res.result.data !== undefined) {
+            data = Array.isArray(res.result.data) ? res.result.data : [];
+          } else if (Array.isArray(res.result)) {
+            data = res.result;
+          }
+          this.setData({ taskArr: data });
+          if (data.length === 0) {
+            clearInterval(this._taskStatusTimer);
+            this._taskStatusTimer = null;
+            this._initData();
+          }
+        });
+      }, 20000);
+    }
+  },
+
+  onUnload() {
+    wx.removeStorageSync('depItem');
+    if (this._taskStatusTimer) {
+      clearInterval(this._taskStatusTimer);
+      this._taskStatusTimer = null;
+    }
+  },
+
+  _normalizeOrderPageData(data) {
+    if (!data || !data.arr) return data;
+    if (this.data.depHasSubs > 0) {
+      data.arr.forEach(function (dep) {
+        if (dep.depOrders && dep.depOrders.length) {
+          dep.depOrders = dep.depOrders.map(function (order) {
+            return platformDisplay.normalizeOrder(order);
+          });
+          var platformCount = dep.depOrders.filter(function (o) { return o.isPlatformOrder === 1; }).length;
+          console.log('[platformOrder] #' + dep.depName + ' 平台行:', platformCount, '/', dep.depOrders.length);
+        }
+      });
+    } else {
+      data.arr = data.arr.map(function (order) {
+        return platformDisplay.normalizeOrder(order);
+      });
+      var platformCount = data.arr.filter(function (o) { return o.isPlatformOrder === 1; }).length;
+      console.log('[platformOrder] 平台行:', platformCount, '/', data.arr.length);
+    }
+    return data;
+  },
+
+  _initData() {
 
     var data = {
       depFatherId: this.data.depFatherId,
@@ -153,8 +240,8 @@ Page({
         load.hideLoading();
         console.log("printdata", res.result.data);
         if (res.result.code == 0) {
-
-          // 遍历所有订单，根据nxDoPrintStandard字段判断是斤还是公斤模式
+          this._normalizeOrderPageData(res.result.data);
+          console.log('[platformOrder] 客户订单页数据已归一化');
           let isKgMode = false;
           let foundStandard = false; // 标记是否找到有效的规格
           console.log("[判断斤/公斤模式] depHasSubs:", this.data.depHasSubs);
@@ -406,6 +493,7 @@ Page({
       warnContent: this.data.goodsName + "  " + this.data.applyItem.nxDoQuantity + this.data.applyItem.nxDoStandard,
       deleteShow: true,
       show: false,
+      showCash:false,
       popupType: 'deleteOrder',
       showPopupWarn: true,
       showOperationGoods: false,
@@ -550,7 +638,7 @@ Page({
       })
     } else if (this.data.openType == 'ocr') {
       wx.navigateTo({
-        url: '/subPackage-charts/pages/order/ocrOrder/ocrOrder?depFatherId=' + this.data.depFatherId +
+        url: '/subPackage-charts/pages/order/ocrUpload/ocrUpload?depFatherId=' + this.data.depFatherId +
           '&depId=' + this.data.depId + '&depName=' + depName,
       })
     } else {
@@ -558,7 +646,7 @@ Page({
         url: '../resGoodsList/resGoodsList?depFatherId=' + this.data.depFatherId +
           '&depId=' + this.data.depId + '&depName=' + depName +
           '&gbDepFatherId=-1&resFatherId=-1&depSettleType=' + this.data.depSettleType +
-          '&beforeId=-1',
+          '&beforeId=-1' + '&businessTypeId=' + this.data.businessTypeId,
       })
     }
   },
@@ -591,7 +679,6 @@ Page({
 
 
   toAddOrder(e) {
-
     console.log(e.currentTarget.dataset.type)
     var type = e.currentTarget.dataset.type;
     if (this.data.depInfo.nxDepartmentEntities.length > 0) {
@@ -619,7 +706,7 @@ Page({
           url: '../resGoodsList/resGoodsList?depFatherId=' + this.data.depFatherId +
             '&depId=' + this.data.depId + '&depName=' + this.data.depName +
             '&gbDepFatherId=-1&resFatherId=-1&depSettleType=' + this.data.depSettleType +
-            '&beforeId=-1',
+            '&beforeId=-1' + '&businessTypeId=' + this.data.businessTypeId,
         })
       }
     }
@@ -633,7 +720,6 @@ Page({
         '&depId=' + this.data.depId + '&depName=' + this.data.depName +
         '&gbDepFatherId=-1&resFatherId=-1&depSettleType=' + this.data.depSettleType,
     })
-
   },
 
 
@@ -645,8 +731,9 @@ Page({
         '&depId=' + this.data.depId + '&depName=' + this.data.depName +
         '&gbDepFatherId=-1&resFatherId=-1&depSettleType=' + this.data.depSettleType,
     })
-
   },
+
+
 
   // 跳转到 OCR 识别页面
   recognizeOrder(e) {
@@ -683,7 +770,7 @@ Page({
       const depId = this.data.depId || '';
       
       // 构建 URL，参数使用 encodeURIComponent 编码（wx.navigateTo 不会自动编码中文）
-      const url = '/subPackage-charts/pages/order/ocrOrder/ocrOrder' +
+      const url = '/subPackage-charts/pages/order/ocrUpload/ocrUpload' +
         '?depFatherId=' + depFatherId +
         '&depId=' + depId +
         '&depName=' + encodeURIComponent(depName);
@@ -710,7 +797,7 @@ Page({
           // 尝试不带参数跳转，测试页面是否存在
           console.log("尝试不带参数跳转测试...");
           wx.navigateTo({
-            url: '/subPackage-charts/pages/order/ocrOrder/ocrOrder',
+            url: '/subPackage-charts/pages/order/ocrUpload/ocrUpload',
             success: (testRes) => {
               console.log("不带参数跳转成功，说明页面存在，问题可能在参数");
             },
@@ -729,6 +816,89 @@ Page({
     console.log("========== recognizeOrder 结束 ==========");
   },
 
+
+
+
+  // 跳转到 OCR 识别页面
+  // recognizeOrder1(e) {
+  //   console.log("========== recognizeOrder 开始 ==========");
+  //   console.log("点击事件 e:", e);
+  //   console.log("dataset:", e.currentTarget.dataset);
+  //   var type = e.currentTarget.dataset.type;
+  //   console.log("type:", type);
+    
+  //   console.log("当前部门信息:");
+  //   console.log("  depInfo:", this.data.depInfo);
+  //   console.log("  depFatherId:", this.data.depFatherId);
+  //   console.log("  depId:", this.data.depId);
+  //   console.log("  depName:", this.data.depName);
+    
+  //   // 检查是否有子部门
+  //   const hasSubDepartments = this.data.depInfo && 
+  //                             this.data.depInfo.nxDepartmentEntities && 
+  //                             this.data.depInfo.nxDepartmentEntities.length > 0;
+  //   console.log("是否有子部门:", hasSubDepartments);
+  //   if (hasSubDepartments) {
+  //     console.log("子部门数量:", this.data.depInfo.nxDepartmentEntities.length);
+  //     console.log("显示部门选择弹窗");
+  //     this.setData({
+  //       showChoice: true,
+  //       openType: 'ocr',
+  //     })
+  //     console.log("已设置 showChoice: true, openType: 'ocr'");
+  //   } else {
+  //     // 直接跳转到 OCR 识别页面
+  //     // 使用分包路径格式：/分包root/页面路径
+  //     const depName = this.data.depName || '';
+  //     const depFatherId = this.data.depFatherId || '';
+  //     const depId = this.data.depId || '';
+      
+  //     // 构建 URL，参数使用 encodeURIComponent 编码（wx.navigateTo 不会自动编码中文）
+  //     const url = '/subPackage-charts/pages/order/ocrUpload/ocrUpload' +
+  //       '?depFatherId=' + depFatherId +
+  //       '&depId=' + depId +
+  //       '&depName=' + encodeURIComponent(depName);
+      
+  //     console.log("直接跳转到 OCR 识别页面");
+  //     console.log("跳转 URL:", url);
+  //     console.log("参数详情:", {
+  //       depFatherId: depFatherId,
+  //       depId: depId,
+  //       depName: depName,
+  //       depNameEncoded: encodeURIComponent(depName)
+  //     });
+      
+  //     wx.navigateTo({
+  //       url: url,
+  //       success: (res) => {
+  //         console.log("跳转成功:", res);
+  //       },
+  //       fail: (err) => {
+  //         console.error("跳转失败:", err);
+  //         console.error("错误详情:", JSON.stringify(err, null, 2));
+  //         console.error("尝试的 URL:", url);
+          
+  //         // 尝试不带参数跳转，测试页面是否存在
+  //         console.log("尝试不带参数跳转测试...");
+  //         wx.navigateTo({
+  //           url: '/subPackage-charts/pages/order/ocrUpload/ocrUpload',
+  //           success: (testRes) => {
+  //             console.log("不带参数跳转成功，说明页面存在，问题可能在参数");
+  //           },
+  //           fail: (testErr) => {
+  //             console.error("不带参数也失败，说明页面配置有问题:", testErr);
+  //             wx.showModal({
+  //               title: '页面未找到',
+  //               content: '请检查：\n1. app.json 中是否已配置页面\n2. 是否需要重新编译小程序\n3. 页面文件是否存在',
+  //               showCancel: false
+  //             });
+  //           }
+  //         });
+  //       }
+  //     })
+  //   }
+  //   console.log("========== recognizeOrder 结束 ==========");
+  // },
 
 
   // toPaste() {
@@ -827,8 +997,6 @@ Page({
     })
     this.chooseSezi();
   },
-
-
 
   editDepApplyGoods(e) {
     this.setData({
@@ -946,21 +1114,17 @@ Page({
 
 
   changeStandard: function (e) {
+    const lv = e.detail.level != null ? Number(e.detail.level) : 1;
+    const stdName = e.detail.applyStandardName;
+    const dis = this.data.applyItem && this.data.applyItem.nxDistributerGoodsEntity;
+    const levelTwoStandard = dis ? dis.nxDgWillPriceTwoStandard : "";
+    const printStd = lv === 2 || stdName === levelTwoStandard ? levelTwoStandard : dis ? dis
+      .nxDgGoodsStandardname : "";
     this.setData({
-      applyStandardName: e.detail.applyStandardName,
-      priceLevel: e.detail.level,
+      applyStandardName: stdName,
+      priceLevel: lv,
+      printStandard: printStd,
     })
-    var levelTwoStandard = this.data.applyItem.nxDistributerGoodsEntity.nxDgWillPriceTwoStandard;
-    if (this.data.applyStandardName == levelTwoStandard) {
-      this.setData({
-        printStandard: levelTwoStandard
-      })
-    } else {
-      this.setData({
-        printStandard: this.data.applyItem.nxDistributerGoodsEntity.nxDgGoodsStandardname
-      })
-    }
-    console.log("thisdaprinfir", this.data.printStandard)
   },
 
   hideMaskGoods() {
@@ -1066,6 +1230,13 @@ Page({
     wx.navigateTo({
       url: '../../mangement/homePage/homePage',
     })
+  },
+
+  toOpenTask(){
+    var id = this.data.applyItem.nxDoOcrTaskId;
+    wx.navigateTo({
+      url: '../ocrOrder/ocrOrder?taskId=' + id  + '&depFatherId=' + this.data.depFatherId + '&depId=' + this.data.depId + '&depName=' + this.data.depName,
+    })
 
   },
 
@@ -1141,12 +1312,14 @@ Page({
     }
     this.setData({
       show: false,
+      showCash: false,
       editApply: false,
       applyItem: "",
       item: "",
       applyNumber: "",
       applyStandardName: "",
       printStandard: "",
+      priceLevel: 1,
     })
   },
 
@@ -1173,14 +1346,16 @@ Page({
    * @param {} e 
    */
   _updateDisOrder(e) {
+    const std = e.detail.applyStandardName;
+    const dis = this.data.applyItem && this.data.applyItem.nxDistributerGoodsEntity;
 
     var dg = {
       id: this.data.applyItem.nxDepartmentOrdersId,
       weight: e.detail.applyNumber,
-      standard: e.detail.applyStandardName,
+      standard: std,
       remark: e.detail.applyRemark,
       printStandard: this.data.printStandard,
-      priceLevel: this.data.priceLevel
+      priceLevel: resolveNxDoCostPriceLevel(dis, std),
     };
     updateOrder(dg).then(res => {
       load.showLoading("修改订单")
@@ -1209,7 +1384,8 @@ Page({
       applyItem: "",
       applyNumber: "",
       depStandardArr: [],
-
+      showCash: false,
+      priceLevel: 1,
     })
 
     if (this.data.isSearching) {
@@ -2034,8 +2210,10 @@ Page({
     var apply = this.data.applyItem;
     apply.hasChoice = true;
     temp.push(apply);
-    var itemDis = this.data.disGoods;
-    itemDis.nxDepartmentOrdersEntities = temp;
+    var itemDis = platformDisplay.processGoodsItem(this.data.disGoods);
+    itemDis.nxDepartmentOrdersEntities = temp.map(function (o) {
+      return platformDisplay.normalizeOrder(o);
+    });
     this.setData({
       item: itemDis,
       showDisOutGoods: true,
@@ -2049,6 +2227,7 @@ Page({
   confirmStock(e) {
     var arrNeed = e.detail.item.nxDepartmentOrdersEntities;
     var arr = [];
+    var priceTasks = [];
     if (arrNeed.length > 0) {
       for (var i = 0; i < arrNeed.length; i++) {
         var weightValue = arrNeed[i].nxDoWeight;
@@ -2056,38 +2235,66 @@ Page({
         if (weightValue !== null && weightValue > 0 && choice) {
           arr.push(arrNeed[i]);
         }
+        if (choice && arrNeed[i].isPlatformOrder === 1 && arrNeed[i].priceEditable === 1 && arrNeed[i]._priceChanged) {
+          priceTasks.push(giveOrderPrice({
+            orderId: arrNeed[i].nxDepartmentOrdersId,
+            price: arrNeed[i].actualPrice || arrNeed[i].nxDoPrice
+          }));
+        }
       }
     }
 
-    if (arr.length > 0) {
-      load.showLoading("保存数据中");
-      if(this.data.disInfo.nxDistributerBusinessTypeId > 1){
-        giveOrderWeightListForStockShelfGoods(arr).then(res => {
-          load.hideLoading();
-          if (res.result.code == 0) {
-            this._initData();
-          } else {
-            wx.showToast({
-              title: 'res.result.msg',
-              icon: 'none'
-            })
-          }
-        })
-      }else{
-        giveOrderWeightListForStockAndFinish(arr).then(res => {
-          load.hideLoading();
-          if (res.result.code == 0) {
-            this._initData();
-          } else {
-            wx.showToast({
-              title: 'res.result.msg',
-              icon: 'none'
-            })
-          }
-        })
-      }
-      
+    var pickUserId = this.data.userId;
+    if ((pickUserId === undefined || pickUserId === null || pickUserId === '') && this.data.userInfo) {
+      pickUserId = this.data.userInfo.nxDistributerUserId;
     }
+    if (arr.length > 0 && pickUserId !== undefined && pickUserId !== null && pickUserId !== '') {
+      for (var p = 0; p < arr.length; p++) {
+        arr[p].nxDoPickUserId = pickUserId;
+      }
+    }
+
+    var that = this;
+    var saveWeights = function () {
+      if (arr.length === 0) {
+        if (priceTasks.length > 0) {
+          that._initData();
+        }
+        return;
+      }
+      load.showLoading("保存数据中");
+      var weightPromise;
+      if (that.data.disInfo.nxDistributerBusinessTypeId > 2) {
+        weightPromise = giveOrderWeightListForStockShelfGoods(arr);
+      } else {
+        weightPromise = giveOrderWeightListForStockAndFinish(arr);
+      }
+      weightPromise.then(function (res) {
+        load.hideLoading();
+        if (res.result.code == 0) {
+          that._initData();
+        } else {
+          wx.showToast({
+            title: res.result.msg || '保存失败',
+            icon: 'none'
+          });
+        }
+      });
+    };
+
+    if (priceTasks.length > 0) {
+      load.showLoading("保存价格中");
+      Promise.all(priceTasks).then(function () {
+        load.hideLoading();
+        saveWeights();
+      }).catch(function () {
+        load.hideLoading();
+        wx.showToast({ title: '保存价格失败', icon: 'none' });
+      });
+      return;
+    }
+
+    saveWeights();
   },
 
 
@@ -2169,6 +2376,8 @@ Page({
   },
 
 
+
+
   toSuyuanPage(){
 
     wx.navigateTo({
@@ -2178,6 +2387,40 @@ Page({
 
   },
 
+  /**
+   * 点击任务项，跳转到订单页面
+   */
+  // getTaskOrder: function(e) {
+  //   const item = e.currentTarget.dataset.item;
+  //   if (!item) {
+  //     return;
+  //   }
+
+  //   // 如果任务状态为0（识别中），提示用户等待
+  //   if (item.nxOcrTaskStatus == 0) {
+  //     wx.showToast({
+  //       title: '订单解析中，请稍等',
+  //       icon: 'none'
+  //     });
+  //     return;
+  //   }
+
+  //   // 获取部门信息并跳转
+  //   // 跳转到订单页面
+  //   wx.navigateTo({
+  //     url: '/subPackage-charts/pages/order/ocrOrder/ocrOrder?taskId=' + item.nxOcrTaskId,
+  //   });
+  // },
+  /**
+   * 点击任务项，跳转到订单页面
+   */
+  getTaskOrder: function(e) {
+    var item = e.currentTarget.dataset.item;
+    wx.navigateTo({
+      url: '/subPackage-charts/pages/order/ocrOrder/ocrOrder?taskId=' + item.nxOcrTaskId
+      + '&depFatherId=' + this.data.depFatherId + '&depId=' + this.data.depId + '&depName='  + this.data.depName,
+    });
+  },
 
 
 

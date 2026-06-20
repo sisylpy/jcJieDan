@@ -36,17 +36,33 @@ Page({
   },
 
 
+  _filterCustomers() {
+    const keyword = (this.data.customerFilterKeyword || '').trim().toLowerCase();
+    const filterFn = (item) => !keyword || (item.nxDepartmentAttrName || '').toLowerCase().includes(keyword);
+    this.setData({
+      filteredCustomerArrOne: (this.data.myCustomerArrOne || []).filter(filterFn),
+      filteredCustomerArrTwo: (this.data.myCustomerArrTwo || []).filter(filterFn),
+    });
+  },
+
+  onCustomerFilterInput(e) {
+    this.setData({
+      customerFilterKeyword: e.detail.value
+    }, () => this._filterCustomers());
+  },
+
   _initData() {
-   
     disGetAllCustomer(this.data.disId).then(res => {
       load.showLoading("获取客户")
       if (res.result.code == 0) {
         load.hideLoading();
+        const arrOne = res.result.data.settleTypeOne || [];
+        const arrTwo = res.result.data.settleTypeTwo || [];
         this.setData({
-          myCustomerArrOne: res.result.data.settleTypeOne,
-          myCustomerArrTwo: res.result.data.settleTypeTwo,
-          myCustomerArrThree: res.result.data.settleTypeThree,
-        })
+          myCustomerArrOne: arrOne,
+          myCustomerArrTwo: arrTwo,
+          myCustomerArrThree: res.result.data.settleTypeThree || [],
+        }, () => this._filterCustomers());
         var that = this;
         var query = wx.createSelectorQuery();
         //选择id

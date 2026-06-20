@@ -1,15 +1,13 @@
 {
   "usingComponents": {
     "back-navbar": "/components/back-navbar/back-navbar",
-    "delWarnModal": "/components/delWarnModal/delWarnModal",
-    "addOrder": "/components/addOrder/addOrder",
-    "correctionModal": "/components/correctionModal/correctionModal",
     "ocrUpload": "/components/ocrUpload/ocrUpload",
     "ocrImagePreview": "/components/ocrImagePreview/ocrImagePreview",
-    "ocrRecognizing": "/components/ocrRecognizing/ocrRecognizing",
-    "ocrTTSPlayer": "/components/ocrTTSPlayer/ocrTTSPlayer",
     "ocrOrderList": "/components/ocrOrderList/ocrOrderList",
-    "testImagePreview": "/components/testImagePreview/testImagePreview"
+    "ocrOrderListNormal": "/components/ocrOrderListNormal/ocrOrderListNormal",
+    "ocrTTSPlayer": "/components/ocrTTSPlayer/ocrTTSPlayer",
+    "addOrder": "/components/addOrder/addOrder",
+    "delWarnModal": "/components/delWarnModal/delWarnModal"
   }
 }
 

@@ -17,6 +17,7 @@ import {
   deleteDepGoods
 } from '../../lib/apiRestraunt';
 
+import { resolveNxDoCostPriceLevel } from '../../lib/retailPriceLevel';
 
 Page({
 
@@ -1211,14 +1212,16 @@ Page({
    * @param {} e 
    */
   _updateDisOrder(e) {
+    const std = e.detail.applyStandardName;
+    const dis = this.data.applyItem && this.data.applyItem.nxDistributerGoodsEntity;
 
     var dg = {
       id: this.data.applyItem.nxDepartmentOrdersId,
       weight: e.detail.applyNumber,
-      standard: e.detail.applyStandardName,
+      standard: std,
       remark: e.detail.applyRemark,
       printStandard: this.data.printStandard,
-      priceLevel: this.data.priceLevel
+      priceLevel: resolveNxDoCostPriceLevel(dis, std),
     };
     updateOrder(dg).then(res => {
       load.showLoading("修改订单")

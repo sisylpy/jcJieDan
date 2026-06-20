@@ -1,5 +1,64 @@
 
 
+/* 搜索框样式 */
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+
+.search-input {
+  flex: 1;
+  height: 70rpx;
+  line-height: 70rpx;
+  padding: 0 120rpx 0 20rpx;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 35rpx;
+}
+
+.search-clear {
+  position: absolute;
+  right: 70rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 10rpx;
+}
+
+.clear-icon {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+.view-mode-btn {
+  margin-left: 10rpx;
+  padding: 10rpx;
+}
+
+.view-mode-icon {
+  width: 40rpx;
+  height: 40rpx;
+}
+
+/* 简洁模式 */
+.goods-card-simple {
+  padding: 16rpx 20rpx;
+}
+
+.goods-info-section-simple {
+  padding-left: 0;
+}
+
+.goods-name-row-simple {
+  padding: 8rpx 0;
+}
+
+.arrow-rotate {
+  transform: rotate(90deg);
+}
+
 .addBtn{
   font-size: 50rpx;
   line-height: 80rpx;
@@ -45,4 +104,232 @@
 .flex-row-between:active {
   background-color: #f0f0f0;
 }
+
+/* 商品卡片整体样式 */
+.goods-card {
+  display: flex;
+  flex-direction: row;
+  padding: 20rpx;
+  background-color: #fff;
+  border-bottom: 1rpx solid #eee;
+}
+
+.goods-image-section {
+  position: relative;
+  width: 160rpx;
+  height: 160rpx;
+  flex-shrink: 0;
+  margin-right: 20rpx;
+}
+
+.goods-img {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 12rpx;
+}
+
+.goods-img.placeholder {
+  background-color: #f5f5f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.camera-icon-center {
+  width: 60rpx;
+  height: 60rpx;
+  opacity: 0.4;
+}
+
+.goods-info-section {
+  flex: 1;
+  min-width: 0;
+}
+
+.goods-name-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.goods-index {
+  font-size: 24rpx;
+  color: #999;
+  margin-right: 8rpx;
+  flex-shrink: 0;
+}
+
+.goods-name-wrap {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  min-width: 0;
+}
+
+
+.goods-name {
+  font-weight: 600;
+  color: #333;
+  margin-right: 8rpx;
+}
+
+.goods-detail {
+  color: #666;
+}
+
+.alias {
+  color: #999;
+  margin-left: 8rpx;
+}
+
+.arrow-icon {
+  width: 32rpx;
+  height: 32rpx;
+  flex-shrink: 0;
+  margin-left: 10rpx;
+}
+
+/* 规格信息 */
+.spec-row {
+  display: flex;
+  flex-direction: row;
+  margin-bottom: 8rpx;
+}
+
+.spec-item {
+  display: flex;
+  align-items: center;
+  margin-right: 30rpx;
+}
+
+.spec-label {
+  color: #999;
+  margin-right: 8rpx;
+}
+
+.spec-value {
+  color: #666;
+}
+
+/* 订货规格 */
+.order-spec-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.order-spec-label {
+  color: #999;
+  margin-right: 16rpx;
+  flex-shrink: 0;
+}
+
+.order-spec-tags {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.order-spec-tag {
+  color: #666;
+  padding: 6rpx 14rpx;
+  background-color: #f0f0f0;
+  border-radius: 8rpx;
+  margin-right: 10rpx;
+  margin-bottom: 6rpx;
+}
+
+/* 自动订货 */
+.auto-order-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-bottom: 8rpx;
+}
+
+.auto-order-label {
+  color: #999;
+  margin-right: 16rpx;
+}
+
+.auto-order-value {
+  color: #ff9800;
+}
+
+/* 售价 */
+.price-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12rpx 0;
+  border-top: 1rpx dashed #eee;
+  margin-top: 8rpx;
+}
+
+.price-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.price-value-wrap {
+  display: flex;
+  align-items: center;
+}
+
+.price-value {
+  color: #e74c3c;
+  font-weight: 600;
+  margin-right: 12rpx;
+}
+
+.edit-icon {
+  width: 32rpx;
+  height: 32rpx;
+}
+
+/* 货架样式 - 与 goods.wxml 保持一致 */
+.sameShelf {
+  border: 1px solid rgb(224, 71, 0);
+  border-radius: 10rpx;
+  padding: 4rpx 10rpx;
+  background-color: #f8feff;
+  color: rgb(204, 1, 1);
+  font-size: 24rpx;
+  font-weight: 500;
+}
+
+.shelf-same-goods-chips {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+/* 货架价格编辑按钮样式 */
+.goods-shelf-price-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16rpx 0;
+  border-top: 1rpx dashed #eee;
+  margin-top: 12rpx;
+}
+
+.goods-shelf-price-edit-hit {
+  flex-shrink: 0;
+  margin-left: 8rpx;
+  padding: 10rpx;
+  align-self: flex-start;
+}
+
+.goods-shelf-price-edit-icon {
+  opacity: 0.45;
+}
+
+.min-w-0 {
+  min-width: 0;
+}
+
 

@@ -1,0 +1,284 @@
+<wxs src="../../../utils/fn.wxs" module="tool" />
+
+
+
+<view class="flex flex-column">
+
+  <custom-navbar style="height: {{navBarHeight}}rpx;" title="外采" avatar="{{url + userInfo.nxDiuWxAvartraUrl}}" button-text="设置" bindnavbuttontap="onNavButtonTap"></custom-navbar>
+
+
+  
+  <view class="content flex-1 flex-column">
+
+    <view class="flex  flex-row-reverse bg-white border-bottom" style=" height: {{viewBarHeight}}rpx; ">
+      <view class="flex flex-row p-20" style="height: {{viewBarHeight}}rpx; ">
+        <view class="button-container mr-40" bindtap="changeShwoType">
+          <image src="{{viewMode === 'category' ? '/images/icon_goods_active.png' : '/images/dianpu.png'}}" class="icon"></image>
+        </view>
+      </view>
+    </view>
+
+    <view class="{{(viewMode === 'category' && purCataArr.length == 0) || (viewMode === 'department' && depArr.length == 0) ? 'show' : 'hide'}}">
+      <view class="flex-column center-content" style="height: {{windowHeight - 500}}rpx;">
+        <image class="empty_image " src="../../../images/xiuxi.png"></image>
+        <text class="font-md text-secondary p-20">没有未采购订单</text>
+      </view>
+    </view>
+
+    <!-- 下拉刷新容器 -->
+    <view wx:if="{{(viewMode === 'category' && purCataArr.length > 0) || (viewMode === 'department' && depArr.length > 0)}}">
+
+      <view class="main">
+        <scroll-view class="left-menu" scroll-y="true" style="height: {{contentHeight - viewBarHeight - 40}}rpx; width: {{leftMenuWidth}}rpx; " scroll-top="{{scrollTopLeftWx}}">
+          <!-- 按类别模式 -->
+          <block wx:if="{{viewMode === 'category'}}">
+            <view class="left-item flex-row-between border-bottom {{selectedSubWx == leftIndex ? 'left-active' : ''}}" wx:key="index" wx:for="{{purCataArr}}" wx:for-item="grand" wx:for-index="leftIndex">
+              <view class="flex-column-center flex-1" bindtap="toScrollViewWx" data-index="{{leftIndex}}" style="flex: 1;">
+                <text class="font-sm text-center">{{grand.nxDfgFatherGoodsName}}</text>
+                <text class="font-sm">({{grand.newOrderCount}})</text>
+              </view>
+
+            </view>
+          </block>
+          <!-- 按客户模式 -->
+          <block wx:else>
+            <view class="left-item flex-column-center border-bottom {{selectedSubWx == leftIndex ? 'left-active' : ''}}" wx:key="index" wx:for="{{depArr}}" wx:for-item="dep" bindtap="toScrollViewWx" data-index="{{leftIndex}}" wx:for-index="leftIndex">
+              <text class="font-sm text-center">{{dep.depOrderCode}}</text>
+              <text class="font-sm">({{dep.orderCount}})</text>
+            </view>
+          </block>
+          <view style="height: 20rpx;"></view>
+        </scroll-view>
+
+        <scroll-view class="right-content" scroll-y="true" refresher-enabled="true" refresher-triggered="{{refresherTriggered}}" bindrefresherrefresh="onRefresh" scroll-into-view="{{toViewWx}}" scroll-top="0" bindscroll="scrollToWx" bindscrolltolower="onReachBottom" scroll-with-animation style="height: {{contentHeight - viewBarHeight - 40}}rpx; width : {{windowWidth - leftMenuWidth}}rpx; ">
+          <!-- 部门模式下的全选按钮 -->
+          <view wx:if="{{viewMode === 'department' && purGoodsArr.length > 0}}" class="flex flex-row-reverse bg-white border-bottom" style="width: {{windowWidth - leftMenuWidth - 60}}rpx; padding: 20rpx;" bindtap="selectAllDepartmentGoods">
+            <view class="flex flex-row" style="align-items: center;">
+              <text class="font-md mr-10 text-secondary">全选</text>
+              <image src="{{isAllDepartmentSelected ? '/images/checkboxchecked.png' : '/images/checkbox-noselected.png'}}" mode="aspectFill" class="icon"></image>
+            </view>
+          </view>
+
+          <!-- here -->
+          <view wx:for="{{purGoodsArr}}" wx:for-item="item" wx:key="nxDistributerPurchaseGoodsId" wx:for-index="goodsIndex">
+
+            <!-- 为每个分类的第一个商品添加分类锚点 -->
+            <block wx:if="{{viewMode !== 'department'}}">
+              <view wx:if="{{goodsIndex === 0 || purGoodsArr[goodsIndex-1].nxDgDfgGoodsGreatGrandId !== item.nxDgDfgGoodsGreatGrandId}}" id="category{{item.nxDgDfgGoodsGreatGrandId}}" class="category-header-wrapper">
+              <view class="flex-row-between p-20 bg-white border-bottom">
+                <text class="goods-category-title category-anchor text-secondary font-sm">{{item.nxDgDfgGoodsGreatGrandName}}</text>
+                <view class="flex-column-center button-container-white" catchtap="selectAllCategoryGoods" data-category-id="{{item.nxDgDfgGoodsGreatGrandId}}" >
+                  <image src="{{item.categoryIsAllSelected ? '/images/checkboxchecked.png' : '/images/checkbox-noselected.png'}}" mode="aspectFill" class="icon" ></image>
+                </view>
+              </view>
+            </view>
+            </block>
+          
+
+            <!-- 按类别模式：保持原有布局 -->
+            <view wx:if="{{viewMode === 'category'}}" class="flex-column-center  border-bottom bg-white {{item.isSelected ? 'bg-mainColor' : ''}}" style="width: {{windowWidth - leftMenuWidth }}rpx; ">
+            
+              <view class="flex-column">
+                <view class="flex flex-row-between p-20" bindtap="selectItem" data-index="{{goodsIndex}}" data-id="{{item.nxDistributerPurchaseGoodsId}}"  style="width: {{windowWidth - leftMenuWidth - 20}}rpx;  ">
+                  <view class="flex-column">
+                    <view class="flex-row font-md">
+                      <text class="brand" wx:if="{{item.nxDgGoodsBrand !== null && item.nxDgGoodsBrand.length > 0}}">{{item.nxDgGoodsBrand}}</text>
+                      <text class="font-bold font-lg">{{item.nxDgGoodsName}}</text>
+                    </view>
+                  </view>
+                  <view class="flex-column-center p-10 mr-20">
+                    <view class="custom-checkbox {{item.isSelected ? 'checked' : ''}}">
+                      <text class="checkbox-icon" wx:if="{{item.isSelected}}">✓</text>
+                    </view>
+                  </view>
+                </view>
+                
+                <view class="flex-column">
+                <!-- bindtap="choiceOrders" data-index="{{goodsIndex}}" data-fatherindex="{{fatherIndex}}" data-orderindex="{{orderIndex}}" -->
+                  <block wx:for="{{item.orders}}" wx:for-item="orders" wx:for-index="orderIndex" wx:key="uniqueKey">
+                    <view class="flex-row plr-20"  style="width: {{windowWidth - leftMenuWidth - 40}}rpx;  ">
+
+                      <view class="flex-column-center" wx:if="{{item.isSelected}}">
+                        <image src="../../../images/selected-2.png" class="icon "></image>
+                      </view>
+                      <view class="circle_default" wx:else=""></view>
+
+                       <view class="flex-row mr-30">
+                        <!-- GB部门名称（扁平化） -->
+                      <block wx:if="{{orders.gbDepName}}">
+                        <text>{{orders.gbDepName}}</text>
+                      </block>
+
+                      <!-- 餐厅名称 -->
+                      <block wx:if="{{orders.restrauntName}}">
+                        <text>{{orders.restrauntName}}</text>
+                      </block>
+
+                      <!-- NX部门名称（扁平化） -->
+                      <block wx:if="{{orders.depName}}">
+                        <text>{{orders.depName}}</text>
+                      </block>
+
+                      <text class="">{{orders.nxDoQuantity}}{{orders.nxDoStandard}}</text>
+                  
+                       </view>
+                     
+                    </view>
+                  </block>
+                </view>
+
+              </view>
+
+              <!-- 删除按钮 -->
+              <block wx:if="{{item.nxDgPurchaseAuto == -1}}">
+                <view class="flex-row-reverse p-20" style="width: {{windowWidth - 200}}rpx;" catchtap="deletePlanPurchseOrders" data-item="{{item}}" data-index="{{goodsIndex}}">
+                 <view class="flex-row">
+                  <image src="/images/del-6.png" mode="aspectFill" class="icon-sm mr-10" />
+                  <view class=" text-secondary font-xs">取消采购</view>
+                 </view>
+                 
+                </view>
+              </block>
+
+            </view>
+
+            <!-- 按部门模式：商品和订单在一行显示，样式与 stock 页面一致 -->
+            <view wx:else>
+              <block wx:for="{{item.orders}}" wx:for-item="orders" wx:for-index="orderIndex" wx:key="nxDepartmentOrdersId">
+                <view class="flex flex-row-between border-bottom bg-white {{item.isSelected ? 'bg-mainColor' : ''}}" style="width: {{windowWidth - leftMenuWidth - 40}}rpx; padding: 20rpx;" bindtap="selectItem" data-index="{{goodsIndex}}" data-id="{{item.nxDistributerPurchaseGoodsId}}">
+                  <!-- 左侧：删除按钮（如果有）、序号、选择框、商品信息、订单信息 -->
+                  <view class="flex flex-row flex-1" style="min-width: 0; flex-shrink: 1;">
+
+                    <!-- 序号 -->
+                    <text class="font-md mr-10" style="min-width: 40rpx; flex-shrink: 0;">{{goodsIndex + 1}}.</text>
+                    <!-- 选择框 -->
+                    <view class="flex-column-center mr-10" style="flex-shrink: 0;">
+                      <view class="custom-checkbox {{item.isSelected ? 'checked' : ''}}">
+                        <text class="checkbox-icon" wx:if="{{item.isSelected}}">✓</text>
+                      </view>
+                    </view>
+                    <!-- 商品信息 -->
+                    <view class="flex-row flex-1" style="flex-shrink: 1; min-width: 0; flex-wrap: wrap; align-items: flex-start;">
+                      <view class="flex-row" style="flex-shrink: 0; white-space: nowrap;">
+                        <text class="brand" wx:if="{{item.nxDgGoodsBrand !== null && item.nxDgGoodsBrand.length > 0}}">{{item.nxDgGoodsBrand}}</text>
+                        <text class="font-md font-bold" style="white-space: nowrap;">{{item.nxDgGoodsName}}</text>
+                      </view>
+                      <text class="font-sm" wx:if="{{item.nxDgGoodsStandardWeight !== null && item.nxDgGoodsStandardWeight.length > 0}}" style="flex-shrink: 1; min-width: 0; word-break: break-all;">({{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}})</text>
+                      <text class="font-sm" wx:else style="flex-shrink: 1; min-width: 0; word-break: break-all;">({{item.nxDgGoodsStandardname}})</text>
+                    </view>
+                  </view>
+                  <!-- 右侧：数量和备注 -->
+                  <view class="flex flex-row" style="flex-shrink: 0; align-items: center; margin-left: 20rpx;">
+                    <text class="font-lg font-bold">{{orders.nxDoQuantity}}{{orders.nxDoStandard}}</text>
+                    <block wx:if="{{orders.nxDoDsStandardScale !== null && orders.nxDoDsStandardScale.length > 0 && orders.nxDoDsStandardScale !== '-1'}}">
+                      <text class="font-sm ml-10">({{orders.nxDoDsStandardScale}}{{item.nxDgGoodsStandardname}}/{{orders.nxDoStandard}})</text>
+                    </block>
+                    <text wx:if="{{orders.nxDoRemark !== null && orders.nxDoRemark.length > 0 && orders.nxDoRemark !== 'null'}}" class="red ml-10 font-sm">({{orders.nxDoRemark}})</text>
+                  </view>
+                </view>
+              </block>
+            </view>
+
+          </view>
+          <!-- ../here -->
+
+          <!-- 加载状态提示 -->
+          <view wx:if="{{isLoading}}" class="center-content text-secondary font-md" style="height: 100rpx;">
+            加载中...
+          </view>
+          <view wx:elif="{{!hasMore && purGoodsArr.length > 0}}" class="center-content text-secondary font-md" style="height: 100rpx;">
+            没有更多数据了
+          </view>
+          <view wx:elif="{{purGoodsArr.length === 0}}" class="center-content text-secondary font-md" style="height: 100rpx;">
+            没有数据啦！
+          </view>
+        </scroll-view>
+      </view>
+    </view>
+  </view>
+
+</view>
+
+
+
+<stockOutGoods show="{{showDisOutGoods}}" bindconfirm="confirm" bindconfirmSave="confirmSave" bindneednot="confirmNeedNotPurchse" bindcancle="cancle" item="{{item}}" bindgetFocus="getFocus" bindcancle="cancle" modalHeight="{{windowHeight > maskHeight ? windowHeight : maskHeight }}" scrollViewTop="{{scrollViewTop}}" modalContentHeight="{{modalContentHeight}}" windowHeight="{{windowHeight}}" windowWidth="{{windowWidth}}" ids="{{ids}}" />
+
+
+<view animation="{{buttonAnimation}}" class="flex flex-row bottom-button-container-pur {{selectedArr.length > 0 ? 'is-active' : ''}}" style="z-index: 100000;">
+  <view class="flex flex-row pt-10 font-xs" wx:if="{{userInfo.nxDiuPrintDeviceId !== '-1'}}">
+    <view class="third-row center-content" bindtap="showCar">
+      <view class="dotPur" style="margin-left: {{windowWidth / 10}}rpx;">{{selectedArr.length}}</view>
+      <image class="pur_icon" src="/images/a-gouwuchejinhuocaigouhuo.png"></image>
+    </view>
+    <view class="stock_order_btn is-wx third-row mr-30" bindtap="toPrint">
+      打印采购单
+    </view>
+    <view class="stock_order_btn is-paste third-row mr-30" bindtap="toPaste">
+      复制订货
+    </view>
+   
+    <view class="stock_order_btn is-wx third-row mr-30" bindtap="saveBatchOrder" wx:if="{{disType == 3}}">
+      协作伙伴订货
+    </view>
+
+  </view>
+
+  <view class="flex flex-row pt-10 font-xs" >
+    <view class="third-row center-content" bindtap="showCar">
+      <view class="dotPur" style="margin-left: {{windowWidth / 10}}rpx;">{{selectedArr.length}}</view>
+      <image class="pur_icon" src="/images/a-gouwuchejinhuocaigouhuo.png"></image>
+    </view>
+   
+    <view class="stock_order_btn is-paste half-row mr-30" bindtap="toPaste">
+      复制订单内容
+    </view>
+   
+    <view class="stock_order_btn is-wx half-row mr-30" bindtap="saveBatchOrder" wx:if="{{disType == 3}}">
+      协作伙伴订货
+    </view>
+
+    <!-- <block wx:else="">
+      <view class="stock_order_btn is-paste half-row mr-30" bindtap="toPaste">
+      复制订货
+    </view>
+    <view class="stock_order_btn is-wx third-row mr-30" bindtap="saveBatchOrder" wx:if="{{disInfo.nxDistributerBusinessTypeId > 1}}">
+      小程序订货
+    </view>
+
+     </block> -->
+
+
+  </view>
+
+</view>
+
+<view class='overlay {{showOperationCar ? "show" : ""}}' catchtouchmove='ture' catch:tap="closeCar">
+  <view class="flex-column orderBottom" animation='{{animationData}}' style="max-height:{{windowHeight  - 320}}rpx;">
+
+    <view class="flex-row-between p-20">
+      <view class="text-secondary">选择了{{selectedArr.length}}个商品:</view>
+
+      <view class="flex-row">
+
+        <view catchtap="clearSelectedGoods" class="p-10">
+          清除
+        </view>
+
+        <view bindtap="closeCar" class="p-10">
+          关闭
+        </view>
+
+      </view>
+
+    </view>
+    <scroll-view scroll-y="true" style="max-height: {{windowHeight - 520}}rpx; padding-bottom: 100rpx; ">
+      <view class="flex-row-wrap p-20">
+        <view class="flex-row  goodsBack p-20" wx:for="{{selectedArr}}" wx:key="purGoodsId">
+          <text class="text_operation">{{index+ 1}}.{{item.item.nxDgGoodsName}}</text>
+          <image catchtap="deleteOrderGoods" data-index="{{index}}" data-id="{{item.purGoodsId}}" src="../../../images/Delete-2.png" style="width: 50rpx; height: 50rpx; position: absolute; top: -5rpx; right: -15rpx; "></image>
+        </view>
+      </view>
+    </scroll-view>
+
+  </view>
+</view>

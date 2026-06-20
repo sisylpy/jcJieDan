@@ -20,7 +20,7 @@
 
 	<!-- xianjin账单 -->
 	<block wx:if="{{settleType == 0}}">
-		<view class="flex-column" wx:for="{{billArr}}" wx:for-item="month" wx:for-index="index" wx:key="month">
+		<view class="flex-column bg-white" wx:for="{{billArr}}" wx:for-item="month" wx:for-index="index" wx:key="month">
 			<view wx:if="{{month.arr.length > 0}}">
 				<view class="flex-column border-bottom p-20">
 					<text class="font-lg">{{month.month}}月</text>
@@ -151,10 +151,10 @@
       <text class="font-md">查看详细</text>
     </view>
 
-    <!-- <view class="p-30 flex-row border-bottom" bindtap="toOpenPrint">
-      <image src="../../../../images/0dayinji-05.png" class="icon mr-20"></image>
-      <text class="font-md">重新打印</text>
-    </view> -->
+    <view class="p-30 flex-row border-bottom" bindtap="downloadBillExcel">
+      <image src="../../../../images/download.png" class="icon mr-20"></image>
+      <text class="font-md">下载Excel</text>
+    </view>
 
     <view class="p-30 flex-row border-bottom" wx:if="{{billItem.nxDbStatus == 0}}" bindtap="deleteBill">
       <image src="../../../../images/0dayinji-05.png" class="icon mr-20"></image>

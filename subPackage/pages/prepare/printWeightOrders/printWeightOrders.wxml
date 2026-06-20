@@ -38,8 +38,14 @@
 
             <view class="circle_default mr-10" wx:else=""></view> -->
 
+            <!-- 协作订单：显示 [协作商名称]fatherDepartmentOrderCode（不含空格、不含 nxDepartmentOrderCode） -->
+            <block wx:if="{{order.nxDoCollaborativeNxDisId !== undefined && order.nxDoCollaborativeNxDisId !== -1}}">
+              <view class="flex-row ">
+                <text class="mr-10">[{{order.nxDoCollaborativeDistributerName}}]{{order.fatherDepartmentOrderCode || ''}}</text>
+              </view>
+            </block>
             <!-- 使用精简字段（扁平化） -->
-            <block wx:if="{{printUseSimpleFields}}">
+            <block wx:elif="{{printUseSimpleFields}}">
               <!-- GB部门（扁平化） -->
               <block wx:if="{{order.nxDoGbDepartmentId !== -1}}">
                 <view class="flex-row ">

@@ -7,7 +7,7 @@
  * @date 2025
  */
 
-const tsc = require('./GPutils/tsc.js').jpPrinter;
+const tsc = require('./GPutils/tsc.js').jpPrinter; // eslint-disable-line
 
 /**
  * 标签尺寸配置
@@ -101,6 +101,17 @@ class LabelPrinter {
     if (!order) return '';
     
     let customerName = '';
+    
+    // 协作订单：优先使用 [协作商名称] + fatherDepartmentOrderCode（不含 nxDepartmentOrderCode）
+    const collabId = order.nxDoCollaborativeNxDisId;
+    const isCollaborative = collabId !== undefined && collabId !== null && collabId !== -1 && String(collabId) !== '-1';
+    if (isCollaborative) {
+      customerName = '[' + (order.nxDoCollaborativeDistributerName || '') + ']';
+      if (order.fatherDepartmentOrderCode) {
+        customerName += order.fatherDepartmentOrderCode;
+      }
+      return customerName;
+    }
     
     // 优先使用扁平化字段（stock/index 页面使用）
     if (order.fatherDepartmentAttrName) {

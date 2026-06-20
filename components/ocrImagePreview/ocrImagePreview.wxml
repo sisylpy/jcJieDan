@@ -1,7 +1,7 @@
 
 <!-- 图片预览缩放组件 -->
 <!-- 最外层容器，确保组件能渲染 -->
-<view class="image-preview-container" style="width: 100%; height: 100%; position: relative; background-color: #000;">
+<view class="image-preview-container" style="width: 100%; height: 100%; position: relative; ">
   
   
   <view class="image-canvas-container">
@@ -20,7 +20,7 @@
         bindchange="onImageMove" 
         bindscale="onImageScale" 
         bindscaleend="onImageScaleEnd"
-        style="width: {{imageTransform.width || 390}}px; height: {{imageTransform.height || 844}}px; background-color: rgba(255, 0, 0, 0.3); border: 2px solid rgba(255, 255, 255, 0.5); box-sizing: border-box;"
+        style="width: {{imageTransform.width || 390}}px; height: {{imageTransform.height || 844}}px; box-sizing: border-box;"
       >
         <image 
           src="{{imagePath}}" 
@@ -35,5 +35,15 @@
     </movable-area>
 
   </view>
+
+  <!-- 底部统计蒙板（showStatsMask 为 false 时由父级 resize-bar 展示） -->
+  <view wx:if="{{showStatsMask && (totalOrders > 0 || completedOrders > 0 || pendingOrders > 0)}}" class="image-stats-mask">
+    <view class="image-stats-row">
+      <text class="image-stats-item">订单: {{totalOrders}}个</text>
+      <text class="image-stats-item">成功: {{completedOrders}}个</text>
+      <text class="image-stats-item">未成功: {{pendingOrders}}个</text>
+    </view>
+  </view>
+ 
 </view>
 

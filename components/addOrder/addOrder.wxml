@@ -14,7 +14,7 @@
         </text>
 			
 				<block wx:if="{{item.nxDgGoodsStandardWeight !== 'null' && item.nxDgGoodsStandardWeight.length > 0}}">
-					<text style="font-size: 30rpx;" wx:if="{{item.nxDgGoodsStandardname !== '斤'}}">({{item.nxDgGoodsStandardname}}/{{item.nxDgGoodsStandardWeight}})</text>
+					<text style="font-size: 30rpx;" >({{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}})</text>
 				</block>
 				<block wx:else>
 					<text style="font-size: 30rpx;"  >({{item.nxDgGoodsStandardname}})</text>
@@ -67,14 +67,14 @@
         </view> -->
 
       
-        <block wx:if="{{item.nxDgWillPriceTwo !== null && item.nxDgWillPriceTwo > 0}}">
+        <!-- <block wx:if="{{item.nxDgWillPriceTwo !== null && item.nxDgWillPriceTwo > 0}}">
           <view class="flex-row-default  p-20">
           <text class="explain shrink_fix">二级单位</text>
           <view class=" flex-row-wrap shrink_change rightPart">
             <text class="standardName {{applyStandardName == item.nxDgWillPriceTwoStandard ? 'is-active' : ''}}" bindtap="changeStandard"   data-level="2" data-name="{{item.nxDgWillPriceTwoStandard}}">{{item.nxDgWillPriceTwoStandard}}</text>
           </view>
         </view>
-        </block>
+        </block> -->
       <!-- 备注 -->
       <view class="input-group">
         <text class="label">备注:</text>

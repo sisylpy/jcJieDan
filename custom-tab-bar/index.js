@@ -3,35 +3,28 @@ Component({
     selected: 0,
     showTabBar: true,
     list: [
-      
       {
         "pagePath": "pages/order/index/index",
         "text": "订单",     
          "iconPath": "/images/icons/icon_orders.png",
         "selectedIconPath": "/images/icons/icon_orders_active.png"
       }, 
-      // {
-      //   "pagePath": "pages/prepare/index/index",
-      //   "text": "备货",
-      //   "iconPath": "/images/icons/icon_prepare.png",
-      //   "selectedIconPath": "/images/icons/icon_prepare_active.png"
-      // }, 
       {
         "pagePath": "pages/stock/index/index",
-        "text": "出库",
+        "text": "出货中",
         "iconPath": "/images/icons/icon_stock.png",
         "selectedIconPath": "/images/icons/icon_stock_active.png"
       }, {
         "pagePath": "pages/purchase/index/index",
-        "text": "采购",
+        "text": "采购中",
         "iconPath": "/images/icons/icon_purchase.png",
         "selectedIconPath": "/images/icons/icon_purchase_active.png"
       }, 
       {
         "pagePath": "pages/doing/index/index",
-        "text": "采购中",
-        "iconPath": "/images/icons/icon_purchase.png",
-        "selectedIconPath": "/images/icons/icon_purchase_active.png"
+        "text": "协作伙伴",
+        "iconPath": "/images/icons/hezuowoshou.png",
+        "selectedIconPath": "/images/icons/hezuowoshou-2.png"
       }, 
       // {
       //   "pagePath": "pages/goods/goods",

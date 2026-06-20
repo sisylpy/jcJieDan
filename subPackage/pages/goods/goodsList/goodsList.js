@@ -228,7 +228,6 @@ Page({
       })
     }
    
-    wx.removeStorageSync('goodsSetType');
   },
 
 
@@ -237,8 +236,9 @@ Page({
    * 设置商品类型
    */
   setGoodsType(e) {
-    var type = parseInt(e.currentTarget.dataset.type); // -1: 出库商品, 1: 采购商品
-    var typeName = type === -1 ? '出库商品' : '采购商品';
+    var type = parseInt(e.currentTarget.dataset.type); // -2: 停用商品, -1: 出库商品, 1: 采购商品
+    var typeName = type === -2 ? '停用商品' : (type === -1 ? '出库商品' : '采购商品');
+    
     this.setData({
       purchaseType: type,
     })

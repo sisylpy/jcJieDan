@@ -1,5 +1,44 @@
 
 
+.navbar {
+  display: flex;
+  position: relative;
+  z-index: 100;
+  width: 100%;
+  background-color: #fff;
+  border-bottom: 1px solid rgba(190, 190, 190, 0.3);
+}
+
+.navbar.navbar-item-sb {
+  position: relative;
+  display: block;
+  flex: 1;
+  /* padding: 13px 0; */
+  text-align: center;
+  font-size: 0;
+  line-height: 80rpx;
+  /* color: #1dbd1d; */
+  background-color: rgb(156, 146, 146);
+}
+
+.bar-item-sub-on{
+  color: #068673;
+  font-weight: 500;
+}
+
+.navbar-slider {
+  position: absolute;
+  content: " ";
+  left: 0;
+  bottom: 10rpx;
+  width: 100rpx;
+  height: 8rpx;
+  background-color: #187e6e;
+  -webkit-transition: -webkit-transform 0.3s;
+  transition: -webkit-transform 0.3s;
+  transition: transform 0.3s, -webkit-transform 0.3s;
+}
+
 .dotCar {
   position: absolute;
   background: #0e8170;
@@ -103,7 +142,7 @@
 }
 
 .modal-body {
-  padding: 30rpx;
+  /* padding: 30rpx 30rpx; */
   flex: 1;
   overflow-y: auto;
 }
@@ -515,4 +554,141 @@
 
 .category-header-wrapper:first-child {
   margin-top: 0;
+}
+
+
+
+
+/* 复制内容卡片样式 */
+.copy-content-card {
+  background: linear-gradient(135deg, #f5f7fa 0%, #ffffff 100%);
+  border-left: 6rpx solid #187e6e;
+  border-radius: 12rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(1, 139, 219, 0.08);
+}
+
+.copy-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+  padding-bottom: 16rpx;
+  border-bottom: 2rpx solid #e8f4fb;
+}
+
+.copy-icon {
+  font-size: 44rpx;
+  margin-right: 12rpx;
+}
+
+.copy-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #187e6e;
+  margin-right: 12rpx;
+}
+
+.copy-tag {
+  flex: 1;
+  text-align: right;
+  font-size: 24rpx;
+  color: #999;
+  background: #f0f8fe;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+.copy-content-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+.copy-content-text {
+  display: block;
+  font-size: 28rpx;
+  line-height: 1.8;
+  color: #333;
+  word-break: break-all;
+  white-space: pre-wrap;
+  background: #ffffff;
+  padding: 20rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid #e0e8f0;
+  min-height: 80rpx;
+}
+
+.copy-expand-btn {
+  margin-top: 10rpx;
+  text-align: right;
+  padding-right: 20rpx;
+}
+
+.copy-expand-text {
+  font-size: 26rpx;
+  color: #187e6e;
+  cursor: pointer;
+}
+
+
+.stock_order_btn{
+  height: 70rpx;
+  line-height: 70rpx;
+  border-radius: 40rpx;
+  color: rgb(255, 255, 255);
+  font-size: 30rpx;
+  text-align: center;
+  margin-bottom: 30rpx;
+ 
+}
+
+.stock_order_btn.is-active{
+  background-color: #ffe600;
+  color: rgb(0, 0, 0);
+  line-height: 70rpx;
+  height: 70rpx;
+  margin-top: 10rpx;
+}
+.bottom-button {
+  background-color: #252525;
+  height: 100%;
+}
+
+.stock_order_btn.is-paste{
+  background-color: #018bdb;
+  color:#fff;
+  line-height: 70rpx;
+  height: 70rpx;
+  margin-top: 10rpx;
+}
+
+.stock_order_btn.is-wx{
+  background-color: #04c273;
+  color: #fff;
+  line-height: 70rpx;
+  height: 70rpx;
+  margin-top: 10rpx;
+}
+
+.page-root {
+  height: 100vh;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+}
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.swiper-content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.scroll-content {
+  flex: 1;
+  min-height: 0;
 }

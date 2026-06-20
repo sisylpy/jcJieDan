@@ -35,7 +35,7 @@
 
       
 
-      <view class=" button-container mr-30" bindtap="toLinshiOrderPage" wx:if="{{disInfo.nxDistributerAppId != -1}}">
+      <view class=" button-container mr-30" bindtap="toLinshiOrderPage">
         <image src="/images/edit-main.png" class="icon"></image>
         <view class="badge {{unDoTotal > 0 ? 'show' : 'hide'}}">{{unDoTotal}}</view>
       </view>

@@ -15,7 +15,7 @@ from '../../../../lib/apiDistributer'
 import { 
   downDisGoods,
 
-}from '../../../../lib/apiibook'
+}from '../../../lib/apiibook'
 
 
 let itemWidth = 0;
@@ -196,6 +196,7 @@ Page({
           goodsId: this.data.goods.nxDistributerGoodsId,
           findGoods: true,
           name: this.data.goods.nxDgGoodsName,
+          item: this.data.goods,
         })
 
         wx.navigateBack({

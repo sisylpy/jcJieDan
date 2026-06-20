@@ -1,12 +1,12 @@
 var app = getApp();
 var load = require('../../../../lib/load.js');
-import download from "../../../../utils/download.js"
+import download from "../../../utils/download.js"
 
 import apiUrl from '../../../../config.js'
 
 import{
   aaa
-}from '../../../../lib/apiibook'
+}from '../../../lib/apiibook'
 import {getDisUserInfo} from '../../../../lib/apiDistributer'
 
 Page({
@@ -18,11 +18,13 @@ Page({
     getDisUserInfo(userInfo.nxDistributerUserId)
     .then(res =>{
       if(res.result.code == 0){
+        const img = res.result.data.nxDistributerEntity.nxDistributerImg || '';
+        const isPlaceholderStoreImg = img.indexOf('uploadImage/r.jpg') >= 0;
         this.setData({
           userInfo: res.result.data,
           disInfo: res.result.data.nxDistributerEntity,
-          disId: res.result.data.nxDistributerEntity.nxDistributerId
-          
+          disId: res.result.data.nxDistributerEntity.nxDistributerId,
+          isPlaceholderStoreImg: isPlaceholderStoreImg
         })
         wx.setStorageSync('disInfo', res.result.data.nxDistributerEntity);
         wx.setStorageSync('userInfo', res.result.data);
@@ -40,6 +42,7 @@ Page({
     toSharePurchase: false,
     editUser:  false,
     yuyin: 0,
+    isPlaceholderStoreImg: false,
   },
 
   /**
@@ -166,7 +169,7 @@ Page({
 
   toSupplierList(){
     wx.navigateTo({
-      url: '../../../../subPackage-charts/pages/supplier/index/index?disId=' + this.data.disInfo.nxDistributerId 
+      url: '../../../../subPackage-supplier/pages/supplier/index/index?disId=' + this.data.disInfo.nxDistributerId 
             +'&userId=' + this.data.userInfo.nxDistributerUserId,
     })
   },
@@ -384,7 +387,7 @@ Page({
 
   toGoods(){
     wx.navigateTo({
-      url: '../../../../pages/goods/goods',
+      url: '/subPackage/pages/goods/goods/goods',
     })
     
   },
@@ -402,9 +405,13 @@ Page({
     })
   },
 
+  toNxDisList(){
+
+    wx.navigateTo({
+      url: '../../offerNx/offerNxDistributerList/offerNxDistributerList?disId=' + this.data.disId,
+    })
+  },
     
-
-
 
   toStock(){
     wx.navigateTo({
@@ -452,14 +459,17 @@ toPurGoodsFenxi(){
 },
 
 toCostGoodsFenxi(){
-
   wx.navigateTo({
     url: '../../../../subPackage-charts/pages/mangement/costGoodsFenxi/costGoodsFenxi?disId=' + this.data.disId,
   })
-
 },
 
 
+toRetailer(){
+  wx.navigateTo({
+    url: '/subPackage-charts/pages/statistic/indexRetail/indexRetail?disId=' + this.data.disId,
+  })
+},
 
 
 

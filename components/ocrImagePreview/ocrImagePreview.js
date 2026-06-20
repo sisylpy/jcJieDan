@@ -24,7 +24,13 @@ Component({
     initialTransform: {
       type: Object,
       value: null
-    }
+    },
+    // 任务统计（显示在图片底部）
+    totalOrders: { type: Number, value: 0 },
+    completedOrders: { type: Number, value: 0 },
+    pendingOrders: { type: Number, value: 0 },
+    // 是否显示底部统计蒙板（false 时由父级 resize-bar 展示统计，避免重复）
+    showStatsMask: { type: Boolean, value: true }
   },
 
   /**
@@ -65,6 +71,11 @@ Component({
           _isInitialized: true // 标记已初始化
         });
       }
+    },
+    detached: function() {
+      // 组件销毁时重置状态，清理定时器
+      console.log('[ocrImagePreview组件] 组件销毁，重置状态');
+      this._resetState();
     }
   },
   
@@ -84,6 +95,13 @@ Component({
       });
     }
   },
+  
+  // 兼容旧版本的 detached（如果 lifetimes 不支持）
+  detached: function() {
+    // 组件销毁时重置状态，清理定时器
+    console.log('[ocrImagePreview组件] 组件销毁，重置状态');
+    this._resetState();
+  },
 
   observers: {
     'imagePath': function(imagePath) {
@@ -91,6 +109,13 @@ Component({
       console.log('[ocrImagePreview组件] imagePath:', imagePath);
       console.log('[ocrImagePreview组件] imagePath 类型:', typeof imagePath);
       console.log('[ocrImagePreview组件] imagePath 是否为空:', !imagePath);
+      
+      // ✅ 如果图片路径为空，重置状态（避免返回上一页面时图片还在显示）
+      if (!imagePath) {
+        console.log('[ocrImagePreview组件] 图片路径为空，重置状态');
+        this._resetState();
+      }
+      
       console.log('[ocrImagePreview组件] ====================================');
     },
     'initialTransform': function(initialTransform) {
@@ -121,6 +146,46 @@ Component({
    */
   methods: {
     /**
+     * 重置组件状态（组件销毁或图片路径为空时调用）
+     */
+    _resetState: function() {
+      // 清理定时器
+      if (this._moveEndTimer) {
+        clearTimeout(this._moveEndTimer);
+        this._moveEndTimer = null;
+      }
+      if (this._scaleUpdateTimer) {
+        clearTimeout(this._scaleUpdateTimer);
+        this._scaleUpdateTimer = null;
+      }
+      
+      // 清理临时状态
+      if (this._tempScaleState) {
+        delete this._tempScaleState;
+      }
+      if (this._pendingScaleUpdates) {
+        delete this._pendingScaleUpdates;
+      }
+      
+      // 重置数据状态
+      const { windowWidth, windowHeight } = wx.getWindowInfo();
+      const defaultTransform = {
+        scale: 1,
+        x: windowWidth,
+        y: windowHeight,
+        width: 390,
+        height: 844
+      };
+      
+      this.setData({
+        imageTransform: defaultTransform,
+        _isInitialized: false
+      });
+      
+      console.log('[ocrImagePreview组件] ✅ 状态已重置');
+    },
+    
+    /**
      * 触发 transformChange 事件（通知主页面更新 imageTransformList）
      * @param {Object} transform - 变换状态对象（可选，默认使用 this.data.imageTransform）
      */
@@ -131,11 +196,7 @@ Component({
         return;
       }
 
-      console.log('[ocrImagePreview组件] 触发 transformChange 事件:', {
-        imageIndex: this.properties.imageIndex,
-        transform: imageTransform
-      });
-
+      // 调试时取消注释: console.log('[ocrImagePreview] transformChange', this.properties.imageIndex, imageTransform);
       this.triggerEvent('transformChange', {
         imageIndex: this.properties.imageIndex,
         transform: { ...imageTransform } // 复制对象，避免引用问题

@@ -1,0 +1,329 @@
+/* pages/storeApplys/storeApplys.wxss */
+
+page{
+  background: rgb(235, 235, 235);
+}
+
+/* 账单详情卡片 */
+.bill-detail-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 20rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+}
+
+.bill-detail-main {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+.bill-detail-avatar {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  margin-right: 24rpx;
+  flex-shrink: 0;
+}
+
+.bill-detail-avatar-placeholder {
+  background: #e8e8e8;
+}
+
+.bill-detail-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.bill-detail-row {
+  margin-bottom: 12rpx;
+}
+
+.bill-detail-row:last-of-type {
+  margin-bottom: 16rpx;
+}
+
+.bill-detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  align-items: center;
+}
+
+.bill-detail-amount-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding-top: 20rpx;
+  margin-top: 20rpx;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.bill-detail-total {
+  font-size: 36rpx;
+  font-weight: 700;
+  color: #276afa;
+}
+
+/* 状态标签（与 nxBillBusiness 一致） */
+.status-badge {
+  font-size: 22rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  font-weight: 500;
+  width: fit-content;
+}
+
+.status-settled {
+  background: rgba(76, 175, 80, 0.08);
+  color: #2E7D32;
+  border: 1rpx solid rgba(76, 175, 80, 0.5);
+}
+
+.status-pending {
+  background: rgba(255, 152, 0, 0.08);
+  color: #E65100;
+  border: 1rpx solid rgba(255, 152, 0, 0.5);
+}
+
+/* 单据类型标签 */
+.bill-type-text {
+  font-size: 20rpx;
+  padding: 6rpx 16rpx;
+  border-radius: 20rpx;
+  font-weight: 500;
+}
+
+.tag-offer {
+  background: #04c991 !important;
+  color: #ffffff !important;
+  border: 1rpx solid #e9ecef !important;
+}
+
+.tag-purchase {
+  background: #ffe5e5 !important;
+  color: #f5576c !important;
+  border: 1rpx solid #e9ecef !important;
+}
+
+.depName{
+  font-size: 42rpx;
+  font-weight: 500;
+
+}
+.titleColor{
+  height: 40rpx;
+  background-color: #458a92;
+}
+.confirmBtn{
+  border-radius: 80rpx;
+  border: 1px solid #458a92;
+  font-size: 30rpx;
+  padding: 10rpx 20rpx;
+  margin-top: 80rpx;
+  margin-bottom: 80rpx;
+}
+.section_head{
+  /* position: fixed;
+  top: 0;
+  left: 0; */
+  background: rgb(240, 240, 240);
+  /* width: 100%; */
+  /* z-index: 9999; */
+}
+.section_body {
+  /* border: 1px solid rgba(236, 235, 235, 0.507); */
+  /* background: red; */
+  border-radius: 4rpx;
+  /* margin-top: 300rpx; */
+}
+.fromTitle{
+  background-color: #458a92;
+  color: #fff;
+}
+.index{
+  width: 6%;
+}
+.goods_name_title{
+  width: 30%;
+}
+.order_price_title{
+  width: 20%;
+}
+.weight_title{
+  width: 15%;
+}
+.goods_name {
+  width: 34%;
+  /* background: yellow; */
+}
+
+
+.order_price {
+  width: 20%;
+  /* background: green; */
+  /* text-align: center; */
+}
+
+.weight {
+  width: 20%;
+  /* text-align: center; */
+  /* background: gold; */
+}
+
+.subtotalTitle {
+  width: 20%;
+  /* background: yellow; */
+  /* text-align: center; */
+}
+
+.subtotal {
+  width: 20%;
+  /* background: yellow; */
+  /* text-align: right; */
+}
+
+
+
+
+
+.btn {
+  height: 60rpx;
+  width: 170rpx;
+  background: rgb(68, 108, 170);
+  padding: 10rpx 20rpx;
+  color: #fff;
+  border-radius: 5rpx;
+}
+
+.bottom_btn{
+
+  background: #2d5a5f;
+  color: #fff;
+}
+.input{
+  /* border: 1px solid lightgray; */
+  border-radius: 10rpx;
+  height: 70rpx;
+  line-height: 70rpx;
+  /* padding: 5rpx 10rpx; */
+}
+
+.total{
+  text-align: right;
+  
+}
+
+
+.sentence{
+  padding: 60rpx 60rpx 20rpx 60rpx;
+  text-align: center;
+
+
+}
+
+.tishiView{
+  background: rgb(230, 228, 228);
+}
+
+.confirm_btn{
+  background-color: rgba(27, 140, 192, 0.3);
+  /* padding: 20rpx 0; */
+  /* margin: 20rpx 20rpx; */
+  border-radius: 10rpx;
+  
+}
+
+/* 底部操作栏 */
+.bottom-action-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 20rpx;
+  padding: 24rpx 32rpx 48rpx;
+  background: linear-gradient(180deg, #fff 0%, #f8fafb 100%);
+  box-shadow: 0 -4rpx 24rpx rgba(0, 0, 0, 0.06);
+}
+
+.bottom-action-btn {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  height: 88rpx;
+  padding: 0 40rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  border-radius: 44rpx;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.bottom-action-btn:active {
+  transform: scale(0.98);
+}
+
+/* 主操作：确认收货 / 确认收款 */
+.bottom-action-btn-primary {
+  flex: 1;
+  min-width: 0;
+  background: linear-gradient(135deg, #07c160 0%, #06ad56 100%);
+  color: #fff;
+  box-shadow: 0 8rpx 24rpx rgba(7, 193, 96, 0.35);
+}
+
+.bottom-action-btn-primary:active {
+  box-shadow: 0 4rpx 12rpx rgba(7, 193, 96, 0.4);
+}
+
+/* 申请收款 */
+.bottom-action-btn-pay {
+  flex: 1;
+  min-width: 0;
+  background: linear-gradient(135deg, #0a5acb 0%, #084a9e 100%);
+  color: #fff;
+  box-shadow: 0 8rpx 24rpx rgba(10, 90, 203, 0.35);
+}
+
+.bottom-action-btn-pay:active {
+  box-shadow: 0 4rpx 12rpx rgba(10, 90, 203, 0.4);
+}
+
+/* 已付款切换 */
+.bottom-action-toggle {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  padding: 16rpx 24rpx;
+  font-size: 28rpx;
+  color: #999;
+  flex-shrink: 0;
+  background: #f0f0f0;
+  border-radius: 40rpx;
+  border: 2rpx solid transparent;
+  transition: all 0.2s ease;
+}
+
+.bottom-action-toggle.is-paid {
+  color: #07c160;
+  font-weight: 600;
+  background: rgba(7, 193, 96, 0.12);
+  border-color: rgba(7, 193, 96, 0.4);
+}
+
+.bottom-action-toggle:active {
+  opacity: 0.8;
+}
+
+.toggle-icon {
+  margin-right: 8rpx;
+  font-size: 32rpx;
+  font-weight: bold;
+  line-height: 1;
+}

@@ -5,10 +5,10 @@
   right: 0;
   top: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: rgba(0, 0, 0, 0.52);
   z-index: 9999999999;
   padding: 40rpx 40rpx;
- 
+  box-sizing: border-box;
 }
 
 .top{
@@ -229,4 +229,69 @@
 .standardInput{
   width: 45%;
   border-bottom: 1px solid #187e6e;
+}
+
+/* 现金弹窗：与项目主色统一（整块不透底） */
+.retail-cash-modal {
+  background-color: #ffffff;
+  border-radius: 24rpx;
+  overflow: hidden;
+  max-height: 88vh;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  max-width: 700rpx;
+  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.18);
+}
+
+.retail-cash-head {
+  background: linear-gradient(135deg, #187e6e 0%, #145e54 100%) !important;
+}
+
+.retail-cash-body {
+  background-color: #ffffff;
+}
+
+.retail-cash-title {
+  font-size: 44rpx;
+  font-weight: 600;
+  color: #fff;
+  line-height: 80rpx;
+  padding: 20rpx 20rpx;
+}
+
+.retail-cash-alias {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.retail-cash-spec {
+  font-size: 32rpx;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.retail-cash-body .standardName.is-active {
+  background: #187e6e;
+  color:fff;
+}
+
+.retail-cash-body .numberInput {
+  border-color: #187e6e;
+  color: #187e6e;
+}
+
+.retail-cash-body .mainColor {
+  color: #187e6e !important;
+}
+
+.retail-cash-body .confirm-btn {
+  background-color: #187e6e !important;
+}
+
+.row-pad {
+  padding: 20rpx 24rpx;
+}
+
+.btn-row {
+  padding: 8rpx 0 20rpx;
 }

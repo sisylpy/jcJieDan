@@ -40,62 +40,6 @@
 			<input class="goodsInput p-10" value="{{goods.nxDgGoodsStandardname}}"
 				bindinput="getDisGoodsContent" data-type="1"></input>
 		</view>
-
-	
-
-		<!-- <view class="p-10 middle flex-column ">
-		<view class="bg-white">
-      <view class=" flex-column-center p-20" >
-        <view class="flex-row p-10">
-          <radio-group class="radio-group flex-row-between"  bindchange="radioChange">
-         <label class="radio " > <radio value="0" checked="{{isGrade == 0 ? true : ''}}" />一级进货</label>
-         <text style="width: 100rpx;"></text>
-         <label class="radio" > <radio value="1" checked="{{isGrade == 1 ? true : ''}}" />分级进货</label>
-      </radio-group>
-        </view>
-      </view>
-
-      <view class="flex-column ">
-        <view class="flex-column" wx:if="{{isGrade == 0}}">
-          <view class="flex-row with-lr-padding">
-            <text class="margin-l-right shrink_fix">进货价格:</text>
-            <view class="out margin-l-right">
-              <input class="mainColor orderInput" type="digit" value="{{buyingPrice}}" bindinput="getBuyingPrice" data-type="0" />
-            </view>元
-          </view>
-        </view>
-
-        <view class="flex-column" wx:if="{{isGrade == 1}}">
-          <view class="flex-column  ">
-            <view class="flex-row p-20">
-              <text class="margin-l-right shrink_fix">普通进价(低):</text>
-              <view class="out">
-                <input class="orderInput" type="digit" value="{{goods.nxDgBuyingPriceThree}}" bindinput="getBuyingPrice" data-type="3" />
-              </view>元
-            </view> 
-
-            <view class="flex-row  p-20">
-              <text class="margin-l-right shrink_fix">优选进价(中):</text>
-              <view class="out">
-                <input class="orderInput" type="digit" value="{{goods.nxDgBuyingPriceTwo}}" bindinput="getBuyingPrice" data-type="2" />
-              </view>
-              元
-            </view>
-
-            <view class="flex-row p-20">
-              <text class="margin-l-right shrink_fix" >精选进价(高):</text>
-              <view class="out margin-l-right" >
-                <input class="orderInput" type="digit" value="{{goods.nxDgBuyingPriceOne}}" bindinput="getBuyingPrice" data-type="1" />
-              </view>元
-            </view>
-
-            
-          </view>
-        </view>
-      </view>
-		
-		</view>
-	</view> -->
 	</view>
 	
 
@@ -108,6 +52,18 @@
 			</view>
 			<input value="{{goods.nxDgGoodsStandardWeight !== '-1' ? goods.nxDgGoodsStandardWeight : ''}}" class="inputAddGoods p-10"
 				bindinput="getDisGoodsContent" data-type="2"></input>
+		</view>
+    
+    <view class=" flex-row p-20">
+			<text class="text-secondary flex-fixed">外包装</text>
+			<input class="inputAddGoods p-10" value="{{goods.nxDgCartonUnit}}" bindinput="getDisGoodsContent"
+				data-type="6" placeholder="如：箱、盒等"></input>
+		</view>
+		
+		<view class=" flex-row p-20">
+			<text class="text-secondary flex-fixed">外包装数量</text>
+			<input class="inputAddGoods p-10" type="digit" value="{{goods.nxDgItemsPerCarton}}" bindinput="getDisGoodsContent"
+				data-type="7" placeholder="每箱/盒包含的数量"></input>
 		</view>
 
 		<view class=" flex-row p-20">
@@ -127,17 +83,7 @@
 				data-type="5"></input>
 		</view>
 		
-		<view class=" flex-row p-20">
-			<text class="text-secondary flex-fixed">外包装</text>
-			<input class="inputAddGoods p-10" value="{{goods.nxDgCartonUnit}}" bindinput="getDisGoodsContent"
-				data-type="6" placeholder="如：箱、盒等"></input>
-		</view>
-		
-		<view class=" flex-row p-20">
-			<text class="text-secondary flex-fixed">外包装数量</text>
-			<input class="inputAddGoods p-10" type="digit" value="{{goods.nxDgItemsPerCarton}}" bindinput="getDisGoodsContent"
-				data-type="7" placeholder="每箱/盒包含的数量"></input>
-		</view>
+	
 	
 	</view>
 

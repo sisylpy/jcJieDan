@@ -110,8 +110,8 @@ Component({
       this.setData({
         goodsInfo,
         stockList,
-        showStockList: false,
-        showEditModal: true,
+        showStockList: true,  // 默认显示批次列表
+        showEditModal: false,  // 不直接显示编辑弹窗
         selectedStock: null,
         operationType: 1,
         inputWeight: '',
@@ -147,6 +147,7 @@ Component({
         reason: ''
       })
       
+      // 检查是否需要选择批次（所有操作类型都需要）
       this.checkCanSubmit()
     },
 
@@ -211,9 +212,9 @@ Component({
       console.log('operationType:', operationType)
       console.log('targetShelfGoodsId:', targetShelfGoodsId)
 
-      // 如果是调出操作，必须先选择批次
-      if (operationType === 5 && !selectedStock) {
-        console.log('调出操作必须选择批次')
+      // 所有操作类型都必须先选择批次
+      if (!selectedStock) {
+        console.log('必须选择批次')
         this.setData({ canSubmit: false })
         return
       }
@@ -426,8 +427,24 @@ Component({
         })
         return
       }
-      
-      api({ disId, disGoodsId, weight, userId }).then(res => {
+
+      const payload = { disId, disGoodsId, weight, userId }
+
+      // 所有操作类型都需要传递批次ID（库存记录ID）
+      if (this.data.selectedStock && this.data.selectedStock.nxDistributerGoodsShelfStockId) {
+        payload.stockId = this.data.selectedStock.nxDistributerGoodsShelfStockId
+        console.log('传递批次ID:', payload.stockId)
+      }
+
+      // 使用 / 损耗 / 退货：传货架商品 ID（同一货架可有多条相同商品）
+      if (type === 1 || type === 3 || type === 4) {
+        const sgid = this.data.shelfGoods && this.data.shelfGoods.nxDistributerGoodsShelfGoodsId
+        if (sgid != null && sgid !== '') {
+          payload.shelfGoodsId = sgid
+        }
+      }
+
+      api(payload).then(res => {
         this.handleApiResponse(res)
       }).catch(err => {
         this.handleApiError(err)

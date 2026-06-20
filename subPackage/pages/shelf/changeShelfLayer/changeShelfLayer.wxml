@@ -1,0 +1,114 @@
+<wxs src="../../../../utils/fn.wxs" module="tool" />
+
+<view class="page-root flex-column height-100">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="选择货架商品位置" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+  <scroll-view
+    class="main-scroll"
+    scroll-y="true"
+    style="height: {{scrollH}}rpx; margin-top: {{navBarHeight}}rpx;"
+    bindscrolltolower="onScrollToLower"
+    lower-threshold="120"
+  >
+    <view class="font-lg border-bottom p-20 bg-white" wx:if="{{shelfName}}">
+      <text class="text-secondary">货架：</text>{{shelfName}}
+    </view>
+
+    <view class="section-title p-20" wx:if="{{adjustShelfGoods && adjustShelfGoods.nxDistributerGoodsEntity}}">待调整商品</view>
+    <view class="shelf-list-wrap" wx:if="{{adjustShelfGoods && adjustShelfGoods.nxDistributerGoodsEntity}}">
+      <view class="shelf-list-item adjust-goods-item">
+        <view class="shelf-list-thumb">
+          <image wx:if="{{adjustShelfGoods.nxDistributerGoodsEntity.nxDgGoodsFileLarge && adjustShelfGoods.nxDistributerGoodsEntity.nxDgGoodsFileLarge !== 'null'}}" src="{{url + adjustShelfGoods.nxDistributerGoodsEntity.nxDgGoodsFileLarge}}" mode="aspectFill" class="shelf-list-img" />
+          <image wx:elif="{{adjustShelfGoods.nxDistributerGoodsEntity.nxDgGoodsFile && adjustShelfGoods.nxDistributerGoodsEntity.nxDgGoodsFile !== 'null'}}" src="{{url + adjustShelfGoods.nxDistributerGoodsEntity.nxDgGoodsFile}}" mode="aspectFill" class="shelf-list-img" />
+          <view wx:else class="shelf-list-img placeholder">
+            <image src="/images/photozhaoxiang.png" mode="aspectFill" class="icon-lg" />
+          </view>
+        </view>
+
+        <view class="shelf-list-info">
+          <view class="shelf-list-title">
+            <text class="shelf-list-brand" wx:if="{{adjustShelfGoods.nxDistributerGoodsEntity.nxDgGoodsBrand !== 'null' && adjustShelfGoods.nxDistributerGoodsEntity.nxDgGoodsBrand && adjustShelfGoods.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0}}">{{adjustShelfGoods.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
+            <view class="shelf-list-title-text">
+              <text class="shelf-list-name">{{adjustShelfGoods.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
+              <text class="shelf-list-spec" wx:if="{{adjustShelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}}">规格：{{adjustShelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && adjustShelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardWeight && adjustShelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0 ? adjustShelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardWeight + '/' : ''}}{{adjustShelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+            </view>
+          </view>
+          <view class="shelf-list-stock">
+            <text class="shelf-list-stock-label">库存：</text>
+            <view class="shelf-card-stock">
+              <block wx:if="{{adjustShelfGoods.nxDisGoodsShelfStockEntities !== null && adjustShelfGoods.nxDisGoodsShelfStockEntities.length > 0}}">
+                <block wx:for="{{adjustShelfGoods.nxDisGoodsShelfStockEntities}}" wx:for-item="stock" wx:key="index">
+                  <text class="stock-chip" wx:if="{{adjustShelfGoods.nxDistributerGoodsEntity.nxDgCartonUnit && adjustShelfGoods.nxDistributerGoodsEntity.nxDgCartonUnit !== '' && adjustShelfGoods.nxDistributerGoodsEntity.nxDgCartonUnit !== 'null' && adjustShelfGoods.nxDistributerGoodsEntity.nxDgItemsPerCarton > 0}}">{{tool.formatQuantityDisplay(stock.nxDgssRestWeight, adjustShelfGoods.nxDistributerGoodsEntity.nxDgCartonUnit, adjustShelfGoods.nxDistributerGoodsEntity.nxDgItemsPerCarton, adjustShelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname)}}</text>
+                  <text class="stock-chip" wx:else>{{stock.nxDgssRestWeight}}{{adjustShelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+                </block>
+              </block>
+              <block wx:else>
+                <text class="stock-empty">暂无库存</text>
+              </block>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="section-title p-20">选择在某商品的后面</view>
+    <view class="p-20 font-sm text-secondary" wx:if="{{listLoading && shelfGoodsList.length === 0}}">加载中…</view>
+
+    <view class="shelf-list-wrap" wx:if="{{shelfGoodsList.length > 0}}">
+      <block wx:for="{{shelfGoodsList}}" wx:for-item="shelfGoods" wx:for-index="goodsIndex" wx:key="nxDistributerGoodsShelfGoodsId">
+        <view class="shelf-list-item list-anchor-item" wx:if="{{shelfGoods.nxDistributerGoodsEntity}}" bindtap="onPickAnchor" data-index="{{goodsIndex}}">
+          <view class="shelf-list-thumb">
+            <image wx:if="{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFileLarge && shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFileLarge !== 'null'}}" src="{{url + shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFileLarge}}" mode="aspectFill" class="shelf-list-img" />
+            <image wx:elif="{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFile && shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFile !== 'null' && shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFile !== 'goodsImage/logo.jpg' }}" src="{{url + shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFile}}" mode="aspectFill" class="shelf-list-img" />
+            <view wx:else class="shelf-list-img placeholder">
+              <image src="/images/photozhaoxiang.png" mode="aspectFill" class="icon-lg" />
+            </view>
+          </view>
+
+          <view class="shelf-list-info">
+            <view class="shelf-list-title">
+             
+              <text class="shelf-list-brand" wx:if="{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsBrand !== 'null' && shelfGoods.nxDistributerGoodsEntity.nxDgGoodsBrand && shelfGoods.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0}}">{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
+              <view class="shelf-list-title-text">
+                <block wx:if="{{adjustShelfGoods.nxDistributerGoodsShelfGoodsId == shelfGoods.nxDistributerGoodsShelfGoodsId}}">
+                 <text class="text-warning">[移动商品]</text>
+              </block>
+                <text class="shelf-list-name">{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
+                <text class="shelf-list-spec" wx:if="{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}}">规格：{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardWeight && shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0 ? shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardWeight + '/' : ''}}{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+              </view>
+            </view>
+            <view class="shelf-list-stock">
+              <text class="shelf-list-stock-label">位置：</text>
+              <view class="flex-row mainColor font-bold">
+                <block wx:if="{{shelfGoods.nxDgsgShelfLayer !== null}}">
+                  <text>L{{shelfGoods.nxDgsgShelfLayer}}-</text>
+                </block>
+                <text>{{shelfGoods.nxDgsgShelfLayerSeq != null && shelfGoods.nxDgsgShelfLayerSeq !== '' ? shelfGoods.nxDgsgShelfLayerSeq : '-'}}</text>
+                <text wx:if="{{shelfGoods.nxDgsgShelfLayerLast == 1}}"> 本层最后</text>
+              </view>
+            </view>
+            <view class="shelf-list-stock">
+              <text class="shelf-list-stock-label">库存：</text>
+              <view class="shelf-card-stock">
+                <block wx:if="{{shelfGoods.nxDisGoodsShelfStockEntities !== null && shelfGoods.nxDisGoodsShelfStockEntities.length > 0}}">
+                  <block wx:for="{{shelfGoods.nxDisGoodsShelfStockEntities}}" wx:for-item="stock" wx:key="index">
+                    <text class="stock-chip" wx:if="{{shelfGoods.nxDistributerGoodsEntity.nxDgCartonUnit && shelfGoods.nxDistributerGoodsEntity.nxDgCartonUnit !== '' && shelfGoods.nxDistributerGoodsEntity.nxDgCartonUnit !== 'null' && shelfGoods.nxDistributerGoodsEntity.nxDgItemsPerCarton > 0}}">{{tool.formatQuantityDisplay(stock.nxDgssRestWeight, shelfGoods.nxDistributerGoodsEntity.nxDgCartonUnit, shelfGoods.nxDistributerGoodsEntity.nxDgItemsPerCarton, shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname)}}</text>
+                    <text class="stock-chip" wx:else>{{stock.nxDgssRestWeight}}{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+                  </block>
+                </block>
+                <block wx:else>
+                  <text class="stock-empty">暂无库存</text>
+                </block>
+              </view>
+            </view>
+          </view>
+        </view>
+      </block>
+    </view>
+
+    <view wx:if="{{!listLoading && shelfGoodsList.length === 0}}" class="p-40 text-secondary center-content">该货架暂无商品，请返回选择其他货架</view>
+
+    <view wx:if="{{shelfGoodsList.length > 0 && currentPage >= totalPage}}" class="p-30 font-xs text-secondary center-content">已加载全部</view>
+    <view wx:elif="{{shelfGoodsList.length > 0 && listLoadingMore}}" class="p-20 font-xs text-secondary center-content">加载更多…</view>
+  </scroll-view>
+</view>

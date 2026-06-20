@@ -6,9 +6,9 @@
  
 <view class="flex-column font-xl" id="mjltest" >
 
-  <view class=" bg-white flex-row-reverse p-20" >
-
-<view class="button-container mr-20" bindtap="addNewCustomer" hover-class="hover" >
+  <view class="bg-white p-20 flex-row flex-row-between" style="align-items: center;">
+    <input class="dep-filter-input flex-1 mr-20" placeholder="搜索客户名称" value="{{customerFilterKeyword}}" bindinput="onCustomerFilterInput" />
+    <view class="button-container" bindtap="addNewCustomer" hover-class="hover">
           <image src="/images/AddCustomer-.png" class="button-container"></image>
         </view>
 </view>
@@ -20,7 +20,7 @@
       <text class="text-secondary font-md">现金客户</text>
     </view>
 
-  <view class="flex flex-row-between bg-white border-bottom p-20" wx:for="{{myCustomerArrOne}}" bindtap="toDepOrders"  data-id="{{item.nxDepartmentId}}" data-name="{{item.nxDepartmentAttrName}}" data-depsub="{{item.nxDepartmentSubAmount}}" data-gbid="-1" data-resid="-1" data-nxdisid="{{item.nxDepartmentDisId}}" data-gbdisid="-1" data-comid="-1" hover-class="hover" data-item="{{item}}"  data-item="{{item}}" hover-class="hover">
+  <view class="flex flex-row-between bg-white border-bottom p-20" wx:for="{{filteredCustomerArrOne || []}}" bindtap="toDepOrders"  data-id="{{item.nxDepartmentId}}" data-name="{{item.nxDepartmentAttrName}}" data-depsub="{{item.nxDepartmentSubAmount}}" data-gbid="-1" data-resid="-1" data-nxdisid="{{item.nxDepartmentDisId}}" data-gbdisid="-1" data-comid="-1" hover-class="hover" data-item="{{item}}"  data-item="{{item}}" hover-class="hover">
     <view class="flex-row font-lg">
       <text class="mr-10">{{index + 1}}.</text>
       <text class=''>{{item.nxDepartmentAttrName}}</text>
@@ -38,7 +38,7 @@
       <text class="text-secondary font-md">记账客户</text>
     </view>
 
-  <view class="flex-column " wx:for="{{myCustomerArrTwo}}" >
+  <view class="flex-column " wx:for="{{filteredCustomerArrTwo || []}}" >
     <view class="flex flex-row-between bg-white border-bottom p-20" bindtap="toDepOrders" 
     
     data-id="{{item.nxDepartmentId}}" data-name="{{item.nxDepartmentAttrName}}" data-depsub="{{item.nxDepartmentSubAmount}}" data-gbid="-1" data-resid="-1" data-nxdisid="{{item.nxDepartmentDisId}}" data-gbdisid="-1" data-comid="-1" hover-class="hover" data-item="{{item}}" hover-class="hover" >

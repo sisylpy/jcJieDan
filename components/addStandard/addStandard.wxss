@@ -17,14 +17,11 @@
 
 .popup {
   width: 90%;
+  max-width: 670rpx;
   background-color: #fff;
   border-radius: 10rpx;
   overflow: hidden;
   box-shadow: 0 0 20rpx rgba(0, 0, 0, 0.3);
-  position: absolute; /* 使用绝对定位 */
-  top: 30%; /* 使弹出窗口距离顶部30% */
-  left: 50%;
-  transform: translate(-50%, 0); /* 水平居中 */
 }
 
 /* 弹出窗口顶部 */

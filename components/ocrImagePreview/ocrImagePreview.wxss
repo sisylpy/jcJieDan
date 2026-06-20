@@ -43,52 +43,29 @@
   object-fit: contain;
 }
 
-/* 缩放工具栏 */
-.zoom-panel {
+/* 底部统计蒙板 */
+.image-stats-mask {
   position: absolute;
-  left: 20rpx;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 70rpx;
-  height: 360rpx;
-  background: rgba(0, 0, 0, 0.6);
-  border-radius: 40rpx;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 24rpx 32rpx;
+  background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.image-stats-row {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  gap: 32rpx;
   align-items: center;
-  padding: 20rpx 0;
-  z-index: 100;
-  pointer-events: auto; /* 确保工具栏可以点击 */
 }
 
-/* + / - 按钮 */
-.zoom-btn {
-  width: 48rpx;
-  height: 48rpx;
-  border-radius: 50%;
-  background: #fff;
-  color: #000;
-  text-align: center;
-  line-height: 48rpx;
-  font-size: 32rpx;
-  margin: 10rpx 0;
-  flex-shrink: 0;
-  transition: all 0.2s ease;
+.image-stats-item {
+  color: #fff;
+  font-size: 28rpx;
+  text-shadow: 0 1rpx 2rpx rgba(0,0,0,0.5);
 }
 
-.zoom-btn:active {
-  transform: scale(0.9);
-  opacity: 0.8;
-}
-
-/* 重置按钮 */
-.zoom-reset {
-  margin-top: 20rpx;
-}
-
-/* 滑动条 */
-.zoom-slider {
-  flex: 1;
-  margin: 10rpx 0;
-}
 

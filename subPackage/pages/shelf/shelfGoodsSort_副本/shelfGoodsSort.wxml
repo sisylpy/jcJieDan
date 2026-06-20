@@ -1,0 +1,60 @@
+
+
+<view class='flex-column flex'>
+ 
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="修改商品位置" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+ 
+
+  <scroll-view scroll-y="{{!disableScroll}}" style='height: {{windowHeight - navBarHeight}}rpx; padding-bottom: 120rpx;'>
+    <view class="goods-container">
+      <block wx:for='{{shelfGoodsList}}' wx:key="nxDistributerGoodsShelfGoodsId">
+        <view 
+          class="goods-item {{draggingIndex === index ? 'goods-item--dragging' : ''}} {{placeholderIndex === index && draggingIndex !== index ? 'goods-item--placeholder' : ''}}"
+          data-index="{{index}}"
+          data-id="{{item.nxDistributerGoodsShelfGoodsId}}"
+          bindtouchstart="onTouchStart"
+          bindtouchmove="onTouchMove"
+          bindtouchend="onTouchEnd"
+          bindtouchcancel="onTouchEnd"
+        >
+          <view class="goods-content">
+            <view class="goods-name">{{item.nxDistributerGoodsEntity.nxDgGoodsName}}</view>
+            <view class="goods-standard" wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}">
+              ({{item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight && item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0 ? item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight + '/' : ''}}{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}})
+            </view>
+          </view>
+          
+          <view class="goods-actions">
+           
+            <view class="sort-input-container">
+              <input 
+                class="sort-input" 
+                type="number" 
+                value="{{item.nxDgsgSort}}" 
+                placeholder="排序"
+                data-index="{{index}}"
+                data-id="{{item.nxDistributerGoodsShelfGoodsId}}"
+                bindblur="onSortInputBlur"
+                bindconfirm="onSortInputConfirm"
+                disabled="{{draggingIndex === index}}"
+              />
+            </view>
+          </view>
+        </view>
+        <view class="shelf-layer-divider" wx:if="{{item.nxDgsgShelfLayer > 0}}">
+          <view class="divider-line"></view>
+          <text class="divider-text">{{layerTextMap[item.nxDgsgShelfLayer] || ('第' + item.nxDgsgShelfLayer + '层结束')}}</text>
+          <view class="divider-line"></view>
+        </view>
+      </block>
+    </view>
+<!--  -->
+    <view class="flex-column-center text-secondary font-xs" style="height: 100rpx;">没有数据了</view>
+
+  </scroll-view>
+  
+  <!-- 固定在底部的按钮 -->
+  <view class="bottom-bar">
+    <view class="save-btn {{isChanged ? 'is-active' : ''}}" bindtap="saveChange">保存修改商品位置</view>
+  </view>
+</view>

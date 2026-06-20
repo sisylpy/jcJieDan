@@ -20,7 +20,7 @@ import {
 import {
   downDisGoods,
   disGetGoods,
-} from '../../../../lib/apiibook';
+} from '../../../lib/apiibook';
 
 const plugin = requirePlugin("QCloudAIVoice");
 const speechRecognizerManager = plugin.speechRecognizerManager();

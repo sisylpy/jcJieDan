@@ -166,7 +166,7 @@
                   <view class="shelf-list-item">
                     <view class="shelf-list-thumb" bindtap="showDisImageModal" data-goods="{{shelfGoods.nxDistributerGoodsEntity}}" data-item="{{sons}}" src="{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFileLarge !== null ? url + shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFileLarge : '/images/logo.jpg'}}">
                       <image wx:if="{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFileLarge && shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFileLarge !== 'null'}}" src="{{url + shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFileLarge}}" mode="aspectFill" class="shelf-list-img" />
-                      <image wx:elif="{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFile && shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFile !== 'null'}}" src="{{url + shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFile}}" mode="aspectFill" class="shelf-list-img" />
+                      <image wx:elif="{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFile && shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFile !== 'null' && shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFile !== 'goodsImage/logo.jpg' }}" src="{{url + shelfGoods.nxDistributerGoodsEntity.nxDgGoodsFile}}" mode="aspectFill" class="shelf-list-img" />
                       <view wx:else class="shelf-list-img placeholder">
                         <image src="/images/photozhaoxiang.png" mode="aspectFill" class="icon-lg" />
                       </view>
@@ -284,7 +284,7 @@
                   <view class="shelf-list-item" bindtap="showChoiceUn" data-goods="{{disGoods}}">
                     <view class="shelf-list-thumb" catchtap="showDisImageModal" data-goods="{{disGoods}}">
                       <image wx:if="{{disGoods.nxDgGoodsFileLarge && disGoods.nxDgGoodsFileLarge !== 'null'}}" src="{{url + disGoods.nxDgGoodsFileLarge}}" mode="aspectFill" class="shelf-list-img" />
-                      <image wx:elif="{{disGoods.nxDgGoodsFile && disGoods.nxDgGoodsFile !== 'null'}}" src="{{url + disGoods.nxDgGoodsFile}}" mode="aspectFill" class="shelf-list-img" />
+                      <image wx:elif="{{disGoods.nxDgGoodsFile && disGoods.nxDgGoodsFile !== 'null'  && disGoods.nxDgGoodsFile !== 'goodsImage/logo.jpg'}}" src="{{url + disGoods.nxDgGoodsFile}}" mode="aspectFill" class="shelf-list-img" />
                       <view wx:else class="shelf-list-img placeholder">
                         <image src="/images/photozhaoxiang.png" mode="aspectFill" class="icon-lg" />
                       </view>

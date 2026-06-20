@@ -476,8 +476,18 @@ Page({
               if (item.orders && item.orders.length > 0) {
                 for (let j = 0; j < item.orders.length; j++) {
                   const order = item.orders[j];
-                  // 获取部门名称（优先使用 gbDepName，其次 depName，最后使用订单编号）
-                  const depName = order.gbDepName || order.restrauntName || order.depName || order.nxDepartmentOrderCode || '';
+                  // 获取部门名称
+                  let depName = '';
+                  // 协作订单：优先使用 [协作商名称]fatherDepartmentOrderCode（不含空格）
+                  const collabId = order.nxDoCollaborativeNxDisId;
+                  const isCollaborative = collabId !== undefined && collabId !== null && collabId !== -1 && String(collabId) !== '-1';
+                  if (isCollaborative) {
+                    depName = '[' + (order.nxDoCollaborativeDistributerName || '') + ']';
+                    const fatherCode = order.fatherDepartmentOrderCode || (order.nxDepartmentEntity && order.nxDepartmentEntity.fatherDepartmentEntity ? order.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentOrderCode : null);
+                    if (fatherCode) depName += fatherCode;
+                  } else {
+                    depName = order.gbDepName || order.restrauntName || order.depName || order.nxDepartmentOrderCode || '';
+                  }
                   const orderQuantity = order.nxDoQuantity || '';
                   const orderStandard = order.nxDoStandard || '';
                   const orderRemark = order.nxDoRemark && order.nxDoRemark !== 'null' && order.nxDoRemark.length > 0 ? order.nxDoRemark : '';
@@ -1095,8 +1105,17 @@ Page({
             var depName = '';
             var isCustomer = false; // 是否是客户（GB部门或餐厅），客户不打印#
             
+            // 协作订单：优先使用 [协作商名称]fatherDepartmentOrderCode（不含空格）
+            var collabId = order.nxDoCollaborativeNxDisId;
+            var isCollaborative = collabId !== undefined && collabId !== null && collabId !== -1 && String(collabId) !== '-1';
+            if (isCollaborative) {
+              depName = '[' + (order.nxDoCollaborativeDistributerName || '') + ']';
+              var fatherCode = order.fatherDepartmentOrderCode || (order.nxDepartmentEntity && order.nxDepartmentEntity.fatherDepartmentEntity ? order.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentOrderCode : null);
+              if (fatherCode) depName += fatherCode;
+              isCustomer = false;
+            }
             // 优先使用订单中的扁平化字段
-            if (order.gbDepName) {
+            else if (order.gbDepName) {
               depName = order.gbDepName;
               isCustomer = true; // GB部门，是客户
             } else if (order.restrauntName) {

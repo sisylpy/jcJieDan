@@ -331,3 +331,89 @@ button.group_btn::after {
 .delivery-status.unset {
   color: #ff6b6b;
 }
+/* 标签管理样式 */
+.label-popup {
+  width: 90%;
+  max-height: 85vh;
+  border-radius: 20rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.label-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.label-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1rpx solid #eee;
+  min-height: 200rpx;
+}
+
+.selected-section {
+  min-height: 150rpx;
+  display: flex;
+  flex-direction: column;
+}
+
+.label-list,
+.selected-list {
+  flex: 1;
+  max-height: 45vh;
+}
+
+.new-label-input {
+  border: 1rpx solid #ddd;
+  border-radius: 8rpx;
+  padding: 8rpx 16rpx;
+  font-size: 24rpx;
+  width: 200rpx;
+  background: #f8f8f8;
+}
+
+.btn-add-label {
+  background: #07c160;
+  color: #fff;
+  padding: 8rpx 20rpx;
+  border-radius: 8rpx;
+  margin-left: 10rpx;
+  font-size: 28rpx;
+}
+
+.btn-delete-label,
+.btn-remove-label {
+  padding: 4rpx 12rpx;
+  border: 1rpx solid #ff6b6b;
+  border-radius: 6rpx;
+}
+
+.label-tag-small {
+  background: #e8f5e9;
+  color: #07c160;
+  padding: 4rpx 16rpx;
+  border-radius: 16rpx;
+  font-size: 22rpx;
+  margin-bottom: 4rpx;
+}
+
+.icon-sm {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+.text-danger {
+  color: #ff6b6b;
+}
+
+.font-sm {
+  font-size: 24rpx;
+}
+
+.border-top {
+  border-top: 1rpx solid #eee;
+}

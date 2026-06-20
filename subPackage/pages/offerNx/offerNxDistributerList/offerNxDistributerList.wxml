@@ -1,0 +1,214 @@
+<wxs src="../../../../utils/fn.wxs" module="tool" />
+
+
+
+<view class="flex flex-column">
+
+
+  <back-navbar title="协作伙伴" style="height: {{navBarHeight}}rpx;" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+
+  <!--  top -->
+  <view class=" flex-row-between pl-20 pr-20 border-bottom bg-white">
+    <view class="flex-row">
+      <view class="p-20" bindtap="toDatePageSearch">
+        <image src="../../../../images/calender.png" class="icon"></image>
+      </view>
+      <view class="flex-column pt-10">
+        <view class="font-yuan">{{hanzi}}</view>
+        <view class="flex-row" wx:if="{{startDate == stopDate}}">
+          <view class=" small" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
+        </view>
+        <view class="flex-row" wx:else>
+          <view class="" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
+          <text class="plr-10">-</text>
+          <view class="" wx:if="{{stopDate}}">{{tool.transferDateString(stopDate)}}</view>
+        </view>
+      </view>
+    </view>
+
+  </view>
+
+
+  <!-- bb -->
+  <view class="flex-column  ">
+    <view class="invite-btns flex-row p-20 invite-btns-compact" wx:if="{{supplierArr.length == 0}}">
+        <button class="invite-btn invite-btn-primary" open-type="share" data-invite-type="1" plain="true">
+          <view class="invite-btn-row">
+            <image src="../../../../images/jinhuodan.png" class="invite-btn-icon"></image>
+            <text class="invite-btn-main">求供货给我</text>
+          </view>
+        </button>
+        <button class="invite-btn invite-btn-secondary" open-type="share" data-invite-type="2" plain="true">
+          <view class="invite-btn-row">
+            <image src="../../../../images/jinhuodan.png" class="invite-btn-icon"></image>
+            <text class="invite-btn-main">求采购我的货</text>
+          </view>
+        </button>
+    </view>
+
+    <block wx:if="{{supplierArr.length > 0}}">
+      <scroll-view scroll-y="true" style="height: {{scrollViewHeight}}rpx;">
+
+        <view class="invite-btns flex-row p-20 invite-btns-compact">
+        <button class="invite-btn invite-btn-primary" open-type="share" data-invite-type="1" plain="true">
+          <view class="invite-btn-row">
+            <image src="../../../../images/jinhuodan.png" class="invite-btn-icon"></image>
+            <text class="invite-btn-main">求供货给我</text>
+          </view>
+        </button>
+        <button class="invite-btn invite-btn-secondary" open-type="share" data-invite-type="2" plain="true">
+          <view class="invite-btn-row">
+            <image src="../../../../images/jinhuodan.png" class="invite-btn-icon"></image>
+            <text class="invite-btn-main">求采购我的货</text>
+          </view>
+        </button>
+    </view>
+
+
+        <view class="supplier-card-wrapper" wx:for="{{supplierArr}}" wx:for-item="supplier" wx:key="nxJrdhSupplierId" wx:if="{{supplierArr.length > 0}}">
+
+          <!-- 供货商信息卡片：不给他看=我的供货商(橙)，不看他的=我的客户(绿)，都不=互为(紫)，都设=暂停(灰) -->
+          <view class="supplier-info-card {{supplier.itemData.blockedMe && supplier.itemData.blockedByMe ? 'role-paused' : ''}} {{supplier.itemData.blockedMe && !supplier.itemData.blockedByMe ? 'role-supplier' : ''}} {{!supplier.itemData.blockedMe && supplier.itemData.blockedByMe ? 'role-customer' : ''}} {{!supplier.itemData.blockedMe && !supplier.itemData.blockedByMe ? 'role-mutual' : ''}}" hover-class="supplier-info-card-hover">
+            <view class="supplier-info-header">
+              <image src="{{url + supplier.nxDistributerImg}}" class="supplier-avatar"></image>
+              <view class="supplier-details">
+                <text class="supplier-name">{{supplier.nxDistributerShowName}}</text>
+                <view class="visibility-tags" wx:if="{{supplier.itemData}}">
+                  <text class="visibility-tag tag-paused" wx:if="{{supplier.itemData.blockedMe && supplier.itemData.blockedByMe}}">暂停业务</text>
+                  <text class="visibility-tag tag-customer" wx:elif="{{supplier.itemData.blockedByMe}}">我的客户</text>
+                  <text class="visibility-tag tag-supplier" wx:elif="{{supplier.itemData.blockedMe}}">我的供货商</text>
+                  <text class="visibility-tag tag-mutual" wx:else>互为协作</text>
+                </view>
+              </view>
+              <view class="supplier-menu-btn" bindtap="openOperation" data-item="{{supplier}}" catchtap="openOperation">
+                <image src="../../../../images/points.png" class="menu-icon"></image>
+              </view>
+            </view>
+
+            <!-- 订单统计 -->
+            <view class="supplier-stats">
+              <view class="supplier-stat-item" catch:tap="toSupplierDetail" data-item="{{supplier}}" data-type="all" data-value="{{supplier.itemData.billTotal}}">
+                <text class="supplier-stat-label">订单总额</text>
+                <text class="supplier-stat-count">{{supplier.itemData.billCount}}单</text>
+                <text class="supplier-stat-value stat-value-primary">¥{{supplier.itemData.billTotal}}</text>
+              </view>
+              <view class="supplier-stat-item" catch:tap="toSupplierDetail" data-item="{{supplier}}" data-type="allUnPay" data-value="{{supplier.itemData.unPayCount}}">
+                <text class="supplier-stat-label">待支付</text>
+                <text class="supplier-stat-count">{{supplier.itemData.unPayCount}}单</text>
+                <text class="supplier-stat-value stat-value-primary">¥{{supplier.itemData.unPayTotal}}</text>
+              </view>
+            </view>
+
+            <!-- 付款详情 -->
+            <view class="payment-detail">
+              <view class="payment-item" catch:tap="toSupplierDetail" data-item="{{supplier}}" data-type="havePayed" data-value="{{supplier.itemData.havePayTotal}}">
+                <text class="payment-label">已结订单</text>
+                <text class="payment-count payment-success">{{supplier.itemData.havePayCount}}单</text>
+                <text class="payment-value payment-success">¥{{supplier.itemData.havePayTotal}}</text>
+              </view>
+              <view class="payment-item" catch:tap="toSupplierDetail" data-item="{{supplier}}" data-type="unPayBills" data-value="{{supplier.itemData.unPayTotal}}">
+                <text class="payment-label">待确认订单</text>
+                <text class="payment-count supplier-stat-count">{{supplier.itemData.unConfirmCount}}单</text>
+                <text class="payment-value stat-value-primary">¥{{supplier.itemData.unConfirmTotal}}</text>
+              </view>
+              <view class="payment-item" wx:if="{{supplier.itemData.returnBillCount > 0}}" catch:tap="toSupplierDetail" data-item="{{supplier}}" data-type="unPayReturnBills" data-value="{{supplier.itemData.returnPayTotal}}">
+                <text class="payment-label">退货单</text>
+                <text class="payment-count payment-danger">{{supplier.itemData.returnBillCount}}单</text>
+                <text class="payment-value payment-danger">¥{{supplier.itemData.returnPayTotal}}</text>
+              </view>
+            </view>
+          </view>
+
+        </view>
+      </scroll-view>
+
+    </block>
+
+    <view class="flex-column  {{supplierArr.length == 0 ? 'show' : 'hide'}}" style="height: {{windowHeight - 560}}rpx; margin-top:160rpx;" wx:if="{{supplierArr.length == 0}}">
+      <view class="font-lg">
+        <view class="center-content flex-column">
+          <image class="empty_image" src="../../../../images/xiuxi-2.png"></image>
+          <text class="big">邀请市场协作伙伴</text>
+          <text class="font-xs text-secondary pt-20 p-10"> 他们直接接收订货需求</text>
+          <text class="font-xs text-secondary ">获得推广奖励</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+</view>
+
+
+<view class='overlay {{showOperation ? "show" : "hide"}}' catchtouchmove='ture' catchtap="hideMask">
+  <view class="flex-column nnn bg-white" wx:if="{{chooseSize}}" animation='{{animationData}}'>
+
+    <view class="op-menu-header">协作设置</view>
+    <view class="op-menu-item op-menu-item-setting {{supplierItem.itemData && supplierItem.itemData.blockedByMe ? 'op-menu-item-off' : 'op-menu-item-on'}}" catch:tap="toggleBlockPartner" hover-class="op-menu-item-hover">
+      <view class="op-menu-row">
+        <view class="op-menu-icon-wrap op-menu-icon-customer">
+          <image src="../../../../images/search-3.png" class="op-menu-icon"></image>
+        </view>
+        <view class="op-menu-content">
+          <view class="op-menu-title-row">
+            <text class="op-menu-text">我订货时能否看到他的商品</text>
+            <text class="op-menu-badge {{supplierItem.itemData && supplierItem.itemData.blockedByMe ? 'op-menu-badge-off' : 'op-menu-badge-on'}}">{{supplierItem.itemData && supplierItem.itemData.blockedByMe ? '已关闭' : '已开启'}}</text>
+          </view>
+          <text class="op-menu-desc">{{supplierItem.itemData && supplierItem.itemData.blockedByMe ? '当前您订货时看不到对方商品，点击可恢复显示' : '当前您订货时可搜索并采购对方商品，点击可暂停'}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="op-menu-item op-menu-item-setting {{supplierItem.itemData && supplierItem.itemData.blockedMe ? 'op-menu-item-off' : 'op-menu-item-on'}}" catch:tap="toggleHideMyCatalog" hover-class="op-menu-item-hover">
+      <view class="op-menu-row">
+        <view class="op-menu-icon-wrap op-menu-icon-supplier">
+          <image src="../../../../images/icon_goods_active.png" class="op-menu-icon"></image>
+        </view>
+        <view class="op-menu-content">
+          <view class="op-menu-title-row">
+            <text class="op-menu-text">他订货时能否看到我的商品</text>
+            <text class="op-menu-badge {{supplierItem.itemData && supplierItem.itemData.blockedMe ? 'op-menu-badge-off' : 'op-menu-badge-on'}}">{{supplierItem.itemData && supplierItem.itemData.blockedMe ? '已关闭' : '已开启'}}</text>
+          </view>
+          <text class="op-menu-desc">{{supplierItem.itemData && supplierItem.itemData.blockedMe ? '当前对方订货时看不到您的商品，点击可恢复显示' : '当前对方订货时可搜索并采购您的商品，点击可暂停'}}</text>
+        </view>
+      </view>
+    </view>
+    <view class="op-menu-divider"></view>
+    <view class="op-menu-item op-menu-item-danger" catch:tap="removePartnerConfirm" hover-class="op-menu-item-hover">
+      <view class="op-menu-row">
+        <image src="../../../../images/hezuowoshou.png" class="op-menu-icon"></image>
+        <view class="op-menu-content">
+          <text class="op-menu-text">解除协作</text>
+          <text class="op-menu-desc">解除后双方无法互相采购</text>
+        </view>
+      </view>
+    </view>
+    <!-- <view class="p-30  flex-row " catch:tap="toDeleteSupplier" hover-class="hover">
+      <image src="../../../../images/delete.png" class="icon mr-20"></image>
+      <text class="font-md">删除供货商</text>
+    </view> -->
+
+    <view style="height: 20rpx;"></view>
+
+
+  </view>
+</view>
+
+<!-- 编辑供货商名称弹窗 -->
+<view class='overlay {{showEditModal ? "show" : "hide"}}' catchtouchmove='true' catchtap="hideEditModal">
+  <view class="flex-column bg-white popup" style="width: 80%; max-width: 600rpx; " catchtap="stopPropagation">
+    <view class="p-30 border-bottom">
+      <text class="font-lg">修改供货商名称</text>
+    </view>
+
+    <view class="p-30">
+      <input class="edit-input" placeholder="请输入供货商名称" value="{{editSupplierName}}" bindinput="onEditSupplierNameInput" maxlength="50" style="width: {{windowWidth - 240}}rpx;" />
+    </view>
+
+    <view class="flex-row p-20 ">
+      <button class="btn-cancel" bindtap="hideEditModal">取消</button>
+      <button class="btn-confirm  {{editSupplierName !== originalSupplierName ? 'btn-confirm-active' : 'btn-confirm-disabled'}}" bindtap="{{editSupplierName !== originalSupplierName ? 'confirmEditSupplier' : ''}}" disabled="{{editSupplierName === originalSupplierName}}">
+        确认
+      </button>
+    </view>
+  </view>
+</view>

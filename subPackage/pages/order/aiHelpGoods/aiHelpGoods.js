@@ -17,7 +17,7 @@ import {confirmDepApplyGoods} from '../../../../lib/apiDepOrder'
 import { 
   downDisGoods,
 
-}from '../../../../lib/apiibook'
+}from '../../../lib/apiibook'
 
 
 let itemWidth = 0;

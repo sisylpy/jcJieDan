@@ -8,6 +8,27 @@ page {
   height: 100%;
   width: 100%;
   overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* 整页 flex：scroll-view 用 flex:1 吃满「导航下～底栏上」，避免 rpx 换算 windowHeight 在 iOS 真机与可视区不一致导致底部空白 */
+.sort-page {
+  width: 100%;
+  height: 100vh;
+  max-height: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: #f5f5f5;
+}
+
+.sort-scroll {
+  flex: 1;
+  height: 0;
+  min-height: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 /* 
 .home {
@@ -48,26 +69,159 @@ page {
 }
 
 
-/* 网格布局样式 */
-.goods-container {
-  display: flex;
-  flex-wrap: wrap;
-  padding: 20rpx;
-  gap: 20rpx;
-}
-
-.goods-item {
-  width: calc((100% - 40rpx) / 3);
-  background: white;
-  border-radius: 12rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+/* 列表：一行一个，左图 + 信息 + 排序（对齐货架首页列表样式） */
+.sort-goods-wrap {
+  padding: 12rpx 20rpx 20rpx;
   display: flex;
   flex-direction: column;
+  gap: 20rpx;
+  box-sizing: border-box;
+}
+
+.goods-container {
+  width: 100%;
+}
+
+.goods-item.shelf-sort-row {
+  width: 100%;
+  background: #fff;
+  border-radius: 24rpx;
+  border: 1px solid #e5e5e5;
+  padding: 20rpx;
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  box-sizing: border-box;
   transition: transform 0.12s ease, opacity 0.12s ease;
   position: relative;
   z-index: 1;
-  box-sizing: border-box;
+  overflow: visible;
+}
+
+.shelf-list-thumb {
+  width: 160rpx;
+  height: 160rpx;
+  margin-right: 20rpx;
+  flex-shrink: 0;
+  border-radius: 16rpx;
+  overflow: hidden;
+  background-color: #f5f5f5;
+}
+
+.shelf-list-img {
+  width: 100%;
+  height: 100%;
+}
+
+.shelf-list-img.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.shelf-list-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12rpx;
+}
+
+.shelf-list-title {
+  display: flex;
+  align-items: flex-start;
+  gap: 12rpx;
+}
+
+.shelf-list-brand {
+  font-size: 26rpx;
+  color: #0a8a72;
+  padding: 0 14rpx;
+  background-color: rgba(10, 138, 114, 0.12);
+  border-radius: 12rpx;
+}
+
+.shelf-list-title-text {
+  display: flex;
+  align-items: baseline;
+  gap: 12rpx;
+  flex-wrap: wrap;
+}
+
+.shelf-list-name {
+  font-size: 34rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.shelf-list-spec {
+  font-size: 28rpx;
+  color: #5c6570;
+  width: 100%;
+}
+
+.shelf-list-stock {
+  display: flex;
+  align-items: flex-start;
+  font-size: 28rpx;
+  color: #454545;
+  gap: 12rpx;
+  margin-top: 8rpx;
+}
+
+.shelf-list-stock-label {
+  color: #666;
+  flex-shrink: 0;
+}
+
+.shelf-card-stock {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  flex: 1;
+  align-items: flex-start;
+}
+
+.stock-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #e9efff;
+  color: #3171ff;
+  padding: 8rpx 22rpx;
+  border-radius: 20rpx;
+  font-size: 28rpx;
+  line-height: 1.2;
+}
+
+.stock-empty {
+  color: #999;
+  font-size: 28rpx;
+}
+
+.shelf-sort-actions {
+  flex-shrink: 0;
+  width: 132rpx;
+  margin-left: 16rpx;
+  padding-left: 16rpx;
+  border-left: 1rpx solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+}
+
+.shelf-sort-actions .sort-input-container {
+  width: 100%;
+}
+
+.shelf-sort-actions .sort-input {
+  width: 100%;
+  min-width: 0;
+}
+
+.goods-item {
+  /* 基类占位，具体由 .shelf-sort-row 覆盖 */
 }
 
 /* 正在被拖拽的卡片：缩放 + 蓝色边框 + 阴影 */
@@ -82,60 +236,6 @@ page {
 /* 占位：仅保留空间，颜色淡一点 */
 .goods-item--placeholder {
   opacity: 0.3;
-}
-
-.goods-content {
-  padding: 20rpx;
-  flex: 1;
-}
-
-.goods-name {
-  font-size: 32rpx;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 8rpx;
-  word-wrap: break-word;
-  word-break: break-all;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-}
-
-.goods-standard {
-  font-size: 28rpx;
-  color: rgb(82, 82, 82);
-  margin-bottom: 8rpx;
-}
-
-.goods-sort {
-  font-size: 24rpx;
-  color: #999;
-}
-
-.goods-actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16rpx 20rpx;
-  border-top: 1rpx solid #F0F0F0;
-  background: #FAFAFA;
-}
-
-.delete-btn {
-  width: 60rpx;
-  height: 60rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 8rpx;
-  background: #FF6B6B;
-}
-
-.delete-icon {
-  width: 32rpx;
-  height: 32rpx;
 }
 
 .sort-input-container {
@@ -165,20 +265,20 @@ page {
   font-size: 24rpx;
 }
 
-/* 底部按钮条 */
+/* 底部按钮条：参与 flex 占位，刘海屏底部安全区 */
 .bottom-bar {
-  position: fixed;
-  left: 0;
-  bottom: 0;
+  position: relative;
+  flex-shrink: 0;
   width: 100%;
-  height: 100rpx;
+  min-height: 100rpx;
   background: #ffffff;
   box-shadow: 0 -2rpx 8rpx rgba(0, 0, 0, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 99;
   padding: 0 40rpx;
+  padding-bottom: constant(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom);
   box-sizing: border-box;
 }
 

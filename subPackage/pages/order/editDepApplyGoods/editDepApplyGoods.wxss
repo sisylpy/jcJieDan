@@ -271,6 +271,14 @@
   transition: all 0.3s ease;
 }
 
+.select-btn.no{
+  padding: 18rpx 48rpx;
+  background: linear-gradient(135deg, #686c6c 0%, #6b6f6f 100%);
+  border-radius: 50rpx;
+  transition: all 0.3s ease;
+}
+
+
 .select-btn:active {
   transform: scale(0.95);
   box-shadow: 0 2rpx 8rpx rgba(20, 112, 98, 0.3);

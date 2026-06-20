@@ -7,9 +7,7 @@
     "saveBillModal": "/components/saveBillModal/saveBillModal",
     "delWarnModal": "/components/delWarnModal/delWarnModal",
     "addOrder": "/components/addOrder/addOrder",
-    "stockOutGoods": "/components/stockOutGoods/stockOutGoods",
-    "myDismodalCashSingle": "/components/myDismodalCashSingle/myDismodalCashSingle",
-    "inputOrder": "/components/inputOrder/inputOrder"
+    "stockOutGoods": "/components/stockOutGoods/stockOutGoods"
 
   }
 }

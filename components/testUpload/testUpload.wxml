@@ -1,6 +1,0 @@
-<view style="padding: 40rpx; background-color: #4caf50; border: 4rpx solid #2196f3; margin: 20rpx; border-radius: 16rpx;">
-  <text style="font-size: 48rpx; color: #fff; font-weight: bold; display: block;">🎉 测试组件已加载！</text>
-  <text style="font-size: 32rpx; color: #fff; display: block; margin-top: 20rpx;">这是 testUpload 测试组件</text>
-  <text style="font-size: 28rpx; color: #fff; display: block; margin-top: 10rpx;">当前时间: {{currentTime}}</text>
-</view>
-

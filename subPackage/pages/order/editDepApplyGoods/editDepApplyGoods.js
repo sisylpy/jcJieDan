@@ -17,7 +17,7 @@ import {confirmDepApplyGoods} from '../../../../lib/apiDepOrder'
 import { 
   downDisGoods,
 
-}from '../../../../lib/apiibook'
+}from '../../../lib/apiibook'
 
 
 let itemWidth = 0;
@@ -56,8 +56,14 @@ Page({
     var value = wx.getStorageSync('applyItem');
     if (value) {
       this.setData({
-        disId: value.nxDoDistributerId,
         applyItem: value,
+      })
+    }
+    var disInfo = wx.getStorageSync('disInfo');
+    if(disInfo){
+      this.setData({
+        disInfo: disInfo,
+        disId: disInfo.nxDistributerId,
       })
     }
 

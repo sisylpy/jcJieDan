@@ -1,0 +1,7 @@
+.dep-filter-input {
+  height: 64rpx;
+  padding: 0 24rpx;
+  background: #f5f5f5;
+  border-radius: 32rpx;
+  font-size: 28rpx;
+}

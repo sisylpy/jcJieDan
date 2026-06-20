@@ -336,7 +336,7 @@
             <text class="">{{index + 1}}. {{dep.nxDepartmentName}}</text>
             <view>
               <text>单价:</text>
-              <text>{{dep.nxDepartmentDisGoodsEntity.nxDdgOrderPrice}}元/{{goods.nxDgGoodsStandardname}}</text>
+              <text>{{dep.nxDepartmentDisGoodsEntity.nxDdgOrderPrice}}元/{{dep.nxDepartmentDisGoodsEntity.nxDdgOrderStandard}}</text>
             </view>
           </view>
           <view class="flex-row-between">
@@ -386,10 +386,10 @@
       <text class="text_operation mr-20">修改商品</text>
     </view>
 
-    <view class=" flex-row p-20 border-bottom" bindtap="toSupplier" wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+    <!-- <view class=" flex-row p-20 border-bottom" bindtap="toSupplier" wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
       <image src="../../../../images/supplier.png" class="icon mr-20 ml-20"></image>
       <text class="text_operation mr-20">指定供货商</text>
-    </view>
+    </view> -->
     <view class=" flex-row p-20 border-bottom" bindtap="exchangeGoods">
       <image src="../../../../images/del.png" class="icon mr-20 ml-20"></image>
       <text class="text_operation mr-20">转商品</text>
@@ -442,9 +442,7 @@
       <view class="input-group">
         <view class="input-item">
           <text class="input-label">配送单价:</text>
-          <view class="input-wrapper">
-            <input wx:if="{{showOperationPrice}}" type="digit" class="input-field" bindinput="inputSellingPrice" value="{{sellingPrice}}" placeholder="请输入价格" />
-            <text class="input-unit">元/{{goods.nxDgGoodsStandardname}}</text>
+          <view class="input-wrapper"><input wx:if="{{showOperationPrice}}" type="digit" class="input-field" bindinput="inputSellingPrice" value="{{sellingPrice}}" placeholder="请输入价格" /><text class="input-unit">元/{{goods.nxDgGoodsStandardname}}</text>
           </view>
         </view>
 

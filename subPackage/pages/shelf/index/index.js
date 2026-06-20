@@ -2,8 +2,9 @@ var load = require('../../../../lib/load.js');
 
 import apiUrl from '../../../../config.js'
 import {
-  disGetShelfList,
+  disGetShelfListByType,
   getShelfGoods,
+  getShelfLayerlist,
   updateShelfName,
   deleteShelf,
   saveNewShelf,
@@ -11,7 +12,6 @@ import {
   staffApplyPurGoods,
   disGetUnshelfGoods,
   disSavePurGoodsSaveStock,
-  
   saveShelfGoodsStock,
   deletePlanPurchaseGoods,
   updatePurchaseGoods,
@@ -22,9 +22,11 @@ import {
   updateDisStock,
   setShelfLayer,
   clearShelfLayer,
-  staffRecievePurGoods
+  staffRecievePurGoods,
+  disUpdateBuyingPrice
 } from '../../../../lib/apiDistributer.js'
 
+import {cancleDownDisGoods} from '../../../lib/apiibook'
 
 
 const tabBarHeight = 50; // 根据实际情况调整
@@ -46,7 +48,7 @@ Page({
     }
 
     if (this.data.needsRefreshOnShow && this.data.shelfId > 0) {
-      this.updateShelfGoodsData();
+      this._refreshShelfGoodsLoadAllPages();
       this.setData({
         needsRefreshOnShow: false
       });
@@ -59,58 +61,68 @@ Page({
         voiceShelfNewItems: []
       });
     }
+  },
 
-    // 优先检查是否从非货架商品详情页返回
+  // 刷新货架商品数据（供其他页面调用）
+  refreshShelfGoods() {
+    // 设置标志位，返回时自动刷新
+    this.setData({
+      needsRefreshOnShow: true
+    });
+  },
+
+
+  // 检查是否从非货架商品详情页返回
+  _checkFromUnshelfGoods() {
     const fromUnshelf = wx.getStorageSync('fromUnshelfGoods');
     if (fromUnshelf) {
-      // 从非货架商品详情页返回，刷新非货架商品列表
       wx.removeStorageSync('fromUnshelfGoods');
       this.getUnShelfGoods();
-      return;
+      return true;
     }
+    return false;
+  },
 
-    // 检查是否从 ailasGoodsList 页面返回
+  // 检查是否从 ailasGoodsList 页面返回并刷新
+  _checkFromAilasGoodsList() {
     const fromAilasGoodsList = wx.getStorageSync('fromAilasGoodsList');
     console.log('onShow - 检查 fromAilasGoodsList:', fromAilasGoodsList);
     if (fromAilasGoodsList) {
       console.log('onShow - 检测到从 ailasGoodsList 返回');
       wx.removeStorageSync('fromAilasGoodsList');
-      
+
       // 检查是否需要刷新（如果更新失败）
       const needRefresh = wx.getStorageSync('needRefreshShelfGoods');
       if (needRefresh) {
         console.log('onShow - 检测到需要刷新，更新失败或商品不在当前列表中');
         wx.removeStorageSync('needRefreshShelfGoods');
-        
+
         const isShowingUnshelfGoods = this.data.shelfIndex === this.data.shelfArr.length;
-      if (isShowingUnshelfGoods) {
+        if (isShowingUnshelfGoods) {
           this.getUnShelfGoods(true);
-      } else if (this.data.shelfId > 0) {
+        } else if (this.data.shelfId > 0) {
           this.updateShelfGoodsData(null, true);
         }
       } else {
-        // 数据已经在 ailasGoodsList 中直接更新了，这里只需要清除标记即可
-        // 如果用户没有操作（没有保存商品），数据不会更新，也不需要刷新
         console.log('onShow - 数据已在 ailasGoodsList 中直接更新，无需刷新');
       }
-      return;
+      return true;
     }
+    return false;
+  },
 
+  // 检查 update 标记并刷新
+  _checkUpdateFlag() {
     if (this.data.update) {
-      // 清除 update 标记，避免重复刷新
       this.setData({
         update: false
       });
-      
-      // 判断当前显示的是未上架商品还是已上架商品
-      // shelfIndex === shelfArr.length 表示选中了"非货架"
+
       const isShowingUnshelfGoods = this.data.shelfIndex === this.data.shelfArr.length;
 
       if (isShowingUnshelfGoods) {
-        // 当前显示未上架商品，刷新未上架商品列表
         this.getUnShelfGoods();
       } else if (this.data.shelfArr && this.data.shelfArr.length > 0) {
-        // 当前显示已上架商品，根据 shelfIndex 确定要刷新的货架
         const shelfIndex = this.data.shelfIndex;
         
         // 检查 shelfIndex 是否有效
@@ -129,20 +141,15 @@ Page({
           
           // 刷新当前货架的数据
           if (currentShelfId > 0) {
-        this.updateShelfGoodsData();
+            this.updateShelfGoodsData();
           }
         } else {
-          // shelfIndex 无效，重新初始化
           console.warn('onShow - shelfIndex 无效，重新初始化');
           this._getDisShelfs();
         }
       }
     }
-
-
   },
-
-
 
   data: {
 
@@ -196,6 +203,21 @@ Page({
     showImageModal: false,
     currentImage: '',
     currentGoods: null,
+    shelfGoodsType: "99",
+    showFilterMenu: false,
+
+    showShelfLayerPicker: false,
+    shelfLayerNumbers: [],
+
+    /** 货架商品列表查询排序，与接口 shelfGoodsQuerySort 一致，见 lib/apiDistributer getShelfGoods 注释 */
+    shelfGoodsQuerySort: 0,
+    showShelfQuerySortMenu: false,
+
+    /** 货架型批发商（businessTypeId==3）快速编辑商品零售价 */
+    showShelfPriceModal: false,
+    shelfPriceModalItem: null,
+    shelfPriceModalIndex: -1,
+
   },
 
   onLoad(e) {
@@ -281,6 +303,19 @@ Page({
     return this._formatStockList(list);
   },
 
+  /**
+   * 用分页接口返回的 totalCount 更新左侧货架列表的 goodsCount
+   */
+  _updateShelfGoodsCount(shelfId, totalCount) {
+    const shelfArr = this.data.shelfArr || [];
+    const idx = shelfArr.findIndex(item => item.nxDistributerGoodsShelfId == shelfId);
+    if (idx !== -1) {
+      const updated = [...shelfArr];
+      updated[idx] = { ...updated[idx], goodsCount: totalCount };
+      this.setData({ shelfArr: updated });
+    }
+  },
+
   _formatUnShelfGoodsList(list = []) {
     return list.map(item => {
       const stockList = Array.isArray(item.nxDisGoodsShelfStockEntities) ? item.nxDisGoodsShelfStockEntities : [];
@@ -302,9 +337,136 @@ Page({
     });
   },
 
+  // 打开货架商品类型筛选菜单
+  openFilterMenu() {
+    this.setData({
+      showFilterMenu: !this.data.showFilterMenu,
+      showShelfQuerySortMenu: false
+    });
+  },
+
+  toSortTools() {
+    this.setData({
+      showShelfQuerySortMenu: !this.data.showShelfQuerySortMenu,
+      showFilterMenu: false
+    });
+  },
+
+  closeShelfQuerySortMenu() {
+    this.setData({ showShelfQuerySortMenu: false });
+  },
+
+  selectShelfGoodsQuerySort(e) {
+    const sort = Number(e.currentTarget.dataset.sort);
+    if (Number.isNaN(sort)) {
+      return;
+    }
+    if (sort === this.data.shelfGoodsQuerySort) {
+      this.setData({ showShelfQuerySortMenu: false });
+      return;
+    }
+    // 四种排序（1～4）按有库存维度统计，与「有库存」筛选一致；需同步类型并刷新左侧货架 goodsCount
+    const useStockFilter = sort >= 1 && sort <= 4;
+    const needRefreshShelfList = useStockFilter && String(this.data.shelfGoodsType) !== '2';
+    const patch = {
+      shelfGoodsQuerySort: sort,
+      showShelfQuerySortMenu: false,
+      currentPage: 1
+    };
+    if (useStockFilter) {
+      patch.shelfGoodsType = '2';
+    }
+    this.setData(patch, () => {
+      if (needRefreshShelfList) {
+        this._refreshShelfListWithType();
+      } else if (this.data.shelfId > 0 && !this.data.isUnshelfSelected) {
+        this.updateShelfGoodsData();
+      }
+    });
+  },
+
+  /** 组装 getShelfGoods 公共参数（含 shelfGoodsQuerySort） */
+  _buildGetShelfGoodsParams(partial) {
+    const s = this.data.shelfGoodsQuerySort;
+    const shelfGoodsQuerySort = s === undefined || s === null || s === '' ? 0 : Number(s);
+    return Object.assign({}, partial, {
+      shelfGoodsType: this.data.shelfGoodsType,
+      shelfGoodsQuerySort
+    });
+  },
+
+  // 选择货架商品类型并刷新
+  selectShelfGoodsType(e) {
+    const type = e.currentTarget.dataset.type;
+    console.log('[selectShelfGoodsType] 选择类型:', type, '当前类型:', this.data.shelfGoodsType, '当前shelfId:', this.data.shelfId, '当前shelfIndex:', this.data.shelfIndex);
+    if (!type || type === this.data.shelfGoodsType) {
+      this.setData({ showFilterMenu: false });
+      return;
+    }
+    const patch = {
+      shelfGoodsType: type,
+      showFilterMenu: false,
+      currentPage: 1
+    };
+    if (String(type) === '99') {
+      patch.shelfGoodsQuerySort = 0;
+    }
+    this.setData(patch);
+    // 刷新货架列表（goodsCount 随类型变化）并保持当前选中货架
+    this._refreshShelfListWithType();
+  },
+
+  // 仅刷新货架列表（含 goodsCount），保持当前选中的货架
+  _refreshShelfListWithType() {
+    const data = {
+      disId: this.data.disId,
+      shelfGoodsType: this.data.shelfGoodsType,
+    };
+    disGetShelfListByType(data).then(res => {
+      if (res.result.code !== 0) {
+        console.log('[_refreshShelfListWithType] disGetShelfListByType 失败，code:', res.result.code);
+        return;
+      }
+      const shelfList = res.result.data.shelfArr || [];
+      const unShelfTotalCount = res.result.data.unShelfTotalCount;
+      const currentShelfId = this.data.shelfId;
+      const currentShelfIndex = this.data.shelfIndex;
+      const idx = shelfList.findIndex(s => s.nxDistributerGoodsShelfId == currentShelfId);
+      // shelfArr 为空时（如从「无库存」切换），currentShelfIndex===shelfArr.length 会误判为非货架，应选第一个货架
+      const wasViewingUnshelf = this.data.shelfArr.length > 0 && currentShelfIndex === this.data.shelfArr.length;
+      const newShelfIndex = idx >= 0 ? idx : (wasViewingUnshelf ? shelfList.length : 0);
+      const newShelfItem = newShelfIndex < shelfList.length ? shelfList[newShelfIndex] : null;
+      const newShelfId = newShelfItem ? newShelfItem.nxDistributerGoodsShelfId : -1;
+      const willCallGetShelfGoods = newShelfId > 0 && newShelfIndex < shelfList.length;
+      console.log('[_refreshShelfListWithType] disGetShelfListByType 成功, shelfList.length:', shelfList.length, 'currentShelfId:', currentShelfId, 'idx:', idx, 'newShelfIndex:', newShelfIndex, 'newShelfId:', newShelfId, 'willCallGetShelfGoods:', willCallGetShelfGoods);
+      this.setData({
+        shelfArr: shelfList,
+        unShelfTotalCount,
+        shelfIndex: newShelfIndex,
+        shelfItem: newShelfItem,
+        shelfId: newShelfId,
+      }, () => {
+        if (willCallGetShelfGoods) {
+          console.log('[_refreshShelfListWithType] setData 回调，调用 updateShelfGoodsData, shelfId:', this.data.shelfId, 'shelfGoodsType:', this.data.shelfGoodsType);
+          this.updateShelfGoodsData();
+         
+        } else {
+          console.log('[_refreshShelfListWithType] setData 回调，跳过 getShelfGoods');
+        }
+      });
+    });
+  },
+
+  // 关闭筛选菜单（点击遮罩）
+  closeFilterMenu() {
+    this.setData({
+      showFilterMenu: false
+    });
+  },
+
 
   updateShelfGoodsData(e, keepCurrentPage = false) {
-    console.log('updateShelfGoodsData - 开始刷新货架商品，shelfId:', this.data.shelfId, 'keepCurrentPage:', keepCurrentPage);
+    console.log('[updateShelfGoodsData] 开始刷新货架商品，shelfId:', this.data.shelfId, 'shelfGoodsType:', this.data.shelfGoodsType, 'keepCurrentPage:', keepCurrentPage);
 
     // 如果保持当前页且当前页 > 1，需要重新加载所有已加载的页面
     if (keepCurrentPage && this.data.currentPage > 1) {
@@ -314,25 +476,33 @@ Page({
     }
 
     // 否则只加载第一页
-    getShelfGoods(this.data.shelfId, 1, this.data.limit)
+    var data = this._buildGetShelfGoodsParams({
+      shelfId: this.data.shelfId,
+      page: 1,
+      limit: this.data.limit
+    });
+    console.log('[updateShelfGoodsData] 请求参数:', data);
+    getShelfGoods(data)
       .then(res => {
         if (res.result.code == 0) {
           load.hideLoading();
-          console.log("res.result.data", res.result.data);
           const pageData = res.result.page || {};
+          const totalCount = pageData.totalCount || 0;
+          this._updateShelfGoodsCount(this.data.shelfId, totalCount);
           this.setData({
             unShelfGoodsList: [],
             shelfGoodsList: this._formatShelfGoodsList(pageData.list || []),
             isUnshelfSelected: false,
-            totalCount: pageData.totalCount || 0,
+            totalCount,
             totalPage: pageData.totalPage || 0,
             currentPage: pageData.currPage || 1,
             isLoading: false,
           })
-          console.log('updateShelfGoodsData - 刷新完成，商品数量:', pageData.list ? pageData.list.length : 0);
+          console.log('[updateShelfGoodsData] getShelfGoods 刷新完成，商品数量:', pageData.list ? pageData.list.length : 0);
+          console.log(JSON.stringify(this._formatShelfGoodsList(pageData.list || []), null, 2));
         } else {
           load.hideLoading();
-          console.log('updateShelfGoodsData - 刷新失败，code:', res.result.code);
+          console.log('[updateShelfGoodsData] getShelfGoods 刷新失败，code:', res.result.code);
         }
       })
   },
@@ -359,7 +529,11 @@ Page({
     let loadedPages = 0;
 
     const loadPage = (page) => {
-      return getShelfGoods(shelfId, page, limit).then(res => {
+      return getShelfGoods(this._buildGetShelfGoodsParams({
+        shelfId,
+        page,
+        limit
+      })).then(res => {
         if (res.result.code == 0) {
           const pageData = res.result.page || {};
           const pageGoods = this._formatShelfGoodsList(pageData.list || []);
@@ -368,17 +542,15 @@ Page({
 
           // 更新总数和总页数（使用最后一页的数据）
           if (page === currentPage) {
+            const totalCount = pageData.totalCount || 0;
+            this._updateShelfGoodsCount(shelfId, totalCount);
             this.setData({
               shelfGoodsList: allGoods,
-              totalCount: pageData.totalCount || 0,
+              totalCount,
               totalPage: pageData.totalPage || 0,
               currentPage: pageData.currPage || 1,
               isLoading: false,
             });
-
-            // 恢复滚动位置（通过设置 toTop，但这里我们需要保持滚动位置）
-            // 由于 scroll-view 的 scroll-top 是像素值，我们无法精确恢复
-            // 但可以通过不重置 toTop 来保持大致位置
             console.log('_refreshShelfGoodsWithCurrentPage - 刷新完成，商品数量:', allGoods.length);
             load.hideLoading();
           } else if (page < currentPage) {
@@ -399,28 +571,82 @@ Page({
     loadPage(1);
   },
 
+  /**
+   * 从第1页请求到最后一页，刷新货架商品（添加新商品返回时使用）
+   */
+  _refreshShelfGoodsLoadAllPages() {
+    const shelfId = this.data.shelfId;
+    const limit = this.data.limit;
+
+    this.setData({
+      shelfGoodsList: [],
+      isLoading: true
+    });
+
+    let allGoods = [];
+
+    const loadPage = (page) => {
+      return getShelfGoods(this._buildGetShelfGoodsParams({
+        shelfId,
+        page,
+        limit
+      })).then(res => {
+        if (res.result.code == 0) {
+          const pageData = res.result.page || {};
+          const pageGoods = this._formatShelfGoodsList(pageData.list || []);
+          allGoods = [...allGoods, ...pageGoods];
+
+          const totalPage = pageData.totalPage || 1;
+          if (page >= totalPage) {
+            const totalCount = pageData.totalCount || 0;
+            this._updateShelfGoodsCount(shelfId, totalCount);
+            this.setData({
+              shelfGoodsList: allGoods,
+              totalCount,
+              totalPage: totalPage,
+              currentPage: totalPage,
+              isLoading: false
+            });
+            load.hideLoading();
+          } else {
+            return loadPage(page + 1);
+          }
+        } else {
+          this.setData({ isLoading: false });
+          load.hideLoading();
+        }
+      });
+    };
+
+    load.showLoading("刷新数据中");
+    loadPage(1);
+  },
+
 
   _getShelfGoods() {
 
     console.log("_getShelfGoods_getShelfGoods")
     load.showLoading("获取商品");
-    getShelfGoods(this.data.shelfId, 1, this.data.limit)
+    getShelfGoods(this._buildGetShelfGoodsParams({
+      shelfId: this.data.shelfId,
+      page: 1,
+      limit: this.data.limit
+    }))
       .then(res => {
         load.hideLoading();
         if (res.result.code == 0) {
-          load.hideLoading();
           const pageData = res.result.page || {};
+          const totalCount = pageData.totalCount || 0;
+          this._updateShelfGoodsCount(this.data.shelfId, totalCount);
           this.setData({
             shelfGoodsList: this._formatShelfGoodsList(pageData.list || []),
             isUnshelfSelected: false,
-            totalCount: pageData.totalCount || 0,
+            totalCount,
             totalPage: pageData.totalPage || 0,
             currentPage: pageData.currPage || 1,
             isLoading: false,
           })
-        } else {
-          load.hideLoading();
-
+          console.log(JSON.stringify(pageData.list || []));
         }
       })
   },
@@ -638,25 +864,38 @@ Page({
       toTop: 0, // 滚动到顶部
     })
     load.showLoading("获取数据中");
-    getShelfGoods(e.currentTarget.dataset.id, 1, this.data.limit)
+    const targetShelfId = e.currentTarget.dataset.id;
+    getShelfGoods(this._buildGetShelfGoodsParams({
+      shelfId: targetShelfId,
+      page: 1,
+      limit: this.data.limit
+    }))
       .then(res => {
         load.hideLoading();
-        console.log("reeee", res)
         if (res.result.code == 0) {
           const pageData = res.result.page || {};
+          const totalCount = pageData.totalCount || 0;
+          this._updateShelfGoodsCount(targetShelfId, totalCount);
           this.setData({
             unShelfGoodsList: [],
             shelfGoodsList: this._formatShelfGoodsList(pageData.list || []),
             isUnshelfSelected: false,
-            totalCount: pageData.totalCount || 0,
+            totalCount,
             totalPage: pageData.totalPage || 0,
             currentPage: pageData.currPage || 1,
             isLoading: false,
-            toTop: 0, // 确保滚动到顶部
+            toTop: 0,
           })
-        } else {
-
-
+          console.log(JSON.stringify((pageData.list || []).map(item => ({
+            nxDgsgDisGoodsId: item.nxDgsgDisGoodsId,
+            nxDgsgShelfId: item.nxDgsgShelfId,
+            nxDgsgSort: item.nxDgsgSort,
+            nxDgsgShelfSort: item.nxDgsgShelfSort,
+            nxDgsgShelfLayer: item.nxDgsgShelfLayer,
+            nxDgsgShelfLayerSeq: item.nxDgsgShelfLayerSeq,
+            nxDgsgShelfLayerLast: item.nxDgsgShelfLayerLast,
+            nxDgsgIsDuplicate: item.nxDgsgIsDuplicate,
+          }))));
         }
       })
   },
@@ -669,6 +908,7 @@ Page({
     } else {
       this.setData({
         isShowTools: true,
+        showShelfQuerySortMenu: false,
       })
     }
 
@@ -754,19 +994,79 @@ Page({
     })
   },
 
+  /**
+   * 货架型专业批发商：编辑商品零售价（一级基本单位 / 二级大包装），写 nxDgWillPriceOne、nxDgWillPriceTwo
+   */
+  openShelfGoodsPriceModal(e) {
+    const typeId = Number(this.data.disInfo && this.data.disInfo.nxDistributerBusinessTypeId);
+    if (!this.data.disInfo || typeId !== 3) {
+      return;
+    }
+    const idx = Number(e.currentTarget.dataset.index);
+    const list = this.data.shelfGoodsList || [];
+    const shelfGoods = list[idx];
+    if (!shelfGoods || !shelfGoods.nxDistributerGoodsEntity) {
+      return;
+    }
+    let entity;
+    try {
+      entity = JSON.parse(JSON.stringify(shelfGoods.nxDistributerGoodsEntity));
+    } catch (err) {
+      entity = Object.assign({}, shelfGoods.nxDistributerGoodsEntity);
+    }
+    this.setData({
+      showShelfPriceModal: true,
+      shelfPriceModalItem: entity,
+      shelfPriceModalIndex: idx,
+    });
+  },
+
+  onShelfPriceModalCancel() {
+    this.setData({
+      showShelfPriceModal: false,
+      shelfPriceModalItem: null,
+      shelfPriceModalIndex: -1,
+    });
+  },
+
+  onShelfPriceModalConfirm(e) {
+    const updated = e.detail && e.detail.item;
+    const idx = this.data.shelfPriceModalIndex;
+    if (!updated || idx < 0) {
+      this.onShelfPriceModalCancel();
+      return;
+    }
+    load.showLoading('保存价格');
+    disUpdateBuyingPrice(updated)
+      .then(res => {
+        load.hideLoading();
+        if (res.result.code === 0) {
+          const path = `shelfGoodsList[${idx}].nxDistributerGoodsEntity`;
+          this.setData({
+            [path]: updated,
+            showShelfPriceModal: false,
+            shelfPriceModalItem: null,
+            shelfPriceModalIndex: -1,
+          });
+          wx.showToast({ title: '已保存', icon: 'success' });
+        } else {
+          wx.showToast({ title: res.result.msg || '保存失败', icon: 'none' });
+        }
+      })
+      .catch(() => {
+        load.hideLoading();
+      });
+  },
+
   showChoiceUn(e) {
     var disGoods = e.currentTarget.dataset.goods;
-    const stockList = Array.isArray(disGoods.nxDisGoodsShelfStockEntities) ? disGoods.nxDisGoodsShelfStockEntities : [];
-    // const fakeShelfGoods = {
-    //   nxDistributerGoodsEntity: disGoods,
-    //   nxDisGoodsShelfStockEntities: stockList,
-    // };
+    console.log("eeeeee", e);
     this.setData({
       showOperation: true,
       isEditGoods: true,
-      disGoods: disGoods,
-      // shelfGoods: fakeShelfGoods,
+       disGoods: disGoods,
       isUnshelfSelected: true,
+      goodsIndex: e.currentTarget.dataset.index
     })
   },
 
@@ -1243,6 +1543,12 @@ Page({
       purGoods.nxDistributerGoodsShelfGoodsId = this.data.shelfGoods.nxDistributerGoodsShelfGoodsId;
     }
 
+    // 生产日期、保质期、保质期单位、过期日期（可选，不传过期日期时后端根据生产日期+保质期自动计算）
+    if (item.nxDpgProduceDate) purGoods.nxDpgProduceDate = item.nxDpgProduceDate;
+    if (item.nxDpgShelfLife !== '' && item.nxDpgShelfLife != null) purGoods.nxDpgShelfLife = item.nxDpgShelfLife;
+    if (item.nxDpgShelfLifeUnit) purGoods.nxDpgShelfLifeUnit = item.nxDpgShelfLifeUnit;
+    if (item.nxDpgExpiryDate) purGoods.nxDpgExpiryDate = item.nxDpgExpiryDate;
+
     var loadingText = this.data.isEditPurchase ? "修改进货商品" : "保存进货商品";
     var successText = this.data.isEditPurchase ? "进货商品修改成功" : "进货商品保存成功";
 
@@ -1250,6 +1556,7 @@ Page({
     const shelfGoodsId = !isUnshelf && this.data.shelfGoods?.nxDistributerGoodsShelfGoodsId;
     
     load.showLoading(loadingText);
+    console.log("savestock", purGoods)
     disSavePurGoodsSaveStock(purGoods).then(res => {
       if (res.result.code == 0) {
         wx.showToast({
@@ -1296,14 +1603,8 @@ Page({
           icon: 'none'
         });
       }
-    }).catch(err => {
-      load.hideLoading();
-      console.error('disSavePurGoodsSaveStock error:', err);
-      wx.showToast({
-        title: '保存失败，请重试',
-        icon: 'none'
-      });
-    });
+    })
+    
   },
 
 
@@ -1311,7 +1612,11 @@ Page({
 
   _getDisShelfs() {
     // 1. 先拉左侧所有货架
-    disGetShelfList(this.data.disId).then(res => {
+    var data = {
+      disId: this.data.disId,
+      shelfGoodsType: this.data.shelfGoodsType,
+    }
+    disGetShelfListByType(data).then(res => {
       if (res.result.code === 0) {
         console.log("rrr", res.result.data);
         const shelfList = res.result.data.shelfArr || [];
@@ -1416,13 +1721,79 @@ Page({
 
 
   toEditPurchaseGoods(e) {
+    const shelfId = this.data.shelfId;
+    if (!shelfId || shelfId < 1) {
+      wx.showToast({
+        title: '请先选择货架',
+        icon: 'none'
+      });
+      return;
+    }
     this.setData({
       isShowTools: false,
-      needsRefreshOnShow: true,
-    })
+    });
+    // 不在此置 needsRefreshOnShow：仅看排序页不保存则不应刷新；保存成功由 shelfGoodsSort saveChange 里 prevPage.setData({ update: true }) 触发刷新
+    load.showLoading('加载层级');
+    getShelfLayerlist(shelfId)
+      .then((res) => {
+        load.hideLoading();
+        if (res.result.code !== 0) {
+          wx.showToast({
+            title: res.result.msg || '获取层级失败',
+            icon: 'none'
+          });
+          return;
+        }
+        const payload = res.result.data || {};
+        const layerNumbers = Array.isArray(payload.layerNumbers) ? payload.layerNumbers : [];
+        if (layerNumbers.length === 0) {
+          wx.showToast({
+            title: '暂无层级数据',
+            icon: 'none'
+          });
+          return;
+        }
+        if (layerNumbers.length === 1) {
+          const layer = layerNumbers[0];
+          wx.navigateTo({
+            url: '../shelfGoodsSort/shelfGoodsSort?shelfId=' + shelfId + '&layer=' + layer
+          });
+          return;
+        }
+        this.setData({
+          showShelfLayerPicker: true,
+          shelfLayerNumbers: layerNumbers
+        });
+      })
+      .catch(() => {
+        load.hideLoading();
+        wx.showToast({
+          title: '请检查网络',
+          icon: 'none'
+        });
+      });
+  },
+
+  hideShelfLayerPicker() {
+    this.setData({
+      showShelfLayerPicker: false,
+      shelfLayerNumbers: []
+    });
+  },
+
+  onPickShelfLayer(e) {
+    const layer = e.currentTarget.dataset.layer;
+    const shelfId = this.data.shelfId;
+    if (layer === undefined || layer === null || !shelfId) {
+      return;
+    }
+    this.setData({
+      showShelfLayerPicker: false,
+      shelfLayerNumbers: []
+    });
     wx.navigateTo({
-      url: '../shelfGoodsSort/shelfGoodsSort?shelfId=' + this.data.shelfId,
-    })
+      url: '../shelfGoodsSort/shelfGoodsSort?shelfId=' + shelfId + '&layer=' + layer
+    });
   },
 
   toBack() {
@@ -1522,15 +1893,15 @@ Page({
               });
               
               // 优化：只更新列表中对应商品的层标记，不刷新整个列表
-              // 接口返回的是层架信息，不是商品对象，需要从 assignedLayer 获取层号
+              // nxDgsgShelfLayerLast=1：本条为本层最后一个（分隔线）；nxDgsgShelfLayer：商品在第几层
               const layerData = result.data || {};
-              const assignedLayer = layerData.assignedLayer; // 当前商品被分配的层号
-              
-              // 只更新商品的层字段，保留其他所有数据
-              this.updateShelfGoodsInList(shelfGoodsId, {
-                nxDgsgShelfLayer: assignedLayer || null
-              });
-              
+              const assignedLayer = layerData.assignedLayer;
+              const patch = { nxDgsgShelfLayerLast: 1 };
+              if (assignedLayer != null && assignedLayer !== '' && assignedLayer !== 'null') {
+                patch.nxDgsgShelfLayer = assignedLayer;
+              }
+              this.updateShelfGoodsInList(shelfGoodsId, patch);
+
               this.setData({
                 showOperation: false
               });
@@ -1586,16 +1957,11 @@ Page({
                 icon: 'success'
               });
               
-              // 优化：只更新列表中对应商品的层标记，不刷新整个列表
-              // 接口返回的是层架信息，取消时 assignedLayer 为 null
-              const layerData = result.data || {};
-              const assignedLayer = layerData.assignedLayer; // 取消时为 null
-              
-              // 只更新商品的层字段，保留其他所有数据
+              // 取消「本层结尾」只清 nxDgsgShelfLayerLast，不清 nxDgsgShelfLayer（层号仍要显示）
               this.updateShelfGoodsInList(shelfGoodsId, {
-                nxDgsgShelfLayer: assignedLayer || null
+                nxDgsgShelfLayerLast: 0
               });
-              
+
               this.setData({
                 showOperation: false
               });
@@ -1656,6 +2022,14 @@ Page({
       return;
     }
 
+    var  stockArr =  this.data.shelfGoods.nxDisGoodsShelfStockEntities.length;
+    if (stockArr > 0) {
+      wx.showToast({
+        title: '有库存，不能删除货架商品',
+        icon: 'none'
+      });
+      return;
+    }
     // 获取被删除商品所属的货架ID（优先从 shelfGoods 获取，否则从 shelfGoodsList 中查找）
     let shelfId = this.data.shelfGoods?.nxDgsgShelfId;
     if (!shelfId) {
@@ -2045,7 +2419,11 @@ Page({
       });
 
       const nextPage = this.data.currentPage + 1;
-      getShelfGoods(this.data.shelfId, nextPage, this.data.limit).then(res => {
+      getShelfGoods(this._buildGetShelfGoodsParams({
+        shelfId: this.data.shelfId,
+        page: nextPage,
+        limit: this.data.limit
+      })).then(res => {
         this.setData({
           isLoading: false
         });
@@ -2053,9 +2431,11 @@ Page({
         if (res.result.code == 0) {
           const pageData = res.result.page || {};
           const newItems = this._formatShelfGoodsList(pageData.list || []);
+          const totalCount = pageData.totalCount || 0;
+          this._updateShelfGoodsCount(this.data.shelfId, totalCount);
           this.setData({
             shelfGoodsList: [...this.data.shelfGoodsList, ...newItems],
-            totalCount: pageData.totalCount || 0,
+            totalCount,
             totalPage: pageData.totalPage || 0,
             currentPage: pageData.currPage || 1,
           });
@@ -2105,23 +2485,11 @@ Page({
     wx.removeStorageSync('fromAilasGoodsList');
     wx.setStorageSync('disGoods', this.data.disGoods)
 
+
     wx.navigateTo({
-      url: '../../goods/disGoodsDetail/disGoodsDetail?id=' + id,
+      url: '../../goods/disGoodsPage/disGoodsPage?disGoodsId=' + id + '&from=shelfIndex',
     })
-    //  }
-
-    //    else{
-
-    // wx.setStorageSync('linshiGoods', this.data.disGoods)
-    // // 设置标记，表示从货架页面跳转到 ailasGoodsList
-    // console.log('toGoodsDetail - 设置 fromAilasGoodsList 标记');
-    // wx.setStorageSync('fromAilasGoodsList', true)
-    // console.log('toGoodsDetail - 标记已设置，准备跳转到 ailasGoodsList');
-    // wx.navigateTo({
-    //   url: '../../goods/ailasGoodsList/ailasGoodsList?name=' + this.data.disGoods.nxDgGoodsName
-    //    + '&id=' + this.data.disGoods.nxDistributerGoodsId + '&standard=' + this.data.disGoods.nxDgGoodsStandardname,
-    // })
-    //    }
+    
 
   },
 
@@ -2337,6 +2705,7 @@ Page({
 
     load.showLoading("保存采购入库");
     item.nxDpgPurUserId = this.data.userInfo.nxDistributerUserId;
+    console.log("stavestock", item)
     saveShelfGoodsStock(item).then(res => {
       if (res.result.code == 0) {
         load.hideLoading();
@@ -2373,14 +2742,7 @@ Page({
           icon: 'none'
         });
       }
-    }).catch(err => {
-      load.hideLoading();
-      console.error('saveShelfGoodsStock error:', err);
-      wx.showToast({
-        title: '保存失败，请重试',
-        icon: 'none'
-      });
-    });
+    })
   },
 
   // 取消采购入库
@@ -2459,7 +2821,12 @@ Page({
     const {
       stockId,
       restWeight,
-      sellingPrice
+      sellingPrice,
+      sellingPriceCarton,
+      nxDgssProduceDate,
+      nxDgssShelfLife,
+      nxDgssShelfLifeUnit,
+      nxDgssExpiryDate
     } = e.detail || {}
     if (!stockId) {
       console.warn('confirmStockDetail 缺少 stockId', e)
@@ -2488,6 +2855,11 @@ Page({
       stockId,
       restWeight,
       sellingPrice,
+      sellingPriceCarton,
+      nxDgssProduceDate,
+      nxDgssShelfLife,
+      nxDgssShelfLifeUnit,
+      nxDgssExpiryDate,
       disId: this.data.disId,
       userId: this.data.userId
     }).then(res => {
@@ -2513,13 +2885,21 @@ Page({
               stock.nxDistributerGoodsShelfStockId === stockId
             );
             if (stockIndex !== -1) {
-              // 更新该批次的信息
               const updatedStockList = [...stockList];
-              updatedStockList[stockIndex] = {
-                ...updatedStockList[stockIndex],
+              const prev = updatedStockList[stockIndex];
+              const merged = {
+                ...prev,
                 nxDgssRestWeight: restWeight,
-                nxDgssSellingPrice: sellingPrice
+                nxDgssSellingPrice: sellingPrice,
+                nxDgssProduceDate: nxDgssProduceDate,
+                nxDgssShelfLife: nxDgssShelfLife,
+                nxDgssShelfLifeUnit: nxDgssShelfLifeUnit,
+                nxDgssExpiryDate: nxDgssExpiryDate
               };
+              if (sellingPriceCarton != null && sellingPriceCarton !== '') {
+                merged.nxDgssSellingPriceCarton = sellingPriceCarton;
+              }
+              updatedStockList[stockIndex] = merged;
               this.updateStockInList(goodsId, shelfGoodsId, updatedStockList, null, isUnshelf);
             }
           }
@@ -3146,13 +3526,14 @@ Page({
    * @param {Object} responseData - 接口返回的完整商品数据（如果有）
    */
   updateShelfGoodsInList(shelfGoodsId, updatedData = {}, responseData = null) {
-    if (!shelfGoodsId) return;
-    
+    if (shelfGoodsId == null || shelfGoodsId === '') return;
+
     const shelfGoodsList = this.data.shelfGoodsList || [];
-    const index = shelfGoodsList.findIndex(item => 
-      item.nxDistributerGoodsShelfGoodsId === shelfGoodsId
+    const idKey = String(shelfGoodsId);
+    const index = shelfGoodsList.findIndex(
+      (item) => String(item.nxDistributerGoodsShelfGoodsId) === idKey
     );
-    
+
     if (index === -1) {
       console.warn('updateShelfGoodsInList: 未找到对应的商品，shelfGoodsId:', shelfGoodsId);
       return;
@@ -3186,10 +3567,14 @@ Page({
     // 更新列表
     const newList = [...shelfGoodsList];
     newList[index] = updatedGoods;
-    
-    this.setData({
-      shelfGoodsList: newList
-    });
+
+    const patch = { shelfGoodsList: newList };
+    const cur = this.data.shelfGoods;
+    if (cur && String(cur.nxDistributerGoodsShelfGoodsId) === idKey) {
+      patch.shelfGoods = updatedGoods;
+    }
+
+    this.setData(patch);
   },
 
 
@@ -3204,6 +3589,63 @@ Page({
     })
   },
 
+
+
+  //删除商品
+  deleteDisGoods(e){
+
+    var data = {
+      disId: this.data.disId,
+      disGoodsId: this.data.disGoods.nxDistributerGoodsId,
+      disGoodsFatherId: this.data.disGoods.nxDgDfgGoodsFatherId,
+    }
+    load.showLoading("删除商品")
+    cancleDownDisGoods(data).then(res =>{
+      if(res.result.code == 0){
+        load.hideLoading();
+        // 从非货架商品列表中移除已删除的商品
+        const disGoodsId = this.data.disGoods.nxDistributerGoodsId;
+        const unShelfGoodsList = (this.data.unShelfGoodsList || []).filter(
+          item => item.nxDistributerGoodsId !== disGoodsId
+        );
+        this.setData({
+          unShelfGoodsList,
+          showOperation: false,
+          isEditGoods: false,
+          disGoods: null,
+        });
+        wx.showToast({
+          title: '删除成功',
+          icon: 'success'
+        });
+      }else{
+        load.hideLoading();
+        wx.showToast({
+          title: res.result.msg,
+          icon: "none"
+        })
+      }
+    })
+  },
+
+
+  searchShelfGoods(){
+    this.setData({
+      isEditGoods: false,
+      showOperation: false
+    })
+    var goodsName  = this.data.disGoods.nxDgGoodsName;
+   wx.navigateTo({
+      url: '../shelfGoodsSearch/shelfGoodsSearch?disId=' + this.data.disId + '&searchName=' + encodeURIComponent(goodsName || ''),
+    })
+
+  },  
+
+  onUnload() {
+    wx.removeStorageSync('disGoods');
+     wx.removeStorageSync('fromShelfPage');
+     wx.removeStorageSync('shelfGoodsListIndex');
+  },
 
 
 

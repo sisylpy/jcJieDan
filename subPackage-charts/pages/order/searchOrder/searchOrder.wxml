@@ -23,16 +23,15 @@
                 <!-- 商品卡片 -->
                 <view class="goods-card" wx:for='{{parentItem.nxDistributerGoodsEntities}}' wx:for-item="item" wx:for-index='goodsIndex' wx:key='nxDistributerGoodsId'>
                   <!-- 商品信息头部 -->
-                  <view class="goods-header">
+                  <view class="flex-row">
                     <view class="goods-name-row">
                       <text class="brand-tag" wx:if="{{item.nxDgGoodsBrand !== 'null' && item.nxDgGoodsBrand.length > 0}}">{{item.nxDgGoodsBrand}}</text>
-                      <text class="goods-name">{{item.nxDgGoodsName}}</text>
+                      <text class="font-lg font-bold mr-20">{{item.nxDgGoodsName}}</text>
                     </view>
-                    <view class="goods-spec-row">
-                      <text class="spec-text" wx:if="{{item.nxDgGoodsStandardWeight !== 'null' && item.nxDgGoodsStandardWeight.length > 0}}">
-                        {{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}}
+                    <view class="font-xs">
+                      <text class="" wx:if="{{item.nxDgGoodsStandardWeight !== 'null' && item.nxDgGoodsStandardWeight.length > 0}}">{{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}}
                       </text>
-                      <text class="spec-text" wx:else>{{item.nxDgGoodsStandardname}}</text>
+                      <text class="" wx:else>{{item.nxDgGoodsStandardname}}</text>
                       <text class="place-text" wx:if="{{item.nxDgGoodsPlace !== null && item.nxDgGoodsPlace.length > 0}}">{{item.nxDgGoodsPlace}}</text>
                       <text class="detail-text" wx:if="{{item.nxDgGoodsDetail.length > 0 && item.nxDgGoodsDetail !== 'null'}}">{{item.nxDgGoodsDetail}}</text>
                     </view>

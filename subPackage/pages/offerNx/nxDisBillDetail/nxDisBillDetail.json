@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "saveBillModal": "/components/saveBillModal/saveBillModal",
+    "back-navbar": "/components/back-navbar/back-navbar"
+
+  }
+}

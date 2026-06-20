@@ -8,7 +8,7 @@
     <view class="goods-header flex-row-between">
       <view class="flex-row"> 
         <text class="goods-name">{{goodsInfo.nxDgGoodsName}}</text>
-      <block wx:if="{{goodsInfo.gbDgGoodsStandardWeight !== 'null' && goodsInfov.gbDgGoodsStandardWeight.length > 0}}">
+      <block wx:if="{{goodsInfo.gbDgGoodsStandardWeight !== 'null' && goodsInfo.gbDgGoodsStandardWeight.length > 0}}">
         <text >({{goodsInfo.nxDgGoodsStandardname}}/{{goodsInfo.gbDgGoodsStandardWeight}})</text>
       </block>
       <block wx:else>
@@ -49,6 +49,13 @@
               <text wx:else>{{item.nxDgssRestWeight}}{{goodsInfo.nxDgGoodsStandardname}}</text>
             </text></text>
             <text class="">¥{{item.nxDgssRestSubtotal}}</text>
+          </view>
+        </view>
+        <view class="stock-content-row" wx:if="{{item.nxDgssProduceDate || item.nxDgssShelfLife || item.nxDgssExpiryDate}}">
+          <view class="stock-content-full">
+            <text class="stock-text" wx:if="{{item.nxDgssProduceDate}}">生产日期 {{item.nxDgssProduceDate}}</text>
+            <text class="stock-text" wx:if="{{item.nxDgssShelfLife}}">保质期 {{item.nxDgssShelfLife}}{{item.nxDgssShelfLifeUnit || ''}}</text>
+            <text class="stock-text" wx:if="{{item.nxDgssExpiryDate}}">过期日期 {{item.nxDgssExpiryDate}}</text>
           </view>
         </view>
         <view class="stock-content-row">
@@ -122,6 +129,35 @@
         <text class="value" wx:if="{{averageBuyPrice}}" style="margin-left: 20rpx;">平均单价：{{averageBuyPrice}}元/{{goodsInfo.nxDgGoodsStandardname}}</text>
       </view>
 
+      <view class="input-row">
+        <text class="label">生产日期</text>
+        <picker mode="date" value="{{editProduceDate || ''}}" bindchange="onProduceDateChange">
+          <view class="input-wrapper picker-tap">
+            <text class="{{editProduceDate ? '' : 'picker-placeholder'}}">{{editProduceDate || '请选择'}}</text>
+          </view>
+        </picker>
+      </view>
+      <view class="input-row">
+        <text class="label">保质期</text>
+        <view class="flex-shelf-life">
+          <view class="input-wrapper shelf-life-num">
+            <input class="input" type="number" value="{{editShelfLife}}" placeholder="数值" bindinput="onShelfLifeInput" hold-keyboard="true" />
+          </view>
+          <picker mode="selector" range="{{shelfLifeUnitOptions}}" range-key="label" value="{{shelfLifeUnitIndex}}" bindchange="onShelfLifeUnitChange">
+            <view class="input-wrapper picker-tap shelf-life-unit">
+              <text class="{{editShelfLifeUnit ? '' : 'picker-placeholder'}}">{{editShelfLifeUnit || '单位'}}</text>
+            </view>
+          </picker>
+        </view>
+      </view>
+      <view class="input-row">
+        <text class="label">过期日期</text>
+        <picker mode="date" value="{{editExpiryDate || calculatedExpiryDate || ''}}" bindchange="onExpiryDateChange">
+          <view class="input-wrapper picker-tap">
+            <text class="{{(editExpiryDate || calculatedExpiryDate) ? '' : 'picker-placeholder'}}">{{editExpiryDate || calculatedExpiryDate || '根据生产日期推算'}}</text>
+          </view>
+        </picker>
+      </view>
 
     <!-- 输入区域 -->
       <view class="input-row">

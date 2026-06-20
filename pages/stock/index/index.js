@@ -1,4 +1,5 @@
 var load = require('../../../lib/load.js');
+var platformDisplay = require('../../../utils/platformOrderDisplay.js');
 
 import apiUrl from '../../../config.js'
 
@@ -8,6 +9,7 @@ import {
    disGetTypePrepareOutDepCata,
    disGetTypePrepareOutPage,
    disGetTypePrepareOutByDep,
+   disGetTypePrepareOutByCollDis,
    savePlanPurchaseOrderBundle,
 } from '../../../lib/apiDepOrder'
 
@@ -34,8 +36,11 @@ Component({
     
     // 按客户模式相关数据
     depArr: [], // 部门列表（按客户模式）
+    offArr: [], // 协作商家列表
     selectedDepId: null, // 选中的部门ID
-    selDepName: '', // 选中的部门名称
+    selectedCollDisId: null, // 选中的协作商家ID
+    isCollDisMode: false, // 当前是否为协作商家模式
+    selDepName: '', // 选中的部门/协作商家名称
     
     // 打印机相关
     printOk: false, // 打印机连接状态
@@ -174,7 +179,6 @@ Component({
         navBarHeight: navBarHeightRpx,
         tabBarHeight: tabBarHeightRpx,
         leftMenuWidth: leftMenuWidth,
-
         viewBarHeight: viewBarHeightRpx,
       });
       this.animation = wx.createAnimation({ duration: 300, timingFunction: 'ease' })
@@ -248,6 +252,14 @@ Component({
 
 
   methods: {
+
+    _processGoodsList(list) {
+      return platformDisplay.processGoodsList(list || []);
+    },
+
+    _processGoodsItem(goods) {
+      return platformDisplay.processGoodsItem(goods);
+    },
 
     // 检查标签打印机缓存设置
     checkLabelPrinterCache() {
@@ -688,28 +700,36 @@ Component({
 
     // 左侧菜单点击跳转到对应位置
     toScrollView(e) {
-      const index = e.currentTarget.dataset.index;
+      const dataset = e.currentTarget.dataset;
+      const index = dataset.index;
+      const isColl = dataset.isColl;
+      const collDisId = dataset.collDisId;
+      const depId = dataset.depId;
       console.log('\n=== 左侧菜单点击事件 ===');
       console.log('🎯 点击的索引:', index);
       console.log('📊 显示模式:', this.data.viewMode);
+      console.log('📊 是否协作商家:', isColl);
       
       if (this.data.viewMode === 'department') {
-        // 按客户模式：点击部门
-        if (this.data.depArr[index]) {
-          const dep = this.data.depArr[index];
-          console.log('🎯 目标部门:', dep.depAttrName);
-          console.log('🎯 目标部门ID:', dep.depId);
-          
-          // 切换部门时，清空选择数组
-          this.setData({
-            choiceStockArr: [],
-            isAllDepartmentSelected: false
-          });
-          
-          // 加载该部门的商品
-          this._loadDepartmentGoods(dep.depId, index);
+        // 切换时清空选择数组
+        this.setData({
+          choiceStockArr: [],
+          isAllDepartmentSelected: false
+        });
+        
+        if (isColl && collDisId) {
+          // 协作商家：调用 disGetTypePrepareOutByCollDis 接口
+          console.log('🎯 目标协作商家ID:', collDisId);
+          this._loadCollDisGoods(collDisId);
+        } else if (depId !== undefined && depId !== null) {
+          // 普通部门：调用 disGetTypePrepareOutByDep 接口
+          const dep = this.data.depArr.find(d => d.depId === depId);
+          const depIndex = dep ? this.data.depArr.indexOf(dep) : index;
+          console.log('🎯 目标部门:', dep?.depAttrName);
+          console.log('🎯 目标部门ID:', depId);
+          this._loadDepartmentGoods(depId, depIndex);
         } else {
-          console.log('❌ depArr索引不存在:', index);
+          console.log('❌ 无效的点击数据');
         }
       } else {
         // 按类别模式：原有逻辑
@@ -859,22 +879,7 @@ Component({
           }
           
           if (res.result.code == 0) {
-            // 确保每个订单都有 purSelected 字段（如果接口没有返回，则初始化为 false）
-            const processedList = res.result.page.list.map(goods => {
-              if (goods.nxDepartmentOrdersEntities && Array.isArray(goods.nxDepartmentOrdersEntities)) {
-                goods.nxDepartmentOrdersEntities = goods.nxDepartmentOrdersEntities.map(order => {
-                  if (order.purSelected === undefined || order.purSelected === null) {
-                    order.purSelected = false;
-                  }
-                  return order;
-                });
-              }
-              // 确保商品有 isSelected 字段
-              if (goods.isSelected === undefined || goods.isSelected === null) {
-                goods.isSelected = false;
-              }
-              return goods;
-            });
+            const processedList = this._processGoodsList(res.result.page.list);
             
             // 去重逻辑
             const existingIds = new Set(this.data.goodsArr.map(item => item.nxDistributerGoodsId));
@@ -1015,22 +1020,7 @@ Component({
         }
         
         if (res.result.code == 0) {
-          // 确保每个订单都有 purSelected 字段（如果接口没有返回，则初始化为 false）
-          const processedList = res.result.page.list.map(goods => {
-            if (goods.nxDepartmentOrdersEntities && Array.isArray(goods.nxDepartmentOrdersEntities)) {
-              goods.nxDepartmentOrdersEntities = goods.nxDepartmentOrdersEntities.map(order => {
-                if (order.purSelected === undefined || order.purSelected === null) {
-                  order.purSelected = false;
-                }
-                return order;
-              });
-            }
-            // 确保商品有 isSelected 字段
-            if (goods.isSelected === undefined || goods.isSelected === null) {
-              goods.isSelected = false;
-            }
-            return goods;
-          });
+          const processedList = this._processGoodsList(res.result.page.list);
           
           // 去重逻辑
           const existingIds = new Set(this.data.goodsArr.map(item => item.nxDistributerGoodsId));
@@ -1220,8 +1210,8 @@ Component({
                
              this.getTabBar().setData({
               stockCount: res.result.data.stockCount,
-              unPurCount: res.result.data.unPurCount,
               puringCount: res.result.data.puringCount,
+              collCount: res.result.data.collCount,
             })
 
               if (res.result.data.arr.length > 0) {
@@ -1256,7 +1246,10 @@ Component({
             if (res.result.code == 0) {
               load.hideLoading();
               this.setData({
-                depArr: res.result.data.arr,
+                depArr: res.result.data.arr || [],
+                platformDepArr: res.result.data.platformDep || [],
+                ownDepArr: res.result.data.ownDep || [],
+                offArr: res.result.data.offArr || [],
               })
              
               this.getTabBar().setData({
@@ -1265,8 +1258,11 @@ Component({
                 puringCount: res.result.data.puringCount,
               })
              
-              // 如果有部门，默认选中第一个
-              if (res.result.data.arr.length > 0) {
+              // 优先加载协作商家，否则加载部门
+              if (res.result.data.offArr && res.result.data.offArr.length > 0) {
+                return this._loadCollDisGoods(res.result.data.offArr[0].nxDistributerId);
+              }
+              if (res.result.data.arr && res.result.data.arr.length > 0) {
                 return this._loadDepartmentGoods(res.result.data.arr[0].depId, 0);
               }
               
@@ -1300,19 +1296,23 @@ Component({
       // 保存当前选择状态
       var currentSelectedSub = this.data.selectedSub;
       var currentSelectedDepId = this.data.selectedDepId;
+      var currentSelectedCollDisId = this.data.selectedCollDisId;
+      var currentIsCollDisMode = this.data.isCollDisMode;
       var viewMode = this.data.viewMode;
       
       console.log('🔄 开始刷新数据，当前选择状态:', {
         viewMode: viewMode,
         selectedSub: currentSelectedSub,
-        selectedDepId: currentSelectedDepId
+        selectedDepId: currentSelectedDepId,
+        selectedCollDisId: currentSelectedCollDisId,
+        isCollDisMode: currentIsCollDisMode
       });
       
       // 调用 _initData 刷新左侧列表
       this._initData().then(() => {
         // 延迟一下，确保数据已经设置完成
         setTimeout(() => {
-          that._restoreSelection(currentSelectedSub, currentSelectedDepId, viewMode);
+          that._restoreSelection(currentSelectedSub, currentSelectedDepId, currentSelectedCollDisId, currentIsCollDisMode, viewMode);
         }, 100);
       }).catch(err => {
         console.error('刷新数据失败:', err);
@@ -1324,7 +1324,7 @@ Component({
     },
     
     // 恢复选择状态
-    _restoreSelection(currentSelectedSub, currentSelectedDepId, viewMode) {
+    _restoreSelection(currentSelectedSub, currentSelectedDepId, currentSelectedCollDisId, currentIsCollDisMode, viewMode) {
       var that = this;
       
       if (viewMode === 'category') {
@@ -1378,12 +1378,26 @@ Component({
           }
         }
       } else {
-        // 客户模式：在刷新后的部门列表中查找保存的部门ID
-        if (this.data.depArr && this.data.depArr.length > 0) {
+        // 客户模式：协作商家 或 部门
+        if (currentIsCollDisMode && currentSelectedCollDisId && this.data.offArr && this.data.offArr.length > 0) {
+          // 协作商家模式：查找保存的协作商家ID是否还存在
+          var foundColl = this.data.offArr.find(d => d.nxDistributerId == currentSelectedCollDisId);
+          var targetCollDisId = foundColl ? foundColl.nxDistributerId : this.data.offArr[0].nxDistributerId;
+          if (!foundColl) {
+            console.log('⚠️ 原选择协作商家不存在，选择第一个');
+          }
+          if (targetCollDisId != this.data.selectedCollDisId) {
+            console.log('✅ 切换到之前选择的协作商家，ID:', targetCollDisId);
+            this._loadCollDisGoods(targetCollDisId);
+          } else {
+            console.log('✅ 当前已是目标协作商家，重新加载数据');
+            this._loadCollDisGoods(targetCollDisId);
+          }
+        } else if (this.data.depArr && this.data.depArr.length > 0) {
+          // 部门模式
           var targetDepId = currentSelectedDepId;
           var targetDepIndex = -1;
           
-          // 查找保存的部门ID是否还存在
           for (var i = 0; i < this.data.depArr.length; i++) {
             if (this.data.depArr[i].depId === targetDepId) {
               targetDepIndex = i;
@@ -1391,24 +1405,23 @@ Component({
             }
           }
           
-          // 如果没找到，则选择第一个
           if (targetDepIndex === -1) {
             targetDepIndex = 0;
             targetDepId = this.data.depArr[0].depId;
             console.log('⚠️ 原选择部门不存在，选择第一个部门');
           }
           
-          // 如果目标部门和当前部门不同，需要切换
           if (targetDepId !== this.data.selectedDepId) {
             console.log('✅ 切换到之前选择的部门，部门ID:', targetDepId, '索引:', targetDepIndex);
-            
-            // 加载该部门的商品
             this._loadDepartmentGoods(targetDepId, targetDepIndex);
           } else {
             console.log('✅ 当前已是目标部门，重新加载数据');
-            // 即使部门相同，也重新加载一下数据，确保数据是最新的
             this._loadDepartmentGoods(targetDepId, targetDepIndex);
           }
+        } else if (this.data.offArr && this.data.offArr.length > 0) {
+          // 只有协作商家，没有部门
+          var targetCollDisId = this.data.offArr[0].nxDistributerId;
+          this._loadCollDisGoods(targetCollDisId);
         }
       }
     },
@@ -1636,21 +1649,7 @@ Component({
               // 加载更多数据，追加到现有数据并去重
               const existingIds = new Set(this.data.goodsArr.map(item => item.nxDistributerGoodsId));
               // 确保新加载的数据中每个订单都有 purSelected 字段
-              const processedNewItems = res.result.page.list.map(goods => {
-                if (goods.nxDepartmentOrdersEntities && Array.isArray(goods.nxDepartmentOrdersEntities)) {
-                  goods.nxDepartmentOrdersEntities = goods.nxDepartmentOrdersEntities.map(order => {
-                    if (order.purSelected === undefined || order.purSelected === null) {
-                      order.purSelected = false;
-                    }
-                    return order;
-                  });
-                }
-                // 确保商品有 isSelected 字段
-                if (goods.isSelected === undefined || goods.isSelected === null) {
-                  goods.isSelected = false;
-                }
-                return goods;
-              });
+              const processedNewItems = this._processGoodsList(res.result.page.list);
               const newItems = processedNewItems.filter(item => !existingIds.has(item.nxDistributerGoodsId));
               const newGoodsArr = this.data.goodsArr.concat(newItems);
               
@@ -1725,21 +1724,7 @@ Component({
             } else {
               // 首次加载或刷新
               // 确保每个订单都有 purSelected 字段（如果接口没有返回，则初始化为 false）
-              const goodsList = res.result.page.list.map(goods => {
-                if (goods.nxDepartmentOrdersEntities && Array.isArray(goods.nxDepartmentOrdersEntities)) {
-                  goods.nxDepartmentOrdersEntities = goods.nxDepartmentOrdersEntities.map(order => {
-                    if (order.purSelected === undefined || order.purSelected === null) {
-                      order.purSelected = false;
-                    }
-                    return order;
-                  });
-                }
-                // 确保商品有 isSelected 字段
-                if (goods.isSelected === undefined || goods.isSelected === null) {
-                  goods.isSelected = false;
-                }
-                return goods;
-              });
+              const goodsList = this._processGoodsList(res.result.page.list);
               
               this.setData({
                 goodsArr: goodsList,
@@ -1793,6 +1778,38 @@ Component({
           purSelected: order.purSelected,
           purSelectedType: typeof order.purSelected
         })));
+        // 协作订单调试：选择商品时打印每个订单的协作相关字段
+        orders.forEach((order, idx) => {
+          var collabId = order.nxDoCollaborativeNxDisId;
+          var isCollab = collabId !== undefined && collabId !== null && collabId !== -1 && String(collabId) !== '-1';
+          var fatherCode = order.fatherDepartmentOrderCode || (order.nxDepartmentEntity && order.nxDepartmentEntity.fatherDepartmentEntity ? order.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentOrderCode : null);
+          var deptCode = order.nxDepartmentOrderCode || (order.nxDepartmentEntity ? order.nxDepartmentEntity.nxDepartmentOrderCode : null);
+          var printName = '';
+          if (isCollab) {
+            printName = '[' + (order.nxDoCollaborativeDistributerName || '') + ']';
+            if (fatherCode) {
+              printName += fatherCode;
+            }
+          } else {
+            if (order.gbDepartmentName || order.fatherGbDepartmentName) {
+              printName = (order.fatherGbDepartmentName ? order.fatherGbDepartmentName + '.' : '') + (order.gbDepartmentName || '');
+            } else if (order.nxRestrauntAttrName) {
+              printName = order.nxRestrauntAttrName;
+            } else if (order.nxDepartmentAttrName) {
+              printName = (order.nxDoDepartmentFatherId !== order.nxDoDepartmentId && order.fatherDepartmentAttrName ? order.fatherDepartmentAttrName + '.' : '') + (order.nxDepartmentAttrName || '');
+            }
+          }
+          console.log('🖨️ 订单[' + idx + '] 协作调试:', {
+            nxDepartmentOrdersId: order.nxDepartmentOrdersId,
+            nxDoCollaborativeNxDisId: collabId,
+            nxDoCollaborativeDistributerName: order.nxDoCollaborativeDistributerName,
+            isCollaborative: isCollab,
+            fatherDepartmentOrderCode: fatherCode,
+            nxDepartmentOrderCode: deptCode,
+            printName: printName
+          });
+          console.log('🖨️ 订单[' + idx + '] 打印名称:', printName);
+        });
       }
       
       var selData = "goodsArr[" + goodsIndex + "].isSelected";
@@ -2080,6 +2097,20 @@ Component({
         var order = this.data.goodsArr[goodsIndex].nxDepartmentOrdersEntities[orderIndex];
         console.log('📊 订单对象:', order);
         console.log('📊 订单ID:', order?.nxDepartmentOrdersId);
+        // 协作订单调试：选择订单时立即打印
+        var collabId = order?.nxDoCollaborativeNxDisId;
+        var collabName = order?.nxDoCollaborativeDistributerName;
+        var isCollaborative = collabId !== undefined && collabId !== null && collabId !== -1 && String(collabId) !== '-1';
+        console.log('🖨️ 选择订单-协作调试:', {
+          nxDepartmentOrdersId: order?.nxDepartmentOrdersId,
+          nxDoCollaborativeNxDisId: collabId,
+          nxDoCollaborativeNxDisId_type: typeof collabId,
+          nxDoCollaborativeDistributerName: collabName,
+          isCollaborative: isCollaborative,
+          fatherDepartmentOrderCode: order?.fatherDepartmentOrderCode,
+          nxDepartmentOrderCode: order?.nxDepartmentOrderCode,
+          hasNxDepartmentEntity: !!(order && order.nxDepartmentEntity)
+        });
         
         var orderChoice = order?.purSelected;
         console.log('📊 订单当前 purSelected 值:', orderChoice);
@@ -2185,21 +2216,7 @@ Component({
             console.log('返回商品数组长度:', goodsList.length);
             
             // 确保每个订单都有 purSelected 字段（如果接口没有返回，则初始化为 false）
-            goodsList = goodsList.map(goods => {
-              if (goods.nxDepartmentOrdersEntities && Array.isArray(goods.nxDepartmentOrdersEntities)) {
-                goods.nxDepartmentOrdersEntities = goods.nxDepartmentOrdersEntities.map(order => {
-                  if (order.purSelected === undefined || order.purSelected === null) {
-                    order.purSelected = false;
-                  }
-                  return order;
-                });
-              }
-              // 确保商品有 isSelected 字段
-              if (goods.isSelected === undefined || goods.isSelected === null) {
-                goods.isSelected = false;
-              }
-              return goods;
-            });
+            goodsList = this._processGoodsList(goodsList);
             
             // 检查数据大小和结构
             if (goodsList.length > 0) {
@@ -2259,6 +2276,8 @@ Component({
             
             this.setData({
               selectedDepId: depId,
+              selectedCollDisId: null,
+              isCollDisMode: false,
               isAllDepartmentSelected: false, // 重置全选状态
               selectedSub: depIndex,
               selDepName: depName, // 设置选中的部门名称
@@ -2279,6 +2298,110 @@ Component({
         })
         .catch(err => {
           console.error('_loadDepartmentGoods 请求失败:', err);
+          load.hideLoading();
+          let errorMsg = '获取商品数据失败';
+          if (err.message && err.message.includes('404')) {
+            errorMsg = '接口不存在，请检查接口是否已实现';
+          }
+          wx.showToast({
+            title: errorMsg,
+            icon: 'none',
+            duration: 3000
+          });
+        });
+    },
+
+    // 加载协作商家的商品数据（按客户模式 - 协作商家）
+    _loadCollDisGoods(collDisId) {
+      load.showLoading("获取商品中");
+      const data = {
+        disId: this.data.disId,
+        collDisId: collDisId,
+      };
+      
+      return disGetTypePrepareOutByCollDis(data)
+        .then(res => {
+          load.hideLoading();
+          console.log('协作商家商品数据:', res.result);
+          
+          if (!res.result) {
+            console.error('接口返回数据格式错误:', res);
+            wx.showToast({
+              title: '接口返回数据格式错误',
+              icon: 'none'
+            });
+            return;
+          }
+          
+          if (res.result.code == 0) {
+            let goodsList = res.result.data || [];
+            console.log('协作商家返回商品数组长度:', goodsList.length);
+            
+            // 确保每个订单都有 purSelected 字段
+            goodsList = goodsList.map(goods => {
+              if (goods.nxDepartmentOrdersEntities && Array.isArray(goods.nxDepartmentOrdersEntities)) {
+                goods.nxDepartmentOrdersEntities = goods.nxDepartmentOrdersEntities.map(order => {
+                  if (order.purSelected === undefined || order.purSelected === null) {
+                    order.purSelected = false;
+                  }
+                  return order;
+                });
+              }
+              if (goods.isSelected === undefined || goods.isSelected === null) {
+                goods.isSelected = false;
+              }
+              return goods;
+            });
+            
+            // 根据商品数据生成分类信息（用于锚点）
+            const categoryMap = new Map();
+            goodsList.forEach(goods => {
+              const categoryId = goods.nxDgDfgGoodsGreatGrandId;
+              if (categoryId && !categoryMap.has(categoryId)) {
+                categoryMap.set(categoryId, {
+                  nxDistributerFatherGoodsId: categoryId,
+                  nxDfgFatherGoodsName: goods.nxDgNxGreatGrandName || goods.nxDgNxGrandName || '未分类',
+                  nxDfgFatherGoodsSort: goods.nxDgDfgGoodsGreatGrandSort || goods.nxDgGoodsSort || 0,
+                  newOrderCount: 0
+                });
+              }
+              if (categoryId && goods.nxDepartmentOrdersEntities) {
+                const category = categoryMap.get(categoryId);
+                if (category) {
+                  category.newOrderCount = (category.newOrderCount || 0) + (goods.nxDepartmentOrdersEntities.length || 0);
+                }
+              }
+            });
+            
+            const categoryArr = Array.from(categoryMap.values());
+            categoryArr.sort((a, b) => (a.nxDfgFatherGoodsSort || 0) - (b.nxDfgFatherGoodsSort || 0));
+            
+            // 获取协作商家名称
+            const collDis = this.data.offArr.find(d => d.nxDistributerId == collDisId);
+            const collName = collDis ? (collDis.nxDistributerShowName || collDis.nxDistributerName || '') : '';
+            
+            this.setData({
+              selectedDepId: null,
+              selectedCollDisId: collDisId,
+              isCollDisMode: true,
+              isAllDepartmentSelected: false,
+              selDepName: collName,
+              goodsArr: goodsList,
+              goodsCataArr: categoryArr,
+            }, () => {
+              setTimeout(() => {
+                this.calculateCategoryPositions();
+              }, 300);
+            });
+          } else {
+            wx.showToast({
+              title: res.result.msg || '获取商品数据失败',
+              icon: 'none'
+            });
+          }
+        })
+        .catch(err => {
+          console.error('_loadCollDisGoods 请求失败:', err);
           load.hideLoading();
           let errorMsg = '获取商品数据失败';
           if (err.message && err.message.includes('404')) {
@@ -2523,6 +2646,28 @@ Component({
                   nxDepartmentEntity: order.nxDepartmentEntity,
                   nxRestrauntEntity: order.nxRestrauntEntity
                 };
+                // 协作订单：传递协作商名称和部门编码，用于打印标签
+                // 调试日志：打印订单的协作相关字段
+                var collabId = order.nxDoCollaborativeNxDisId;
+                var collabName = order.nxDoCollaborativeDistributerName;
+                var isCollaborative = collabId !== undefined && collabId !== null && collabId !== -1 && String(collabId) !== '-1';
+                console.log('🖨️ 打印订单调试:', {
+                  nxDepartmentOrdersId: order.nxDepartmentOrdersId,
+                  nxDoCollaborativeNxDisId: collabId,
+                  nxDoCollaborativeNxDisId_type: typeof collabId,
+                  nxDoCollaborativeDistributerName: collabName,
+                  isCollaborative: isCollaborative,
+                  fatherDepartmentOrderCode: order.fatherDepartmentOrderCode,
+                  nxDepartmentOrderCode: order.nxDepartmentOrderCode,
+                  hasNxDepartmentEntity: !!order.nxDepartmentEntity
+                });
+                if (isCollaborative) {
+                  orderCopy.nxDoCollaborativeNxDisId = collabId;
+                  orderCopy.nxDoCollaborativeDistributerName = collabName;
+                  orderCopy.fatherDepartmentOrderCode = order.fatherDepartmentOrderCode || (order.nxDepartmentEntity && order.nxDepartmentEntity.fatherDepartmentEntity ? order.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentOrderCode : null);
+                  orderCopy.nxDepartmentOrderCode = order.nxDepartmentOrderCode || (order.nxDepartmentEntity ? order.nxDepartmentEntity.nxDepartmentOrderCode : null);
+                  console.log('🖨️ 协作订单已标记:', { orderCopy: orderCopy });
+                }
                 selectedOrders.push(orderCopy);
               }
             }
@@ -2687,6 +2832,14 @@ Component({
                 fatherDepartmentAttrName: order.fatherDepartmentAttrName,
                 nxRestrauntAttrName: order.nxRestrauntAttrName
               };
+              // 协作订单：传递协作商名称和部门编码，用于标签打印
+              var collabId = order.nxDoCollaborativeNxDisId;
+              var isCollab = collabId !== undefined && collabId !== null && collabId !== -1 && String(collabId) !== '-1';
+              if (isCollab) {
+                orderCopy.nxDoCollaborativeNxDisId = collabId;
+                orderCopy.nxDoCollaborativeDistributerName = order.nxDoCollaborativeDistributerName;
+                orderCopy.fatherDepartmentOrderCode = order.fatherDepartmentOrderCode || (order.nxDepartmentEntity && order.nxDepartmentEntity.fatherDepartmentEntity ? order.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentOrderCode : null);
+              }
               
               // 将商品信息附加到订单对象中，方便打印时获取商品名称
               orderCopy._goodsItem = {
@@ -3049,10 +3202,12 @@ Component({
         
         var order = orderArray[orderIndex];
         var goodsItem = order._goodsItem || {};
+        var printerInstance = labelPrinter.create(cachedPaperSize);
+        var customerNameForPrint = printerInstance.extractCustomerName(order);
         
         console.log('📊 打印订单', orderIndex + 1, '/', orderArray.length);
         console.log('📊 订单信息:', {
-          customerName: order.fatherDepartmentAttrName,
+          customerName: customerNameForPrint,
           goodsName: goodsItem.nxDgGoodsName,
           quantity: order.nxDoQuantity,
           standard: order.nxDoStandard,

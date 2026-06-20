@@ -30,7 +30,14 @@ Component({
     averageBuyPrice: '', // 平均单价（最小单位单价）
     cartonExpectPrice: '', // 箱零售价（用户输入的原始值）
     averageExpectPrice: '', // 平均建议售价（最小单位零售价）
-    canSubmit: false
+    canSubmit: false,
+    shelfLifeUnitOptions: [{ label: '天', value: '天' }, { label: '月', value: '月' }, { label: '年', value: '年' }],
+    shelfLifeUnitIndex: 0,
+    calculatedExpiryDate: '',
+    editProduceDate: '',
+    editShelfLife: '',
+    editShelfLifeUnit: '天',
+    editExpiryDate: ''
   },
 
   observers: {
@@ -77,7 +84,13 @@ Component({
         cartonExpectPrice: '',
         averageExpectPrice: '',
         canSubmit: false,
-        goodsInfo: null
+        goodsInfo: null,
+        shelfLifeUnitIndex: 0,
+        calculatedExpiryDate: '',
+        editProduceDate: '',
+        editShelfLife: '',
+        editShelfLifeUnit: '天',
+        editExpiryDate: ''
       })
     },
 
@@ -183,6 +196,15 @@ Component({
         sellingPrice = selectedStock && selectedStock.nxDgssSellingPrice != null ? String(selectedStock.nxDgssSellingPrice) : ''
       }
       
+      const unitMap = { '天': 0, '月': 1, '年': 2 }
+      const lifeUnit = selectedStock.nxDgssShelfLifeUnit || '天'
+      const shelfIdx = unitMap[lifeUnit] ?? 0
+      const produce = selectedStock.nxDgssProduceDate || ''
+      const shelfLifeVal = selectedStock.nxDgssShelfLife !== null && selectedStock.nxDgssShelfLife !== undefined && selectedStock.nxDgssShelfLife !== ''
+        ? selectedStock.nxDgssShelfLife
+        : ''
+      const expiry = selectedStock.nxDgssExpiryDate || ''
+
       this.setData({
         selectedStock,
         showStockList: false,
@@ -191,9 +213,17 @@ Component({
         cartonBuyPrice: buyPrice,
         averageBuyPrice: '',
         cartonExpectPrice: sellingPrice,
-        averageExpectPrice: ''
+        averageExpectPrice: '',
+        shelfLifeUnitIndex: shelfIdx,
+        editProduceDate: produce,
+        editShelfLife: shelfLifeVal === '' ? '' : String(shelfLifeVal),
+        editShelfLifeUnit: lifeUnit,
+        editExpiryDate: expiry,
+        calculatedExpiryDate: ''
+      }, () => {
+        this._computeAndSetExpiryDate()
       })
-      
+
       // 如果有初始价格，计算平均单价（仅在有外包装时显示）
       if (buyPrice && hasCarton) {
         this._calculateAverageBuyPrice(buyPrice)
@@ -201,8 +231,91 @@ Component({
       if (sellingPrice && hasCarton) {
         this._calculateAverageExpectPrice(sellingPrice)
       }
-      
-      this.checkCanSubmit()
+
+      // canSubmit 在 _computeAndSetExpiryDate 完成后的 setData 回调里统一计算
+    },
+
+    onProduceDateChange(e) {
+      const date = e.detail.value
+      this.setData({
+        editProduceDate: date,
+        editExpiryDate: ''
+      }, () => this._computeAndSetExpiryDate())
+    },
+
+    onShelfLifeInput(e) {
+      const val = e.detail.value
+      const parsed = val === '' ? NaN : parseInt(val, 10)
+      this.setData({
+        editShelfLife: (val === '' || isNaN(parsed)) ? '' : parsed,
+        editExpiryDate: ''
+      }, () => this._computeAndSetExpiryDate())
+    },
+
+    onShelfLifeUnitChange(e) {
+      const idx = parseInt(e.detail.value, 10)
+      const unit = this.data.shelfLifeUnitOptions[idx].value
+      this.setData({
+        shelfLifeUnitIndex: idx,
+        editShelfLifeUnit: unit,
+        editExpiryDate: ''
+      }, () => this._computeAndSetExpiryDate())
+    },
+
+    onExpiryDateChange(e) {
+      this.setData({
+        editExpiryDate: e.detail.value
+      }, () => this.checkCanSubmit())
+    },
+
+    _computeAndSetExpiryDate() {
+      const produceDate = this.data.editProduceDate
+      const shelfLife = this.data.editShelfLife
+      const unit = this.data.editShelfLifeUnit
+      let calculatedExpiryDate = ''
+      if (produceDate && shelfLife !== '' && shelfLife != null && unit) {
+        const sl = parseInt(shelfLife, 10)
+        if (!isNaN(sl)) {
+          const d = new Date(produceDate)
+          if (unit === '天') {
+            d.setDate(d.getDate() + sl)
+          } else if (unit === '月') {
+            d.setMonth(d.getMonth() + sl)
+          } else if (unit === '年') {
+            d.setFullYear(d.getFullYear() + sl)
+          }
+          const y = d.getFullYear()
+          const m = String(d.getMonth() + 1).padStart(2, '0')
+          const day = String(d.getDate()).padStart(2, '0')
+          calculatedExpiryDate = `${y}-${m}-${day}`
+        }
+      }
+      this.setData({ calculatedExpiryDate }, () => this.checkCanSubmit())
+    },
+
+    /** 生产日期、保质期、单位、过期日期（含推算）是否与选中批次原始值不同 */
+    _hasShelfLifeOrDateChanges() {
+      const s = this.data.selectedStock
+      if (!s) return false
+      const norm = (v) => (v == null || v === '' ? '' : String(v).trim())
+      const origProduce = norm(s.nxDgssProduceDate)
+      const origLife = s.nxDgssShelfLife !== null && s.nxDgssShelfLife !== undefined && s.nxDgssShelfLife !== ''
+        ? String(s.nxDgssShelfLife).trim() : ''
+      const origUnitRaw = s.nxDgssShelfLifeUnit != null && String(s.nxDgssShelfLifeUnit).trim() !== ''
+        ? String(s.nxDgssShelfLifeUnit).trim() : '天'
+      const origUnit = norm(origUnitRaw)
+      const origExpiry = norm(s.nxDgssExpiryDate)
+
+      const curProduce = norm(this.data.editProduceDate)
+      const curLife = this.data.editShelfLife === '' || this.data.editShelfLife == null
+        ? '' : String(this.data.editShelfLife).trim()
+      const curUnit = norm(this.data.editShelfLifeUnit || '天')
+      const effectiveExpiry = norm(this.data.editExpiryDate || this.data.calculatedExpiryDate)
+
+      return curProduce !== origProduce ||
+        curLife !== origLife ||
+        curUnit !== origUnit ||
+        effectiveExpiry !== origExpiry
     },
 
 
@@ -275,21 +388,26 @@ Component({
       }
     },
 
-    // 检查是否可以提交
+    // 检查是否可以提交：有有效建议售价，或修改了生产日期/保质期/过期日期等（可不填售价）
     checkCanSubmit() {
-      const { editSellingPrice, selectedStock } = this.data
+      const { editSellingPrice, cartonExpectPrice, selectedStock } = this.data
       console.log('=== checkCanSubmit ===')
       console.log('editSellingPrice:', editSellingPrice)
       console.log('selectedStock:', selectedStock)
-      
-      const selling = parseFloat(editSellingPrice)
-      const canSubmit = selectedStock &&
-                        editSellingPrice !== '' &&
-                        !isNaN(selling) && selling >= 0
-      
-      console.log('canSubmit计算结果:', canSubmit)
+
+      if (!selectedStock) {
+        this.setData({ canSubmit: false })
+        return
+      }
+
+      const priceStr = String(editSellingPrice !== undefined && editSellingPrice !== null ? editSellingPrice : cartonExpectPrice || '').trim()
+      const selling = parseFloat(priceStr)
+      const hasValidPrice = priceStr !== '' && !isNaN(selling) && selling >= 0
+      const hasMetaChanges = this._hasShelfLifeOrDateChanges()
+      const canSubmit = hasValidPrice || hasMetaChanges
+
+      console.log('canSubmit计算结果:', canSubmit, { hasValidPrice, hasMetaChanges })
       this.setData({ canSubmit })
-      console.log('设置后canSubmit:', this.data.canSubmit)
     },
 
     // 关闭批次列表
@@ -325,14 +443,17 @@ Component({
         console.log('=== 提交失败 ===')
         console.log('canSubmit:', this.data.canSubmit)
         wx.showToast({
-          title: '请先填写有效的数值',
+          title: '请填写建议售价或修改日期/保质期',
           icon: 'none'
         })
         return
       }
 
       const { editSellingPrice, cartonExpectPrice, selectedStock, goodsInfo } = this.data
-      const cartonSellingPrice = parseFloat(editSellingPrice || cartonExpectPrice)
+      const priceInputRaw = String(
+        editSellingPrice !== undefined && editSellingPrice !== null ? editSellingPrice : cartonExpectPrice || ''
+      ).trim()
+      const hasInputPrice = priceInputRaw !== '' && !isNaN(parseFloat(priceInputRaw)) && parseFloat(priceInputRaw) >= 0
 
       const stockId = selectedStock.nxDisGoodsShelfStockId ||
                       selectedStock.nxDistributerGoodsShelfStockId ||
@@ -362,44 +483,74 @@ Component({
 
       // 根据商品是否有外包装，决定保存的价格格式
       const hasCarton = goodsInfo && goodsInfo.nxDgCartonUnit !== null && goodsInfo.nxDgCartonUnit !== undefined && goodsInfo.nxDgCartonUnit !== ''
-      
-      let sellingPrice = cartonSellingPrice // 默认使用用户输入的价格
-      
-      // 如果商品有外包装，用户输入的是箱零售价，需要计算最小单位零售价
-      if (hasCarton && cartonSellingPrice) {
-        const itemsPerCarton = goodsInfo.nxDgItemsPerCarton || 1
-        if (itemsPerCarton > 0) {
-          // 计算最小单位建议零售价（用于 nxDgssSellingPrice）
-          sellingPrice = (cartonSellingPrice / itemsPerCarton).toFixed(2)
+
+      let sellingPrice
+      let sellingPriceCartonPayload = null
+
+      if (hasInputPrice) {
+        const cartonSellingPrice = parseFloat(priceInputRaw)
+        sellingPrice = cartonSellingPrice
+        if (hasCarton && cartonSellingPrice) {
+          const itemsPerCarton = goodsInfo.nxDgItemsPerCarton || 1
+          if (itemsPerCarton > 0) {
+            sellingPrice = parseFloat((cartonSellingPrice / itemsPerCarton).toFixed(2))
+          }
+          sellingPriceCartonPayload = cartonSellingPrice
+        } else {
+          sellingPrice = cartonSellingPrice
+        }
+      } else {
+        const keepMin = selectedStock.nxDgssSellingPrice != null && selectedStock.nxDgssSellingPrice !== ''
+          ? parseFloat(selectedStock.nxDgssSellingPrice) : null
+        const keepCarton = selectedStock.nxDgssSellingPriceCarton != null && selectedStock.nxDgssSellingPriceCarton !== ''
+          ? parseFloat(selectedStock.nxDgssSellingPriceCarton) : null
+        if (hasCarton && keepCarton != null && !isNaN(keepCarton)) {
+          sellingPriceCartonPayload = keepCarton
+          const itemsPerCarton = goodsInfo.nxDgItemsPerCarton || 1
+          sellingPrice = itemsPerCarton > 0
+            ? parseFloat((keepCarton / itemsPerCarton).toFixed(2))
+            : (keepMin != null && !isNaN(keepMin) ? keepMin : 0)
+        } else {
+          sellingPrice = keepMin != null && !isNaN(keepMin) ? keepMin : 0
         }
       }
 
+      const shelfLifeRaw = this.data.editShelfLife
+      const shelfLifeNum = shelfLifeRaw === '' || shelfLifeRaw == null ? null : parseInt(shelfLifeRaw, 10)
       const payload = {
         stockId,
         restWeight: restWeight, // 传递当前剩余数量，不修改但需要传给后端
         sellingPrice: parseFloat(sellingPrice), // 最小单位建议零售价
         disId: this.data.disId,
-        userId: this.data.userId
+        userId: this.data.userId,
+        nxDgssProduceDate: this.data.editProduceDate || '',
+        nxDgssShelfLife: (shelfLifeRaw === '' || shelfLifeRaw == null || isNaN(shelfLifeNum)) ? '' : shelfLifeNum,
+        nxDgssShelfLifeUnit: this.data.editShelfLifeUnit || '',
+        nxDgssExpiryDate: this.data.editExpiryDate || this.data.calculatedExpiryDate || ''
       }
 
-      // 如果商品有外包装，需要同时保存箱零售价
-      if (hasCarton && cartonSellingPrice) {
-        payload.sellingPriceCarton = cartonSellingPrice // 外包装建议零售价
+      if (sellingPriceCartonPayload != null && !isNaN(sellingPriceCartonPayload)) {
+        payload.sellingPriceCarton = sellingPriceCartonPayload
       }
 
       console.log('=== 确认提交 ===')
       console.log('提交参数:', payload)
 
-      const unit = goodsInfo?.nxDgCartonUnit && goodsInfo.nxDgCartonUnit !== '' && goodsInfo.nxDgCartonUnit !== 'null' 
-        ? goodsInfo.nxDgCartonUnit 
+      const unit = goodsInfo?.nxDgCartonUnit && goodsInfo.nxDgCartonUnit !== '' && goodsInfo.nxDgCartonUnit !== 'null'
+        ? goodsInfo.nxDgCartonUnit
         : goodsInfo?.nxDgGoodsStandardname || ''
-      
-      // 显示给用户的价格（如果有外包装，显示箱零售价；否则显示最小单位零售价）
-      const displayPrice = hasCarton ? cartonSellingPrice : parseFloat(sellingPrice)
-      
+
+      const displayPrice = hasCarton && sellingPriceCartonPayload != null && !isNaN(sellingPriceCartonPayload)
+        ? sellingPriceCartonPayload
+        : sellingPrice
+
+      const confirmContent = hasInputPrice
+        ? `建议售价将更新为 ¥${displayPrice}${unit ? '元/' + unit : '元'}，确认提交吗？`
+        : '将保存生产日期、保质期与过期日期（建议售价不变），确认提交吗？'
+
       wx.showModal({
         title: '确认修改',
-        content: `建议售价将更新为 ¥${displayPrice}${unit ? '元/' + unit : '元'}，确认提交吗？`,
+        content: confirmContent,
         success: (res) => {
           if (res.confirm) {
             console.log('用户确认提交')

@@ -589,15 +589,16 @@ Page({
 
   // 控制采购批次列表的显示/隐藏
   showList(e) {
-    const goodsIndex = e.currentTarget.dataset.index;
+    const goodsIndex = parseInt(e.currentTarget.dataset.index, 10);
+    const userIndex = parseInt(e.currentTarget.dataset.userIndex, 10);
     console.log('=== showList 调试信息 ===');
-    console.log('点击的商品索引:', goodsIndex);
+    console.log('采购员/供货商索引:', userIndex, '商品索引:', goodsIndex);
     console.log('当前type:', this.data.type);
-    
+
     // 根据type类型处理不同的数据数组
     let dataArray = [];
     let dataKey = '';
-    
+
     if (this.data.type < 12) {
       dataArray = this.data.purUserArr;
       dataKey = 'purUserArr';
@@ -606,37 +607,34 @@ Page({
       dataKey = 'supplierArr';
     }
 
-    if (dataArray && dataArray.length > 0) {
-      // 创建新的数组，避免直接修改原数据
-      const newArr = [...dataArray];
-      
-      // 需要找到当前用户/供货商以及对应的商品
-      // 由于商品是在用户/供货商级别展开的，我们需要遍历查找
-      let found = false;
-      for (let userIndex = 0; userIndex < newArr.length && !found; userIndex++) {
-        if (newArr[userIndex].expanded && newArr[userIndex].arr) {
-          // 在展开的用户/供货商中查找商品
-          for (let index = 0; index < newArr[userIndex].arr.length && !found; index++) {
-            if (index === goodsIndex) {
-              // 切换指定商品的采购批次显示状态
-              newArr[userIndex].arr[index].showPurchaseList = !newArr[userIndex].arr[index].showPurchaseList;
-              found = true;
-              console.log('找到了对应商品，切换状态:', newArr[userIndex].arr[index].showPurchaseList);
-            }
-          }
-        }
-      }
-      
-      // 更新数据
-      this.setData({
-        [dataKey]: newArr
-      });
-      
-      console.log('商品列表显示状态已更新');
-    } else {
+    if (!dataArray || dataArray.length === 0) {
       console.log('数据数组为空');
+      console.log('=== showList 调试结束 ===');
+      return;
     }
-    
+
+    if (Number.isNaN(userIndex) || Number.isNaN(goodsIndex)) {
+      console.log('无效的 userIndex 或 goodsIndex');
+      console.log('=== showList 调试结束 ===');
+      return;
+    }
+
+    const newArr = [...dataArray];
+    const block = newArr[userIndex];
+    if (!block || !block.arr || block.arr[goodsIndex] === undefined) {
+      console.log('未找到对应采购员/供货商或商品');
+      console.log('=== showList 调试结束 ===');
+      return;
+    }
+
+    const cur = block.arr[goodsIndex].showPurchaseList;
+    block.arr[goodsIndex].showPurchaseList = !cur;
+    console.log('切换后 showPurchaseList:', block.arr[goodsIndex].showPurchaseList);
+
+    this.setData({
+      [dataKey]: newArr
+    });
+
     console.log('=== showList 调试结束 ===');
   },
 
@@ -671,7 +669,7 @@ Page({
             // 使用setTimeout确保DOM已更新
             setTimeout(() => {
               const query = wx.createSelectorQuery();
-              query.select(`#goods-container-${goodsIndex}`).boundingClientRect();
+              query.select(`#goods-container-${userIndex}-${goodsIndex}`).boundingClientRect();
               query.selectViewport().scrollOffset();
               
               query.exec((res) => {

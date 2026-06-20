@@ -558,3 +558,50 @@
   flex: 1;
   min-height: 0;
 }
+
+
+
+/* 加载更多相关样式 */
+.loading-more {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40rpx 0;
+  background: #f8f8f8;
+}
+
+.loading-text {
+  font-size: 28rpx;
+  color: #666;
+  display: flex;
+  align-items: center;
+}
+
+.loading-text::before {
+  content: '';
+  width: 30rpx;
+  height: 30rpx;
+  border: 3rpx solid #ddd;
+  border-top: 3rpx solid #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-right: 20rpx;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.no-more {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40rpx 0;
+  background: #f8f8f8;
+}
+
+.no-more-text {
+  font-size: 28rpx;
+  color: #999;
+}

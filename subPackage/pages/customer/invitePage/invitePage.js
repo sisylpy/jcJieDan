@@ -1,6 +1,6 @@
 
 var app = getApp()
-import QRCode from '../../../../utils/qrcode/weapp.qrcode.esm'
+import QRCode from '../../../utils/qrcode/weapp.qrcode.esm'
 
 Page({
 
@@ -203,11 +203,7 @@ createQrcode() {
        var depFatherId = that.data.depInfo.nxDepartmentId;
        var depName = that.data.depInfo.nxDepartmentName;
        var url = "nxDepRegist";
-      //  if(this.data.depInfo.nxDepartmentSettleType == 0){
-      //     url = "nxDepRegistCash"
-      // }else{
-      //      url = "nxDepRegist";
-      // }
+     
        console.log("https://grainservice.club:8443/nongxinle/api/nxdepartment/" + url + "?disId=" + disId + "&depFatherId=" +  depFatherId + '&disName=' + disName + '&depName=' + depName )
       // 调用方法drawQrcode生成二维码
       QRCode({

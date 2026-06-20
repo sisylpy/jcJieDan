@@ -16,6 +16,7 @@ Page({
   data: {
     canSave: false,
     imgChanged: false,
+    isPlaceholderStoreImg: false,
   },
 
 
@@ -36,12 +37,14 @@ Page({
 
     var userInfo = wx.getStorageSync('userInfo');
     if (userInfo) {
+      const img = userInfo.nxDistributerEntity.nxDistributerImg || '';
+      const isPlaceholderStoreImg = img.indexOf('uploadImage/r.jpg') >= 0;
       this.setData({
         userInfo: userInfo,
         userId: userInfo.nxDistributerUserId,
         disInfo: userInfo.nxDistributerEntity,
-        src: apiUrl.server +  userInfo.nxDistributerEntity.nxDistributerImg
-        
+        src: apiUrl.server +  userInfo.nxDistributerEntity.nxDistributerImg,
+        isPlaceholderStoreImg: isPlaceholderStoreImg
       })
     }
   },
@@ -57,12 +60,19 @@ Page({
   },
 
   getPhone(e){
-    var address = e.detail.value;
+    var phone = e.detail.value;
     var data = "disInfo.nxDistributerPhone"
     this.setData({
-     [data] : address,
+     [data] : phone,
      canSave: true
-
+    })
+  },
+  getShowName(e){
+    var showName = e.detail.value;
+    var data = "disInfo.nxDistributerShowName"
+    this.setData({
+     [data] : showName,
+     canSave: true
     })
   },
   getAddress(e){
@@ -85,29 +95,28 @@ Page({
       success: function (res) {
         _this.setData({
           src: res.tempFilePaths,
-          // isSelectImg: true,
           imgChanged: true,
           canSave: true
-
         })
         var name = _this.data.disInfo.nxDistributerName;
         var address = _this.data.disInfo.nxDistributerAddress;
         var id = _this.data.disInfo.nxDistributerId;
+        load.showLoading("保存中");
         updateDisInfoWithFile(res.tempFilePaths, name, address, id).then(res => {
           if(res.result == '{"code":0}'){ 
             load.hideLoading();
-           
-            // wx.navigateBack({
-            //   delta: 1
-            // })
+            var pages = getCurrentPages();
+            var prevPage = pages[pages.length - 2];
+            prevPage.setData({ editUser: true });
+            wx.navigateBack({ delta: 1 });
           }else{
+            load.hideLoading();
             wx.showToast({
               title: '修改失败',
               icon: 'none'
             })
           }   
         })
-
       },
       fail: function () {
         // fail
@@ -213,12 +222,6 @@ chooseLocation: function() {
 },
 
 
-editPhone(){
-  wx.navigateTo({
-    url: '../userNameEdit/userNameEdit',
-  })
-
-},
 
   toBack(){
     wx.navigateBack({

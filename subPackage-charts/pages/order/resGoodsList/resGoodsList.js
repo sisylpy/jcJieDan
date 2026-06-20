@@ -3,8 +3,8 @@ var load = require('../../../../lib/load.js');
 var dateUtils = require('../../../../utils/dateUtil');
 
 import {
-  queryDisGoodsByQuickSearchWithDepId,
-  queryDisGoodsByQuickSearchWithDepIdDis,
+  queryNxGoodsByQuickSearch,
+  queryDisGoodsByQuickSearchWithDepIdCollDis,
   disSaveStandard,
   disDeleteStandard,
 }
@@ -19,11 +19,18 @@ import {
   saveCashBefore,
 } from '../../../../lib/apiDepOrder.js'
 
+import {
+  resolveNxDoCostPriceLevel,
+  getRetailWillPriceForStandard,
+  getRetailBuyingPriceForStandard,
+  isSentinelPrice01,
+  isBigPackStandardName,
+} from '../../../../lib/retailPriceLevel'
 
 import {
   downDisGoods,
   disGetGoods,
-} from '../../../../lib/apiibook'
+} from '../../../lib/apiibook'
 
 
 Page({
@@ -49,11 +56,16 @@ Page({
     strArr: [],
     nxArr: [],
     count: 0,
-    level: "1",
+    level: 1,
     fromOcrOrder: '0', // 是否从 ocrOrder 页面跳转过来
+    searchLoading: false, // 搜索请求中，用于显示加载状态
 
   },
 
+  // 搜索防抖定时器（不放在 data 中）
+  searchDebounceTimer: null,
+  // 当前搜索请求 ID，用于处理请求竞态
+  searchRequestId: 0,
 
   /**
    * 生命周期函数--监听页面加载
@@ -83,7 +95,9 @@ Page({
       redFatherId: options.resFatherId,
       gbDepFatherId: options.gbDepFatherId,
       depSettleType: options.depSettleType,
+      businessTypeId: options.businessTypeId,
       beforeId: options.beforeId,
+      taskId: options.taskId,
       fromOcrOrder: options.fromOcrOrder || wx.getStorageSync('fromOcrOrder') || '0', // 是否从 ocrOrder 页面跳转过来
       bottom: 20 // 设置输入框初始位置，确保显示在页面底部
     })
@@ -295,100 +309,98 @@ Page({
 
 
   getSearchString(e) {
+    const value = (e.detail.value || '').trim();
     this.setData({
-      isSearching: true,
+      searchStr: e.detail.value,
       searchMore: true,
-    })
+    });
 
-    if (e.detail.value.length > 0) {
-      var data = {
-        disId: this.data.disId,
-        searchStr: e.detail.value,
-        depId: this.data.depId,
+    // 清空输入时立即清除结果，不等待防抖
+    if (value.length === 0) {
+      if (this.searchDebounceTimer) {
+        clearTimeout(this.searchDebounceTimer);
+        this.searchDebounceTimer = null;
       }
-      this.setData({
-        searchStr: e.detail.value,
-      })
-
-      queryDisGoodsByQuickSearchWithDepIdDis(data).then(res => {
-        if(res.result.code == 0){
-         console.log("resss", res.result.data);
-          const resultData = res.result.data || [];
-          
-          // 如果搜索结果数量为 0，自动请求 queryDisGoodsByQuickSearchWithDepId 接口
-          if (resultData.length === 0) {
-            console.log("搜索结果为空，自动请求 queryDisGoodsByQuickSearchWithDepId");
-            load.showLoading("查询更多商品");
-            var that = this;
-            queryDisGoodsByQuickSearchWithDepId(data).then(res2 => {
-              load.hideLoading();
-              if(res2.result.code == 0){
-                console.log("→ 自动查询更多商品结果，设置 strArr，长度:", res2.result.data.disArr?.length || 0);
-                const strArr = res2.result.data.disArr || [];
-                const nxArr = res2.result.data.nxArr || [];
-                const totalCount = strArr.length + nxArr.length;
-                that.setData({
-                  strArr: strArr,
-                  nxArr: nxArr,
-                  count: totalCount,
-                  searchMore: false,
-                });
-              } else {
-                wx.showToast({
-                  title: res2.result.msg || '查询失败',
-                  icon: 'none'
-                });
-                that.setData({
-                  nxArr: [],
-                  strArr: [],
-                  count: 0
-                });
-              }
-            }).catch(err => {
-              load.hideLoading();
-              console.error('自动查询更多商品失败:', err);
-              wx.showToast({
-                title: '查询失败，请检查网络',
-                icon: 'none'
-              });
-              that.setData({
-                nxArr: [],
-                strArr: [],
-                count: 0
-              });
-            });
-          } else {
-            // 有搜索结果，正常设置
-            this.setData({
-              strArr: resultData,
-              nxArr: [], // 确保 nxArr 被明确设置
-              count: resultData.length,
-              isSearching: true, // 确保 isSearching 保持为 true
-            });
-          }
-        }else{
-          wx.showToast({
-            title: res.result.msg,
-            icon: 'none'
-          })
-        this.setData({
-          nxArr: [],
-          strArr: [],
-          count: 0
-        })
-        }
-      })
-    } else {
       this.setData({
         searchArr: [],
         isSearching: false,
         searchStr: "",
         strArr: [],
         nxArr: [],
-        count: 0
-      })
+        count: 0,
+        searchLoading: false,
+      });
+      return;
     }
 
+    // 清除之前的防抖定时器
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+    }
+
+    this.setData({ isSearching: true });
+
+    // 0.5 秒防抖
+    this.searchDebounceTimer = setTimeout(() => {
+      this.searchDebounceTimer = null;
+      this._doSearch(value);
+    }, 500);
+  },
+
+  /**
+   * 执行搜索请求（带竞态处理）
+   */
+  _doSearch(searchStr) {
+    const requestId = ++this.searchRequestId;
+    this.setData({ searchLoading: true });
+
+    const data = {
+      disId: this.data.disId,
+      searchStr: searchStr,
+      depId: this.data.depId,
+    };
+
+    queryDisGoodsByQuickSearchWithDepIdCollDis(data).then(res => {
+      // 竞态处理：只处理最新请求的响应
+      if (requestId !== this.searchRequestId) return;
+
+      this.setData({ searchLoading: false });
+
+      if (res.result.code == 0) {
+        const resultData = res.result.data || {};
+        const disArr = resultData.disArr || [];
+        const nxArr = resultData.nxArr || [];
+        const totalCount = disArr.length + nxArr.length;
+        this.setData({
+          strArr: disArr,
+          nxArr: nxArr,
+          count: totalCount,
+          isSearching: true,
+        });
+      } else {
+        wx.showToast({
+          title: res.result.msg,
+          icon: 'none'
+        });
+        this.setData({
+          nxArr: [],
+          strArr: [],
+          count: 0
+        });
+      }
+    }).catch(err => {
+      if (requestId !== this.searchRequestId) return;
+      this.setData({
+        searchLoading: false,
+        nxArr: [],
+        strArr: [],
+        count: 0
+      });
+      wx.showToast({
+        title: '查询失败，请检查网络',
+        icon: 'none'
+      });
+    });
   },
 
   searchMore() {
@@ -466,7 +478,7 @@ Page({
       })
 
       load.showLoading("查询更多商品")
-      queryDisGoodsByQuickSearchWithDepId(data).then(res => {
+      queryNxGoodsByQuickSearch(data).then(res => {
         load.hideLoading();
         if(res.result.code == 0){
           console.log("→ 设置 strArr，长度:", res.result.data.disArr.length);
@@ -507,40 +519,54 @@ Page({
 
   applyGoods(e) {
     var item = e.currentTarget.dataset.item;
-    this.setData({
-      itemDis: item,
-      depGoods: item.departmentDisGoodsEntity,
+    var applyStandardName;
+    var applyRemark = "";
+    var depLevel = "1";
 
-    })
-    if (this.data.depSettleType == 0) {
-      this.setData({
-        showCash: true
-      })
-    } else if (this.data.depSettleType == 1) {
-      this.setData({
-        show: true
-      })
-    }
-    
     if (item.departmentDisGoodsEntity !== null) {
       var depGoodsStand = item.departmentDisGoodsEntity.nxDdgOrderStandard;
       if (depGoodsStand !== null) {
-        this.setData({
-          applyStandardName: item.departmentDisGoodsEntity.nxDdgOrderStandard,
-          applyRemark: item.departmentDisGoodsEntity.nxDdgOrderRemark,
-          level: item.departmentDisGoodsEntity.nxDdgOrderPriceLevel,
-        })
+        applyStandardName = item.departmentDisGoodsEntity.nxDdgOrderStandard;
+        applyRemark = item.departmentDisGoodsEntity.nxDdgOrderRemark;
+        depLevel = item.departmentDisGoodsEntity.nxDdgOrderPriceLevel;
       } else {
-        this.setData({
-          applyStandardName: item.nxDgGoodsStandardname,
-          level: "1"
-        })
+        applyStandardName = item.nxDgGoodsStandardname;
       }
     } else {
-      this.setData({
-        applyStandardName: item.nxDgGoodsStandardname,
-      })
+      applyStandardName = item.nxDgGoodsStandardname;
     }
+
+    var patch = {
+      itemDis: item,
+      depGoods: item.departmentDisGoodsEntity,
+      applyStandardName: applyStandardName,
+      applyRemark: applyRemark,
+    };
+
+    if (this.data.businessTypeId > 2) {
+      if (this.data.depSettleType == 0 || this.data.depSettleType == 2) {
+        var pl = resolveNxDoCostPriceLevel(item, applyStandardName);
+        var printStd =
+          pl === 2 && item.nxDgWillPriceTwoStandard
+            ? item.nxDgWillPriceTwoStandard
+            : applyStandardName === item.nxDgGoodsStandardname
+              ? item.nxDgGoodsStandardname
+              : applyStandardName;
+        patch.showCash = true;
+        patch.level = pl;
+        patch.printStandard = printStd;
+        patch.applyNumber = "";
+        patch.applyRemark = "";
+      } else {
+        patch.show = true;
+        patch.level = depLevel;
+      }
+    } else {
+      patch.show = true;
+      patch.level = depLevel;
+    }
+
+    this.setData(patch);
   },
 
   tishi() {
@@ -607,23 +633,36 @@ Page({
   
   // 设置编辑订单的数据（提取公共逻辑）
   _setEditApplyData: function(applyItem, itemDisData) {
-    if (this.data.depSettleType == 0) {
+    var std = applyItem.nxDoStandard || '';
+    var pl = itemDisData ? resolveNxDoCostPriceLevel(itemDisData, std) : 1;
+    var printStd =
+      pl === 2 && itemDisData && itemDisData.nxDgWillPriceTwoStandard
+        ? itemDisData.nxDgWillPriceTwoStandard
+        : std === (itemDisData && itemDisData.nxDgGoodsStandardname)
+          ? itemDisData.nxDgGoodsStandardname
+          : std;
+
+    if (this.data.depSettleType == 0  || this.data.depSettleType == 2) {
       console.log("cashshhshshshhshh")
       this.setData({
         showCash: true,
         showOperation: false,
-        applyStandardName: applyItem.nxDoStandard || '',
+        applyStandardName: std,
         itemDis: itemDisData,
         item: applyItem.nxDepartmentDisGoodsEntity || null,
         editApply: true,
         applyNumber: applyItem.nxDoQuantity || '',
         applyRemark: applyItem.nxDoRemark || '',
-        printStandard: applyItem.nxDoPrintStandard || applyItem.nxDoStandard || '',
-        priceLevel: applyItem.nxDoCostPriceLevel || '',
+        printStandard: applyItem.nxDoPrintStandard || printStd || std,
+        priceLevel:
+          applyItem.nxDoCostPriceLevel != null && applyItem.nxDoCostPriceLevel !== ''
+            ? Number(applyItem.nxDoCostPriceLevel)
+            : pl,
+        level: pl,
         applyGoodsName: applyItem.nxDoGoodsName || '',
         applyGoodsId: applyItem.nxDoDisGoodsId || '',
       });
-    } else if (this.data.depSettleType == 1) {
+    } else {
       this.setData({
         show: true,
         showOperation: false,
@@ -635,6 +674,7 @@ Page({
         applyRemark: applyItem.nxDoRemark || '',
         printStandard: applyItem.nxDoPrintStandard || applyItem.nxDoStandard || '',
         priceLevel: applyItem.nxDoCostPriceLevel || '',
+        level: pl,
         applyGoodsName: applyItem.nxDoGoodsName || '',
         applyGoodsId: applyItem.nxDoDisGoodsId || '',
       });
@@ -659,7 +699,7 @@ Page({
       item: "",
       applyNumber: "",
       applyStandardName: "",
-      level: "",
+      level: 1,
       printStandard: "",
       showMyIndependent: false,
       showOperation: false,
@@ -771,6 +811,7 @@ Page({
       nxDoPrintStandard: printStandard,
       nxDoCostPriceLevel: level,
       nxDoGoodsName: this.data.itemDis.nxDgGoodsName,
+      nxDoOcrTaskId: this.data.taskId
     };
 
     var that = this;
@@ -810,7 +851,6 @@ Page({
               // 将新订单转换为 ocrOrder 格式
               var newOrder = {
                 ...res.result.data,
-                nxDoGoodsNameOriginal: res.result.data.nxDoGoodsName || '',
                 nxDoStandardWarn: 0,
                 goodsNameWarn: 0,
               };
@@ -912,7 +952,6 @@ Page({
               // 将新订单转换为 ocrOrder 格式
               var newOrder = {
                 ...res.result.data,
-                nxDoGoodsNameOriginal: res.result.data.nxDoGoodsName || '',
                 nxDoStandardWarn: 0,
                 goodsNameWarn: 0,
               };
@@ -1023,13 +1062,14 @@ Page({
       applyItem: "",
       applyNumber: "",
       depStandardArr: [],
-
+      showCash: false,
     })
 
     if (this.data.isSearching) {
       this.setData({
         isSearching: false,
-        searchStr: ""
+        searchStr: "",
+        searchLoading: false,
       })
     }
   },
@@ -1152,20 +1192,23 @@ Page({
    * @param {*} e 
    */
   changeStandard: function (e) {
+    var dis = this.data.itemDis;
+    var std = e.detail.applyStandardName;
+    var pl =
+      e.detail.level != null && e.detail.level !== ""
+        ? Number(e.detail.level)
+        : resolveNxDoCostPriceLevel(dis, std);
+    var printStd =
+      pl === 2 && dis && dis.nxDgWillPriceTwoStandard
+        ? dis.nxDgWillPriceTwoStandard
+        : std === (dis && dis.nxDgGoodsStandardname)
+          ? dis.nxDgGoodsStandardname
+          : std;
     this.setData({
-      applyStandardName: e.detail.applyStandardName,
-      level: e.detail.level,
-    })
-    if (e.detail.level == "1") {
-      this.setData({
-        printStandard: this.data.itemDis.nxDgGoodsStandardname,
-
-      })
-    } else {
-      this.setData({
-        printStandard: this.data.itemDis.nxDgWillPriceTwoStandard
-      })
-    }
+      applyStandardName: std,
+      level: pl,
+      printStandard: printStd,
+    });
   },
 
   /**
@@ -1173,14 +1216,16 @@ Page({
    * @param {} e 
    */
   _updateDisOrder(e) {
+    const std = e.detail.applyStandardName;
+    const dis = this.data.applyItem && this.data.applyItem.nxDistributerGoodsEntity;
 
     var dg = {
       id: this.data.applyItem.nxDepartmentOrdersId,
       weight: e.detail.applyNumber,
-      standard: e.detail.applyStandardName,
+      standard: std,
       remark: e.detail.applyRemark,
       printStandard: this.data.printStandard,
-      priceLevel: this.data.level,
+      priceLevel: resolveNxDoCostPriceLevel(dis, std),
     };
     updateOrder(dg).then(res => {
       load.showLoading("修改订单")
@@ -1214,7 +1259,7 @@ Page({
       searchStr: this.data.searchStr,
       depId: this.data.depId,
     }
-    queryDisGoodsByQuickSearchWithDepId(data).then(res => {
+    queryNxGoodsByQuickSearch(data).then(res => {
       console.log(res)
       if(res.result.code == 0){
         console.log("→ 设置 strArr，长度:", res.result.data.disArr.length);
@@ -1363,11 +1408,14 @@ Page({
 
     this.setData({
       show: false,
+      showCash: false,
       editApply: false,
       applyItem: "",
       item: "",
       applyNumber: "",
       applyStandardName: "",
+      level: 1,
+      printStandard: "",
     })
   },
 
@@ -1378,11 +1426,16 @@ Page({
   _updateDisOrderCash(e) {
     console.log("updadatecakkskskskksks")
 
+    const std = e.detail.applyStandardName;
+    const dis = this.data.applyItem && this.data.applyItem.nxDistributerGoodsEntity;
+
     var dg = {
       id: this.data.applyItem.nxDepartmentOrdersId,
       weight: e.detail.applyNumber,
-      standard: e.detail.applyStandardName,
+      standard: std,
       remark: e.detail.applyRemark,
+      printStandard: this.data.printStandard,
+      priceLevel: resolveNxDoCostPriceLevel(dis, std),
     };
 
     updateOrder(dg).then(res => {
@@ -1416,12 +1469,10 @@ Page({
     var weekYear = dateUtils.getArriveWeeksYear(0);
     var week = dateUtils.getArriveWhatDay(0);
     var depDisGoodsId = -1;
-    var price = "";
-    if (this.data.itemDis.nxDgWillPrice !== null) {
-      price = this.data.itemDis.nxDgWillPrice;
-    } else {
-      price = 0;
-    }
+    var dis = this.data.itemDis;
+    var std = e.detail.applyStandardName;
+    var price = getRetailWillPriceForStandard(dis, std);
+    var costPrice = getRetailBuyingPriceForStandard(dis, std);
 
     var weight = null;
     var subtotal = null;
@@ -1429,16 +1480,58 @@ Page({
     var profitSubtotal = 0;
     var profitScale = 0;
 
-    var costPrice = this.data.itemDis.nxDgBuyingPrice;
-
-    //是否给weight赋值
-    if (e.detail.applyStandardName == this.data.itemDis.nxDgGoodsStandardname) {
+    if (price != null && Number(e.detail.applyNumber) > 0) {
       weight = e.detail.applyNumber;
-      costSubtotal = (Number(costPrice) * Number(weight)).toFixed(1);
       subtotal = (Number(price) * Number(weight)).toFixed(1);
-      profitSubtotal = (Number(subtotal) - Number(costSubtotal)).toFixed(1);
-      profitScale = Number((Number(price) - Number(costPrice)) / Number(price) * 100).toFixed(2);
+      if (costPrice != null && costPrice !== "") {
+        costSubtotal = (Number(costPrice) * Number(weight)).toFixed(1);
+        profitSubtotal = (Number(subtotal) - Number(costSubtotal)).toFixed(1);
+        profitScale =
+          Number(price) > 0
+            ? Number(
+                ((Number(price) - Number(costPrice)) / Number(price)) * 100,
+              ).toFixed(2)
+            : 0;
+      }
     }
+
+    var pl = resolveNxDoCostPriceLevel(dis, std);
+    var printStd =
+      pl === 2 && dis.nxDgWillPriceTwoStandard
+        ? dis.nxDgWillPriceTwoStandard
+        : std === dis.nxDgGoodsStandardname
+          ? dis.nxDgGoodsStandardname
+          : std;
+    var priceForApi =
+      price != null && !isSentinelPrice01(price) ? price : 0;
+    var costForApi =
+      costPrice != null && !isSentinelPrice01(costPrice)
+        ? costPrice
+        : null;
+    var fallbackBuy = dis && dis.nxDgBuyingPrice;
+    if (costForApi == null && fallbackBuy != null && !isSentinelPrice01(fallbackBuy)) {
+      costForApi = fallbackBuy;
+    }
+    if (costForApi == null) {
+      costForApi = 0;
+    }
+    if (isSentinelPrice01(price)) {
+      console.warn(
+        "[resGoodsList] _saveOrderCash 零售价占位 0.1，nxDoPrice 置为 0",
+        { rawPrice: price, std },
+      );
+    }
+    console.log("[resGoodsList] _saveOrderCash 计价", {
+      nxDistributerGoodsId: dis && dis.nxDistributerGoodsId,
+      nxDgGoodsName: dis && dis.nxDgGoodsName,
+      applyStandardName: std,
+      isBigPackStandardName: dis && std ? isBigPackStandardName(dis, std) : false,
+      nxDoCostPriceLevel: pl,
+      resolvedWillPrice: price,
+      priceForApi,
+      costForApi,
+      subtotal,
+    });
 
     // 是否有部门商品
     if (this.data.depGoods !== null) {
@@ -1455,7 +1548,7 @@ Page({
       nxDoDistributerId: this.data.disId,
       nxDoDepartmentFatherId: this.data.depFatherId,
       nxDoQuantity: e.detail.applyNumber,
-      nxDoPrice: price,
+      nxDoPrice: priceForApi,
       nxDoWeight: weight,
       nxDoSubtotal: subtotal,
       nxDoStandard: e.detail.applyStandardName,
@@ -1466,7 +1559,7 @@ Page({
       nxDoArriveOnlyDate: arriveOnlyDate,
       nxDoArriveWhatDay: week,
       nxDoCostPriceUpdate: this.data.itemDis.nxDgBuyingPriceUpdate,
-      nxDoCostPrice: this.data.itemDis.nxDgBuyingPrice,
+      nxDoCostPrice: costForApi,
       nxDoPurchaseGoodsId: -1,
       nxDoCostSubtotal: costSubtotal,
       nxDoProfitSubtotal: profitSubtotal,
@@ -1475,10 +1568,11 @@ Page({
       nxDoNxGoodsFatherId: this.data.itemDis.nxDgNxFatherId,
       nxDoGoodsType: this.data.itemDis.nxDgPurchaseAuto,
       nxDoPurchaseUserId: this.data.beforeId,
-      nxDoPrintStandard: e.detail.applyStandardName,
-      nxDoExpectPrice: this.data.itemDis.nxDgWillPrice,
+      nxDoPrintStandard: printStd,
+      nxDoCostPriceLevel: pl,
+      nxDoExpectPrice: priceForApi,
     };
-    console.log(dg);
+    console.log("[resGoodsList] _saveOrderCash saveCash dg", dg);
     var that = this;
     if (this.data.beforeId !== '-1') {
       saveCashBefore(dg).then(res => {
@@ -1513,11 +1607,14 @@ Page({
             searchStr: "",
             toSearch: true,
             show: false,
+            showCash: false,
             editApply: false,
             applyItem: "",
             item: "",
             applyNumber: "",
             applyStandardName: "",
+            level: 1,
+            printStandard: "",
             showMyIndependent: false,
             showOperation: false,
             showAdd: false,

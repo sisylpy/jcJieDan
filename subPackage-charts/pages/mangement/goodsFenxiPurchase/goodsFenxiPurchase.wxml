@@ -6,8 +6,6 @@
   
   <back-navbar style="height: {{navBarHeight}}rpx;" title="{{disGoods.nxDgGoodsName || disGoods.gbDgGoodsName}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
-
-
   <!--  top -->
   <view class=" flex-row-between pl-20 pr-20 border-bottom bg-white">
     <view class="flex-row">
@@ -71,13 +69,13 @@
       <!-- 中间采购信息 -->
       <view class="flex-column" style="flex: 1;">
         <view class="flex-row-between">
-          <text class="font-bold">{{pur.nxDpgBuyQuantity || pur.gbDpgBuyQuantity}}{{disGoods.nxDgGoodsStandardname || disGoods.gbDgGoodsStandardname}}</text>
+          <text class="font-bold">{{pur.nxDpgBuyQuantity}}{{pur.nxDpgStandard}}</text>
           <text class="purchase-info-value-amount mr-20">{{pur.nxDpgBuySubtotal || pur.gbDpgBuySubtotal}}元</text>
         </view>
         <view class="flex-row-between mt-5">
-          <text class="purchase-date">{{pur.nxDpgBuyPrice || pur.gbDpgBuyPrice}}元/{{disGoods.nxDgGoodsStandardname || disGoods.gbDgGoodsStandardname}}</text>
+          <text class="purchase-date">{{pur.nxDpgBuyPrice}}元/{{pur.nxDpgStandard }}</text>
           <block wx:if="{{pur.nxPurchaserEntity !== null}}">
-            <text class="purchase-date mr-20">{{pur.nxPurchaserEntity.nxDuWxNickName || pur.nxPurchaserEntity.nxDuUserName || '采购员'}}</text>
+            <text class="purchase-date mr-20">{{pur.nxPurchaserEntity.nxDiuWxNickName}}</text>
           </block>
           <block wx:elif="{{pur.purchaseDepartmentUser !== null}}">
             <text class="purchase-date mr-20">{{pur.purchaseDepartmentUser.gbDuWxNickName}}</text>
@@ -114,48 +112,54 @@
       </view>
 
       <!-- 采购详细信息 -->
-      <view class="purchase-detail-section" wx:for="{{pur.nxDisGoodsShelfStockEntities || pur.gbDepartmentGoodsStockEntities || []}}" wx:for-item="stock"  >
+      <view class="purchase-detail-section" wx:for="{{pur.shelfGoodsEntities}}" wx:for-item="shelfGoods"  >
 
         <view class="purchase-info-item">
-          <text class="purchase-info-label">采购部门</text>
-          <text class="purchase-info-value">{{stock.gbDepartmentEntity.gbDepartmentName}}</text>
+          <text class="purchase-info-label">入库货架</text>
+          <view class="flex-row">
+            <text class="mr-10">{{shelfGoods.shelfName}}</text>
+            <text class="">L{{shelfGoods.nxDgsgShelfLayer}}-</text>
+            <text class="">{{shelfGoods.nxDgsgShelfLayerSeq}}</text>
+          </view>
         </view>
-
+       
+       <view class="flex-column" wx:for="{{shelfGoods.nxDisGoodsShelfStockEntities}}" wx:for-item="stock">
         <view class="purchase-info-item">
           <text class="purchase-info-label">入库数量</text>
-          <text class="purchase-info-value">{{stock.gbDgsWeight}}{{disGoods.gbDgGoodsStandardname}}</text>
+          <text class="purchase-info-value">{{stock.nxDgssWeight}}{{pur.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
         </view>
         <view class="purchase-info-item">
           <text class="purchase-info-label">入库单价</text>
-          <text class="purchase-info-value">{{stock.gbDgsPrice}}元/{{disGoods.gbDgGoodsStandardname}}</text>
+          <text class="purchase-info-value">{{stock.nxDgssPrice}}元/{{pur.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
         </view>
         <view class="purchase-info-item">
           <text class="purchase-info-label">入库金额</text>
-          <text class="purchase-info-value">{{stock.gbDgsSubtotal}}元</text>
+          <text class="purchase-info-value">{{stock.nxDgssSubtotal}}元</text>
         </view>
         <view class="purchase-info-item">
           <text class="purchase-info-label">现库存</text>
-          <text class="purchase-info-value">{{stock.gbDgsRestWeight}}{{disGoods.gbDgGoodsStandardname}}</text>
+          <text class="purchase-info-value">{{stock.nxDgssRestWeight}}{{pur.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
         </view>
 
         <view class="purchase-info-item">
           <text class="purchase-info-label">销售</text>
           
-          <text class="purchase-info-value">{{stock.gbDgsProduceWeight}}{{disGoods.gbDgGoodsStandardname}}</text>
+          <text class="purchase-info-value">{{stock.nxDgssProduceWeight}}{{pur.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
 
         </view>
         <view class="purchase-info-item">
           <text class="purchase-info-label">损耗</text>
-          <text class="purchase-info-value">{{stock.gbDgsLossWeight}}{{disGoods.gbDgGoodsStandardname}}</text>
+          <text class="purchase-info-value">{{stock.nxDgssLossWeight}}{{pur.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
         </view>
         <view class="purchase-info-item">
           <text class="purchase-info-label">废弃</text>
-          <text class="purchase-info-value">{{stock.gbDgsWasteWeight}}{{disGoods.gbDgGoodsStandardname}}</text>
+          <text class="purchase-info-value">{{stock.nxDgssWasteWeight}}{{pur.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
         </view>
         <view class="purchase-info-item">
           <text class="purchase-info-label">退货</text>
-          <text class="purchase-info-value">{{stock.gbDgsReturnWeight}}{{disGoods.gbDgGoodsStandardname}}</text>
+          <text class="purchase-info-value">{{stock.nxDgssReturnWeight}}{{pur.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
         </view>
+      </view>
       </view>
     </view>
 

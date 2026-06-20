@@ -1,0 +1,16 @@
+{
+  "usingComponents": {
+   
+    "back-navbar": "/components/back-navbar/back-navbar",
+    "addShelf": "/components/addShelf/addShelf",
+    "myDismodal": "/components/myDismodal/myDismodal",
+    "dis-plan-purchase": "/components/disPlanPurchase/disPlanPurchase",
+    "input-pur-goods": "/components/inputPurGoods/inputPurGoods",
+    "input-pur-stock": "/components/inputPurStock/inputPurStock",
+    "disEditPurchase": "/components/disEditPurchase/disEditPurchase",
+    "editShelfStock": "/components/editShelfStock/editShelfStock",
+    "editShelfStockDetail": "/components/editShelfStockDetail/editShelfStockDetail",
+
+    "stockDetailModal": "/components/stockDetailModalSuyuan/stockDetailModalSuyuan"
+  }
+}

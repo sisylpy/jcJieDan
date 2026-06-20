@@ -11,7 +11,7 @@ from '../../../../lib/apiDistributer'
 
 import { 
   downDisGoods,
-}from '../../../../lib/apiibook'
+}from '../../../lib/apiibook'
 
 
 Page({
@@ -394,7 +394,8 @@ Page({
             sort:  Number(that.data.sort) + Number(1),
             focusInput: true,
             searchStr: "",
-            nxArr: []
+            nxArr: [],
+            shelfGoodsAdded: true
           })
 
         }else{
@@ -403,6 +404,7 @@ Page({
             showArr: shelfList,
             sort:  Number(this.data.sort) + Number(1),
             searchStr: "",
+            shelfGoodsAdded: true
           })
         }
         this.calculateOrderDataHeight();
@@ -438,7 +440,8 @@ Page({
           showArr: shelfList,
           sort:  Number(that.data.sort) + Number(1),
           searchStr: "",
-          nxArr: []
+          nxArr: [],
+          shelfGoodsAdded: true
         })
        }else{
         that.setData({
@@ -446,6 +449,7 @@ Page({
           showArr: shelfList,
           sort:  Number(that.data.sort) + Number(1),
           searchStr: "",
+          shelfGoodsAdded: true
         })
        }
        this.calculateOrderDataHeight();
@@ -478,7 +482,7 @@ Page({
     }
     
     wx.navigateTo({
-      url: `../../goods/disAddGoodsLinshi/disAddGoodsLinshi?from=shelf&goodsName=${this.data.searchStr}&shelfId=${this.data.shelfId}&sort=${this.data.sort}&shelfSort=${this.data.shelfSort || 0}`
+      url: `../../goods/disAddGoodsLinshi/disAddGoodsLinshi?from=shelf&goodsName=${encodeURIComponent(this.data.searchStr || '')}&shelfId=${this.data.shelfId}&sort=${this.data.sort}&shelfSort=${this.data.shelfSort || 0}&cartonUnit=${encodeURIComponent('箱')}`
     });
   },
 
@@ -547,12 +551,11 @@ Page({
   },
 
   onUnload(){
-    // 页面卸载时，如果添加了货架商品，通知货架页面刷新
+    // 页面卸载时，如果添加了货架商品，通知货架页面重新请求数据
     if(this.data.shelfGoodsAdded){
       var pages = getCurrentPages();
       if(pages.length > 1){
         var prevPage = pages[pages.length - 2];
-        // 检查是否是货架页面（支持多种路由格式）
         if(prevPage && prevPage.route && (
           prevPage.route.includes('shelf/index') || 
           prevPage.route.includes('shelf/index/index')
@@ -560,7 +563,6 @@ Page({
           prevPage.setData({
             needsRefreshOnShow: true
           });
-          console.log('已通知货架页面刷新');
         }
       }
     }

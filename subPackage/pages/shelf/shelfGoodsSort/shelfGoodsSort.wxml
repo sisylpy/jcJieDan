@@ -1,50 +1,80 @@
 
 
-<view class='flex-column flex'>
- 
-  <back-navbar style="height: {{navBarHeight}}rpx;" title="修改商品位置" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
- 
+<wxs src="../../../../utils/fn.wxs" module="tool" />
 
-  <scroll-view scroll-y="{{!disableScroll}}" style='height: {{windowHeight - navBarHeight}}rpx; padding-bottom: 120rpx;'>
-    <view class="goods-container">
-      <block wx:for='{{shelfGoodsList}}' wx:key="nxDistributerGoodsShelfGoodsId">
+<view class="sort-page">
+  <back-navbar title="{{sortPageTitle}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+  <!-- 导航为 fixed，占位只保留一处：用 scroll-view 的 padding-top，避免与组件 height 重复撑出双倍空白 -->
+  <scroll-view
+    class="sort-scroll"
+    scroll-y="{{!disableScroll}}"
+    enable-flex="{{true}}"
+    style="padding-top: {{navBarHeight}}rpx; padding-bottom: 24rpx; box-sizing: border-box;"
+  >
+    <view class="goods-container sort-goods-wrap">
+      <block wx:for='{{shelfGoodsList}}' wx:for-index="sortIndex" wx:key="nxDistributerGoodsShelfGoodsId">
         <view 
-          class="goods-item {{draggingIndex === index ? 'goods-item--dragging' : ''}} {{placeholderIndex === index && draggingIndex !== index ? 'goods-item--placeholder' : ''}}"
-          data-index="{{index}}"
+          class="goods-item shelf-sort-row {{draggingIndex === sortIndex ? 'goods-item--dragging' : ''}} {{placeholderIndex === sortIndex && draggingIndex !== sortIndex ? 'goods-item--placeholder' : ''}}"
+          data-index="{{sortIndex}}"
           data-id="{{item.nxDistributerGoodsShelfGoodsId}}"
           bindtouchstart="onTouchStart"
           bindtouchmove="onTouchMove"
           bindtouchend="onTouchEnd"
           bindtouchcancel="onTouchEnd"
         >
-          <view class="goods-content">
-            <view class="goods-name">{{item.nxDistributerGoodsEntity.nxDgGoodsName}}</view>
-            <view class="goods-standard" wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}">
-              ({{item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight && item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0 ? item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight + '/' : ''}}{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}})
+          <view class="shelf-list-thumb">
+            <image wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsFileLarge && item.nxDistributerGoodsEntity.nxDgGoodsFileLarge !== 'null'}}" src="{{url + item.nxDistributerGoodsEntity.nxDgGoodsFileLarge}}" mode="aspectFill" class="shelf-list-img" />
+            <image wx:elif="{{item.nxDistributerGoodsEntity.nxDgGoodsFile && item.nxDistributerGoodsEntity.nxDgGoodsFile !== 'null'}}" src="{{url + item.nxDistributerGoodsEntity.nxDgGoodsFile}}" mode="aspectFill" class="shelf-list-img" />
+            <view wx:else class="shelf-list-img placeholder">
+              <image src="/images/photozhaoxiang.png" mode="aspectFill" class="icon-lg" />
             </view>
           </view>
           
-          <view class="goods-actions">
-           
+          <view class="shelf-list-info">
+            <view class="shelf-list-title">
+              <view class="shelf-list-title-text">
+                <text class="shelf-list-name">{{sortIndex + 1}}.</text>
+                <text class="shelf-list-brand" wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsBrand !== 'null' && item.nxDistributerGoodsEntity.nxDgGoodsBrand && item.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0}}">{{item.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
+                <text class="shelf-list-name">{{item.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
+                <view class="flex-row" wx:if="{{item.sameShelfGoods && item.sameShelfGoods.length > 0}}">
+                  <view class="flex-row-wrap">
+                    <view class="sameShelf mr-10" wx:for="{{item.sameShelfGoods}}" wx:for-item="same" wx:for-index="si" wx:key="si">
+                      <text>{{same.shelfName}}</text>
+                      <block wx:if="{{same.nxDgsgShelfLayer !== null}}">
+                        <text>-L{{same.nxDgsgShelfLayer}}</text>
+                      </block>
+                      <text>-{{same.nxDgsgShelfLayerSeq != null && same.nxDgsgShelfLayerSeq !== '' ? same.nxDgsgShelfLayerSeq : same.nxDgsgSort}}</text>
+                    </view>
+                  </view>
+                </view>
+                
+                <!-- <block wx:if="{{item.nxDistributerGoodsEntity.nxDgNxGoodsId == null}}">
+                  <text class="text-danger font-xs">[临时]</text>
+                  <view class="flex-row text-warning font-lg">
+                    <text>{{item.nxDistributerGoodsEntity.nxDgItemsPerCarton}}{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+                    <text>/{{item.nxDistributerGoodsEntity.nxDgCartonUnit}}</text>
+                  </view>
+                </block> -->
+                <text class="shelf-list-spec" wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}">规格：{{item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight && item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0 ? item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight + '/' : ''}}{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+              </view>
+            </view>
+          
+          </view>
+          <view class="shelf-sort-actions">
             <view class="sort-input-container">
               <input 
                 class="sort-input" 
                 type="number" 
-                value="{{item.nxDgsgSort}}" 
-                placeholder="排序"
-                data-index="{{index}}"
+                value="{{item.nxDgsgShelfLayerSeq}}" 
+                placeholder="层内序"
+                data-index="{{sortIndex}}"
                 data-id="{{item.nxDistributerGoodsShelfGoodsId}}"
                 bindblur="onSortInputBlur"
                 bindconfirm="onSortInputConfirm"
-                disabled="{{draggingIndex === index}}"
+                disabled="{{draggingIndex === sortIndex}}"
               />
             </view>
           </view>
-        </view>
-        <view class="shelf-layer-divider" wx:if="{{item.nxDgsgShelfLayer > 0}}">
-          <view class="divider-line"></view>
-          <text class="divider-text">{{layerTextMap[item.nxDgsgShelfLayer] || ('第' + item.nxDgsgShelfLayer + '层结束')}}</text>
-          <view class="divider-line"></view>
         </view>
       </block>
     </view>
@@ -52,8 +82,7 @@
     <view class="flex-column-center text-secondary font-xs" style="height: 100rpx;">没有数据了</view>
 
   </scroll-view>
-  
-  <!-- 固定在底部的按钮 -->
+
   <view class="bottom-bar">
     <view class="save-btn {{isChanged ? 'is-active' : ''}}" bindtap="saveChange">保存修改商品位置</view>
   </view>

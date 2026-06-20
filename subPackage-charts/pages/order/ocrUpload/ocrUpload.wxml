@@ -1,0 +1,29 @@
+
+
+<view class="flex-column flex" >
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="{{depName}}" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+
+  <view class="flex-column">
+
+     
+
+
+      <!-- 组件：ocrUploadKey 在 onShow 时先置 0 再置新值，强制重新挂载以清空内部图片/裁剪，避免返回时顶部多余显示 -->
+      <ocrUpload 
+        
+        image-list="{{imageList}}"
+        excel-file="{{excelFile}}"
+        bind:imageChange="onImageChange"
+        bind:excelChange="onExcelChange"
+        bind:startOCR="onStartOCR"
+        bind:startOCRFast="onStartOCRFast"
+        bind:startExcel="onStartExcel"
+      ></ocrUpload>
+  
+
+
+
+  </view>
+
+
+</view>

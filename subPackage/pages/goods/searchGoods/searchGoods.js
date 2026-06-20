@@ -12,7 +12,7 @@ import {
 import { 
   downDisGoods,
 
-}from '../../../../lib/apiibook'
+}from '../../../lib/apiibook'
 
 let itemWidth = 0;
 const viewBarHeight = 70;
@@ -32,16 +32,20 @@ Page({
     sliderOffsetSearch: 0,
     sliderOffsetsSearch: [],
     sliderLeftSearch: 0,
-   update: false,
-   tabsSearch: [{
-    id: 0,
-    amount: 0,
-    words: "我的商品"
-  }, {
-    id: 1,
-    amount: 0,
-    words: "下载目录"
-  }],
+    update: false,
+    tabsSearch: [{
+      id: 0,
+      amount: 0,
+      words: "我的商品"
+    }, {
+      id: 1,
+      amount: 0,
+      words: "下载目录"
+    }],
+    // 货架价格弹窗
+    showShelfPriceModal: false,
+    shelfPriceModalItem: null,
+    shelfPriceModalGoodsIndex: -1,
   },
 
   onLoad(options) {
@@ -339,6 +343,25 @@ delPrice(e){
 
   
   /**
+   * 预览商品图片
+   */
+  previewImage(e) {
+    const item = e.currentTarget.dataset.item;
+    let imageUrl = '';
+    if (item.nxDgGoodsFileLarge && item.nxDgGoodsFileLarge !== 'null') {
+      imageUrl = this.data.url + item.nxDgGoodsFileLarge;
+    } else if (item.nxDgGoodsFile && item.nxDgGoodsFile !== 'null' && item.nxDgGoodsFile !== 'goodsImage/logo.jpg') {
+      imageUrl = this.data.url + item.nxDgGoodsFile;
+    }
+    if (imageUrl) {
+      wx.previewImage({
+        urls: [imageUrl],
+        current: imageUrl
+      });
+    }
+  },
+
+  /**
    * 打开修改图片页面
    */
   toEditGoodsImage(e) {
@@ -350,11 +373,76 @@ delPrice(e){
   },
 
   toDetail(e) {
-  
+
     wx.navigateTo({
       url: '../disGoodsPage/disGoodsPage?disGoodsId=' + e.currentTarget.dataset.id + '&goodsName=' + e.currentTarget.dataset.name + '&color=' + e.currentTarget.dataset.color  +'&from=search',
     })
 
+  },
+
+  /**
+   * 货架型专业批发商（businessTypeId==3）：弹窗编辑 nxDgWillPriceOne / nxDgWillPriceTwo
+   */
+  openShelfGoodsPriceModal(e) {
+    const typeId = Number(this.data.disInfo && this.data.disInfo.nxDistributerBusinessTypeId);
+    if (!this.data.disInfo || typeId !== 3) {
+      return;
+    }
+    const goodsIndex = Number(e.currentTarget.dataset.index);
+    const list = this.data.strArr || [];
+    const item = list[goodsIndex];
+    if (!item) {
+      return;
+    }
+    let entity;
+    try {
+      entity = JSON.parse(JSON.stringify(item));
+    } catch (err) {
+      entity = Object.assign({}, item);
+    }
+    this.setData({
+      showShelfPriceModal: true,
+      shelfPriceModalItem: entity,
+      shelfPriceModalGoodsIndex: goodsIndex,
+    });
+  },
+
+  onShelfPriceModalCancel() {
+    this.setData({
+      showShelfPriceModal: false,
+      shelfPriceModalItem: null,
+      shelfPriceModalGoodsIndex: -1,
+    });
+  },
+
+  onShelfPriceModalConfirm(e) {
+    const updated = e.detail && e.detail.item;
+    const idx = this.data.shelfPriceModalGoodsIndex;
+    if (!updated || idx < 0) {
+      this.onShelfPriceModalCancel();
+      return;
+    }
+    load.showLoading('保存价格');
+    disUpdateBuyingPrice(updated)
+      .then(res => {
+        load.hideLoading();
+        if (res.result.code === 0) {
+          const path = `strArr[${idx}]`;
+          this.setData({
+            [path]: updated,
+            showShelfPriceModal: false,
+            shelfPriceModalItem: null,
+            shelfPriceModalGoodsIndex: -1,
+          });
+          wx.showToast({ title: '已保存', icon: 'success' });
+        } else {
+          wx.showToast({ title: res.result.msg || '保存失败', icon: 'none' });
+        }
+      })
+      .catch(() => {
+        load.hideLoading();
+        wx.showToast({ title: '保存失败', icon: 'none' });
+      });
   },
 
   toBack() {

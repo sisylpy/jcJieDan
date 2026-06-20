@@ -1718,15 +1718,15 @@ Page({
               });
               
               // 优化：只更新列表中对应商品的层标记，不刷新整个列表
-              // 接口返回的是层架信息，不是商品对象，需要从 assignedLayer 获取层号
+              // nxDgsgShelfLayerLast=1：本条为本层最后一个（用于分隔线）；nxDgsgShelfLayer：商品在第几层
               const layerData = result.data || {};
-              const assignedLayer = layerData.assignedLayer; // 当前商品被分配的层号
-              
-              // 只更新商品的层字段，保留其他所有数据
-              this.updateShelfGoodsInList(shelfGoodsId, {
-                nxDgsgShelfLayer: assignedLayer || null
-              });
-              
+              const assignedLayer = layerData.assignedLayer;
+              const patch = { nxDgsgShelfLayerLast: 1 };
+              if (assignedLayer != null && assignedLayer !== '' && assignedLayer !== 'null') {
+                patch.nxDgsgShelfLayer = assignedLayer;
+              }
+              this.updateShelfGoodsInList(shelfGoodsId, patch);
+
               this.setData({
                 showOperation: false
               });
@@ -1782,16 +1782,11 @@ Page({
                 icon: 'success'
               });
               
-              // 优化：只更新列表中对应商品的层标记，不刷新整个列表
-              // 接口返回的是层架信息，取消时 assignedLayer 为 null
-              const layerData = result.data || {};
-              const assignedLayer = layerData.assignedLayer; // 取消时为 null
-              
-              // 只更新商品的层字段，保留其他所有数据
+              // 取消「本层结尾」只清 nxDgsgShelfLayerLast，不得清空 nxDgsgShelfLayer（层号仍要显示）
               this.updateShelfGoodsInList(shelfGoodsId, {
-                nxDgsgShelfLayer: assignedLayer || null
+                nxDgsgShelfLayerLast: 0
               });
-              
+
               this.setData({
                 showOperation: false
               });

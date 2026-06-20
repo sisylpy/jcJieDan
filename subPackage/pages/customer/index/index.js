@@ -8,7 +8,8 @@ import {
   disGetAllGbDistributer,
   changeBusinessStatus,
   delteNxAndGbBusiness,
-  updateNxDep
+  updateNxDep,
+  disGetLabels
 } from '../../../../lib/apiDistributer.js'
 
 Page({
@@ -18,12 +19,15 @@ Page({
    */
   data: {
     showInvite: true,
+    labelList: [],          // 配送商全部标签
+    selectedLabelId: null, // 当前选中的标签ID，null表示全部
   },
 
 
   onShow(){
     this._initGbDistributer();
     this._initNxDepartment();
+    this._getDistributerLabels();
   },
 
   
@@ -384,6 +388,55 @@ toOpenPrint() {
     path: 'pages/inviteTroNx/inviteTroNx?disId=' + this.data.disId + '&disName=' + this.data.disInfo.nxDistributerName +  '&from=nx',
     envVersion: 'trial', //release  develop  trial
   })
+},
+
+// 获取配送商标签列表
+_getDistributerLabels() {
+  const { disId } = this.data;
+  if (!disId) return;
+  
+  disGetLabels(disId).then(res => {
+    if (res.result.code == 0) {
+      this.setData({
+        labelList: res.result.data || []
+      });
+    }
+  });
+},
+
+// 按标签筛选客户
+filterByLabel(e) {
+  const labelId = e.currentTarget.dataset.id;
+  const { selectedLabelId } = this.data;
+  
+  // 点击已选中的标签则取消筛选
+  if (selectedLabelId === labelId) {
+    this.setData({ selectedLabelId: null });
+    this._initNxDepartment();
+  } else {
+    this.setData({ selectedLabelId: labelId });
+    this._filterCustomerByLabel(labelId);
+  }
+},
+
+// 根据标签筛选客户
+_filterCustomerByLabel(labelId) {
+  load.showLoading('筛选中...');
+  
+  disGetAllCustomer(this.data.disId, labelId).then(res => {
+    load.hideLoading();
+    if (res.result.code == 0) {
+      this.setData({
+        myCustomerArrOne: res.result.data.settleTypeOne,
+        myCustomerArrTwo: res.result.data.settleTypeTwo,
+      });
+    } else {
+      wx.showToast({
+        title: res.result.msg || '筛选失败',
+        icon: 'none'
+      });
+    }
+  });
 },
 
 

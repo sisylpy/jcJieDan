@@ -5,7 +5,8 @@ import apiUrl from '../../../config.js'
 import {
   jjshUserSaveWithFileInvite,
   disLogin,
-  jjshGetMarket
+  jjshGetMarket,
+  saveBusiness
 } from '../../../lib/apiDistributer'
 
 // 新增企业微信API导入
@@ -43,7 +44,9 @@ Page({
       navBarHeight: globalData.navBarHeight * globalData.rpxR,
       url: apiUrl.server,
       disId: options.disId,
-      inviterDisName: options.disName
+      inviterDisName: decodeURIComponent(options.disName || ''),
+      inviteType: parseInt(options.inviteType, 10) || 1,
+      fromInviteOfferDis: options.fromInviteOfferDis === '1',
     })
 
     this._login();
@@ -264,10 +267,37 @@ Page({
       if (jsonObject.code == 0) {
         wx.setStorageSync('disInfo',jsonObject.data.disInfo);
         wx.setStorageSync('userInfo',jsonObject.data.userInfo);
-        wx.switchTab({
-          url: '../order/index/index',
-        })
+        const newUserDisId = jsonObject.data.disInfo.nxDistributerId;
 
+        // 若来自协作邀请页，注册成功后自动建立协作关系
+        if (that.data.fromInviteOfferDis && that.data.disId) {
+          load.showLoading('建立协作');
+          saveBusiness({
+            nxDistributerId1: parseInt(that.data.disId, 10),
+            nxDistributerId2: parseInt(newUserDisId, 10),
+            inviteType: that.data.inviteType || 1,
+            inviterNxDistributerId: parseInt(that.data.disId, 10),
+          }).then((res) => {
+            load.hideLoading();
+            if (res.result && res.result.code == 0) {
+              wx.showToast({ title: '注册成功，协作已建立' });
+            } else {
+              wx.showToast({ title: '注册成功', icon: 'none' });
+            }
+            wx.switchTab({
+              url: '/pages/order/index/index',
+            });
+          }).catch(() => {
+            load.hideLoading();
+            wx.switchTab({
+              url: '/pages/order/index/index',
+            });
+          });
+        } else {
+          wx.switchTab({
+            url: '/pages/order/index/index',
+          });
+        }
       }  else {
         load.hideLoading();
         wx.showToast({

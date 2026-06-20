@@ -4,7 +4,11 @@
 
   <view class="flex-column mt-10">
     <view class="center-content">
-      <image class="" wx:if="{{userInfo.nxDistributerEntity.nxDistributerImg.length > 0}}" src="{{ url + userInfo.nxDistributerEntity.nxDistributerImg}}" style="width:{{windowWidth - 40}}rpx; height:300rpx; border-radius: 10rpx;"></image>
+      <image class="" wx:if="{{userInfo.nxDistributerEntity.nxDistributerImg.length > 0 && !isPlaceholderStoreImg}}" src="{{ url + userInfo.nxDistributerEntity.nxDistributerImg}}" style="width:{{windowWidth - 40}}rpx; height:300rpx; border-radius: 10rpx;"></image>
+      <view wx:if="{{isPlaceholderStoreImg}}" class="store-img-placeholder" style="width:{{windowWidth - 40}}rpx; height:300rpx; border-radius: 10rpx;" bindtap="editHome">
+        <text class="placeholder-title">请上传您店铺的横拍实景图</text>
+        <text class="placeholder-desc">点击「修改店铺」更换为真实店铺照片</text>
+      </view>
     </view>
 
     <view class="flex-row-between p-20">
@@ -20,7 +24,11 @@
 
 
     <view class="flex-cloumn" style="margin-top: 100rpx;">
-
+      <view class="flex-row p-10">
+        <image src="../../../../images/0dayinji-05.png" class="icon"></image>
+        <text class="m-10 flex-fixed">店铺简称:</text>
+        <text class="mr-20">{{userInfo.nxDistributerEntity.nxDistributerShowName}}</text>
+      </view>
       <view class="flex-row p-10">
         <image src="../../../../images/0dayinji-05.png" class="icon"></image>
         <text class="m-10 flex-fixed">所在批发市场:</text>
@@ -32,11 +40,11 @@
         <text class="mr-20" wx:if="{{disInfo.nxDistributerBusinessTypeId == 0}}">专业配送</text>
         <text class="mr-20" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 1}}">小规模批发商</text>
         <text class="mr-20" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 2}}">货架型业务批发商</text>
-        <text class="mr-20" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 3}}">代客服型批发商</text>
-        <text class="mr-20" wx:elif="{{disInfo.nxDistributerType == 2}}">学校企事业配送商</text>
+        <text class="mr-20" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 3}}">货架型专业批发商</text>
+        <text class="mr-20" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 4}}">学校企事业配送商</text>
         <text class="mr-20" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 5}}">分布式库房配送</text>
-        <text class="mr-20" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 6}}">平台</text>
-        <text class="mr-20" wx:elif="{{disInfo.nxDistributerType == -1}}">试用期</text>
+        <text class="mr-20" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 6}}">平台型批发商</text>
+        <text class="mr-20" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 7}}">专业平台型批发商</text>
       </view>
       <view class="flex-row-default p-20">
         <view class="flex-fixed">
@@ -126,15 +134,32 @@
     <view class="flex-column font-lg mt-10">
       <view class="flex-row-between p-30 border-bottom bg-white " bindtap="toCustomer" hover-class="hover">
         <view class="flex-row">
-          <image src="/images/customer.png" mode="aspectFill" class="icon-lg mr-20" />
+          <image src="/images/dianpu.png" mode="aspectFill" class="icon-lg mr-20" />
           <text>客户</text>
         </view>
         <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
       </view>
+      
+      <view class="flex-row-between p-30 border-bottom bg-white " bindtap="toRetailer" hover-class="hover"
+      wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+        <view class="flex-row" >
+          <image src="/images/customer.png" mode="aspectFill" class="icon-lg mr-20" />
+          <text>零售</text>
+        </view>
+        <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
+      </view>
+
       <view class="flex-row-between p-30 border-bottom bg-white " bindtap="toGoods" hover-class="hover">
             <view class="flex-row">
               <image src="/images/icon_goods_active.png" mode="aspectFill" class="icon mr-20" />
               <text>商品</text>
+            </view>
+            <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
+          </view>
+          <view class="flex-row-between p-30 border-bottom  bg-white " bindtap="toNxDisList" hover-class="hover">
+            <view class="flex-row">
+              <image src="/images/gongyingshang.png" mode="aspectFill" class="icon mr-20" />
+              <text>市场协作伙伴</text>
             </view>
             <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
           </view>
@@ -152,6 +177,8 @@
             <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
           </view>
         </view>
+
+        
 
         <view class="flex-column bg-white font-lg mt-10" wx:if="{{disInfo.nxDistributerBusinessTypeId  > 2}}">
 

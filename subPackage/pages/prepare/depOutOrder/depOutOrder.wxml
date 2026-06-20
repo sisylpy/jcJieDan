@@ -131,6 +131,3 @@
   </view>
 </view>
 
-
-
-<editWeight show="{{showInputOrder}}" bindconfirm="confirm" bindcancle="cancle" bindfinish="finishGbPurGoods" item="{{item}}" maskHeight="{{maskHeight > windowHeight ? maskHeight : windowHeight}}" scrollViewTop="{{scrollViewTop}}" scaleInput="{{scaleInput}}" windowHeight="{{windowHeight}}" windowWidth="{{windowWidth}}" url="{{url}}" />

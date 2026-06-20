@@ -63,20 +63,31 @@
 
 <view class="flex  flex-column   searchPart1 comment" 
 style="bottom:{{bottom}}px; " >
-  <scroll-view scroll-y class="searchAddList {{isSearching ? 'is-active' :''}} flex-column"   catchtouchmove='ture' style="width:{{windowWidth}}rpx; height:{{count > 0 && count <= 5 ? count * 140 : (count > 5 ? 800 : 0)}}rpx; border-top: 1px solid rgb(207, 207, 207);">
+  <scroll-view scroll-y class="searchAddList {{isSearching ? 'is-active' :''}} flex-column"   catchtouchmove='ture' style="width:{{windowWidth}}rpx; height:{{searchLoading || (count === 0 && searchStr.length > 0 && !searchLoading) ? 120 : (count > 0 && count <= 5 ? count * 140 : (count > 5 ? 800 : 0))}}rpx; border-top: 1px solid rgb(207, 207, 207);">
   
+    <!-- 搜索中 -->
+    <view class="center-content p-20 text-secondary" wx:if="{{searchLoading}}">
+      <text>搜索中...</text>
+    </view>
+    <!-- 无结果提示 -->
+    <view class="center-content p-20 text-secondary" wx:elif="{{count === 0 && searchStr.length > 0 && !searchLoading}}">
+      <text>未找到相关商品，可点击右侧添加临时商品</text>
+    </view>
     <view class="flex-column border-bottom p-20" wx:for="{{strArr}}" wx:for-item="goods" wx:for-index="index" wx:key="nxDistributerGoodsId" bindtap="{{goods.nxDgPullOff == 0 ? 'applyGoods' : 'tishi'}}" data-item="{{goods}}" data-index="{{goodsIndex}}" hover-class="hover">
       <view class="flex-row-between font-lg" >
         <view class="flex flex-row">
           <text class="mr-20">{{index + 1}}.</text>
           <view class="flex-row-wrap align-center">
+            <block wx:if="{{goods.nxDgDistributerId !== disId}}">
+              <text class="font-xs mainColor">[{{goods.goodsNxDistributerName}}]</text>
+            </block>
             <text class="brand" wx:if="{{goods.nxDgGoodsBrand.length > 0 && goods.nxDgGoodsBrand !==  'null'}}">{{goods.nxDgGoodsBrand}}</text>
             <text class=" text-secondary" wx:if="{{goods.nxDgPullOff == 1}}">(下架) {{goods.nxDgGoodsName}}</text>
             <text class="mr-10" wx:else>{{goods.nxDgGoodsName}}</text>
             <text class="" wx:if="{{goods.nxDistributerAliasEntities.length > 0}}" wx:for="{{goods.nxDistributerAliasEntities}}" wx:key="nxDistributerAliasId" wx:for-item="alias">@{{alias.nxDaAliasName}}</text>
 
             <block wx:if="{{goods.nxDgGoodsStandardWeight !== 'null' && goods.nxDgGoodsStandardWeight.length > 0}}">
-              <text class=" m-10" >({{goods.nxDgGoodsStandardname}}/{{goods.nxDgGoodsStandardWeight}})</text>
+              <text class=" m-10" >({{goods.nxDgGoodsStandardWeight}}/{{goods.nxDgGoodsStandardname}})</text>
             </block>
             <block wx:else>
               <text class="m-10" >({{goods.nxDgGoodsStandardname}})</text>
@@ -110,6 +121,7 @@ style="bottom:{{bottom}}px; " >
           </view>
         </view>
       </block>
+
     </view>
 
     <view class="flex-row-between border-bottom p-20 bg-mainColor" wx:for="{{nxArr}}" wx:for-item="goods" wx:for-index="index" wx:key="nxDistributerGoodsId"  style="width:{{windowWidth - 40}}rpx; ">
@@ -120,7 +132,7 @@ style="bottom:{{bottom}}px; " >
           <text class="font-lg-2 mr-20">{{goods.nxGoodsName}}</text>
           <text class="" wx:if="{{goods.nxDistributerAliasEntities.length > 0}}" wx:for="{{goods.nxDistributerAliasEntities}}" wx:for-item="alias">@{{alias.nxDaAliasName}}</text>
           <block wx:if="{{goods.nxGoodsStandardWeight !== 'null' && goods.nxGoodsStandardWeight.length > 0}}">
-            <text class="font-slm-10" wx:if="{{goods.nxGoodsStandardname !== '斤'}}">({{goods.nxGoodsStandardname}}/{{goods.nxGoodsStandardWeight}})</text>
+            <text class="font-slm-10" wx:if="{{goods.nxGoodsStandardname !== '斤'}}">({{goods.nxGoodsStandardWeight}}/{{goods.nxGoodsStandardname}})</text>
           </block>
           <block wx:else>
             <text class="font-lg-2 m-10" >({{goods.nxGoodsStandardname}})</text>
@@ -141,10 +153,10 @@ style="bottom:{{bottom}}px; " >
   </scroll-view>
 
   <view class="flex flex-row">
-    <input class="inputGoods " placeholder="搜索商品名称、拼音、简拼" style="width: {{windowWidth - 300}}rpx; margin-right: 30rpx;" bindfocus="inputFocus" bindblur="inputBlur" adjust-position="{{false}}" bindkeyboardheightchange = "bindkeyboardheightchange" bindinput="getSearchString" value="{{searchStr}}" focus="{{toSearch ? true: ''}}" />
-    <view class="button-container mr-30" bindtap="searchMore" wx:if="{{searchStr.length > 0}}">
+    <input class="inputGoods " placeholder="搜索商品名称、拼音、简拼" style="width: {{windowWidth - 200}}rpx; margin-right: 30rpx;" bindfocus="inputFocus" bindblur="inputBlur" adjust-position="{{false}}" bindkeyboardheightchange = "bindkeyboardheightchange" bindinput="getSearchString" value="{{searchStr}}" focus="{{toSearch ? true: ''}}" />
+    <!-- <view class="button-container mr-30" bindtap="searchMore" wx:if="{{searchStr.length > 0}}">
       <image src="{{searchMore ? '../../../../images/searchmore.png' :'../../../../images/search-3.png'}}" class="icon"></image>
-    </view>
+    </view> -->
     <view class="button-container " bindtap="toAddGoods" wx:if="{{searchStr.length > 0}}">
       <image src="../../../../images/add-active.png" class="icon"></image>
     </view>

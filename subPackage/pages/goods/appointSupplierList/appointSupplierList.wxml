@@ -21,7 +21,7 @@
           </view>
           <image src="{{item.jrdhUserEntity.nxJrdhWxNickName !== null ? url + item.jrdhUserEntity.nxJrdhWxAvartraUrl : '/images/logo.jpg' }}" class="url margin-right"></image>
           <view class="flex-column ">
-            <text class="small  gray">{{item.jrdhUserEntity.nxJrdhWxNickName !== null ? item.nxJrdhsSupplierName : '没有认证'}}</text>
+            <!-- <text class="small  gray">{{item.jrdhUserEntity.nxJrdhWxNickName !== null ? item.nxJrdhsSupplierName : '没有认证'}}</text> -->
             <text> {{item.jrdhUserEntity.nxJrdhWxNickName}}</text>
           </view>
 

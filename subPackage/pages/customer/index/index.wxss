@@ -11,3 +11,54 @@ page{
   border-radius: 50%;
 
 }
+
+/* 标签筛选样式 */
+.label-filter-scroll {
+  flex: 1;
+  white-space: nowrap;
+  height: 80rpx;
+}
+
+.label-filter-container {
+  display: inline-flex;
+  align-items: center;
+  padding: 10rpx 0;
+}
+
+.label-filter-item {
+  display: inline-block;
+  padding: 10rpx 24rpx;
+  margin-right: 16rpx;
+  border-radius: 30rpx;
+  font-size: 24rpx;
+  background: #f0f0f0;
+  color: #666;
+  white-space: nowrap;
+}
+
+.label-filter-item.active {
+  background: #07c160;
+  color: #fff;
+}
+
+.label-expand-btn {
+  padding: 10rpx 16rpx;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-xs {
+  width: 24rpx;
+  height: 24rpx;
+}
+
+/* 客户标签样式 */
+.customer-label-tag {
+  padding: 4rpx 12rpx;
+  background: #e8f5e9;
+  color: #07c160;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+  margin-bottom: 6rpx;
+}

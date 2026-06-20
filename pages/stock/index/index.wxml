@@ -1,13 +1,12 @@
 <view class="flex flex-column">
 
-  <custom-navbar style="height: {{navBarHeight}}rpx;" title="出库" avatar="{{url + userInfo.nxDiuWxAvartraUrl}}" button-text="设置" bindnavbuttontap="onNavButtonTap"></custom-navbar>
+  <custom-navbar style="height: {{navBarHeight}}rpx;" title="库存" avatar="{{url + userInfo.nxDiuWxAvartraUrl}}" button-text="设置" bindnavbuttontap="onNavButtonTap"></custom-navbar>
 
   <view class="content flex-1 flex-column">
 
     <view class="flex  flex-row-between bg-white border-bottom pt-20" style=" height: {{viewBarHeight}}rpx; ">
 
       <view class="flex-row">
-
         <view class=" button-container mr-30 ml-20" bind:tap="setPrint">
           <image src="{{printOk ? '/images/print-4.png' : '/images/0dayinji-05.png'}}" class="icon"></image>
         </view>
@@ -31,14 +30,14 @@
       </view>
     </view>
 
-    <view class="{{(viewMode === 'category' && goodsCataArr.length == 0) || (viewMode === 'department' && depArr.length == 0) ? 'show' : 'hide'}}">
+    <view class="{{(viewMode === 'category' && goodsCataArr.length == 0) || (viewMode === 'department' && depArr.length == 0 && offArr.length == 0) ? 'show' : 'hide'}}">
       <view class="flex-column center-content" style="height: {{windowHeight - 300}}rpx;">
         <image class="empty_image" src="../../../images/xiuxi.png"></image>
         <text class="font-lg text-secondary p-30">没有出库中订单</text>
       </view>
     </view>
 
-    <view class="main flex-1" wx:if="{{(viewMode === 'category' && goodsCataArr.length > 0) || (viewMode === 'department' && depArr.length > 0)}}">
+    <view class="main flex-1" wx:if="{{(viewMode === 'category' && goodsCataArr.length > 0) || (viewMode === 'department' && (depArr.length > 0 || offArr.length > 0))}}">
 
       <!-- 左侧菜单 - 始终显示 -->
       <scroll-view class="left-menu " scroll-y="true" scroll-top="{{scrollTopLeft}}" style="height:{{contentHeight - viewBarHeight}}rpx;width: {{leftMenuWidth}}rpx;">
@@ -53,11 +52,22 @@
         </block>
         <!-- 按客户模式 -->
         <block wx:else>
-          <view wx:if="{{depArr.length > 0}}">
-            <view class="left-item flex-column-center border-bottom {{selectedSub == leftIndex ? 'left-active' : ''}}" wx:key="index" wx:for="{{depArr}}" wx:for-item="dep" bindtap="toScrollView" data-index="{{leftIndex}}" wx:for-index="leftIndex" >
-              <text class="font-sm text-center">{{dep.depAttrName}}</text>
-              <view class="font-sm">({{dep.orderCount}})</view>
+          <view wx:if="{{offArr.length > 0}}">
+            <view class="left-item flex-column-center border-bottom {{selectedCollDisId == dis.nxDistributerId ? 'left-active' : ''}}" wx:key="nxDistributerId" wx:for="{{offArr}}" wx:for-item="dis" bindtap="toScrollView" data-is-coll="true" data-coll-dis-id="{{dis.nxDistributerId}}" wx:for-index="leftIndex" >
+              <text class="font-sm text-center">{{dis.nxDistributerShowName}}</text>
+              <view class="font-sm">({{dis.aaa.orderCount}})</view>
             </view>
+          </view>
+          <view wx:if="{{depArr.length > 0}}">
+            <block wx:for="{{depArr}}" wx:for-item="dep" wx:key="depId" wx:for-index="leftIndex">
+              <view wx:if="{{leftIndex === 0 && dep.isPlatformCustomer === 1}}" class="dep-section-header">平台客户</view>
+              <view wx:if="{{dep.isPlatformCustomer !== 1 && (leftIndex === 0 || depArr[leftIndex - 1].isPlatformCustomer === 1)}}" class="dep-section-header">我的客户</view>
+              <view class="left-item flex-column-center border-bottom {{selectedDepId == dep.depId ? 'left-active' : ''}}" bindtap="toScrollView" data-is-coll="false" data-dep-id="{{dep.depId}}" data-index="{{leftIndex}}">
+                <text wx:if="{{dep.isPlatformCustomer === 1}}" class="platform-tag-sm">平台</text>
+                <text class="font-sm text-center">{{dep.depAttrName}}</text>
+                <view class="font-sm">({{dep.orderCount}})</view>
+              </view>
+            </block>
           </view>
         </block>
 
@@ -70,7 +80,7 @@
 
 
         <!-- 有数据时显示商品列表 -->
-        <block wx:if="{{(viewMode === 'category' && goodsCataArr.length > 0) || (viewMode === 'department' && depArr.length > 0)}}">
+        <block wx:if="{{(viewMode === 'category' && goodsCataArr.length > 0) || (viewMode === 'department' && (depArr.length > 0 || offArr.length > 0))}}">
           <scroll-view scroll-y="true" class=" goods-list" scroll-into-view="{{toView}}" scroll-top="0" bindscroll="scrollTo" bindscrolltolower="onReachBottom" lower-threshold="100" scroll-with-animation style="height:{{contentHeight - viewBarHeight }}rpx; ">
             <!-- 部门模式下的全选按钮 -->
             <view wx:if="{{viewMode === 'department' && goodsArr.length > 0}}" class="flex flex-row-between bg-white border-bottom" style="width: {{windowWidth - leftMenuWidth - 10}}rpx; padding: 20rpx;">
@@ -115,12 +125,37 @@
                       <text class="font-sm" wx:else style="flex-shrink: 1; min-width: 0; word-break: break-all;">({{item.nxDgGoodsStandardname}})</text>
                     </view>
                     <!-- 订单信息（客户名称） -->
-
+                    <view class="flex-row font-sm ml-10" style="flex-shrink: 1; min-width: 0;">
+                      <text wx:if="{{order.isPlatformOrder === 1}}" class="platform-tag mr-10">{{order.platformLabel || '平台'}}</text>
+                      <block wx:if="{{order.nxDoCollaborativeNxDisId == -1}}">
+                        <block wx:if="{{order.nxDoGbDepartmentId !== -1}}">
+                          <text wx:if="{{order.fatherGbDepartmentName}}">{{order.fatherGbDepartmentName}}.</text>
+                          <text>{{order.gbDepartmentName}}</text>
+                        </block>
+                        <block wx:elif="{{order.nxDoNxCommRestrauntId !== -1}}">
+                          <text>{{order.nxRestrauntAttrName}}</text>
+                        </block>
+                        <block wx:else>
+                          <text wx:if="{{order.nxDoDepartmentFatherId !== order.nxDoDepartmentId}}">{{order.fatherDepartmentAttrName}}.{{order.nxDepartmentOrderCode}}</text>
+                          <text wx:else>{{order.nxDepartmentAttrName}}</text>
+                        </block>
+                      </block>
+                      <block wx:else>
+                        <text>[{{order.nxDoCollaborativeDistributerName}}]</text>
+                      </block>
+                    </view>
                   </view>
                   <!-- 右侧：数量和备注 -->
-                  <view class="flex flex-row" style="flex-shrink: 0; align-items: center; margin-left: 20rpx; margin-right: 20rpx;">
-                    <text class="font-lg font-bold">{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
-                    <text wx:if="{{order.nxDoRemark !== 'null' && order.nxDoRemark.length > 0}}" class="red ml-10 font-sm">({{order.nxDoRemark}})</text>
+                  <view class="flex flex-column" style="flex-shrink: 0; align-items: flex-end; margin-left: 20rpx; margin-right: 20rpx;">
+                    <view class="flex flex-row" style="align-items: center;">
+                      <text class="font-lg font-bold">{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+                      <text wx:if="{{order.nxDoRemark !== 'null' && order.nxDoRemark.length > 0}}" class="red ml-10 font-sm">({{order.nxDoRemark}})</text>
+                    </view>
+                    <view wx:if="{{order.isPlatformOrder === 1}}" class="flex-row font-sm text-secondary mt-5">
+                      <text class="mr-10">期望:{{order._displayExpectPrice}}</text>
+                      <text class="mr-10">实际:{{order._displayActualPrice}}</text>
+                      <text>差:{{order._displayPriceDiff}}</text>
+                    </view>
                   </view>
                 </view>
               </block>
@@ -129,13 +164,18 @@
               <block wx:else>
                 <view class=" flex-column p-20 border-bottom bg-white {{item.isSelected ? 'bg-mainColor' : ''}}" style="width: {{windowWidth - leftMenuWidth - 20}}rpx; ">
                   <view class="flex flex-row-between" bindtap="choiceStock" data-item="{{item}}" data-goodsindex="{{goodsIndex}}" style="width: {{windowWidth - leftMenuWidth - 40}}rpx;">
-                    <view class="flex-row-wrap">
+                  <view class="flex-row-wrap">
                       <text class="brand" wx:if="{{item.nxDgGoodsBrand !== 'null' && item.nxDgGoodsBrand.length > 0}}">{{item.nxDgGoodsBrand}}</text>
                       <text class=" font-lg font-bold">{{item.nxDgGoodsName}}</text>
                       <text class="" wx:if="{{item.nxDgGoodsStandardWeight !== 'null' && item.nxDgGoodsStandardWeight.length > 0}}">({{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}})</text>
                       <text class="" wx:else>({{item.nxDgGoodsStandardname}})</text>
                       <text class="text-secondary" wx:if="{{item.nxDgGoodsPlace !== null && item.nxDgGoodsPlace.length > 0}}">{{item.nxDgGoodsPlace}}</text>
                       <text class="text-secondary  text-secondary" wx:if="{{item.nxDgGoodsDetail.length > 0 && item.nxDgGoodsDetail !==  'null'}}">{{item.nxDgGoodsDetail}}</text>
+                    </view>
+                    <view class="goods-qty-summary font-sm mt-5" wx:if="{{item._hasPlatformQty || item._hasOwnQty}}">
+                      <text class="text-secondary">合计{{item._totalQuantity}}{{item.nxDgGoodsStandardname}}</text>
+                      <text wx:if="{{item._hasPlatformQty}}" class="platform-tag ml-10">平台 {{item.platformQuantity}}{{item.nxDgGoodsStandardname}}</text>
+                      <text wx:if="{{item._hasOwnQty}}" class="text-secondary ml-10">自有 {{item.ownQuantity}}{{item.nxDgGoodsStandardname}}</text>
                     </view>
                     <view class="">
                       <view class="custom-checkbox {{item.isSelected ? 'checked' : ''}}">
@@ -146,13 +186,18 @@
 
                   <view class="flex-column">
 
-                    <view class="flex flex-row font-md p-10" wx:for="{{item.nxDepartmentOrdersEntities}}" wx:for-item="order" wx:key="index" wx:for-index="orderIndex" data-orderindex="{{orderIndex}}" data-goodsindex="{{goodsIndex}}" bindtap="choiceOrders" style="width: {{windowWidth - leftMenuWidth -10}}rpx;">
+                    <view class="flex flex-row font-md p-10 flex-column" wx:for="{{item.nxDepartmentOrdersEntities}}" wx:for-item="order" wx:key="index" wx:for-index="orderIndex" data-orderindex="{{orderIndex}}" data-goodsindex="{{goodsIndex}}" bindtap="choiceOrders" style="width: {{windowWidth - leftMenuWidth -10}}rpx;">
+                      <view class="flex-row" style="width: 100%;">
                       <view class="flex-column-center" wx:if="{{item.isSelected}}">
                         <image src="{{!order.purSelected ? '../../../images/checkbox-noselected.png' : '../../../images/selected-2.png'}}" class="icon "></image>
                       </view>
 
                       <view class="circle_default" wx:else=""></view>
-                      <!-- GB部门（扁平化） -->
+
+                      <text wx:if="{{order.isPlatformOrder === 1}}" class="platform-tag mr-10">{{order.platformLabel || '平台'}}</text>
+
+                      <block wx:if="{{order.nxDoCollaborativeNxDisId == -1}}">
+                         <!-- GB部门（扁平化） -->
                       <block wx:if="{{order.nxDoGbDepartmentId  !== -1}}">
                         <view class="flex-row ">
                           <text wx:if="{{order.fatherGbDepartmentName}}">{{order.fatherGbDepartmentName}}.</text>
@@ -173,9 +218,19 @@
                           <text class="" wx:else="">{{order.nxDepartmentAttrName}}</text>
                         </view>
                       </block>
-
+                      </block>
+                      <block wx:else="">
+                        <text class="mr-10">[{{order.nxDoCollaborativeDistributerName}}]</text>
+                      </block>
+                    
                       <text class="ml-20">{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
                       <text wx:if="{{order.nxDoRemark !== 'null' && order.nxDoRemark.length > 0}}" class="red">({{order.nxDoRemark}})</text>
+                      </view>
+                      <view wx:if="{{order.isPlatformOrder === 1}}" class="flex-row font-sm text-secondary pl-40">
+                        <text class="mr-15">期望:{{order._displayExpectPrice}}</text>
+                        <text class="mr-15">实际:{{order._displayActualPrice}}</text>
+                        <text>差价:{{order._displayPriceDiff}}</text>
+                      </view>
                     </view>
                   </view>
 
@@ -264,11 +319,11 @@
     <view wx:else class="stock_order_btn" style="width: 260rpx; margin-right: 30rpx; opacity: 0.5;" bindtap="toPrinterSet">
       打印标签
     </view>
-    <view class="stock_order_btn is-active" style="width: 260rpx; margin-right: 30rpx;" bindtap="toPrint" data-type="wx">
+    <view class="stock_order_btn is-active" style="width: 260rpx; margin-right: 30rpx;" bindtap="toPrint" data-type="wx" wx:if="{{userInfo.nxDiuPrintDeviceId !== '-1'}}">
       打印出库单
     </view>
     <view class="stock_order_btn is-active" style="width: 260rpx; margin-right: 30rpx;" bindtap="savePlanPurchase" data-type="wx">
-      采购
+      去采购
     </view>
 
   </view>

@@ -76,6 +76,13 @@ Page({
   },
 
 
+  toBack(){
+
+    wx.reLaunch({
+      url: '../order/index/index',
+    })
+
+  },
 
 
 })

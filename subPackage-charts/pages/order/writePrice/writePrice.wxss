@@ -50,6 +50,11 @@
   box-sizing:border-box;
 }
 
+/* 数字键盘按下态（hover-class="hoverKey"） */
+.hoverKey {
+  background-color: rgba(24, 126, 110, 0.22) !important;
+}
+
 .weightInput{
    width: 80%;
   border: 1px solid rgba(139, 139, 139, 0.575);
@@ -119,4 +124,187 @@
   height: 980rpx;
 
   
+}
+
+/* 多部门：子部门整块 + 订货卡片（第一版样式） */
+.wp-multi-dep-section {
+  margin-bottom: 28rpx;
+  border-radius: 20rpx;
+  overflow: hidden;
+  background: #f4f6f5;
+  border: 1rpx solid rgba(24, 126, 110, 0.14);
+  box-shadow: 0 6rpx 24rpx rgba(0, 0, 0, 0.06);
+}
+
+.wp-multi-dep-header {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  background: linear-gradient(180deg, #ffffff 0%, #eef5f3 100%);
+}
+
+.wp-multi-dep-header-accent {
+  width: 10rpx;
+  flex-shrink: 0;
+  background: #187e6e;
+}
+
+.wp-multi-dep-header-body {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 22rpx 24rpx 22rpx 20rpx;
+  gap: 14rpx 18rpx;
+  border-bottom: 1rpx solid rgba(24, 126, 110, 0.1);
+}
+
+.wp-multi-dep-badge {
+  font-size: 22rpx;
+  line-height: 1.2;
+  color: #187e6e;
+  background: rgba(24, 126, 110, 0.14);
+  padding: 6rpx 16rpx;
+  border-radius: 999rpx;
+  font-weight: 500;
+}
+
+.wp-multi-dep-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1c2624;
+  flex: 1;
+  min-width: 200rpx;
+  line-height: 1.35;
+}
+
+.wp-multi-dep-meta {
+  font-size: 24rpx;
+  color: #7a8a86;
+  margin-left: auto;
+}
+
+.wp-multi-orders {
+  padding: 20rpx 18rpx 22rpx;
+  display: flex;
+  flex-direction: column;
+  gap: 20rpx;
+}
+
+.wp-multi-order-card {
+  background: #fff;
+  border-radius: 16rpx;
+  border: 1rpx solid rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2rpx 14rpx rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.wp-multi-order-title-row {
+  align-items: flex-start;
+  margin-bottom: 8rpx;
+}
+
+.wp-multi-history-icon {
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.wp-multi-serial {
+  flex-shrink: 0;
+  min-width: 44rpx;
+  height: 44rpx;
+  line-height: 44rpx;
+  text-align: center;
+  font-size: 24rpx;
+  font-weight: 600;
+  color: #fff;
+  background: #187e6e;
+  border-radius: 12rpx;
+  margin-right: 16rpx;
+  margin-top: 4rpx;
+}
+
+/* 多部门订货卡片底部：第一行订货/出货与单价框同一行并垂直居中 */
+.wp-multi-bottom-block {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.wp-multi-bottom-row {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.wp-multi-bottom-row-main {
+  align-items: center;
+}
+
+.wp-multi-row-spacer {
+  flex-shrink: 0;
+  width: 32rpx;
+  min-width: 32rpx;
+}
+
+.wp-multi-qty-with-input {
+  flex: 1;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.wp-multi-qty-row,
+.wp-multi-remark-row {
+  box-sizing: border-box;
+}
+
+.wp-multi-remark-row {
+  flex: 1;
+  min-width: 0;
+}
+
+.wp-multi-remark-line {
+  margin-top: 8rpx;
+  align-items: flex-start;
+}
+
+.wp-multi-bottom-right {
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.wp-multi-weight-input {
+  width: 220rpx !important;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  margin: 0 0 0 12rpx !important;
+}
+
+/* 单部门填价：与多部门同一套底部行，细微差异 */
+.wp-single-ship-row {
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  flex-wrap: wrap;
+  box-sizing: border-box;
+}
+
+.wp-single-price-row {
+  align-items: center;
+}
+
+.wp-single-price-unit {
+  margin-left: 8rpx;
+  line-height: 60rpx;
+  font-size: 28rpx;
+  color: #333;
+  flex-shrink: 0;
+}
+
+.wp-single-cost-row {
+  flex-wrap: wrap;
+  margin-top: 16rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid rgba(0, 0, 0, 0.06);
 }

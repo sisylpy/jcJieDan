@@ -9,6 +9,13 @@ page {
 .liziBack{
   background: #e5f8f6;
 }
+.clll_back{
+  background: #f6fdf9;
+}
+.liziCollBack{
+  background: #f2fbfa;
+}
+
 
 .liziClock{
   background: #ebebeb;
@@ -60,7 +67,7 @@ page {
   display: flex;
   justify-content: center; /* 水平居中 */
   align-items: center; /* 垂直居中 */
-  width: 100%; /* 确保占满整个行 */
+  /* width: 100%; 确保占满整个行 */
 }
 
 .third-row {
@@ -383,6 +390,7 @@ page {
 .border-bottom {
   border-bottom: 1px solid #e0e0e0;
 }
+
 
 .border-left {
   border-left: 1px solid #e0e0e0;
@@ -741,6 +749,7 @@ page {
   border-radius: 5rpx;
   background-color: rgb(199, 199, 199);
   margin: 20rpx 20rpx;
+  
  
 }
 

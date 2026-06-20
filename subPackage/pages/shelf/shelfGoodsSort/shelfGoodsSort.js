@@ -4,10 +4,11 @@
 let self;
 const app = getApp()
 var load = require('../../../../lib/load.js');
+import apiUrl from '../../../../config.js'
 
 import {
- 
   getShelfGoods,
+  getShelfGoodsByLayer,
   updateShelfGoodsSort,
   deleteShelfGoods
 } from '../../../../lib/apiDistributer'
@@ -26,8 +27,8 @@ Page({
     isDragging: false,         // 是否正在拖拽
     dragPageX: 0,              // 当前手指 pageX
     dragPageY: 0,              // 当前手指 pageY
-    // 网格布局参数
-    gridColumns: 3,            // 一行几个（与样式一致）
+    // 网格布局参数（列表一行一个，拖拽按单列计算）
+    gridColumns: 1,
     itemWidth: 0,              // 单个卡片宽度
     itemHeight: 0,             // 单个卡片高度
     containerTop: 0,           // 网格容器 top
@@ -48,7 +49,10 @@ Page({
       7: '第七层结束',
       8: '第八层结束',
       9: '第九层结束',
-    }
+    },
+    sortPageTitle: '修改商品位置',
+    shelfLayer: null,
+    url: '',
   },
   
   // 初始化滚动位置缓存
@@ -60,12 +64,20 @@ Page({
   */
   onLoad: function (options) {
     const globalData = app.globalData;
+    const layerOpt = options.layer;
+    const shelfLayer = layerOpt !== undefined && layerOpt !== null && layerOpt !== ''
+      ? parseInt(layerOpt, 10)
+      : null;
+    const validLayer = shelfLayer !== null && !isNaN(shelfLayer) && shelfLayer > 0 ? shelfLayer : null;
 
     this.setData({
       windowWidth: globalData.windowWidth * globalData.rpxR,
       windowHeight: globalData.windowHeight * globalData.rpxR,
       shelfId: options.shelfId,
       navBarHeight: globalData.navBarHeight * globalData.rpxR,
+      shelfLayer: validLayer,
+      sortPageTitle: validLayer ? ('第' + validLayer + '层 · 调整位置') : '修改商品位置',
+      url: apiUrl.server,
     })
     self = this;
 
@@ -73,15 +85,80 @@ Page({
     
   },
 
+  /** 接口若扁平化字段，补全 nxDistributerGoodsEntity；层内排序号优先 nxDgsgShelfLayerSeq，缺省时用 nxDgsgSort */
+  _normalizeShelfGoodsList(list) {
+    if (!Array.isArray(list)) return [];
+    return list.map((item) => {
+      if (!item) return item;
+      let row = { ...item };
+      if (!row.nxDistributerGoodsEntity) {
+        row.nxDistributerGoodsEntity = {
+          nxDgGoodsName: item.nxDgGoodsName,
+          nxDgGoodsBrand: item.nxDgGoodsBrand,
+          nxDgGoodsStandardname: item.nxDgGoodsStandardname,
+          nxDgGoodsStandardWeight: item.nxDgGoodsStandardWeight,
+          nxDgGoodsFile: item.nxDgGoodsFile,
+          nxDgGoodsFileLarge: item.nxDgGoodsFileLarge,
+          nxDgNxGoodsId: item.nxDgNxGoodsId,
+          nxDgItemsPerCarton: item.nxDgItemsPerCarton,
+          nxDgCartonUnit: item.nxDgCartonUnit,
+        };
+      }
+      const seq = row.nxDgsgShelfLayerSeq;
+      if (seq == null || seq === '') {
+        if (row.nxDgsgSort != null && row.nxDgsgSort !== '') {
+          row.nxDgsgShelfLayerSeq = row.nxDgsgSort;
+        }
+      }
+      return row;
+    });
+  },
+
   _getInitData(){
    load.showLoading("获取商品中")
-   getShelfGoods(this.data.shelfId, 1, 500)
+   const shelfId = this.data.shelfId;
+   const layer = this.data.shelfLayer;
+
+   if (layer != null) {
+     getShelfGoodsByLayer(shelfId, layer)
+       .then(res => {
+         if (res.result.code == 0) {
+           load.hideLoading();
+           const respData = res.result.data || {};
+           const goodsList = this._normalizeShelfGoodsList(Array.isArray(respData.goods) ? respData.goods : []);
+           this.setData({
+             shelfGoodsList: goodsList,
+           }, () => {
+             this._measureGrid();
+           });
+         } else {
+           load.hideLoading();
+           wx.showToast({
+             title: res.result.msg || '获取商品失败',
+             icon: 'none'
+           });
+         }
+       })
+       .catch(() => {
+         load.hideLoading();
+       });
+     return;
+   }
+
+   var data = {
+    shelfId: shelfId,
+    page: 1,
+    limit: 500,
+    shelfGoodsType: '99'
+   }
+   getShelfGoods(data)
     .then(res =>{
       if(res.result.code == 0){
         load.hideLoading();
         console.log(res);
        const respData = res.result.data || res.result.page || {};
-       const goodsList = Array.isArray(respData.list) ? respData.list : (Array.isArray(respData) ? respData : []);
+       const rawList = Array.isArray(respData.list) ? respData.list : (Array.isArray(respData) ? respData : []);
+       const goodsList = this._normalizeShelfGoodsList(rawList);
        this.setData({
          shelfGoodsList: goodsList,
        }, () => {
@@ -309,9 +386,9 @@ Page({
     const item = list.splice(fromIndex, 1)[0];
     list.splice(toIndex, 0, item);
     
-    // 重新编号
+    // 重新编号（层内序）
     for (let i = 0; i < list.length; i++) {
-      list[i].nxDgsgSort = i + 1;
+      list[i].nxDgsgShelfLayerSeq = i + 1;
     }
     
     this.setData({
@@ -370,7 +447,7 @@ Page({
     }
     
     console.log('当前商品名称:', currentItem.nxDistributerGoodsEntity.nxDgGoodsName);
-    console.log('当前商品原排序:', currentItem.nxDgsgSort);
+    console.log('当前商品原层内序:', currentItem.nxDgsgShelfLayerSeq);
     console.log('当前商品实际索引:', currentIndex);
     
     // 显示网格布局的索引映射
@@ -394,7 +471,7 @@ Page({
     shelfGoodsList.forEach((item, idx) => {
       var row = Math.floor(idx / 4) + 1;
       var col = (idx % 4) + 1;
-      console.log(`  ${idx + 1}. ${item.nxDistributerGoodsEntity.nxDgGoodsName} (排序:${item.nxDgsgSort}) [第${row}行第${col}列]`);
+      console.log(`  ${idx + 1}. ${item.nxDistributerGoodsEntity.nxDgGoodsName} (层内序:${item.nxDgsgShelfLayerSeq}) [第${row}行第${col}列]`);
     });
     
     // 如果输入的值超出范围，提示错误
@@ -428,22 +505,22 @@ Page({
     shelfGoodsList.forEach((item, idx) => {
       var row = Math.floor(idx / 4) + 1;
       var col = (idx % 4) + 1;
-      console.log(`  ${idx + 1}. ${item.nxDistributerGoodsEntity.nxDgGoodsName} (排序:${item.nxDgsgSort}) [第${row}行第${col}列]`);
+      console.log(`  ${idx + 1}. ${item.nxDistributerGoodsEntity.nxDgGoodsName} (层内序:${item.nxDgsgShelfLayerSeq}) [第${row}行第${col}列]`);
     });
     
-    // 更新所有项的排序号
+    // 更新所有项的层内序
     console.log('🔄 开始重新编号...');
     for (var i = 0; i < shelfGoodsList.length; i++) {
-      var oldSort = shelfGoodsList[i].nxDgsgSort;
-      shelfGoodsList[i].nxDgsgSort = i + 1;
-      console.log(`   ${shelfGoodsList[i].nxDistributerGoodsEntity.nxDgGoodsName}: ${oldSort} → ${i + 1}`);
+      var oldSeq = shelfGoodsList[i].nxDgsgShelfLayerSeq;
+      shelfGoodsList[i].nxDgsgShelfLayerSeq = i + 1;
+      console.log(`   ${shelfGoodsList[i].nxDistributerGoodsEntity.nxDgGoodsName}: ${oldSeq} → ${i + 1}`);
     }
     
     console.log('📋 重新编号后商品列表:');
     shelfGoodsList.forEach((item, idx) => {
       var row = Math.floor(idx / 4) + 1;
       var col = (idx % 4) + 1;
-      console.log(`  ${idx + 1}. ${item.nxDistributerGoodsEntity.nxDgGoodsName} (排序:${item.nxDgsgSort}) [第${row}行第${col}列]`);
+      console.log(`  ${idx + 1}. ${item.nxDistributerGoodsEntity.nxDgGoodsName} (层内序:${item.nxDgsgShelfLayerSeq}) [第${row}行第${col}列]`);
     });
     
     this.setData({
@@ -458,7 +535,7 @@ Page({
       this.data.shelfGoodsList.forEach((item, idx) => {
         var row = Math.floor(idx / 4) + 1;
         var col = (idx % 4) + 1;
-        console.log(`  ${idx + 1}. ${item.nxDistributerGoodsEntity.nxDgGoodsName} (排序:${item.nxDgsgSort}) [第${row}行第${col}列]`);
+        console.log(`  ${idx + 1}. ${item.nxDistributerGoodsEntity.nxDgGoodsName} (层内序:${item.nxDgsgShelfLayerSeq}) [第${row}行第${col}列]`);
       });
       console.log('=== 排序操作完成 ===');
     }, 100);
@@ -469,7 +546,7 @@ Page({
     var temp = [];
     for(var i = 0; i < arr.length; i++){
       var item = arr[i];
-      item.nxDgsgSort = i + 1;
+      item.nxDgsgShelfLayerSeq = i + 1;
       temp.push(item);
     }
     load.showLoading("保存修改商品")
