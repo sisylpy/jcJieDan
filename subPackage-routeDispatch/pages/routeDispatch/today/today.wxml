@@ -1,0 +1,260 @@
+<view class="page flex flex-column">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="{{(pageViewModel.pageHeader && pageViewModel.pageHeader.title) || '今日派车'}}" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+
+  <view class="page-loading-wrap" wx:if="{{loading}}">
+    <text class="text-secondary font-md">加载中...</text>
+  </view>
+
+  <view class="empty-wrap" wx:if="{{!loading && loadError}}">
+    <text class="text-secondary font-md">{{loadError}}</text>
+  </view>
+
+  <scroll-view scroll-y="true" class="page-scroll" wx:if="{{!loading && pageViewModel}}">
+    <view class="hero-card" wx:if="{{pageViewModel.pageHeader.title}}">
+      <view class="hero-top">
+        <view class="hero-top-glow hero-top-glow-left"></view>
+        <view class="hero-top-glow hero-top-glow-right"></view>
+        <view class="hero-top-row">
+          <view class="hero-clipboard-wrap">
+            <view class="hero-clipboard-glow"></view>
+            <image class="hero-clipboard-icon" src="/images/To_Do.png" mode="aspectFit"></image>
+          </view>
+          <view class="hero-top-text">
+            <view class="hero-title">{{pageViewModel.pageHeader.title}}</view>
+            <view class="hero-subtitle" wx:if="{{pageViewModel.pageHeader.progress && pageViewModel.pageHeader.progress.mainLine}}">
+              <text class="hero-subtitle-num" wx:if="{{pageViewModel.pageHeader.progress.highlightText}}">{{pageViewModel.pageHeader.progress.highlightText}}</text>
+              <text>{{pageViewModel.pageHeader.progress.mainLine}}</text>
+            </view>
+            <view class="hero-banner" wx:if="{{pageViewModel.pageHeader.scheduleBannerLine}}">{{pageViewModel.pageHeader.scheduleBannerLine}}</view>
+            <view class="hero-banner" wx:if="{{pageViewModel.pageHeader.operationHint}}">{{pageViewModel.pageHeader.operationHint}}</view>
+          </view>
+          <image class="hero-truck-icon" src="/images/car.png" mode="aspectFit"></image>
+        </view>
+      </view>
+      <view class="hero-stats-bar" wx:if="{{pageViewModel.topMetrics.length > 0}}">
+        <view class="hero-stat-col" wx:for="{{pageViewModel.topMetrics}}" wx:key="label">
+          <image class="hero-stat-icon" src="{{item.icon}}" mode="aspectFit"></image>
+          <view class="hero-stat-value">{{item.value}}</view>
+          <view class="hero-stat-label">{{item.label}}</view>
+        </view>
+      </view>
+    </view>
+
+    <block wx:for="{{pageViewModel.sections}}" wx:for-item="section" wx:for-index="sectionIndex" wx:key="sectionKey">
+      <view class="dispatch-section" wx:if="{{section.cards.length > 0}}">
+        <block wx:for="{{section.cards}}" wx:for-item="card" wx:for-index="cardIndex" wx:key="cardKey">
+          <view
+            wx:if="{{card.cardType === 'DRIVER_ROUTE'}}"
+            class="driver-route-card bg-white"
+            id="route{{sectionIndex}}_{{cardIndex}}"
+          >
+            <view class="driver-route-head">
+              <image class="driver-avatar" src="/images/user-group-2.png" mode="aspectFill"></image>
+              <view class="driver-route-head-main">
+                <view class="driver-route-name-row driver-route-name-row-between">
+                  <text class="driver-route-name">{{card.driverName}}</text>
+                  <text class="driver-dispatch-badge driver-dispatch-badge-{{card.driverStatusTone}}" wx:if="{{card.driverStatusLabel}}">{{card.driverStatusLabel}}</text>
+                  <text class="driver-dispatch-badge" wx:elif="{{card.badgeLabel}}">{{card.badgeLabel}}</text>
+                </view>
+                <view class="driver-schedule-headline" wx:if="{{card.scheduleHeadline}}">{{card.scheduleHeadline}}</view>
+                <view class="driver-route-stats" wx:if="{{card.routeStatsLine}}">{{card.routeStatsLine}}</view>
+              </view>
+            </view>
+
+            <view class="route-timeline" wx:if="{{card.timeline.length > 0}}">
+              <block wx:for="{{card.timeline}}" wx:for-item="node" wx:for-index="nodeIndex" wx:key="index">
+                <view class="timeline-node timeline-start" wx:if="{{node.type === 'start'}}">
+                  <view class="timeline-marker timeline-marker-start">{{node.marker}}</view>
+                  <view class="timeline-content timeline-point-content">
+                    <view class="timeline-point-row">
+                      <view class="timeline-title">{{node.name}}</view>
+                      <view class="timeline-point-time">{{node.timeRight}}</view>
+                    </view>
+                  </view>
+                </view>
+
+                <view class="timeline-leg {{node.isNextStopLeg ? 'timeline-leg-next' : ''}}" wx:if="{{node.type === 'leg'}}">
+                  <view class="timeline-leg-line"></view>
+                  <view class="timeline-leg-info">
+                    <image class="timeline-leg-car" src="/images/car.png" mode="aspectFit"></image>
+                    <text class="timeline-leg-arrow">→</text>
+                    <text>{{node.legText}}</text>
+                  </view>
+                </view>
+
+                <view class="timeline-node timeline-stop" wx:if="{{node.type === 'stop'}}">
+                  <view class="timeline-marker timeline-marker-stop">{{node.seq}}</view>
+                  <view class="timeline-content timeline-stop-content">
+                    <view class="timeline-stop-card">
+                      <view class="stop-head-row">
+                        <view class="stop-name-wrap">
+                          <image class="stop-shop-icon" src="/images/app-shop.png" mode="aspectFit"></image>
+                          <text class="stop-name">{{node.customerName}}</text>
+                        </view>
+                        <view
+                          wx:if="{{node.primaryAction.label && !node.primaryAction.isStatusOnly}}"
+                          class="stop-state-btn {{node.primaryAction.toneClass}}"
+                          catchtap="onTimelineNodePrimaryAction"
+                          data-section-index="{{sectionIndex}}"
+                          data-card-index="{{cardIndex}}"
+                          data-node-index="{{nodeIndex}}"
+                        >{{node.primaryAction.label}}</view>
+                        <text
+                          wx:elif="{{node.primaryAction.label}}"
+                          class="stop-state-status {{node.primaryAction.toneClass}}"
+                        >{{node.primaryAction.label}}</text>
+                        <text
+                          wx:elif="{{node.statusLabel}}"
+                          class="stop-state-status stop-state-confirmed"
+                        >{{node.statusLabel}}</text>
+                      </view>
+                      <view class="timeline-stop-goods" wx:if="{{node.goodsSummary}}">{{node.goodsSummary}}</view>
+                      <view class="stop-time-grid">
+                        <view class="stop-time-col">
+                          <text class="stop-time-label">预计到达</text>
+                          <text class="stop-time-val">{{node.arrivalLabel}}</text>
+                        </view>
+                        <view class="stop-time-col">
+                          <text class="stop-time-label">预计离开</text>
+                          <text class="stop-time-val">{{node.departureLabel}}</text>
+                        </view>
+                        <view class="stop-time-col">
+                          <text class="stop-time-label">送达窗</text>
+                          <text class="stop-time-val stop-window-val {{node.windowTone === 'warn' ? 'stop-window-warn' : ''}}">{{node.windowLabel}}</text>
+                        </view>
+                      </view>
+                      <view class="stop-next-leg-hint" wx:if="{{node.nextLegHint}}">
+                        <image class="stop-next-leg-car" src="/images/car.png" mode="aspectFit"></image>
+                        <text>{{node.nextLegHint}}</text>
+                      </view>
+                    </view>
+                  </view>
+                </view>
+
+                <view class="timeline-node timeline-end" wx:if="{{node.type === 'end'}}">
+                  <view class="timeline-marker timeline-marker-end">{{node.marker}}</view>
+                  <view class="timeline-content timeline-point-content">
+                    <view class="timeline-point-row">
+                      <view class="timeline-title">{{node.name}}</view>
+                      <view class="timeline-point-time">{{node.timeRight}}</view>
+                    </view>
+                  </view>
+                </view>
+              </block>
+            </view>
+
+            <view
+              class="route-primary-action-row"
+              wx:if="{{card.primaryAction && card.primaryAction.label}}"
+            >
+              <view
+                wx:if="{{!card.primaryAction.isStatusOnly}}"
+                class="route-primary-action-btn stop-state-btn {{card.primaryAction.toneClass}}"
+                catchtap="onRouteCardPrimaryAction"
+                data-section-index="{{sectionIndex}}"
+                data-card-index="{{cardIndex}}"
+              >{{card.primaryAction.label}}</view>
+              <text
+                wx:else
+                class="route-primary-action-status stop-state-status {{card.primaryAction.toneClass}}"
+              >{{card.primaryAction.label}}</text>
+            </view>
+          </view>
+
+          <view
+            wx:elif="{{card.cardType === 'UNASSIGNED_CUSTOMER'}}"
+            class="driver-route-card bg-white unassigned-customer-card"
+            id="unassigned{{sectionIndex}}_{{cardIndex}}"
+          >
+            <view class="unassigned-card-head" wx:if="{{card.badgeLabel || card.driverLabel || card.statusLabel}}">
+              <text class="driver-dispatch-badge" wx:if="{{card.badgeLabel}}">{{card.badgeLabel}}</text>
+              <text class="unassigned-meta-text" wx:if="{{card.driverLabel}}">{{card.driverLabel}}</text>
+              <text class="unassigned-meta-text" wx:if="{{card.statusLabel}}">{{card.statusLabel}}</text>
+            </view>
+            <view class="timeline-stop-card unassigned-stop-card">
+              <view class="stop-head-row">
+                <view class="stop-name-wrap">
+                  <image class="stop-shop-icon" src="/images/app-shop.png" mode="aspectFit"></image>
+                  <text class="stop-name">{{card.customerName}}</text>
+                </view>
+                <view
+                  wx:if="{{card.primaryAction && card.primaryAction.label && !card.primaryAction.isStatusOnly}}"
+                  class="stop-state-btn {{card.primaryAction.toneClass}}"
+                  catchtap="onCardPrimaryAction"
+                  data-section-index="{{sectionIndex}}"
+                  data-card-index="{{cardIndex}}"
+                >{{card.primaryAction.label}}</view>
+                <text
+                  wx:elif="{{card.primaryAction && card.primaryAction.label}}"
+                  class="stop-state-status {{card.primaryAction.toneClass}}"
+                >{{card.primaryAction.label}}</text>
+              </view>
+              <view class="timeline-stop-goods" wx:if="{{card.goodsSummary}}">{{card.goodsSummary}}</view>
+              <view class="unassigned-route-meta" wx:if="{{card.distanceText || card.durationText}}">
+                <text wx:if="{{card.distanceText}}">{{card.distanceText}}</text>
+                <text class="unassigned-route-meta-sep" wx:if="{{card.distanceText && card.durationText}}">·</text>
+                <text wx:if="{{card.durationText}}">{{card.durationText}}</text>
+              </view>
+              <view class="stop-time-grid" wx:if="{{card.plannedArrivalLabel || card.plannedDepartureLabel || card.customerWindowLabel}}">
+                <view class="stop-time-col">
+                  <text class="stop-time-label">预计到达</text>
+                  <text class="stop-time-val">{{card.plannedArrivalLabel}}</text>
+                </view>
+                <view class="stop-time-col">
+                  <text class="stop-time-label">预计离开</text>
+                  <text class="stop-time-val">{{card.plannedDepartureLabel}}</text>
+                </view>
+                <view class="stop-time-col">
+                  <text class="stop-time-label">送达窗</text>
+                  <text class="stop-time-val stop-window-val {{card.windowTone === 'warn' ? 'stop-window-warn' : ''}}">{{card.customerWindowLabel}}</text>
+                </view>
+              </view>
+              <view class="stop-service-duration" wx:if="{{card.serviceDurationLabel}}">{{card.serviceDurationLabel}}</view>
+              <view class="stop-next-leg-hint" wx:if="{{card.timeLabel}}">
+                <image class="stop-next-leg-car" src="/images/car.png" mode="aspectFit"></image>
+                <text>{{card.timeLabel}}</text>
+              </view>
+            </view>
+          </view>
+
+          <view wx:else class="dispatch-card bg-white" id="card{{sectionIndex}}_{{cardIndex}}">
+            <view class="dispatch-stop-body">
+              <view class="dispatch-stop-name">{{card.customerName}}</view>
+              <view class="dispatch-stop-goods" wx:if="{{card.goodsSummary}}">{{card.goodsSummary}}</view>
+              <view class="dispatch-stop-meta" wx:if="{{card.distanceText}}">{{card.distanceText}}</view>
+              <view class="dispatch-stop-meta" wx:if="{{card.durationText}}">{{card.durationText}}</view>
+              <view class="dispatch-stop-time" wx:if="{{card.timeLabel}}">{{card.timeLabel}}</view>
+            </view>
+            <view class="dispatch-stop-actions" wx:if="{{card.primaryAction && card.primaryAction.label}}">
+              <view
+                class="stop-state-btn {{card.primaryAction.toneClass}}"
+                catchtap="onCardPrimaryAction"
+                data-section-index="{{sectionIndex}}"
+                data-card-index="{{cardIndex}}"
+              >{{card.primaryAction.label}}</view>
+            </view>
+          </view>
+        </block>
+      </view>
+    </block>
+
+    <view class="driver-section" wx:if="{{pageViewModel.availableDrivers.length > 0}}">
+      <view class="driver-route-card bg-white idle-driver-card" wx:for="{{pageViewModel.availableDrivers}}" wx:key="driverUserId">
+        <view class="idle-driver-head">
+          <image class="driver-avatar" src="/images/user-group-2.png" mode="aspectFill"></image>
+          <view class="idle-driver-main">
+            <view class="driver-route-name-row driver-route-name-row-between">
+              <text class="driver-route-name">{{item.driverName}}</text>
+              <text class="driver-dispatch-badge" wx:if="{{item.badgeLabel}}">{{item.badgeLabel}}</text>
+            </view>
+          </view>
+        </view>
+        <view class="idle-body">
+          <text class="idle-title">{{item.statusLabel}}</text>
+          <text class="idle-hint">{{item.routeHint}}</text>
+        </view>
+      </view>
+    </view>
+
+  </scroll-view>
+</view>

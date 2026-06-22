@@ -1,0 +1,118 @@
+<view class="page flex flex-column">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="人工调度" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+
+  <view class="page-loading-wrap" wx:if="{{loading}}">
+    <text class="text-secondary font-md">加载中...</text>
+  </view>
+
+  <view class="empty-wrap" wx:if="{{!loading && loadError}}">
+    <text class="text-secondary font-md">{{loadError}}</text>
+  </view>
+
+  <scroll-view scroll-y="true" class="page-scroll manual-dispatch-scroll" wx:if="{{!loading && pageData}}">
+    <view class="driver-route-card bg-white unassigned-customer-card" wx:if="{{pageData.storeCard.customerName}}">
+      <view class="section-label">待分派客户</view>
+      <view class="unassigned-card-head" wx:if="{{pageData.storeCard.dispatchStatusLabel}}">
+        <text class="driver-dispatch-badge driver-dispatch-badge-warn">{{pageData.storeCard.dispatchStatusLabel}}</text>
+      </view>
+      <view class="timeline-stop-card unassigned-stop-card">
+        <view class="stop-head-row">
+          <view class="stop-name-wrap">
+            <image class="stop-shop-icon" src="/images/app-shop.png" mode="aspectFit"></image>
+            <text class="stop-name">{{pageData.storeCard.customerName}}</text>
+          </view>
+        </view>
+        <view class="timeline-stop-goods" wx:if="{{pageData.storeCard.goodsSummary}}">{{pageData.storeCard.goodsSummary}}</view>
+        <view class="unassigned-route-meta" wx:if="{{pageData.storeCard.distanceText || pageData.storeCard.durationText}}">
+          <text wx:if="{{pageData.storeCard.distanceText}}">{{pageData.storeCard.distanceText}}</text>
+          <text class="unassigned-route-meta-sep" wx:if="{{pageData.storeCard.distanceText && pageData.storeCard.durationText}}">·</text>
+          <text wx:if="{{pageData.storeCard.durationText}}">{{pageData.storeCard.durationText}}</text>
+        </view>
+        <view class="stop-time-grid" wx:if="{{pageData.storeCard.plannedArrivalLabel || pageData.storeCard.plannedDepartureLabel || pageData.storeCard.customerWindowLabel}}">
+          <view class="stop-time-col">
+            <text class="stop-time-label">预计到达</text>
+            <text class="stop-time-val">{{pageData.storeCard.plannedArrivalLabel}}</text>
+          </view>
+          <view class="stop-time-col">
+            <text class="stop-time-label">预计离开</text>
+            <text class="stop-time-val">{{pageData.storeCard.plannedDepartureLabel}}</text>
+          </view>
+          <view class="stop-time-col">
+            <text class="stop-time-label">送达窗</text>
+            <text class="stop-time-val stop-window-val {{pageData.storeCard.windowTone === 'warn' ? 'stop-window-warn' : ''}}">{{pageData.storeCard.customerWindowLabel}}</text>
+          </view>
+        </view>
+        <view class="stop-service-duration" wx:if="{{pageData.storeCard.serviceDurationLabel}}">服务时长 {{pageData.storeCard.serviceDurationLabel}}</view>
+      </view>
+      <view class="manual-summary-line" wx:if="{{pageData.summary && pageData.summary.summaryLine}}">{{pageData.summary.summaryLine}}</view>
+    </view>
+
+    <view class="driver-list-head" wx:if="{{pageData.drivers.length > 0}}">
+      <text class="driver-list-title">可选司机</text>
+      <text class="driver-list-count">共 {{pageData.drivers.length}} 人</text>
+    </view>
+
+    <view class="driver-section" wx:if="{{pageData.drivers.length > 0}}">
+      <view
+        class="driver-route-card bg-white"
+        wx:for="{{pageData.drivers}}"
+        wx:for-index="driverIndex"
+        wx:key="driverUserId"
+      >
+        <view class="driver-route-head">
+          <image
+            class="driver-avatar"
+            src="{{item.driverAvatarUrl || '/images/user-group-2.png'}}"
+            mode="aspectFill"
+          ></image>
+          <view class="driver-route-head-main">
+            <view class="driver-route-name-row">
+              <text class="driver-route-name">{{item.driverName}}</text>
+            </view>
+            <view class="driver-duty-badges">
+              <text class="driver-dispatch-badge driver-dispatch-badge-{{item.dutyBadgeTone}}" wx:if="{{item.dutyStatusLabel}}">{{item.dutyStatusLabel}}</text>
+              <text class="driver-dispatch-badge driver-dispatch-badge-{{item.stageBadgeTone}}" wx:if="{{item.dispatchStageLabel}}">{{item.dispatchStageLabel}}</text>
+              <text class="driver-dispatch-badge driver-dispatch-badge-warn" wx:if="{{item.confirmModeLabel}}">{{item.confirmModeLabel}}</text>
+            </view>
+            <view class="driver-schedule-headline" wx:if="{{item.plannedDepartureLabel || item.estimatedReturnLabel}}">
+              <text wx:if="{{item.plannedDepartureLabel}}">准备出发 {{item.plannedDepartureLabel}}</text>
+              <text wx:if="{{item.plannedDepartureLabel && item.estimatedReturnLabel}}"> · </text>
+              <text wx:if="{{item.estimatedReturnLabel}}">预计返回 {{item.estimatedReturnLabel}}</text>
+            </view>
+            <view class="driver-route-stats" wx:if="{{item.totalDistanceText || item.totalDurationText}}">
+              <text wx:if="{{item.totalDistanceText}}">{{item.totalDistanceText}}</text>
+              <text wx:if="{{item.totalDistanceText && item.totalDurationText}}"> · </text>
+              <text wx:if="{{item.totalDurationText}}">{{item.totalDurationText}}</text>
+            </view>
+            <view class="driver-route-stats" wx:if="{{item.routeSummary}}">{{item.routeSummary}}</view>
+            <view class="driver-route-stats" wx:if="{{item.currentStopCount != null || item.completedStopCount != null || item.pendingStopCount != null}}">
+              <text wx:if="{{item.currentStopCount != null}}">共 {{item.currentStopCount}} 站</text>
+              <text wx:if="{{item.currentStopCount != null && item.completedStopCount != null}}"> · </text>
+              <text wx:if="{{item.completedStopCount != null}}">已完成 {{item.completedStopCount}}</text>
+              <text wx:if="{{item.completedStopCount != null && item.pendingStopCount != null}}"> · </text>
+              <text wx:if="{{item.currentStopCount != null && item.pendingStopCount != null && item.completedStopCount == null}}"> · </text>
+              <text wx:if="{{item.pendingStopCount != null}}">待送 {{item.pendingStopCount}}</text>
+            </view>
+            <view class="driver-duty-hint" wx:if="{{item.operationHint}}">{{item.operationHint}}</view>
+          </view>
+        </view>
+
+        <view class="driver-duty-risk-hints" wx:if="{{item.riskHints && item.riskHints.length > 0}}">
+          <view class="driver-duty-risk-item" wx:for="{{item.riskHints}}" wx:for-item="hint" wx:key="*this">{{hint}}</view>
+        </view>
+
+        <view class="driver-duty-lock-reason" wx:if="{{item.blockedReason}}">{{item.blockedReason}}</view>
+
+        <view class="manual-driver-action-wrap" wx:if="{{item.primaryAction.label || item.confirmHintLabel}}">
+          <view
+            wx:if="{{item.primaryAction.label}}"
+            class="route-primary-action-btn stop-state-btn {{item.primaryAction.toneClass}}"
+            catchtap="onSimulateAction"
+            data-driver-index="{{driverIndex}}"
+          >{{item.primaryAction.label}}</view>
+          <text class="manual-confirm-hint" wx:if="{{item.confirmHintLabel}}">{{item.confirmHintLabel}}</text>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+</view>

@@ -1,0 +1,78 @@
+<view class="page flex flex-column">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="司机可派状态" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+
+  <view class="empty-wrap" wx:if="{{!loading && loadError}}">
+    <text class="text-secondary font-md">{{loadError}}</text>
+  </view>
+
+  <view class="summary-card bg-white" wx:if="{{pageData && pageData.summary.summaryLine}}">
+    <view class="summary-tip">{{pageData.summary.summaryLine}}</view>
+    <view class="summary-hint">开启后，该司机会参与今日派车；关闭后，系统不会给该司机派单。</view>
+  </view>
+
+  <scroll-view scroll-y="true" class="page-scroll duty-page-scroll" wx:if="{{pageData && pageData.driverCards.length > 0}}">
+    <view
+      class="driver-route-card bg-white"
+      wx:for="{{pageData.driverCards}}"
+      wx:for-index="driverIndex"
+      wx:key="driverUserId"
+    >
+      <view class="driver-route-head">
+        <image
+          class="driver-avatar"
+          src="{{item.driverAvatarUrl || '/images/user-group-2.png'}}"
+          mode="aspectFill"
+        ></image>
+        <view class="driver-route-head-main">
+          <view class="driver-route-name-row">
+            <text class="driver-route-name">{{item.driverName}}</text>
+            <text class="duty-self-tag" wx:if="{{item.driverUserId == currentDriverUserId}}">我</text>
+          </view>
+          <view class="driver-duty-badges">
+            <text class="driver-dispatch-badge driver-dispatch-badge-{{item.dutyBadgeTone}}" wx:if="{{item.dutyStatusLabel}}">{{item.dutyStatusLabel}}</text>
+            <text class="driver-dispatch-badge driver-dispatch-badge-{{item.stageBadgeTone}}" wx:if="{{item.dispatchStageLabel}}">{{item.dispatchStageLabel}}</text>
+          </view>
+          <view class="driver-schedule-headline" wx:if="{{item.plannedDepartureLabel || item.estimatedReturnLabel}}">
+            <text wx:if="{{item.plannedDepartureLabel}}">准备出发 {{item.plannedDepartureLabel}}</text>
+            <text wx:if="{{item.plannedDepartureLabel && item.estimatedReturnLabel}}"> · </text>
+            <text wx:if="{{item.estimatedReturnLabel}}">预计返回 {{item.estimatedReturnLabel}}</text>
+          </view>
+          <view class="driver-route-stats" wx:if="{{item.totalDistanceText || item.totalDurationText}}">
+            <text wx:if="{{item.totalDistanceText}}">{{item.totalDistanceText}}</text>
+            <text wx:if="{{item.totalDistanceText && item.totalDurationText}}"> · </text>
+            <text wx:if="{{item.totalDurationText}}">{{item.totalDurationText}}</text>
+          </view>
+          <view class="driver-route-stats" wx:if="{{item.routeSummary}}">{{item.routeSummary}}</view>
+          <view class="driver-route-stats" wx:if="{{item.customerCount != null || item.completedStopCount != null || item.pendingStopCount != null}}">
+            <text wx:if="{{item.customerCount != null}}">共 {{item.customerCount}} 个客户</text>
+            <text wx:if="{{item.customerCount != null && item.completedStopCount != null}}"> · </text>
+            <text wx:if="{{item.completedStopCount != null}}">已完成 {{item.completedStopCount}}</text>
+            <text wx:if="{{(item.customerCount != null || item.completedStopCount != null) && item.pendingStopCount != null}}"> · </text>
+            <text wx:if="{{item.pendingStopCount != null}}">待送 {{item.pendingStopCount}}</text>
+          </view>
+          <view class="driver-duty-hint" wx:if="{{item.operationHint}}">{{item.operationHint}}</view>
+        </view>
+      </view>
+
+      <view class="driver-duty-risk-hints" wx:if="{{item.riskHints.length > 0}}">
+        <view class="driver-duty-risk-item" wx:for="{{item.riskHints}}" wx:for-item="hint" wx:key="*this">{{hint}}</view>
+      </view>
+
+      <view class="driver-duty-lock-reason" wx:if="{{item.toggleButtonDisabled && item.toggleDisabledReason}}">
+        {{item.toggleDisabledReason}}
+      </view>
+
+      <view class="route-primary-action-row" wx:if="{{item.primaryAction.label}}">
+        <view
+          class="route-primary-action-btn stop-state-btn {{item.toggleButtonToneClass}}"
+          bindtap="onToggleDispatch"
+          data-index="{{driverIndex}}"
+        >{{item.primaryAction.label}}</view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view class="empty-wrap" wx:if="{{!loading && !loadError && pageData && pageData.driverCards.length === 0 && pageData.emptyText}}">
+    <text class="text-secondary font-md">{{pageData.emptyText}}</text>
+  </view>
+</view>

@@ -1,0 +1,71 @@
+<view class="page flex flex-column">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="配送客户详情" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+
+  <view class="page-loading-wrap" wx:if="{{loading}}">
+    <text class="text-secondary font-md">加载中...</text>
+  </view>
+
+  <scroll-view scroll-y="true" class="page-scroll" wx:if="{{!loading}}">
+    <view class="empty-wrap" wx:if="{{loadError}}">
+      <text class="text-secondary font-md">{{loadError}}</text>
+    </view>
+
+    <view class="detail-card bg-white" wx:if="{{stopDetail.customerName}}">
+      <view class="detail-title">{{stopDetail.customerName}}</view>
+      <view class="detail-row" wx:if="{{stopDetail.customerPhone}}">
+        <text class="detail-label">联系电话</text>
+        <text class="detail-value link" bindtap="onCallPhone">{{stopDetail.customerPhone}}</text>
+      </view>
+      <view class="detail-row" wx:if="{{stopDetail.customerAddress}}">
+        <text class="detail-label">客户地址</text>
+        <text class="detail-value">{{stopDetail.customerAddress}}</text>
+      </view>
+      <view class="detail-row" wx:if="{{stopDetail.etaArriveAt}}">
+        <text class="detail-label">预计到达</text>
+        <text class="detail-value">{{stopDetail.etaArriveAt}}</text>
+      </view>
+      <view class="detail-row" wx:if="{{stopDetail.etaLeaveAt}}">
+        <text class="detail-label">预计离开</text>
+        <text class="detail-value">{{stopDetail.etaLeaveAt}}</text>
+      </view>
+      <view class="detail-row" wx:if="{{stopDetail.deliveryStatusLabel}}">
+        <text class="detail-label">配送状态</text>
+        <text class="detail-value status {{stopDetail.statusClass}}">{{stopDetail.deliveryStatusLabel}}</text>
+      </view>
+      <view class="detail-row" wx:if="{{stopDetail.remark}}">
+        <text class="detail-label">备注</text>
+        <text class="detail-value">{{stopDetail.remark}}</text>
+      </view>
+    </view>
+
+    <view class="order-section" wx:if="{{stopDetail.orders.length > 0}}">
+      <view class="section-title">订单列表</view>
+      <view class="order-block" wx:for="{{stopDetail.orders}}" wx:for-item="order" wx:for-index="orderIndex" wx:key="orderId">
+        <view class="order-head">
+          <text class="order-title">订单 {{orderIndex + 1}}</text>
+          <text class="order-status" wx:if="{{order.purchaseStatusLabel}}">{{order.purchaseStatusLabel}}</text>
+        </view>
+        <view class="loading-stop-items">
+          <view class="loading-item-row" wx:for="{{order.items}}" wx:for-item="goods" wx:key="goodsName">
+            <text class="loading-goods-name">{{goods.goodsName}}</text>
+            <text class="loading-goods-qty">{{goods.quantity}}{{goods.unit}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="detail-action-bar" wx:if="{{stopDetail.showActionBar}}">
+      <view class="detail-action-btn disabled" wx:if="{{stopDetail.showNav}}" bindtap="onNavTap">打开导航</view>
+      <view
+        wx:if="{{stopDetail.showComplete}}"
+        class="detail-action-btn {{actionSubmitting ? 'disabled' : ''}}"
+        bindtap="onCompleteTap"
+      >送货完成</view>
+      <view
+        wx:if="{{stopDetail.showException}}"
+        class="detail-action-btn warning {{actionSubmitting ? 'disabled' : ''}}"
+        bindtap="onExceptionTap"
+      >上报异常</view>
+    </view>
+  </scroll-view>
+</view>
