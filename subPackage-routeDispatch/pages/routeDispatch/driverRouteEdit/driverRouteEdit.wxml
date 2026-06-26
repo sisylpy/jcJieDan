@@ -1,0 +1,145 @@
+<view class="page flex flex-column">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="{{pageTitle}}" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+
+  <view class="page-loading-wrap" wx:if="{{loading}}">
+    <text class="text-secondary font-md">加载中...</text>
+  </view>
+
+  <view class="empty-wrap" wx:if="{{!loading && loadError}}">
+    <text class="text-secondary font-md">{{loadError}}</text>
+  </view>
+
+  <scroll-view scroll-y="{{pageScrollEnabled}}" class="page-scroll page-scroll-with-footer" wx:if="{{!loading && pageViewModel}}">
+    <view class="driver-summary-card bg-white">
+      <view class="driver-summary-name">{{pageViewModel.driver.driverName}}</view>
+      <view class="driver-summary-metrics">
+        <text wx:if="{{pageViewModel.driver.customerStopCount != null}}">{{pageViewModel.driver.customerStopCount}} 个客户</text>
+        <text class="metric-sep" wx:if="{{pageViewModel.driver.customerStopCount != null && pageViewModel.driver.totalDistanceText}}"> · </text>
+        <text wx:if="{{pageViewModel.driver.totalDistanceText}}">{{pageViewModel.driver.totalDistanceText}}</text>
+        <text class="metric-sep" wx:if="{{pageViewModel.driver.totalDistanceText && pageViewModel.driver.totalDurationText}}"> · </text>
+        <text wx:if="{{pageViewModel.driver.totalDurationText}}">{{pageViewModel.driver.totalDurationText}}</text>
+      </view>
+      <view class="driver-summary-sub" wx:if="{{pageViewModel.driver.routeSummary}}">{{pageViewModel.driver.routeSummary}}</view>
+      <view class="driver-summary-sub" wx:if="{{pageViewModel.driver.routeMetricsLine}}">{{pageViewModel.driver.routeMetricsLine}}</view>
+      <view class="driver-summary-hint" wx:if="{{pageViewModel.driver.operationHint}}">{{pageViewModel.driver.operationHint}}</view>
+    </view>
+
+    <view class="edit-map-card" wx:if="{{pageViewModel.mapOverview}}">
+      <view class="edit-map-stage" wx:if="{{pageViewModel.mapOverview.hasMap}}">
+        <map
+          class="edit-map"
+          longitude="{{pageViewModel.mapOverview.longitude}}"
+          latitude="{{pageViewModel.mapOverview.latitude}}"
+          scale="{{pageViewModel.mapOverview.scale}}"
+          subkey="{{pageViewModel.mapOverview.subkey}}"
+          layer-style="{{pageViewModel.mapOverview.layerStyle}}"
+          include-points="{{pageViewModel.mapOverview.includePoints}}"
+          padding="{{mapOverviewPadding}}"
+          markers="{{pageViewModel.mapOverview.markers}}"
+          polyline="{{pageViewModel.mapOverview.polylines}}"
+          setting="{{pageViewModel.mapOverview.setting}}"
+          enable-poi="{{false}}"
+          enable-building="{{false}}"
+          enable-scroll="{{true}}"
+          enable-zoom="{{true}}"
+          enable-rotate="{{false}}"
+          show-location="{{false}}"
+          show-compass="{{false}}"
+          enable-3D="{{false}}"
+          bindtouchstart="onMapTouchStart"
+          bindtouchend="onMapTouchEnd"
+          bindtouchcancel="onMapTouchEnd"
+        >
+          <cover-view class="map-legend map-legend-cover map-legend-compact" wx:if="{{pageViewModel.mapOverview.legend.length > 0}}">
+            <cover-view class="map-legend-item" wx:for="{{pageViewModel.mapOverview.legend}}" wx:for-item="legendItem" wx:for-index="legendIndex" wx:key="legendIndex">
+              <cover-view class="map-legend-line map-legend-line-{{legendItem.lineStyle === 'DASHED' ? 'dashed' : 'solid'}}" style="border-color: {{legendItem.color}}; background-color: {{legendItem.lineStyle === 'DASHED' ? 'transparent' : legendItem.color}};"></cover-view>
+              <cover-view class="map-legend-label">{{legendItem.label}}</cover-view>
+            </cover-view>
+          </cover-view>
+        </map>
+      </view>
+      <view class="map-empty-hint" wx:if="{{!pageViewModel.mapOverview.hasMap && pageViewModel.mapOverview.emptyHint}}">
+        <text>{{pageViewModel.mapOverview.emptyHint}}</text>
+      </view>
+      <view class="map-missing-hint" wx:if="{{pageViewModel.mapOverview.missingHint}}">
+        <text>{{pageViewModel.mapOverview.missingHint}}</text>
+      </view>
+      <view class="map-legend" wx:if="{{!pageViewModel.mapOverview.hasMap && pageViewModel.mapOverview.legend.length > 0}}">
+        <view class="map-legend-item" wx:for="{{pageViewModel.mapOverview.legend}}" wx:for-item="legendItem" wx:for-index="legendIndex" wx:key="legendIndex">
+          <view class="map-legend-line map-legend-line-{{legendItem.lineStyle === 'DASHED' ? 'dashed' : 'solid'}}" style="border-color: {{legendItem.color}}; background-color: {{legendItem.lineStyle === 'DASHED' ? 'transparent' : legendItem.color}};"></view>
+          <text class="map-legend-label">{{legendItem.label}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="section-card bg-white">
+      <view class="section-title">{{pageViewModel.manualDispatchMode ? '送货顺序' : '当前路线'}}</view>
+      <view class="route-stop-item" wx:for="{{routeStops}}" wx:for-index="stopIndex" wx:key="stopKey">
+        <view class="route-stop-seq">{{item.seq}}</view>
+        <view class="route-stop-main">
+          <view class="route-stop-name-row">
+            <text class="route-stop-name">{{item.customerName}}</text>
+            <text class="route-stop-new-tag" wx:if="{{pageViewModel.manualDispatchMode && item.isIncomingStop}}">新店</text>
+          </view>
+          <view class="route-stop-goods" wx:if="{{item.goodsSummary}}">{{item.goodsSummary}}</view>
+          <view class="route-stop-meta" wx:if="{{item.plannedArrivalLabel || item.plannedDepartureLabel}}">
+            <text wx:if="{{item.plannedArrivalLabel}}">预计到达 {{item.plannedArrivalLabel}}</text>
+            <text wx:if="{{item.plannedArrivalLabel && item.plannedDepartureLabel}}"> · </text>
+            <text wx:if="{{item.plannedDepartureLabel}}">离开 {{item.plannedDepartureLabel}}</text>
+          </view>
+          <view class="route-stop-constraint" wx:if="{{item.constraintHint}}">{{item.constraintHint}}</view>
+        </view>
+        <view class="route-stop-actions">
+          <view
+            class="route-stop-btn {{stopIndex === 0 ? 'route-stop-btn-disabled' : ''}}"
+            catchtap="onMoveStop"
+            data-index="{{stopIndex}}"
+            data-direction="-1"
+          >上移</view>
+          <view
+            class="route-stop-btn {{stopIndex === routeStops.length - 1 ? 'route-stop-btn-disabled' : ''}}"
+            catchtap="onMoveStop"
+            data-index="{{stopIndex}}"
+            data-direction="1"
+          >下移</view>
+          <view class="route-stop-btn route-stop-btn-danger" catchtap="onRemoveStop" data-index="{{stopIndex}}">移除</view>
+        </view>
+      </view>
+      <view class="section-empty" wx:if="{{routeStops.length === 0}}">当前路线暂无客户</view>
+    </view>
+
+    <view class="section-card bg-white" wx:if="{{!pageViewModel.manualDispatchMode && addableStops.length > 0}}">
+      <view class="section-title">可添加客户</view>
+      <view class="addable-stop-item" wx:for="{{addableStops}}" wx:key="stopKey">
+        <view class="addable-stop-main">
+          <view class="route-stop-name">{{item.customerName}}</view>
+          <view class="route-stop-goods" wx:if="{{item.goodsSummary}}">{{item.goodsSummary}}</view>
+          <view class="route-stop-constraint" wx:if="{{item.constraintHint}}">{{item.constraintHint}}</view>
+        </view>
+        <view class="route-stop-btn route-stop-btn-primary" catchtap="onAddStop" data-stop-key="{{item.stopKey}}">添加</view>
+      </view>
+    </view>
+
+    <view class="risk-card bg-white" wx:if="{{displayWarnings.length > 0}}">
+      <view class="section-title">风险提示</view>
+      <view
+        class="risk-item risk-item-{{item.level === 'error' ? 'error' : 'warn'}}"
+        wx:for="{{displayWarnings}}"
+        wx:key="index"
+      >{{item.message || item.text || item.label}}</view>
+    </view>
+  </scroll-view>
+
+  <view class="bottom-action-bar" wx:if="{{!loading && pageViewModel}}">
+    <view class="bottom-action-row">
+      <view class="bottom-btn bottom-btn-secondary" catchtap="onBottomReset">重置</view>
+      <view class="bottom-btn bottom-btn-primary {{previewing ? 'bottom-btn-locked' : ''}}" catchtap="onBottomPreview">重新试算</view>
+      <view
+        class="bottom-btn {{confirmReady ? 'bottom-btn-primary' : 'bottom-btn-disabled'}}"
+        catchtap="onBottomConfirm"
+      >{{pageViewModel.manualDispatchMode ? '确认排单' : '确认派单'}}</view>
+    </view>
+    <view class="bottom-action-hint" wx:if="{{pageViewModel.actions.confirmDisabledReason && !confirmReady}}">{{pageViewModel.actions.confirmDisabledReason}}</view>
+    <view class="bottom-action-hint" wx:elif="{{pageViewModel.bottomHint}}">{{pageViewModel.bottomHint}}</view>
+  </view>
+</view>

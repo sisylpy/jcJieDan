@@ -1,0 +1,23 @@
+@import "../../../pages/purchase/index/index.wxss";
+
+.dispatch-swiper,
+.dispatch-swiper-item,
+.dispatch-panel {
+  height: 100%;
+}
+
+.dispatch-panel {
+  display: block;
+}
+
+.navbar-item-sub {
+  flex: 1;
+}
+
+.half-row {
+  flex: 1;
+}
+
+.navbar-title-sub {
+  font-size: 28rpx;
+}

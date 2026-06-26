@@ -1,0 +1,13 @@
+{
+  "usingComponents": {
+    "custom-navbar": "/components/custom-navbar/custom-navbar",
+    "boss-tab-sandbox": "/subPackage-routeDispatch/pages/bossTab/sandbox/sandbox",
+    "boss-tab-my-loading": "/subPackage-routeDispatch/pages/bossTab/myLoading/myLoading",
+    "boss-tab-my-delivery": "/subPackage-routeDispatch/pages/bossTab/myDelivery/myDelivery"
+  },
+  "componentPlaceholder": {
+    "boss-tab-sandbox": "view",
+    "boss-tab-my-loading": "view",
+    "boss-tab-my-delivery": "view"
+  }
+}

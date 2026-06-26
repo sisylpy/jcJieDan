@@ -1,0 +1,392 @@
+
+<view class="page flex flex-column page-tab-embed">
+  <view class="page-loading-wrap" wx:if="{{loading}}">
+    <text class="text-secondary font-md">加载中...</text>
+  </view>
+
+  <view class="empty-wrap" wx:if="{{!loading && loadError}}">
+    <text class="text-secondary font-md">{{loadError}}</text>
+  </view>
+
+  <scroll-view scroll-y="{{pageScrollEnabled}}" class="page-scroll" wx:if="{{!loading && pageViewModel}}">
+    <view class="map-overview-card" wx:if="{{pageViewModel.mapOverview}}">
+      <view class="map-overview-stage" wx:if="{{pageViewModel.mapOverview.hasMap}}">
+        <map
+          class="map-overview"
+          longitude="{{pageViewModel.mapOverview.longitude}}"
+          latitude="{{pageViewModel.mapOverview.latitude}}"
+          scale="{{pageViewModel.mapOverview.scale}}"
+          subkey="{{pageViewModel.mapOverview.subkey}}"
+          layer-style="{{pageViewModel.mapOverview.layerStyle}}"
+          include-points="{{pageViewModel.mapOverview.includePoints}}"
+          padding="{{mapOverviewPadding}}"
+          markers="{{pageViewModel.mapOverview.markers}}"
+          polyline="{{pageViewModel.mapOverview.polylines}}"
+          setting="{{pageViewModel.mapOverview.setting}}"
+          enable-poi="{{false}}"
+          enable-building="{{false}}"
+          enable-scroll="{{true}}"
+          enable-zoom="{{true}}"
+          enable-rotate="{{false}}"
+          show-location="{{false}}"
+          show-compass="{{false}}"
+          enable-3D="{{false}}"
+          bindtouchstart="onMapTouchStart"
+          bindtouchend="onMapTouchEnd"
+          bindtouchcancel="onMapTouchEnd"
+        >
+          <cover-view class="map-topbar" wx:if="{{pageViewModel.mapOverview.summary}}">
+            <cover-view class="map-summary-pill">
+              <cover-view class="map-overview-stat">
+                <cover-image class="map-stat-icon" src="/images/user-group-2.png"></cover-image>
+                <cover-view class="map-overview-stat-text">{{pageViewModel.mapOverview.summary.customerStopCount}} 个客户</cover-view>
+              </cover-view>
+              <cover-view class="map-pill-divider"></cover-view>
+              <cover-view class="map-overview-stat">
+                <cover-image class="map-stat-icon" src="/images/car.png"></cover-image>
+                <cover-view class="map-overview-stat-text">{{pageViewModel.mapOverview.summary.routeCount}} 条路线</cover-view>
+              </cover-view>
+              <cover-view class="map-pill-divider" wx:if="{{pageViewModel.mapOverview.summary.unassignedCount > 0}}"></cover-view>
+              <cover-view class="map-overview-stat" wx:if="{{pageViewModel.mapOverview.summary.unassignedCount > 0}}">
+                <cover-view class="map-stat-symbol map-stat-symbol-wait">?</cover-view>
+                <cover-view class="map-overview-stat-text">{{pageViewModel.mapOverview.summary.unassignedCount}} 个未分配</cover-view>
+              </cover-view>
+            </cover-view>
+            <cover-view class="map-overview-refresh" bindtap="onRefreshMap">
+              <cover-view class="map-refresh-symbol">↻</cover-view>
+              <cover-view>刷新</cover-view>
+            </cover-view>
+          </cover-view>
+          <cover-view class="map-legend map-legend-cover" wx:if="{{pageViewModel.mapOverview.legend && pageViewModel.mapOverview.legend.length > 0}}">
+            <cover-view class="map-legend-item" wx:for="{{pageViewModel.mapOverview.legend}}" wx:for-item="legendItem" wx:for-index="legendIndex" wx:key="legendIndex">
+              <cover-view class="map-legend-line map-legend-line-{{legendItem.lineStyle === 'DASHED' ? 'dashed' : 'solid'}}" style="border-color: {{legendItem.color}}; background-color: {{legendItem.lineStyle === 'DASHED' ? 'transparent' : legendItem.color}};"></cover-view>
+              <cover-view class="map-legend-label">{{legendItem.label}}</cover-view>
+            </cover-view>
+          </cover-view>
+        </map>
+      </view>
+      <view class="map-empty-hint" wx:if="{{!pageViewModel.mapOverview.hasMap && pageViewModel.mapOverview.emptyHint}}">
+        <text>{{pageViewModel.mapOverview.emptyHint}}</text>
+      </view>
+      <view class="map-missing-hint" wx:if="{{pageViewModel.mapOverview.missingHint}}">
+        <text>{{pageViewModel.mapOverview.missingHint}}</text>
+      </view>
+      <view class="map-legend" wx:if="{{!pageViewModel.mapOverview.hasMap && pageViewModel.mapOverview.legend && pageViewModel.mapOverview.legend.length > 0}}">
+        <view class="map-legend-item" wx:for="{{pageViewModel.mapOverview.legend}}" wx:for-item="legendItem" wx:for-index="legendIndex" wx:key="legendIndex">
+          <view class="map-legend-line map-legend-line-{{legendItem.lineStyle === 'DASHED' ? 'dashed' : 'solid'}}" style="border-color: {{legendItem.color}}; background-color: {{legendItem.lineStyle === 'DASHED' ? 'transparent' : legendItem.color}};"></view>
+          <text class="map-legend-label">{{legendItem.label}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="hero-card hero-card-compact" wx:if="{{pageViewModel.pageHeader.title}}">
+      <view class="hero-top">
+        <view class="hero-top-row">
+          <view class="hero-top-text">
+            <view class="hero-title">{{pageViewModel.pageHeader.title}}</view>
+            <view class="hero-subtitle" wx:if="{{pageViewModel.pageHeader.progress && pageViewModel.pageHeader.progress.mainLine}}">
+              <text class="hero-subtitle-num" wx:if="{{pageViewModel.pageHeader.progress.highlightText}}">{{pageViewModel.pageHeader.progress.highlightText}}</text>
+              <text>{{pageViewModel.pageHeader.progress.mainLine}}</text>
+            </view>
+            <view class="hero-banner" wx:if="{{pageViewModel.pageHeader.scheduleBannerLine}}">{{pageViewModel.pageHeader.scheduleBannerLine}}</view>
+            <view class="hero-banner" wx:if="{{pageViewModel.pageHeader.operationHint}}">{{pageViewModel.pageHeader.operationHint}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <block wx:for="{{pageViewModel.sections}}" wx:for-item="section" wx:for-index="sectionIndex" wx:key="sectionKey">
+      <view class="dispatch-section" wx:if="{{section.cards.length > 0}}">
+        <block wx:for="{{section.cards}}" wx:for-item="card" wx:for-index="cardIndex" wx:key="cardKey">
+          <view
+            wx:if="{{card.cardType === 'DRIVER_ROUTE'}}"
+            class="driver-route-card bg-white"
+            id="route{{sectionIndex}}_{{cardIndex}}"
+          >
+            <view
+              class="driver-route-head"
+            >
+              <image class="driver-avatar" src="/images/user-group-2.png" mode="aspectFill"></image>
+              <view class="driver-route-head-main">
+                <view class="driver-route-name-row driver-route-name-row-between">
+                  <view class="driver-route-name-group">
+                    <text class="driver-route-name">{{card.driverName}}</text>
+                    <text class="driver-stop-count-badge" wx:if="{{card.customerStopCount}}">{{card.customerStopCount}} 站</text>
+                  </view>
+                  <view
+                    wx:if="{{card.routeEditAction && card.routeEditAction.label}}"
+                    class="route-edit-btn route-edit-btn-outline {{card.routeEditAction.enabled === false ? 'route-edit-btn-disabled' : ''}}"
+                    catchtap="onDriverRouteEditTap"
+                    data-section-index="{{sectionIndex}}"
+                    data-card-index="{{cardIndex}}"
+                  >
+                    <text class="route-edit-btn-icon">✎</text>
+                    <text>{{card.routeEditAction.label}}</text>
+                  </view>
+                </view>
+              </view>
+            </view>
+
+            <view class="driver-summary-metrics" wx:if="{{card.plannedDepartLabel || card.firstStopPlannedArrivalTimeLabel || card.plannedReturnLabel}}">
+              <view class="driver-metric-col driver-metric-col-depart">
+                <text class="driver-metric-label driver-metric-label-accent">建议出发</text>
+                <text class="driver-metric-time driver-metric-time-accent">{{card.plannedDepartLabel || '—'}}</text>
+              </view>
+              <view class="driver-metric-divider"></view>
+              <view class="driver-metric-col driver-metric-col-arrival">
+                <text class="driver-metric-label">首站预计到达</text>
+                <text class="driver-metric-time">{{card.firstStopPlannedArrivalTimeLabel || '—'}}</text>
+                <view
+                  wx:if="{{card.firstStopArrivalStatusLabel}}"
+                  class="driver-arrival-status-badge driver-arrival-status-{{card.firstStopArrivalStatusTone || 'ok'}}"
+                >
+                  <text class="driver-arrival-status-check" wx:if="{{card.firstStopArrivalStatusTone === 'ok'}}">✓</text>
+                  <text>{{card.firstStopArrivalStatusLabel}}</text>
+                </view>
+              </view>
+              <view class="driver-metric-divider"></view>
+              <view class="driver-metric-col driver-metric-col-return">
+                <text class="driver-metric-label">预计返回</text>
+                <text class="driver-metric-time">{{card.plannedReturnLabel || '—'}}</text>
+              </view>
+            </view>
+
+            <view class="driver-summary-footer" wx:if="{{card.totalRoundTripDistanceText || card.totalRoundTripDurationText}}">
+              <view class="driver-summary-footer-item" wx:if="{{card.totalRoundTripDistanceText}}">
+                <image class="driver-footer-icon" src="/images/car.png" mode="aspectFit"></image>
+                <text>往返 {{card.totalRoundTripDistanceText}}</text>
+              </view>
+              <view class="driver-summary-footer-divider" wx:if="{{card.totalRoundTripDistanceText && card.totalRoundTripDurationText}}"></view>
+              <view class="driver-summary-footer-item" wx:if="{{card.totalRoundTripDurationText}}">
+                <text class="driver-footer-icon driver-footer-icon-clock">◷</text>
+                <text>全程 {{card.totalRoundTripDurationText}}</text>
+              </view>
+            </view>
+
+            <view class="route-timeline boss-route-timeline" wx:if="{{card.timeline.length > 0}}">
+              <block wx:for="{{card.timeline}}" wx:for-item="node" wx:for-index="nodeIndex" wx:key="index">
+                <view class="boss-timeline-node boss-timeline-start" wx:if="{{node.type === 'start'}}">
+                  <view class="boss-timeline-marker">{{node.marker}}</view>
+                  <view class="boss-timeline-point-main">
+                    <view class="boss-timeline-point-row">
+                      <text class="boss-timeline-point-name">{{node.name}}</text>
+                      <text class="boss-timeline-point-time">{{node.timeRight}}</text>
+                    </view>
+                  </view>
+                </view>
+
+                <view class="boss-timeline-leg-wrap" wx:if="{{node.type === 'leg' && node.legRole === 'RETURN'}}">
+                  <view class="boss-timeline-leg-spacer"></view>
+                  <view class="boss-timeline-leg-pill boss-timeline-leg-pill-standalone">
+                    <image class="boss-timeline-leg-icon" src="/images/car.png" mode="aspectFit"></image>
+                    <text class="boss-timeline-leg-text">{{node.legText}}</text>
+                    <text class="boss-timeline-leg-chevron">›</text>
+                  </view>
+                </view>
+
+                <view class="boss-timeline-stop-unit" wx:if="{{node.type === 'stop'}}">
+                  <view class="boss-timeline-marker boss-timeline-marker-stop">{{node.seq}}</view>
+                  <view class="boss-timeline-unit-body">
+                    <view class="boss-timeline-leg-pill" wx:if="{{node.legText}}">
+                      <image class="boss-timeline-leg-icon" src="/images/car.png" mode="aspectFit"></image>
+                      <text class="boss-timeline-leg-text">{{node.legText}}</text>
+                      <text class="boss-timeline-leg-chevron">›</text>
+                    </view>
+                    <view class="boss-timeline-stop-card">
+                    <view class="boss-stop-head">
+                      <view class="boss-stop-head-main">
+                        <image class="boss-stop-pin" src="/images/app-shop.png" mode="aspectFit"></image>
+                        <text class="boss-stop-name">{{node.customerName}}</text>
+                        <text class="boss-stop-require-badge" wx:if="{{node.windowRequirementLabel}}">{{node.windowRequirementLabel}}</text>
+                      </view>
+                      <text class="boss-stop-head-chevron">›</text>
+                    </view>
+                    <view class="boss-stop-divider"></view>
+                    <view class="boss-stop-time-grid">
+                      <view class="boss-stop-time-col">
+                        <text class="boss-stop-time-label">预计到达</text>
+                        <text class="boss-stop-time-val">{{node.plannedArrivalLabel || '—'}}</text>
+                        <view
+                          wx:if="{{node.arrivalStatusLabel}}"
+                          class="boss-stop-status-badge boss-stop-status-{{node.arrivalStatusTone || 'ok'}}"
+                        >
+                          <text class="boss-stop-status-icon" wx:if="{{node.arrivalStatusTone === 'ok'}}">✓</text>
+                          <text class="boss-stop-status-icon boss-stop-status-icon-early" wx:elif="{{node.arrivalStatusTone === 'early'}}">◷</text>
+                          <text>{{node.arrivalStatusLabel}}</text>
+                        </view>
+                      </view>
+                      <view class="boss-stop-time-col">
+                        <text class="boss-stop-time-label">卸货时长</text>
+                        <text class="boss-stop-time-val boss-stop-time-val-muted">{{node.serviceDurationLabel || '—'}}</text>
+                      </view>
+                      <view class="boss-stop-time-col">
+                        <text class="boss-stop-time-label">预计离开</text>
+                        <text class="boss-stop-time-val">{{node.plannedDepartureLabel || '—'}}</text>
+                      </view>
+                    </view>
+                    </view>
+                  </view>
+                </view>
+
+                <view class="boss-timeline-node boss-timeline-end" wx:if="{{node.type === 'end'}}">
+                  <view class="boss-timeline-marker boss-timeline-marker-end">{{node.marker}}</view>
+                  <view class="boss-timeline-point-main">
+                    <view class="boss-timeline-point-row">
+                      <text class="boss-timeline-point-name">{{node.name}}</text>
+                      <text class="boss-timeline-point-time">{{node.timeRight}}</text>
+                    </view>
+                  </view>
+                </view>
+              </block>
+            </view>
+
+            <view
+              class="route-primary-action-row"
+              wx:if="{{card.primaryAction && card.primaryAction.label}}"
+            >
+              <view
+                wx:if="{{!card.primaryAction.isStatusOnly}}"
+                class="route-primary-action-btn stop-state-btn {{card.primaryAction.toneClass}}"
+                catchtap="onRouteCardPrimaryAction"
+                data-section-index="{{sectionIndex}}"
+                data-card-index="{{cardIndex}}"
+              >{{card.primaryAction.label}}</view>
+              <text
+                wx:else
+                class="route-primary-action-status stop-state-status {{card.primaryAction.toneClass}}"
+              >{{card.primaryAction.label}}</text>
+            </view>
+          </view>
+
+          <view
+            wx:elif="{{card.cardType === 'UNASSIGNED_CUSTOMER'}}"
+            class="driver-route-card bg-white unassigned-customer-card"
+            id="unassigned{{sectionIndex}}_{{cardIndex}}"
+          >
+            <view class="unassigned-card-head" wx:if="{{card.badgeLabel || card.driverLabel || card.statusLabel}}">
+              <text class="driver-dispatch-badge" wx:if="{{card.badgeLabel}}">{{card.badgeLabel}}</text>
+              <text class="unassigned-meta-text" wx:if="{{card.driverLabel}}">{{card.driverLabel}}</text>
+              <text class="unassigned-meta-text" wx:if="{{card.statusLabel}}">{{card.statusLabel}}</text>
+            </view>
+            <view class="timeline-stop-card unassigned-stop-card">
+              <view class="stop-head-row">
+                <view class="stop-name-wrap">
+                  <image class="stop-shop-icon" src="/images/app-shop.png" mode="aspectFit"></image>
+                  <text class="stop-name">{{card.customerName}}</text>
+                </view>
+                <view
+                  wx:if="{{card.primaryAction && card.primaryAction.label && !card.primaryAction.isStatusOnly}}"
+                  class="stop-state-btn {{card.primaryAction.toneClass}}"
+                  catchtap="onCardPrimaryAction"
+                  data-section-index="{{sectionIndex}}"
+                  data-card-index="{{cardIndex}}"
+                >{{card.primaryAction.label}}</view>
+                <text
+                  wx:elif="{{card.primaryAction && card.primaryAction.label}}"
+                  class="stop-state-status {{card.primaryAction.toneClass}}"
+                >{{card.primaryAction.label}}</text>
+              </view>
+              <view class="timeline-stop-goods" wx:if="{{card.goodsSummary}}">{{card.goodsSummary}}</view>
+              <view class="unassigned-route-meta" wx:if="{{card.distanceText || card.durationText}}">
+                <text wx:if="{{card.distanceText}}">{{card.distanceText}}</text>
+                <text class="unassigned-route-meta-sep" wx:if="{{card.distanceText && card.durationText}}">·</text>
+                <text wx:if="{{card.durationText}}">{{card.durationText}}</text>
+              </view>
+              <view class="stop-time-grid" wx:if="{{card.plannedArrivalLabel || card.plannedDepartureLabel || card.customerWindowLabel}}">
+                <view class="stop-time-col">
+                  <text class="stop-time-label">预计到达</text>
+                  <text class="stop-time-val">{{card.plannedArrivalLabel}}</text>
+                </view>
+                <view class="stop-time-col">
+                  <text class="stop-time-label">预计离开</text>
+                  <text class="stop-time-val">{{card.plannedDepartureLabel}}</text>
+                </view>
+                <view class="stop-time-col">
+                  <text class="stop-time-label">送达窗</text>
+                  <text class="stop-time-val stop-window-val {{card.windowTone === 'warn' ? 'stop-window-warn' : ''}}">{{card.customerWindowLabel}}</text>
+                </view>
+              </view>
+              <view class="stop-service-duration" wx:if="{{card.serviceDurationLabel}}">{{card.serviceDurationLabel}}</view>
+              <view class="stop-next-leg-hint" wx:if="{{card.timeLabel}}">
+                <image class="stop-next-leg-car" src="/images/car.png" mode="aspectFit"></image>
+                <text>{{card.timeLabel}}</text>
+              </view>
+            </view>
+          </view>
+
+          <view wx:else class="dispatch-card bg-white" id="card{{sectionIndex}}_{{cardIndex}}">
+            <view class="dispatch-stop-body">
+              <view class="dispatch-stop-name">{{card.customerName}}</view>
+              <view class="dispatch-stop-goods" wx:if="{{card.goodsSummary}}">{{card.goodsSummary}}</view>
+              <view class="dispatch-stop-meta" wx:if="{{card.distanceText}}">{{card.distanceText}}</view>
+              <view class="dispatch-stop-meta" wx:if="{{card.durationText}}">{{card.durationText}}</view>
+              <view class="dispatch-stop-time" wx:if="{{card.timeLabel}}">{{card.timeLabel}}</view>
+            </view>
+            <view class="dispatch-stop-actions" wx:if="{{card.primaryAction && card.primaryAction.label}}">
+              <view
+                class="stop-state-btn {{card.primaryAction.toneClass}}"
+                catchtap="onCardPrimaryAction"
+                data-section-index="{{sectionIndex}}"
+                data-card-index="{{cardIndex}}"
+              >{{card.primaryAction.label}}</view>
+            </view>
+          </view>
+        </block>
+      </view>
+    </block>
+
+    <view class="driver-section" wx:if="{{pageViewModel.availableDrivers.length > 0}}">
+      <view class="driver-route-card bg-white idle-driver-card" wx:for="{{pageViewModel.availableDrivers}}" wx:key="driverUserId">
+        <view class="idle-driver-head">
+          <image class="driver-avatar" src="/images/user-group-2.png" mode="aspectFill"></image>
+          <view class="idle-driver-main">
+            <view class="driver-route-name-row driver-route-name-row-between">
+              <text class="driver-route-name">{{item.driverName}}</text>
+              <text class="driver-dispatch-badge" wx:if="{{item.badgeLabel}}">{{item.badgeLabel}}</text>
+            </view>
+          </view>
+        </view>
+        <view class="idle-body">
+          <text class="idle-title">{{item.statusLabel}}</text>
+          <text class="idle-hint">{{item.routeHint}}</text>
+        </view>
+      </view>
+    </view>
+
+  </scroll-view>
+
+  <view class="time-window-mask" wx:if="{{timeWindowModalVisible}}" catchtouchmove="true">
+    <view class="time-window-dialog">
+      <view class="time-window-title">修改今天临时送达时间</view>
+      <view class="time-window-subtitle">{{timeWindowForm.customerName}}</view>
+      <view class="time-window-hint" wx:if="{{timeWindowForm.customerWindowLabel}}">
+        当前：{{timeWindowForm.customerWindowLabel}}
+      </view>
+      <view class="time-window-field">
+        <text class="time-window-label">最早送达</text>
+        <picker mode="time" value="{{timeWindowForm.earliestPicker}}" bindchange="onTimeWindowEarliestChange">
+          <view class="time-window-picker">{{timeWindowForm.earliestPicker || '请选择（可选）'}}</view>
+        </picker>
+      </view>
+      <view class="time-window-field">
+        <text class="time-window-label">最晚送达</text>
+        <picker mode="time" value="{{timeWindowForm.latestPicker}}" bindchange="onTimeWindowLatestChange">
+          <view class="time-window-picker">{{timeWindowForm.latestPicker || '请选择'}}</view>
+        </picker>
+      </view>
+      <view class="time-window-field">
+        <text class="time-window-label">调整原因</text>
+        <input
+          class="time-window-input"
+          placeholder="请填写原因"
+          value="{{timeWindowForm.reason}}"
+          bindinput="onTimeWindowReasonInput"
+        />
+      </view>
+      <view class="time-window-actions">
+        <view class="time-window-btn time-window-btn-cancel" bindtap="closeTimeWindowModal">取消</view>
+        <view class="time-window-btn time-window-btn-confirm" bindtap="submitTimeWindowModal">保存</view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -5,6 +5,7 @@
     "pages/doing/index/index",
     "pages/purchase/index/index",
     "pages/stock/index/index",
+    "pages/dispatch/index/index",
     "pages/printLogin/printLogin",
     "pages/inviteCode/inviteCode",
     "pages/login/login"
@@ -122,6 +123,21 @@
       "pages/order/aiHelpGoods/aiHelpGoods"
     ]
     }, {
+    "root": "subPackage-routeDispatch/",
+    "name": "routeDispatch",
+    "pages": [
+      "pages/routeDispatch/duty/duty",
+      "pages/routeDispatch/today/today",
+      "pages/routeDispatch/loading/loading",
+      "pages/routeDispatch/delivery/delivery",
+      "pages/routeDispatch/driverLoading/driverLoading",
+      "pages/routeDispatch/driverDelivery/driverDelivery",
+      "pages/routeDispatch/driverStopDetail/driverStopDetail",
+      "pages/routeDispatch/manualDispatchDrivers/manualDispatchDrivers",
+      "pages/routeDispatch/manualRouteEdit/manualRouteEdit",
+      "pages/routeDispatch/driverRouteEdit/driverRouteEdit"
+    ]
+    }, {
     "root": "subPackage-charts/",
     "name": "charts",
     "pages": [
@@ -185,6 +201,16 @@
       "pages/supplier/supplierBills/supplierBills"
     ]
     }],
+  "preloadRule": {
+    "pages/order/index/index": {
+      "network": "all",
+      "packages": ["routeDispatch"]
+    },
+    "pages/dispatch/index/index": {
+      "network": "all",
+      "packages": ["routeDispatch"]
+    }
+  },
   "tabBar": {
     "custom": true,
     "color": "#999999",
@@ -203,6 +229,11 @@
         "text": "出库中",
         "iconPath": "/images/icons/icon_goods.png",
         "selectedIconPath": "/images/icons/icon_goods_active.png"
+      }, {
+        "pagePath": "pages/dispatch/index/index",
+        "text": "配送",
+        "iconPath": "/images/icons/icon_prepare.png",
+        "selectedIconPath": "/images/icons/icon_prepare_active.png"
       }, {
         "pagePath": "pages/purchase/index/index",
         "text": "未采购",
@@ -226,16 +257,16 @@
   "requiredBackgroundModes": ["audio"],
   
   "requiredPrivateInfos": [
+    "getLocation",
     "chooseLocation",
     "onLocationChange",
     "startLocationUpdate",
     "startLocationUpdateBackground"
-    
   ],
   
   "permission": {
     "scope.userLocation": {
-      "desc": "你的位置信息将用于小程序位置接口的效果展示"
+      "desc": "你的位置信息将用于规划今日送货路线和导航"
     }
   },
   "plugins": {

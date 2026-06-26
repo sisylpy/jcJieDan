@@ -1,40 +1,27 @@
+var tabBar = require('../lib/routeDispatchTabBar.js')
+
 Component({
   data: {
     selected: 0,
     showTabBar: true,
-    list: [
-      {
-        "pagePath": "pages/order/index/index",
-        "text": "订单",     
-         "iconPath": "/images/icons/icon_orders.png",
-        "selectedIconPath": "/images/icons/icon_orders_active.png"
-      }, 
-      {
-        "pagePath": "pages/stock/index/index",
-        "text": "出货中",
-        "iconPath": "/images/icons/icon_stock.png",
-        "selectedIconPath": "/images/icons/icon_stock_active.png"
-      }, {
-        "pagePath": "pages/purchase/index/index",
-        "text": "采购中",
-        "iconPath": "/images/icons/icon_purchase.png",
-        "selectedIconPath": "/images/icons/icon_purchase_active.png"
-      }, 
-      {
-        "pagePath": "pages/doing/index/index",
-        "text": "协作伙伴",
-        "iconPath": "/images/icons/hezuowoshou.png",
-        "selectedIconPath": "/images/icons/hezuowoshou-2.png"
-      }, 
-      // {
-      //   "pagePath": "pages/goods/goods",
-      //   "text": "商品",
-      //   "iconPath": "/images/icons/icon_goods.png",
-      //   "selectedIconPath": "/images/icons/icon_goods_active.png"
-      // }
-    ]
+    list: tabBar.getTabBarList(),
+    badgeIndices: tabBar.getBadgeIndices(),
+    stockCount: 0,
+    puringCount: 0,
+    collCount: 0
+  },
+  lifetimes: {
+    attached: function () {
+      this.refreshTabs()
+    }
   },
   methods: {
+    refreshTabs: function () {
+      this.setData({
+        list: tabBar.getTabBarList(),
+        badgeIndices: tabBar.getBadgeIndices()
+      })
+    },
     switchTab(e) {
       wx.removeStorageSync('toDetail');
       wx.removeStorageSync('sons');

@@ -1,10 +1,10 @@
 <view class="tab-bar" wx:if="{{showTabBar}}" >
-  <block wx:for="{{list}}" wx:key="index">
+  <block wx:for="{{list}}" wx:key="pagePath">
     <view class="tab-bar-item {{selected === index ? 'active' : ''}}" data-index="{{index}}" data-path="{{item.pagePath}}" bindtap="switchTab" hover-class="hover">
 
-      <view class="smallDotJrdh {{index == 1 && stockCount > 0 ? 'is-active' : ''}} ">{{stockCount}}</view>
-      <view class="smallDotJrdh {{index == 2 && puringCount > 0 ? 'is-active' : ''}}">{{puringCount}}</view>
-      <view class="smallDotJrdh {{index == 3 && collCount > 0 ? 'is-active' : ''}}">{{collCount}}</view>
+      <view class="smallDotJrdh {{index == badgeIndices.stock && stockCount > 0 ? 'is-active' : ''}} ">{{stockCount}}</view>
+      <view class="smallDotJrdh {{index == badgeIndices.purchase && puringCount > 0 ? 'is-active' : ''}}">{{puringCount}}</view>
+      <view class="smallDotJrdh {{index == badgeIndices.doing && collCount > 0 ? 'is-active' : ''}}">{{collCount}}</view>
       <image class="tab-bar-icon" src="{{selected === index ? item.selectedIconPath : item.iconPath}}" mode="aspectFit"></image>
       <text class="tab-bar-text">{{item.text}}</text>
     </view>
