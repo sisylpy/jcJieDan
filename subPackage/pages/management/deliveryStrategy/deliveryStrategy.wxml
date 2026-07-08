@@ -1,0 +1,81 @@
+<view class="flex flex-column">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="配送策略" bindnavbuttontap="toBack"></back-navbar>
+
+  <scroll-view scroll-y="true" class="page-scroll">
+    <view class="bg-white" wx:if="{{list.length > 0}}">
+      <view class="rule-item" wx:for="{{list}}" wx:key="nxDistributerDeliveryFeeRuleId">
+        <view class="flex-row-between p-20 border-bottom">
+          <view class="flex-column flex-1">
+            <text class="font-md">{{item.feeModeText}}</text>
+            <text class="font-sm text-secondary mt-10">交付:{{item.applyDeliveryModeText}}  结算:{{item.applySettlementTypeText}}</text>
+            <text class="font-sm text-secondary" wx:if="{{item.feeMode !== 'FREE'}}">基础{{item.baseDistanceKm}}km 起步{{item.startFeeAmount}} 每km{{item.pricePerKm}}</text>
+          </view>
+          <view class="flex-row">
+            <text class="status-tag {{item.ruleStatus === 'ENABLED' ? 'status-on' : 'status-off'}}">{{item.ruleStatus === 'ENABLED' ? '启用' : '停用'}}</text>
+          </view>
+        </view>
+        <view class="flex-row-between p-20 border-bottom operate-row">
+          <text class="mainColor" bindtap="toEdit" data-id="{{item.nxDistributerDeliveryFeeRuleId}}">编辑</text>
+          <text class="text-danger" bindtap="deleteItem" data-id="{{item.nxDistributerDeliveryFeeRuleId}}">删除</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="empty" wx:else>
+      <text class="text-secondary">暂无配送策略，点击下方按钮新增</text>
+    </view>
+
+    <view class="bg-white mt-10 p-30" wx:if="{{editing}}">
+      <view class="font-lg mb-20">配送策略编辑</view>
+
+      <view class="form-row flex-row-between">
+        <text class="label">适用交付方式</text>
+        <picker mode="selector" range="{{deliveryModeTexts}}" value="{{deliveryModeIndex}}" bindchange="bindDeliveryModeChange">
+          <view class="picker-value">{{deliveryModeTexts[deliveryModeIndex]}}</view>
+        </picker>
+      </view>
+
+      <view class="form-row flex-row-between">
+        <text class="label">适用结算方式</text>
+        <picker mode="selector" range="{{settlementTexts}}" value="{{settlementIndex}}" bindchange="bindSettlementChange">
+          <view class="picker-value">{{settlementTexts[settlementIndex]}}</view>
+        </picker>
+      </view>
+
+      <view class="form-row flex-row-between">
+        <text class="label">计费方式</text>
+        <picker mode="selector" range="{{feeModeTexts}}" value="{{feeModeIndex}}" bindchange="bindFeeModeChange">
+          <view class="picker-value">{{feeModeTexts[feeModeIndex]}}</view>
+        </picker>
+      </view>
+
+      <block wx:if="{{formData.feeMode !== 'FREE'}}">
+        <view class="form-row flex-row-between">
+          <text class="label">基础距离(km)</text>
+          <input class="input" type="digit" value="{{formData.baseDistanceKm}}" bindinput="bindBaseDistance" placeholder="如 3"/>
+        </view>
+        <view class="form-row flex-row-between">
+          <text class="label">起步费</text>
+          <input class="input" type="digit" value="{{formData.startFeeAmount}}" bindinput="bindStartFee" placeholder="如 5"/>
+        </view>
+        <view class="form-row flex-row-between">
+          <text class="label">每公里费用</text>
+          <input class="input" type="digit" value="{{formData.pricePerKm}}" bindinput="bindPricePerKm" placeholder="如 2"/>
+        </view>
+      </block>
+
+      <view class="form-row flex-row-between">
+        <text class="label">启用状态</text>
+        <switch checked="{{formData.ruleStatus === 'ENABLED'}}" bindchange="bindStatusChange" color="#07c160"/>
+      </view>
+
+      <view class="flex-row-between mt-20">
+        <button class="btn-cancel" bindtap="cancelEdit">取消</button>
+        <button class="btn-save" bindtap="save">保存</button>
+      </view>
+    </view>
+
+  </scroll-view>
+
+  <view class="fab" bindtap="toAdd" wx:if="{{!editing}}">+ 新增</view>
+</view>

@@ -84,6 +84,8 @@
       "pages/management/payPage/payPage",
       "pages/management/payPageMarket/payPageMarket",
       "pages/management/payDetail/payDetail",
+      "pages/management/deliveryStrategy/deliveryStrategy",
+      "pages/management/distributerCoupon/distributerCoupon",
 
        "pages/offerNx/offerNxDistributerList/offerNxDistributerList",
        "pages/offerNx/inviteOfferDis/inviteOfferDis",

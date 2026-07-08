@@ -41,6 +41,14 @@ Page({
   ],
 
 
+  // 价格策略选项（仅作字段保存，不接入计价逻辑）
+  priceStrategyList: [
+    { value: 'STANDARD_PRICE', label: '普通单价' },
+    { value: 'GROSS_WEIGHT_PRICE', label: '按毛重计价' },
+    { value: 'NET_WEIGHT_PRICE', label: '按净重计价' },
+    { value: 'CUSTOMER_PRICE', label: '客户价' },
+  ],
+  priceStrategyIndex: 0,
   },
 
   /**
@@ -67,6 +75,19 @@ Page({
       this.setData({
         goods: value
       })
+      // 回显价格策略选中项
+      var strategy = value.nxDgPriceStrategy;
+      var idx = 0;
+      var list = this.data.priceStrategyList;
+      for (var i = 0; i < list.length; i++) {
+        if (list[i].value === strategy) {
+          idx = i;
+          break;
+        }
+      }
+      this.setData({
+        priceStrategyIndex: idx
+      });
     }
     var disInfo = wx.getStorageSync('disInfo');
     if(disInfo){
@@ -120,6 +141,16 @@ Page({
     var detail = "goods.nxDgPurchaseAuto";
     this.setData({
       [detail]: value,
+    })
+  },
+
+  // 价格策略选择（仅作字段保存，不接入计价逻辑）
+  changePriceStrategy(e) {
+    var index = e.detail.value;
+    var list = this.data.priceStrategyList;
+    this.setData({
+      priceStrategyIndex: index,
+      'goods.nxDgPriceStrategy': list[index].value,
     })
   },
 
@@ -303,7 +334,20 @@ Page({
         [itemsPerCarton]: eValue === '' || eValue === undefined ? null : eValue
       })
     }
-    
+
+    if (e.currentTarget.dataset.type == 12) {
+      this.setData({ "goods.nxDgGrossWeightJin": e.detail.value })
+    }
+    if (e.currentTarget.dataset.type == 13) {
+      this.setData({ "goods.nxDgNetWeightJin": e.detail.value })
+    }
+    if (e.currentTarget.dataset.type == 14) {
+      this.setData({ "goods.nxDgGrossWeightPricePerJin": e.detail.value })
+    }
+    if (e.currentTarget.dataset.type == 15) {
+      this.setData({ "goods.nxDgNetWeightPricePerJin": e.detail.value })
+    }
+
     this._ifCanSave();
 
   },

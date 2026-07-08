@@ -164,6 +164,30 @@
             <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
           </view>
 
+          <view class="flex-column bg-white font-lg mt-10">
+            <view class="flex-row-between p-30 border-bottom" bindtap="toDeliveryStrategy" hover-class="hover">
+              <view class="flex-row">
+                <image src="/images/car.png" mode="aspectFill" class="icon mr-20" />
+                <view class="flex-column">
+                  <text>配送策略</text>
+                  <text class="font-sm text-secondary">设置配送费、适用客户类型、配送/自提规则</text>
+                </view>
+              </view>
+              <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
+            </view>
+
+            <view class="flex-row-between p-30 border-bottom" bindtap="toCoupon" hover-class="hover">
+              <view class="flex-row">
+                <image src="/images/money-2.png" mode="aspectFill" class="icon mr-20" />
+                <view class="flex-column">
+                  <text>优惠券</text>
+                  <text class="font-sm text-secondary">设置客户优惠券、适用现金/记账、配送/自提范围</text>
+                </view>
+              </view>
+              <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
+            </view>
+          </view>
+
 
       <block wx:if="{{disInfo.nxDistributerBusinessTypeId  > 1}}">
 

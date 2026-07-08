@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "配送策略",
+  "usingComponents": {
+    "back-navbar": "/components/back-navbar/back-navbar"
+  }
+}

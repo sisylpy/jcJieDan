@@ -77,9 +77,14 @@ Page({
    * 页面的初始数据
    */
   data: {
-
-
-
+    // 价格策略选项（仅作字段保存，不接入计价逻辑）
+    priceStrategyList: [
+      { value: 'STANDARD_PRICE', label: '普通单价' },
+      { value: 'GROSS_WEIGHT_PRICE', label: '按毛重计价' },
+      { value: 'NET_WEIGHT_PRICE', label: '按净重计价' },
+      { value: 'CUSTOMER_PRICE', label: '客户价' },
+    ],
+    priceStrategyIndex: 0,
   },
 
 
@@ -125,7 +130,12 @@ Page({
         nxDgGoodsFile: 'goodsImage/logo.jpg',
         nxDistributerStandardEntities: [],
         nxDgCartonUnit: cartonUnit,
-        nxDgItemsPerCarton: itemsPerCarton
+        nxDgItemsPerCarton: itemsPerCarton,
+        nxDgPriceStrategy: "STANDARD_PRICE",
+        nxDgGrossWeightJin: "",
+        nxDgNetWeightJin: "",
+        nxDgGrossWeightPricePerJin: "",
+        nxDgNetWeightPricePerJin: ""
       },
       fatherName: "临时添加",
       isGrade: 0,
@@ -166,6 +176,16 @@ Page({
       isGrade: e.detail.value
     })
     this._ifCanSave();
+  },
+
+  // 价格策略选择（仅作字段保存，不接入计价逻辑）
+  changePriceStrategy(e) {
+    var index = e.detail.value;
+    var list = this.data.priceStrategyList;
+    this.setData({
+      priceStrategyIndex: index,
+      'goods.nxDgPriceStrategy': list[index].value,
+    })
   },
 
   getBuyingPrice(e) {
@@ -280,6 +300,19 @@ Page({
       this.setData({
         [itemsPerCartonData]: e.detail.value
       })
+    }
+
+    if (e.currentTarget.dataset.type == 12) {
+      this.setData({ "goods.nxDgGrossWeightJin": e.detail.value })
+    }
+    if (e.currentTarget.dataset.type == 13) {
+      this.setData({ "goods.nxDgNetWeightJin": e.detail.value })
+    }
+    if (e.currentTarget.dataset.type == 14) {
+      this.setData({ "goods.nxDgGrossWeightPricePerJin": e.detail.value })
+    }
+    if (e.currentTarget.dataset.type == 15) {
+      this.setData({ "goods.nxDgNetWeightPricePerJin": e.detail.value })
     }
 
     this._ifCanSave();

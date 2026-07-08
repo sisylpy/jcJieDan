@@ -495,6 +495,18 @@ Page({
       url: '../../offerNx/offerNxDistributerList/offerNxDistributerList?disId=' + this.data.disId,
     })
   },
+
+  toDeliveryStrategy(){
+    wx.navigateTo({
+      url: '../deliveryStrategy/deliveryStrategy?disId=' + this.data.disId,
+    })
+  },
+
+  toCoupon(){
+    wx.navigateTo({
+      url: '../distributerCoupon/distributerCoupon?disId=' + this.data.disId,
+    })
+  },
     
 
   toStock(){

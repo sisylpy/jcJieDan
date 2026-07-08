@@ -82,6 +82,34 @@
 			<input class="inputAddGoods p-10" value="{{goods.nxDgGoodsDetail}}" bindinput="getDisGoodsContent"
 				data-type="5"></input>
 		</view>
+
+	<view class="p-20">价格与重量:</view>
+	<view class="bg-white p-20 font-md flex-column border-bottom">
+		<view class="flex-row p-20">
+			<text class="text-secondary flex-fixed">价格策略</text>
+			<picker class="inputAddGoods p-10" mode="selector" range="{{priceStrategyList}}" range-key="label" value="{{priceStrategyIndex}}" bindchange="changePriceStrategy">
+				<view class="flex-row">
+					<text>{{priceStrategyList[priceStrategyIndex].label}}</text>
+				</view>
+			</picker>
+		</view>
+		<view class="flex-row p-20">
+			<text class="text-secondary flex-fixed">毛重(斤)</text>
+			<input class="inputAddGoods p-10" type="digit" value="{{goods.nxDgGrossWeightJin}}" bindinput="getDisGoodsContent" data-type="12" placeholder="0"></input>
+		</view>
+		<view class="flex-row p-20">
+			<text class="text-secondary flex-fixed">净重(斤)</text>
+			<input class="inputAddGoods p-10" type="digit" value="{{goods.nxDgNetWeightJin}}" bindinput="getDisGoodsContent" data-type="13" placeholder="0"></input>
+		</view>
+		<view class="flex-row p-20">
+			<text class="text-secondary flex-fixed">毛重单价(元/斤)</text>
+			<input class="inputAddGoods p-10" type="digit" value="{{goods.nxDgGrossWeightPricePerJin}}" bindinput="getDisGoodsContent" data-type="14" placeholder="0"></input>
+		</view>
+		<view class="flex-row p-20">
+			<text class="text-secondary flex-fixed">净重单价(元/斤)</text>
+			<input class="inputAddGoods p-10" type="digit" value="{{goods.nxDgNetWeightPricePerJin}}" bindinput="getDisGoodsContent" data-type="15" placeholder="0"></input>
+		</view>
+	</view>
 		
 	
 	
