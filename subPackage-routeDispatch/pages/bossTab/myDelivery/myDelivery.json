@@ -1,0 +1,8 @@
+{
+  "component": true,
+  "styleIsolation": "apply-shared",
+  "addGlobalClass": true,
+  "usingComponents": {
+    "driver-route-card": "../../../components/driver-route-card/driver-route-card"
+  }
+}

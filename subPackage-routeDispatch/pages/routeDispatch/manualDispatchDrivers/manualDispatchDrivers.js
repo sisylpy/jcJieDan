@@ -5,6 +5,36 @@ import { postManualDispatchDriverPanorama } from '../../../../lib/apiRouteDispat
 
 var PAYLOAD_STORAGE_KEY = 'routeDispatchManualDispatchPayload'
 
+function normalizePrimaryAction(action) {
+  if (!action || typeof action !== 'object') {
+    return action
+  }
+  var enabled = action.enabled !== false && action.enabled !== 0
+  return Object.assign({}, action, {
+    toneClass: action.toneClass || (enabled ? 'stop-state-action' : 'stop-state-muted')
+  })
+}
+
+function normalizeDriverCard(driver) {
+  if (!driver || typeof driver !== 'object') {
+    return driver
+  }
+  var blocked = driver.canSimulate === false || driver.canSimulate === 0
+    || !!(driver.blockedReason && String(driver.blockedReason).trim())
+  return Object.assign({}, driver, {
+    cardToneClass: blocked ? 'driver-card-blocked' : '',
+    primaryAction: normalizePrimaryAction(driver.primaryAction)
+  })
+}
+
+function normalizePageData(pageData) {
+  if (!pageData || typeof pageData !== 'object') {
+    return pageData
+  }
+  var drivers = (pageData.drivers || []).map(normalizeDriverCard)
+  return Object.assign({}, pageData, { drivers: drivers })
+}
+
 Page({
   data: {
     loading: true,
@@ -53,10 +83,11 @@ Page({
         that.setLoadError((res.result && res.result.msg) || '加载失败', false)
         return
       }
+      var pageData = normalizePageData(res.result.data || null)
       that.setData({
         loading: false,
-        pageData: res.result.data || null,
-        loadError: res.result.data ? '' : '后端未返回数据'
+        pageData: pageData,
+        loadError: pageData ? '' : '后端未返回数据'
       })
     }).catch(function () {
       if (!fromPullDown) {
@@ -107,9 +138,9 @@ Page({
       wx.showToast({ title: '缺少 primaryAction.payload', icon: 'none' })
       return
     }
-    wx.setStorageSync('routeDispatchManualRouteEditPayload', action.payload)
+    wx.setStorageSync('routeDispatchDriverRouteEditPayload', action.payload)
     wx.navigateTo({
-      url: '/subPackage-routeDispatch/pages/routeDispatch/manualRouteEdit/manualRouteEdit',
+      url: '/subPackage-routeDispatch/pages/routeDispatch/driverRouteEdit/driverRouteEdit',
       fail: function (err) {
         wx.showToast({
           title: (err && err.errMsg) || '跳转失败',

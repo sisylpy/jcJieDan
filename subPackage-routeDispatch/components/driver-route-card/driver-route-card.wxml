@@ -1,0 +1,116 @@
+<view
+  wx:if="{{card}}"
+  class="driver-route-card bg-white"
+  id="{{cardId}}"
+>
+  <view class="driver-route-head">
+    <image class="driver-avatar" src="/images/user-group-2.png" mode="aspectFill"></image>
+    <view class="driver-route-head-main">
+      <view class="driver-route-name-row driver-route-name-row-between">
+        <view class="driver-route-name-group">
+          <text class="driver-route-name">{{card.driverName}}</text>
+          <text class="driver-stop-count-badge" wx:if="{{card.customerStopCount}}">{{card.customerStopCount}} 站</text>
+          <text
+            class="driver-dispatch-badge driver-dispatch-badge-{{card.driverStatusTone || 'ok'}}"
+            wx:if="{{variant === 'delivery' && card.driverStatusLabel}}"
+          >{{card.driverStatusLabel}}</text>
+        </view>
+        <view
+          wx:if="{{variant === 'dispatch' && card.routeEditAction && card.routeEditAction.label}}"
+          class="route-edit-btn route-edit-btn-outline {{card.routeEditAction.enabled === false ? 'route-edit-btn-disabled' : ''}}"
+          catchtap="onRouteEditTap"
+        >
+          <text class="route-edit-btn-icon">✎</text>
+          <text>{{card.routeEditAction.label}}</text>
+        </view>
+        <view
+          wx:elif="{{variant === 'delivery' && card.routeViewAction && card.routeViewAction.label}}"
+          class="route-edit-btn route-edit-btn-outline"
+          catchtap="onViewRouteTap"
+        >
+          <text>{{card.routeViewAction.label}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="driver-summary-metrics" wx:if="{{card.plannedDepartLabel || card.firstStopPlannedArrivalTimeLabel || card.plannedReturnLabel}}">
+    <view class="driver-metric-col driver-metric-col-depart">
+      <text class="driver-metric-label driver-metric-label-accent">{{variant === 'delivery' ? '实际出发' : '建议出发'}}</text>
+      <text class="driver-metric-time driver-metric-time-accent">{{card.plannedDepartLabel || '—'}}</text>
+      <view
+        wx:if="{{variant === 'delivery' && card.actualDepartStatusLabel}}"
+        class="driver-arrival-status-badge driver-arrival-status-{{card.actualDepartStatusTone || 'ok'}}"
+      >
+        <text class="driver-arrival-status-check" wx:if="{{card.actualDepartStatusTone === 'ok'}}">✓</text>
+        <text>{{card.actualDepartStatusLabel}}</text>
+      </view>
+    </view>
+    <view class="driver-metric-divider"></view>
+    <view class="driver-metric-col driver-metric-col-arrival">
+      <text class="driver-metric-label">{{variant === 'delivery' ? '下一站预计到达' : '首站预计到达'}}</text>
+      <text class="driver-metric-time">{{card.firstStopPlannedArrivalTimeLabel || '—'}}</text>
+      <view
+        wx:if="{{card.firstStopArrivalStatusLabel}}"
+        class="driver-arrival-status-badge driver-arrival-status-{{card.firstStopArrivalStatusTone || 'ok'}}"
+      >
+        <text class="driver-arrival-status-check" wx:if="{{card.firstStopArrivalStatusTone === 'ok'}}">✓</text>
+        <text class="driver-arrival-status-icon-early" wx:elif="{{variant === 'delivery' && card.firstStopArrivalStatusTone === 'early'}}">◷</text>
+        <text>{{card.firstStopArrivalStatusLabel}}</text>
+      </view>
+    </view>
+    <view class="driver-metric-divider"></view>
+    <view class="driver-metric-col driver-metric-col-return">
+      <text class="driver-metric-label">预计返回</text>
+      <text class="driver-metric-time">{{card.plannedReturnLabel || '—'}}</text>
+    </view>
+  </view>
+
+  <view class="delivery-progress-wrap" wx:if="{{variant === 'delivery' && card.deliveryProgressLine}}">
+    <view class="delivery-progress-bar">
+      <view
+        class="delivery-progress-fill"
+        style="width: {{card.deliveryProgressPercent || 0}}%;"
+      ></view>
+    </view>
+    <text class="delivery-progress-text">{{card.deliveryProgressLine}}</text>
+  </view>
+
+  <view class="driver-summary-footer" wx:if="{{card.totalRoundTripDistanceText || card.totalRoundTripDurationText}}">
+    <view class="driver-summary-footer-item" wx:if="{{card.totalRoundTripDistanceText}}">
+      <image class="driver-footer-icon" src="/images/car.png" mode="aspectFit"></image>
+      <text>往返 {{card.totalRoundTripDistanceText}}</text>
+    </view>
+    <view class="driver-summary-footer-divider" wx:if="{{card.totalRoundTripDistanceText && card.totalRoundTripDurationText}}"></view>
+    <view class="driver-summary-footer-item" wx:if="{{card.totalRoundTripDurationText}}">
+      <text class="driver-footer-icon driver-footer-icon-clock">◷</text>
+      <text>全程 {{card.totalRoundTripDurationText}}</text>
+    </view>
+  </view>
+
+  <route-timeline
+    wx:if="{{card.timeline && card.timeline.length > 0}}"
+    timeline="{{card.timeline}}"
+    variant="{{variant === 'delivery' ? 'delivery' : 'default'}}"
+    section-index="{{sectionIndex}}"
+    card-index="{{cardIndex}}"
+    bind:headtap="relay"
+    bind:primaryaction="relay"
+    bind:exceptionaction="relay"
+  ></route-timeline>
+
+  <view
+    class="route-primary-action-row"
+    wx:if="{{variant === 'dispatch' && card.primaryAction && card.primaryAction.label}}"
+  >
+    <view
+      wx:if="{{!card.primaryAction.isStatusOnly}}"
+      class="route-primary-action-btn stop-state-btn {{card.primaryAction.toneClass}}"
+      catchtap="onRouteCardPrimaryAction"
+    >{{card.primaryAction.label}}</view>
+    <text
+      wx:else
+      class="route-primary-action-status stop-state-status {{card.primaryAction.toneClass}}"
+    >{{card.primaryAction.label}}</text>
+  </view>
+</view>

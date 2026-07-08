@@ -1,5 +1,8 @@
 <view class="flex flex-column">
-  <custom-navbar style="height: {{navBarHeight}}rpx;" title="配送" avatar="/images/icons/icon_prepare.png"></custom-navbar>
+  <custom-navbar style="height: {{navBarHeight}}rpx;" title="配送"
+    avatar="{{userInfo && userInfo.nxDiuWxAvartraUrl ? url + userInfo.nxDiuWxAvartraUrl : ''}}"
+    button-text="设置"
+    bindnavbuttontap="onNavButtonTap"></custom-navbar>
 
   <view class="flex-row navbar" style="height: {{viewBarHeight}}rpx;">
     <block wx:for="{{tabs}}" wx:key="name">
@@ -11,13 +14,13 @@
 
   <swiper class="dispatch-swiper" style="height: {{contentHeight}}rpx;" current="{{innerCurrent}}" bindchange="onSwiperChange">
     <swiper-item class="dispatch-swiper-item">
-      <boss-tab-sandbox class="dispatch-panel" active="{{tabActive[0]}}" load-key="{{panelLoadKey}}"></boss-tab-sandbox>
+      <boss-tab-sandbox id="sandbox-panel" class="dispatch-panel" active="{{tabActive[0]}}" load-key="{{panelLoadKey}}"></boss-tab-sandbox>
     </swiper-item>
     <swiper-item class="dispatch-swiper-item">
-      <boss-tab-my-loading class="dispatch-panel" active="{{tabActive[1]}}" load-key="{{panelLoadKey}}"></boss-tab-my-loading>
+      <boss-tab-my-loading id="loading-panel" class="dispatch-panel" active="{{tabActive[1]}}" load-key="{{panelLoadKey}}"></boss-tab-my-loading>
     </swiper-item>
     <swiper-item class="dispatch-swiper-item">
-      <boss-tab-my-delivery class="dispatch-panel" active="{{tabActive[2]}}" load-key="{{panelLoadKey}}"></boss-tab-my-delivery>
+      <boss-tab-my-delivery id="delivery-panel" class="dispatch-panel" active="{{tabActive[2]}}" load-key="{{panelLoadKey}}"></boss-tab-my-delivery>
     </swiper-item>
   </swiper>
 </view>

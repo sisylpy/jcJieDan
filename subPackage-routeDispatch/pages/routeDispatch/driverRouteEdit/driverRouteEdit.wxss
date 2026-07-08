@@ -1,4 +1,4 @@
-@import '../today/today.wxss';
+@import '../../bossTab/dispatchPanelShared.wxss';
 
 .page-scroll-with-footer {
   flex: 1;
@@ -6,85 +6,39 @@
   padding-bottom: calc(200rpx + env(safe-area-inset-bottom));
 }
 
-.driver-summary-card,
-.section-card,
-.risk-card {
+.route-edit-card {
+  margin: 16rpx 20rpx 0;
+}
+
+.section-card {
   margin: 16rpx 24rpx 0;
   padding: 24rpx;
   border-radius: 16rpx;
   box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
 }
 
-.driver-summary-name {
-  font-size: 34rpx;
-  font-weight: 600;
-  color: #1f2d2b;
-}
-
-.driver-summary-metrics {
-  margin-top: 10rpx;
-  font-size: 26rpx;
-  color: #008c7a;
-  font-weight: 500;
-}
-
-.metric-sep {
-  color: #999;
-}
-
-.driver-summary-sub,
-.driver-summary-hint {
+.route-edit-section-hint {
   margin-top: 8rpx;
+  font-size: 22rpx;
+  color: #888;
+  line-height: 1.5;
+}
+
+.boss-stop-goods {
+  margin: 8rpx 20rpx 0;
   font-size: 24rpx;
   color: #666;
   line-height: 1.5;
 }
 
-.driver-summary-hint {
-  color: #008c7a;
-}
-
-.edit-map-card {
-  margin: 16rpx 24rpx 0;
-  border-radius: 16rpx;
-  overflow: hidden;
-  background: #fff;
-  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
-}
-
-.edit-map-stage {
-  position: relative;
-  width: 100%;
-  height: 400rpx;
-  overflow: hidden;
-  background: #eef4f7;
-}
-
-.edit-map {
-  width: 100%;
-  height: 400rpx;
-}
-
-.map-legend-compact {
-  left: 16rpx;
-  right: 16rpx;
-  bottom: 12rpx;
-}
-
-.edit-map-card .map-empty-hint,
-.edit-map-card .map-missing-hint {
-  padding: 16rpx 24rpx;
-  font-size: 24rpx;
-  color: #888;
-  line-height: 1.5;
-}
-
-.edit-map-card .map-missing-hint {
-  color: #d48806;
-}
-
-.edit-map-card .map-legend {
-  padding: 12rpx 24rpx 16rpx;
+.route-edit-stop-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10rpx;
+  margin-top: 18rpx;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #eef2f0;
 }
 
 .section-title {
@@ -101,7 +55,6 @@
   padding: 24rpx 0;
 }
 
-.route-stop-item,
 .addable-stop-item {
   display: flex;
   align-items: center;
@@ -110,27 +63,11 @@
   border-bottom: 1rpx solid #f0f2f1;
 }
 
-.route-stop-item:last-child,
 .addable-stop-item:last-child {
   border-bottom: none;
   padding-bottom: 20rpx;
 }
 
-.route-stop-seq {
-  width: 44rpx;
-  height: 44rpx;
-  border-radius: 50%;
-  background: #008c7a;
-  color: #fff;
-  font-size: 24rpx;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.route-stop-main,
 .addable-stop-main {
   flex: 1;
   min-width: 0;
@@ -142,13 +79,6 @@
   color: #222;
 }
 
-.route-stop-name-row {
-  display: flex;
-  align-items: center;
-  gap: 8rpx;
-  flex-wrap: wrap;
-}
-
 .route-stop-new-tag {
   padding: 2rpx 10rpx;
   border-radius: 8rpx;
@@ -156,10 +86,10 @@
   color: #d48806;
   font-size: 20rpx;
   font-weight: 500;
+  margin-left: 8rpx;
 }
 
 .route-stop-goods,
-.route-stop-meta,
 .route-stop-constraint {
   margin-top: 6rpx;
   font-size: 24rpx;
@@ -171,25 +101,20 @@
   color: #d48806;
 }
 
-.route-stop-actions {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8rpx;
-  flex-shrink: 0;
-  width: 196rpx;
-}
-
 .route-stop-btn {
-  min-width: 60rpx;
-  padding: 8rpx 10rpx;
+  min-width: 88rpx;
+  min-height: 56rpx;
+  padding: 8rpx 16rpx;
   border-radius: 8rpx;
   background: #f7f8fa;
   color: #333;
-  font-size: 22rpx;
+  font-size: 24rpx;
   text-align: center;
   box-sizing: border-box;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .route-stop-btn-primary {
@@ -206,30 +131,8 @@
   opacity: 0.35;
 }
 
-.addable-stop-item {
-  align-items: center;
-}
-
-.risk-item {
-  padding: 14rpx 16rpx;
-  border-radius: 10rpx;
-  font-size: 24rpx;
-  line-height: 1.5;
-  margin-bottom: 10rpx;
-}
-
-.risk-item:last-child {
-  margin-bottom: 0;
-}
-
-.risk-item-warn {
-  background: #fff7e6;
-  color: #d48806;
-}
-
-.risk-item-error {
-  background: #fff1f0;
-  color: #cf1322;
+.route-stop-btn-hover {
+  opacity: 0.72;
 }
 
 .bottom-action-bar {

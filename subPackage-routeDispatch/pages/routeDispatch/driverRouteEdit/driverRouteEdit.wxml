@@ -10,24 +10,10 @@
   </view>
 
   <scroll-view scroll-y="{{pageScrollEnabled}}" class="page-scroll page-scroll-with-footer" wx:if="{{!loading && pageViewModel}}">
-    <view class="driver-summary-card bg-white">
-      <view class="driver-summary-name">{{pageViewModel.driver.driverName}}</view>
-      <view class="driver-summary-metrics">
-        <text wx:if="{{pageViewModel.driver.customerStopCount != null}}">{{pageViewModel.driver.customerStopCount}} 个客户</text>
-        <text class="metric-sep" wx:if="{{pageViewModel.driver.customerStopCount != null && pageViewModel.driver.totalDistanceText}}"> · </text>
-        <text wx:if="{{pageViewModel.driver.totalDistanceText}}">{{pageViewModel.driver.totalDistanceText}}</text>
-        <text class="metric-sep" wx:if="{{pageViewModel.driver.totalDistanceText && pageViewModel.driver.totalDurationText}}"> · </text>
-        <text wx:if="{{pageViewModel.driver.totalDurationText}}">{{pageViewModel.driver.totalDurationText}}</text>
-      </view>
-      <view class="driver-summary-sub" wx:if="{{pageViewModel.driver.routeSummary}}">{{pageViewModel.driver.routeSummary}}</view>
-      <view class="driver-summary-sub" wx:if="{{pageViewModel.driver.routeMetricsLine}}">{{pageViewModel.driver.routeMetricsLine}}</view>
-      <view class="driver-summary-hint" wx:if="{{pageViewModel.driver.operationHint}}">{{pageViewModel.driver.operationHint}}</view>
-    </view>
-
-    <view class="edit-map-card" wx:if="{{pageViewModel.mapOverview}}">
-      <view class="edit-map-stage" wx:if="{{pageViewModel.mapOverview.hasMap}}">
+    <view class="map-overview-card" wx:if="{{pageViewModel.mapOverview}}">
+      <view class="map-overview-stage" wx:if="{{pageViewModel.mapOverview.hasMap}}">
         <map
-          class="edit-map"
+          class="map-overview"
           longitude="{{pageViewModel.mapOverview.longitude}}"
           latitude="{{pageViewModel.mapOverview.latitude}}"
           scale="{{pageViewModel.mapOverview.scale}}"
@@ -49,14 +35,13 @@
           bindtouchstart="onMapTouchStart"
           bindtouchend="onMapTouchEnd"
           bindtouchcancel="onMapTouchEnd"
-        >
-          <cover-view class="map-legend map-legend-cover map-legend-compact" wx:if="{{pageViewModel.mapOverview.legend.length > 0}}">
-            <cover-view class="map-legend-item" wx:for="{{pageViewModel.mapOverview.legend}}" wx:for-item="legendItem" wx:for-index="legendIndex" wx:key="legendIndex">
-              <cover-view class="map-legend-line map-legend-line-{{legendItem.lineStyle === 'DASHED' ? 'dashed' : 'solid'}}" style="border-color: {{legendItem.color}}; background-color: {{legendItem.lineStyle === 'DASHED' ? 'transparent' : legendItem.color}};"></cover-view>
-              <cover-view class="map-legend-label">{{legendItem.label}}</cover-view>
-            </cover-view>
-          </cover-view>
-        </map>
+        ></map>
+      </view>
+      <view class="map-legend map-legend-inline map-legend-compact" wx:if="{{pageViewModel.mapOverview.hasMap && pageViewModel.mapOverview.legend.length > 0}}">
+        <view class="map-legend-item" wx:for="{{pageViewModel.mapOverview.legend}}" wx:for-item="legendItem" wx:for-index="legendIndex" wx:key="legendIndex">
+          <view class="map-legend-line map-legend-line-{{legendItem.lineStyle === 'DASHED' ? 'dashed' : 'solid'}}" style="border-color: {{legendItem.color}}; background-color: {{legendItem.lineStyle === 'DASHED' ? 'transparent' : legendItem.color}};"></view>
+          <text class="map-legend-label">{{legendItem.label}}</text>
+        </view>
       </view>
       <view class="map-empty-hint" wx:if="{{!pageViewModel.mapOverview.hasMap && pageViewModel.mapOverview.emptyHint}}">
         <text>{{pageViewModel.mapOverview.emptyHint}}</text>
@@ -72,40 +57,72 @@
       </view>
     </view>
 
-    <view class="section-card bg-white">
-      <view class="section-title">{{pageViewModel.manualDispatchMode ? '送货顺序' : '当前路线'}}</view>
-      <view class="route-stop-item" wx:for="{{routeStops}}" wx:for-index="stopIndex" wx:key="stopKey">
-        <view class="route-stop-seq">{{item.seq}}</view>
-        <view class="route-stop-main">
-          <view class="route-stop-name-row">
-            <text class="route-stop-name">{{item.customerName}}</text>
-            <text class="route-stop-new-tag" wx:if="{{pageViewModel.manualDispatchMode && item.isIncomingStop}}">新店</text>
+    <view class="driver-route-card bg-white route-edit-card" wx:if="{{pageViewModel.driver}}">
+      <view class="driver-route-head">
+        <image class="driver-avatar" src="/images/user-group-2.png" mode="aspectFill"></image>
+        <view class="driver-route-head-main">
+          <view class="driver-route-name-row">
+            <view class="driver-route-name-group">
+              <text class="driver-route-name">{{pageViewModel.driver.driverName}}</text>
+              <text class="driver-stop-count-badge" wx:if="{{pageViewModel.driver.customerStopCount}}">{{pageViewModel.driver.customerStopCount}} 站</text>
+            </view>
           </view>
-          <view class="route-stop-goods" wx:if="{{item.goodsSummary}}">{{item.goodsSummary}}</view>
-          <view class="route-stop-meta" wx:if="{{item.plannedArrivalLabel || item.plannedDepartureLabel}}">
-            <text wx:if="{{item.plannedArrivalLabel}}">预计到达 {{item.plannedArrivalLabel}}</text>
-            <text wx:if="{{item.plannedArrivalLabel && item.plannedDepartureLabel}}"> · </text>
-            <text wx:if="{{item.plannedDepartureLabel}}">离开 {{item.plannedDepartureLabel}}</text>
-          </view>
-          <view class="route-stop-constraint" wx:if="{{item.constraintHint}}">{{item.constraintHint}}</view>
-        </view>
-        <view class="route-stop-actions">
-          <view
-            class="route-stop-btn {{stopIndex === 0 ? 'route-stop-btn-disabled' : ''}}"
-            catchtap="onMoveStop"
-            data-index="{{stopIndex}}"
-            data-direction="-1"
-          >上移</view>
-          <view
-            class="route-stop-btn {{stopIndex === routeStops.length - 1 ? 'route-stop-btn-disabled' : ''}}"
-            catchtap="onMoveStop"
-            data-index="{{stopIndex}}"
-            data-direction="1"
-          >下移</view>
-          <view class="route-stop-btn route-stop-btn-danger" catchtap="onRemoveStop" data-index="{{stopIndex}}">移除</view>
         </view>
       </view>
-      <view class="section-empty" wx:if="{{routeStops.length === 0}}">当前路线暂无客户</view>
+
+      <view class="driver-summary-metrics" wx:if="{{pageViewModel.driver.customerStopCount > 0}}">
+        <view class="driver-metric-col driver-metric-col-depart">
+          <text class="driver-metric-label driver-metric-label-accent">建议出发</text>
+          <text class="driver-metric-time driver-metric-time-accent">{{pageViewModel.driver.plannedDepartLabel || '—'}}</text>
+        </view>
+        <view class="driver-metric-divider"></view>
+        <view class="driver-metric-col driver-metric-col-arrival">
+          <text class="driver-metric-label">首站预计到达</text>
+          <text class="driver-metric-time">{{pageViewModel.driver.firstStopPlannedArrivalTimeLabel || '—'}}</text>
+          <view
+            wx:if="{{pageViewModel.driver.firstStopArrivalStatusLabel}}"
+            class="driver-arrival-status-badge driver-arrival-status-{{pageViewModel.driver.firstStopArrivalStatusTone || 'ok'}}"
+          >
+            <text class="driver-arrival-status-check" wx:if="{{pageViewModel.driver.firstStopArrivalStatusTone === 'ok'}}">✓</text>
+            <text>{{pageViewModel.driver.firstStopArrivalStatusLabel}}</text>
+          </view>
+        </view>
+        <view class="driver-metric-divider"></view>
+        <view class="driver-metric-col driver-metric-col-return">
+          <text class="driver-metric-label">预计返回</text>
+          <text class="driver-metric-time">{{pageViewModel.driver.plannedReturnLabel || '—'}}</text>
+        </view>
+      </view>
+
+      <view class="driver-summary-footer" wx:if="{{pageViewModel.driver.customerStopCount > 0}}">
+        <view class="driver-summary-footer-item" wx:if="{{pageViewModel.driver.totalRoundTripDistanceText}}">
+          <image class="driver-footer-icon" src="/images/car.png" mode="aspectFit"></image>
+          <text>往返 {{pageViewModel.driver.totalRoundTripDistanceText}}</text>
+        </view>
+        <view class="driver-summary-footer-divider" wx:if="{{pageViewModel.driver.totalRoundTripDistanceText && pageViewModel.driver.totalRoundTripDurationText}}"></view>
+        <view class="driver-summary-footer-item" wx:if="{{pageViewModel.driver.totalRoundTripDurationText}}">
+          <text class="driver-footer-icon driver-footer-icon-clock">◷</text>
+          <text>全程 {{pageViewModel.driver.totalRoundTripDurationText}}</text>
+        </view>
+      </view>
+
+      <view class="route-edit-section-hint" wx:if="{{pageViewModel.manualDispatchMode}}">拖动顺序后请点击「重新试算」更新预计时间</view>
+      <view class="route-edit-section-hint" wx:elif="{{pageViewModel.removeStopMode === 'REMOTE' || pageViewModel.removeStopMode === 'RETURN_TO_SANDBOX'}}">装车中移除将立即生效</view>
+      <view class="route-edit-section-hint" wx:else>调整顺序后请点击「重新试算」更新路线</view>
+
+      <route-timeline
+        wx:if="{{editTimeline.length > 0}}"
+        timeline="{{editTimeline}}"
+        variant="edit"
+        show-incoming-tag="{{pageViewModel.manualDispatchMode}}"
+        route-stops-length="{{routeStops.length}}"
+        removing-stop="{{removingStop}}"
+        bind:headtap="onTimelineStopHeadTap"
+        bind:movestop="onMoveStop"
+        bind:removestop="onRemoveStop"
+      ></route-timeline>
+
+      <view class="section-empty" wx:if="{{editTimeline.length === 0 && routeStops.length === 0}}">当前路线暂无客户</view>
     </view>
 
     <view class="section-card bg-white" wx:if="{{!pageViewModel.manualDispatchMode && addableStops.length > 0}}">
@@ -118,15 +135,6 @@
         </view>
         <view class="route-stop-btn route-stop-btn-primary" catchtap="onAddStop" data-stop-key="{{item.stopKey}}">添加</view>
       </view>
-    </view>
-
-    <view class="risk-card bg-white" wx:if="{{displayWarnings.length > 0}}">
-      <view class="section-title">风险提示</view>
-      <view
-        class="risk-item risk-item-{{item.level === 'error' ? 'error' : 'warn'}}"
-        wx:for="{{displayWarnings}}"
-        wx:key="index"
-      >{{item.message || item.text || item.label}}</view>
     </view>
   </scroll-view>
 
@@ -142,4 +150,12 @@
     <view class="bottom-action-hint" wx:if="{{pageViewModel.actions.confirmDisabledReason && !confirmReady}}">{{pageViewModel.actions.confirmDisabledReason}}</view>
     <view class="bottom-action-hint" wx:elif="{{pageViewModel.bottomHint}}">{{pageViewModel.bottomHint}}</view>
   </view>
+
+  <time-window-editor
+    visible="{{timeWindowModalVisible}}"
+    submitting="{{timeWindowSubmitting}}"
+    payload="{{timeWindowPayload}}"
+    bind:cancel="closeTimeWindowModal"
+    bind:confirm="submitTimeWindowModal"
+  />
 </view>

@@ -45,6 +45,7 @@ Component({
     // 打印机相关
     printOk: false, // 打印机连接状态
     paperSize: wx.getStorageSync('paperSize') || 1, // 标签尺寸：1-小，2-中，3-大
+    refresherTriggered: false,
 },
 
   pageLifetimes: {
@@ -53,7 +54,11 @@ Component({
       //tabBar
       if (typeof this.getTabBar === 'function' &&
         this.getTabBar()) {
-        this.getTabBar().setData({
+        var tabBarComp = this.getTabBar()
+        if (typeof tabBarComp.refreshTabs === 'function') {
+          tabBarComp.refreshTabs()
+        }
+        tabBarComp.setData({
           selected: 1
         })
       }
@@ -1124,10 +1129,15 @@ Component({
 
     // 下拉刷新
     onPullDownRefresh() {
-      console.log('下拉刷新');
-      
-      // 重置分页数据，并清空选择数组
-      this.setData({
+      this._refreshStockData({ fromPullDown: true })
+    },
+
+    onScrollRefresh() {
+      this._refreshStockData({ fromRefresher: true })
+    },
+
+    _getRefreshResetData(extra) {
+      return Object.assign({
         currentPage: 1,
         totalPage: 0,
         totalCount: 0,
@@ -1144,15 +1154,31 @@ Component({
         categoryPositions: [],
         scrollTimer: null,
         isLoadingMoreForCategory: false,
-        choiceStockArr: [], // 清空选择数组
-        isAllDepartmentSelected: false, // 重置全选状态
-      });
-      
-      // 重新初始化数据
-      this._initData();
-      
-      // 停止下拉刷新动画
-      wx.stopPullDownRefresh();
+        choiceStockArr: [],
+        isAllDepartmentSelected: false
+      }, extra || {})
+    },
+
+    _refreshStockData(options) {
+      var that = this
+      options = options || {}
+      this.setData(this._getRefreshResetData({
+        refresherTriggered: !!options.fromRefresher
+      }))
+      var result = this._initData()
+      var finish = function () {
+        if (options.fromPullDown) {
+          wx.stopPullDownRefresh()
+        }
+        if (options.fromRefresher) {
+          that.setData({ refresherTriggered: false })
+        }
+      }
+      if (result && typeof result.finally === 'function') {
+        result.finally(finish)
+      } else {
+        finish()
+      }
     },
 
     hideButton() {

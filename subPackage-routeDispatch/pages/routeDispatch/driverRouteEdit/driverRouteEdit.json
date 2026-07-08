@@ -1,5 +1,7 @@
 {
   "usingComponents": {
-    "back-navbar": "/components/back-navbar/back-navbar"
+    "back-navbar": "/components/back-navbar/back-navbar",
+    "time-window-editor": "../../../components/time-window-editor/time-window-editor",
+    "route-timeline": "../../../components/route-timeline/route-timeline"
   }
 }

@@ -1,6 +1,8 @@
 var tabBar = require('../../../lib/routeDispatchTabBar.js')
 var app = getApp()
 
+import apiUrl from '../../../config.js'
+
 var tabBarHeight = 50
 var viewBarHeight = 50
 
@@ -8,6 +10,8 @@ Page({
   data: {
     innerCurrent: 0,
     panelLoadKey: 1,
+    url: '',
+    userInfo: null,
     tabs: [
       { name: '分派中' },
       { name: '装车中' },
@@ -35,6 +39,10 @@ Page({
     if (!tabBar.hasRouteDispatch()) {
       return
     }
+    this.setData({
+      url: apiUrl.server,
+      userInfo: wx.getStorageSync('userInfo') || null
+    })
     var tabBarComp = typeof this.getTabBar === 'function' && this.getTabBar()
     if (tabBarComp) {
       if (typeof tabBarComp.refreshTabs === 'function') {
@@ -99,5 +107,31 @@ Page({
     this.setData({
       innerCurrent: current
     }, this.bumpPanelLoad.bind(this))
+  },
+
+  onPullDownRefresh: function () {
+    var panelIds = ['sandbox-panel', 'loading-panel', 'delivery-panel']
+    var panelId = panelIds[this.data.innerCurrent] || panelIds[0]
+    var panel = this.selectComponent('#' + panelId)
+    if (panel && typeof panel.loadPage === 'function') {
+      panel.loadPage(true)
+      return
+    }
+    wx.stopPullDownRefresh()
+  },
+
+  onNavButtonTap: function () {
+    var userInfo = this.data.userInfo || {}
+    if (userInfo.nxDiuAdmin == 0) {
+      wx.navigateTo({
+        url: '../../../subPackage/pages/management/homePage/homePage'
+      })
+      return
+    }
+    wx.showModal({
+      title: '没有权限',
+      content: '请首位注册的用户进入"账号管理",为您开通管理员权限',
+      showCancel: false
+    })
   }
 })

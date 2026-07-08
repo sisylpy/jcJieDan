@@ -38,7 +38,11 @@ Page({
     //tabBar
     if (typeof this.getTabBar === 'function' &&
       this.getTabBar()) {
-      this.getTabBar().setData({
+      var tabBarComp = this.getTabBar()
+      if (typeof tabBarComp.refreshTabs === 'function') {
+        tabBarComp.refreshTabs()
+      }
+      tabBarComp.setData({
         selected: 0
       })
     }
@@ -65,6 +69,26 @@ Page({
 
   onHide() {
     this._clearTaskPollTimer();
+  },
+
+  onPullDownRefresh() {
+    var disId = this.data.disId
+    if (!disId) {
+      var disInfo = wx.getStorageSync('disInfo') || {}
+      disId = disInfo.nxDistributerId
+    }
+    if (!disId) {
+      wx.stopPullDownRefresh()
+      return
+    }
+    var promise = this._getTodayCustomer(disId)
+    if (promise && typeof promise.finally === 'function') {
+      promise.finally(function () {
+        wx.stopPullDownRefresh()
+      })
+    } else {
+      wx.stopPullDownRefresh()
+    }
   },
 
   onUnload() {
@@ -430,8 +454,8 @@ Page({
     var depHasSubs = e.currentTarget.dataset.depsub;
 
     wx.navigateTo({
-      url: '/subPackage-charts/pages/order/orderPage/orderPage?depFatherId=' + depId +
-        '&name=' + name + '&gbDepFatherId=' + gbDepId + '&resFatherId=' + resId + '&nxDisId=' + nxDisId + '&gbDisId=' + gbDisId + '&comId=' + comId +
+      url: '/subPackage-order/pages/order/orderPage/orderPage?depFatherId=' + depId +
+        '&name=' + name + '&gbDepFatherId=' + gbDepId +  '&nxDisId=' + nxDisId + '&gbDisId=' + gbDisId + '&comId=' + comId +
         '&depHasSubs=' + depHasSubs,
     })
   },
@@ -453,9 +477,9 @@ Page({
       name: name,
     });
     wx.navigateTo({
-      url: '/subPackage-charts/pages/order/orderPage/orderPage?depFatherId=' + route.depFatherId +
+      url: '/subPackage-order/pages/order/orderPage/orderPage?depFatherId=' + route.depFatherId +
         '&name=' + encodeURIComponent(name) +
-        '&gbDepFatherId=' + route.gbDepFatherId + '&resFatherId=-1&nxDisId=' + this.data.disId +
+        '&gbDepFatherId=' + route.gbDepFatherId + '&nxDisId=' + this.data.disId +
         '&gbDisId=-1&comId=-1&depHasSubs=' + (depHasSubs != null ? depHasSubs : 0),
     });
   },
@@ -473,8 +497,8 @@ Page({
     var depHasSubs = e.currentTarget.dataset.depsub;
 
     wx.navigateTo({
-      url: '/subPackage-charts/pages/order/orderPageRetail/orderPageRetail?depFatherId=' + depId +
-        '&name=' + name + '&gbDepFatherId=' + gbDepId + '&resFatherId=' + resId + '&nxDisId=' + nxDisId + '&gbDisId=' + gbDisId + '&comId=' + comId +
+      url: '/subPackage-order/pages/order/orderPageRetail/orderPageRetail?depFatherId=' + depId +
+        '&name=' + name + '&gbDepFatherId=' + gbDepId  + '&nxDisId=' + nxDisId + '&gbDisId=' + gbDisId + '&comId=' + comId +
         '&depHasSubs=' + depHasSubs,
     })
   },
@@ -484,14 +508,14 @@ Page({
     wx.setStorageSync('batchItem', e.currentTarget.dataset.batch);
     wx.setStorageSync('supplierItem', e.currentTarget.dataset.supplier);
     wx.navigateTo({
-      url: '/subPackage-charts/pages/order/subPackage-charts/pages/order/orderPageGb/orderPageGb?batchId=' + e.currentTarget.dataset.id,
+      url: '/subPackage-order/pages/order/orderPageGb/orderPageGb?batchId=' + e.currentTarget.dataset.id,
     })
   },
 
   toLinshiOrderPage() {
     console.log("toLinshiOrderPage")
     wx.navigateTo({
-      url: '/subPackage-charts/pages/order/linshiOrderPage/linshiOrderPage',
+      url: '/subPackage-order/pages/order/linshiOrderPage/linshiOrderPage',
     })
 
   },
@@ -571,7 +595,7 @@ Page({
       if (res.result.code == 0) {   
         wx.setStorageSync('depInfo', res.result.data);
         wx.navigateTo({
-          url: '/subPackage-charts/pages/order/ocrOrder/ocrOrder?taskId=' + item.nxOcrTaskId +
+          url: '/subPackage-order/pages/order/ocrOrder/ocrOrder?taskId=' + item.nxOcrTaskId +
           '&depId=' + item.nxOcrTaskDepartmentId + '&depFatherId=' + item.nxOcrTaskDepartmentFatherId + '&depName=' + item.nxOcrTaskDepartmentName,
         })
         
@@ -599,15 +623,15 @@ Page({
     var name = e.currentTarget.dataset.name;
     var settleTimes = e.currentTarget.dataset.time;
     wx.navigateTo({
-      url: '/subPackage-charts/pages/order/orderPageGb/orderPageGb?depFatherId=' + depId +
-        '&name=' + name + '&gbDepFatherId=' + gbDepId + '&resFatherId=' + resId + '&nxDisId=' + nxDisId + '&gbDisId=' + gbDisId + '&comId=' + comId + '&settleTimes=' + settleTimes + '&toDepId=' + e.currentTarget.dataset.todepid,
+      url: '/subPackage-order/pages/order/orderPageGb/orderPageGb?depFatherId=' + depId +
+        '&name=' + name + '&gbDepFatherId=' + gbDepId + '&nxDisId=' + nxDisId + '&gbDisId=' + gbDisId + '&comId=' + comId + '&settleTimes=' + settleTimes + '&toDepId=' + e.currentTarget.dataset.todepid,
     })
     console.log("")
   },
 
   addDepOrder() {
     wx.navigateTo({
-      url: '/subPackage-charts/pages/order/depList/depList?disId=' + this.data.disId,
+      url: '/subPackage-order/pages/order/depList/depList?disId=' + this.data.disId,
     })
   },
 
@@ -634,7 +658,7 @@ Page({
 
   addSearchOrder() {
     wx.navigateTo({
-      url: '/subPackage-charts/pages/order/searchOrder/searchOrder',
+      url: '/subPackage-order/pages/order/searchOrder/searchOrder',
     })
   },
 
@@ -683,7 +707,7 @@ Page({
 
   toNxDisOrders(e){
     wx.navigateTo({
-      url: '/subPackage-charts/pages/order/orderPageColl/orderPageColl?collDisId=' + 
+      url: '/subPackage-order/pages/order/orderPageColl/orderPageColl?collDisId=' + 
         e.currentTarget.dataset.id + '&nxDisId=' + this.data.disId + '&name=' + e.currentTarget.dataset.name,
     })
   },
@@ -691,7 +715,7 @@ Page({
 
   toRetailGoods(){
     wx.navigateTo({
-      url: '/subPackage-charts/pages/order/retailGoodsList/retailGoodsList',
+      url: '/subPackage-order/pages/order/retailGoodsList/retailGoodsList',
     })
 
   },

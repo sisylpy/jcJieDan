@@ -327,3 +327,63 @@ export function normalizeMapOverview(mapOverview) {
   }
   return next
 }
+
+function cloneIncludePoints(points) {
+  if (!Array.isArray(points)) {
+    return []
+  }
+  return points.map(function (point) {
+    if (!point) {
+      return point
+    }
+    return {
+      latitude: point.latitude,
+      longitude: point.longitude
+    }
+  })
+}
+
+/** 将地图视口恢复到 pageViewModel.mapOverview 的初始范围（不重新拉接口）。 */
+export function resetMapViewport(host, options) {
+  options = options || {}
+  if (!host || typeof host.setData !== 'function') {
+    return
+  }
+  var mapOverview = options.mapOverview
+  if (!mapOverview || !mapOverview.hasMap) {
+    return
+  }
+
+  var mapId = options.mapId || 'routeDispatchMapOverview'
+  var padding = options.padding || [48, 48, 48, 48]
+  var visibleKey = options.visibleKey || 'mapOverviewVisible'
+  var points = cloneIncludePoints(mapOverview.includePoints)
+
+  var applyIncludePoints = function () {
+    if (points.length === 0) {
+      return
+    }
+    var mapCtx = wx.createMapContext(mapId, host)
+    if (mapCtx && mapCtx.includePoints) {
+      mapCtx.includePoints({
+        points: points,
+        padding: padding
+      })
+    }
+  }
+
+  if (host.data[visibleKey] === false) {
+    host.setData({ [visibleKey]: true }, applyIncludePoints)
+    return
+  }
+
+  host.setData({ [visibleKey]: false }, function () {
+    host.setData({ [visibleKey]: true }, function () {
+      if (typeof wx.nextTick === 'function') {
+        wx.nextTick(applyIncludePoints)
+      } else {
+        setTimeout(applyIncludePoints, 50)
+      }
+    })
+  })
+}

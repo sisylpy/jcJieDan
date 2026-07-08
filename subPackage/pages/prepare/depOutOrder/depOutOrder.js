@@ -47,7 +47,6 @@ Page({
       navBarHeight: globalData.navBarHeight * globalData.rpxR,
       depFatherId: options.depFatherId,
       gbDepFatherId: options.gbDepFatherId,
-      resFatherId: options.resFatherId,
       nxDisId: options.nxDisId,
       gbDisId: options.gbDisId,
       comId: options.comId,
@@ -75,7 +74,6 @@ Page({
     var data = {
       depFatherId: this.data.depFatherId,
       gbDepFatherId: this.data.gbDepFatherId,
-      resFatherId: this.data.resFatherId,
       goodsType: this.data.goodsType,
 
     }
@@ -102,7 +100,6 @@ Page({
     var data = {
       depFatherId: this.data.depFatherId,
       gbDepFatherId: this.data.gbDepFatherId,
-      resFatherId: this.data.resFatherId,
       goodsType: this.data.goodsType,
       
     }

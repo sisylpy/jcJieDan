@@ -4,6 +4,21 @@ var app = getApp()
 import { getAvailableDrivers, driverCheckIn, driverCheckOut } from '../../../../lib/apiRouteDispatch.js'
 import { resolveSession, getTodayDateStr } from '../_session.js'
 
+function applyPageData(page, data) {
+  if (data && data.driverCards) {
+    data.driverCards = data.driverCards.map(function (card) {
+      return Object.assign({}, card, {
+        dutySwitchOn: card.dutyStatus !== 'OFF_DUTY'
+      })
+    })
+  }
+  page.setData({
+    loading: false,
+    pageData: data || null,
+    loadError: data ? '' : '后端未返回数据'
+  })
+}
+
 Page({
   data: {
     loading: true,
@@ -20,7 +35,6 @@ Page({
     var globalData = app.globalData
     var session = resolveSession()
     this.setData({
-      windowWidth: globalData.windowWidth * globalData.rpxR,
       navBarHeight: globalData.navBarHeight * globalData.rpxR,
       disId: session.disId,
       operatorUserId: session.operatorUserId,
@@ -30,112 +44,104 @@ Page({
   },
 
   onShow: function () {
-    this.loadDrivers()
+    this.loadPage()
   },
 
   onPullDownRefresh: function () {
-    this.loadDrivers(true)
+    this.loadPage(true)
   },
 
-  loadDrivers: function (fromPullDown) {
+  loadPage: function (fromPullDown) {
     var that = this
     if (!this.data.disId) {
-      this.setData({
-        loading: false,
-        pageData: null,
-        loadError: '未获取到配送商信息，请重新登录'
-      })
-      if (fromPullDown) {
-        wx.stopPullDownRefresh()
-      }
+      this.setLoadError('未获取到配送商信息，请重新登录', fromPullDown)
       return
     }
     if (!fromPullDown) {
       load.showLoading('加载司机')
     }
-    var dutyDate = this.data.dutyDate || getTodayDateStr()
     getAvailableDrivers({
       disId: this.data.disId,
-      routeDate: dutyDate
+      routeDate: this.data.dutyDate || getTodayDateStr()
     }).then(function (res) {
-      load.hideLoading()
-      if (fromPullDown) {
-        wx.stopPullDownRefresh()
-      }
       if (!res.result || res.result.code !== 0) {
-        that.setData({
-          loading: false,
-          pageData: null,
-          loadError: (res.result && res.result.msg) || '加载司机失败'
-        })
+        that.setLoadError((res.result && res.result.msg) || '加载司机失败', false)
         return
       }
-      that.setData({
-        loading: false,
-        pageData: res.result.data || null,
-        loadError: res.result.data ? '' : '后端未返回数据'
-      })
-    }).catch(function () {
-      load.hideLoading()
-      if (fromPullDown) {
-        wx.stopPullDownRefresh()
-      }
-      that.setData({
-        loading: false,
-        pageData: null,
-        loadError: '网络异常，请稍后重试'
-      })
+      applyPageData(that, res.result.data)
+    }).finally(function () {
+      that.finishLoad(fromPullDown)
     })
   },
 
-  onToggleDispatch: function (e) {
+  finishLoad: function (fromPullDown) {
+    if (!fromPullDown) {
+      load.hideLoading()
+    }
+    if (fromPullDown) {
+      wx.stopPullDownRefresh()
+    }
+    if (this.data.loading) {
+      this.setData({ loading: false })
+    }
+  },
+
+  setLoadError: function (loadError, fromPullDown) {
+    this.setData({
+      loading: false,
+      pageData: null,
+      loadError: loadError
+    })
+    if (fromPullDown) {
+      wx.stopPullDownRefresh()
+    }
+  },
+
+  onDutySwitchChange: function (e) {
     var index = e.currentTarget.dataset.index
-    var pageData = this.data.pageData || {}
-    var drivers = pageData.driverCards || []
-    var driver = drivers[index]
-    var that = this
+    var wantOn = e.detail.value
+    var driver = (this.data.pageData && this.data.pageData.driverCards || [])[index]
+    var switchKey = 'pageData.driverCards[' + index + '].dutySwitchOn'
     if (this.data.submitting || !driver || !driver.driverUserId) {
+      this.setData({ [switchKey]: !wantOn })
       return
     }
-    var primaryAction = driver.primaryAction || {}
-    if (!driver.canToggleDuty || !primaryAction.enabled) {
+    if (!driver.canToggleDuty) {
       wx.showToast({
-        title: driver.toggleDisabledReason || primaryAction.disabledReason || '当前不可操作',
+        title: driver.toggleDisabledReason || '当前不可操作',
         icon: 'none'
       })
+      this.setData({ [switchKey]: !wantOn })
       return
     }
-    var actionType = String(primaryAction.actionType || '').toUpperCase()
-    var driverName = driver.driverName
-    if (!driverName) {
+    if (!driver.driverName) {
       wx.showToast({ title: '缺少 driverName', icon: 'none' })
+      this.setData({ [switchKey]: !wantOn })
       return
     }
-    if (actionType === 'TOGGLE_DUTY_ON') {
-      wx.showModal({
-        title: '开启可派',
-        content: '开启后，「' + driverName + '」将参与今日派车，确认开启？',
-        success: function (res) {
-          if (res.confirm) {
-            that.submitDuty('on', driver.driverUserId)
-          }
+    var modal = wantOn
+      ? {
+          title: '开启可派',
+          content: '开启后，「' + driver.driverName + '」将参与今日派车，确认开启？',
+          duty: 'on'
         }
-      })
-      return
-    }
-    if (actionType === 'TOGGLE_DUTY_OFF') {
-      wx.showModal({
-        title: '关闭可派',
-        content: '关闭后，系统不会给「' + driverName + '」派单，确认关闭？',
-        success: function (res) {
-          if (res.confirm) {
-            that.submitDuty('off', driver.driverUserId)
-          }
+      : {
+          title: '关闭可派',
+          content: '关闭后，系统不会给「' + driver.driverName + '」派单，确认关闭？',
+          duty: 'off'
         }
-      })
-      return
-    }
-    wx.showToast({ title: '未知操作类型', icon: 'none' })
+    var that = this
+    wx.showModal({
+      title: modal.title,
+      content: modal.content,
+      success: function (res) {
+        if (res.confirm) {
+          that.submitDuty(modal.duty, driver.driverUserId)
+        } else {
+          that.setData({ [switchKey]: !wantOn })
+        }
+      }
+    })
   },
 
   submitDuty: function (action, driverUserId) {
@@ -152,17 +158,14 @@ Page({
       load.hideLoading()
       that.setData({ submitting: false })
       if (res.result.code !== 0) {
-        wx.showToast({
-          title: res.result.msg || '操作失败',
-          icon: 'none'
-        })
+        wx.showToast({ title: res.result.msg || '操作失败', icon: 'none' })
         return
       }
       wx.showToast({
         title: action === 'on' ? '已开启可派' : '已关闭可派',
         icon: 'success'
       })
-      that.loadDrivers()
+      that.loadPage()
     }).catch(function () {
       load.hideLoading()
       that.setData({ submitting: false })

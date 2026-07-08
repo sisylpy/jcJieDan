@@ -19,6 +19,17 @@ Page({
    * 页面的初始数据
    */
   data: {
+    payArr: [],
+    userInfo: {
+      nxDiuPrintDeviceId: -1,
+      nxDiuWxOpenId: ''
+    },
+    disInfo: {},
+    disId: null,
+    navBarHeight: 0,
+    windowWidth: 0,
+    windowHeight: 0,
+    url: '',
 
     tabs: [
       
@@ -46,6 +57,7 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad(options) {
+    console.log('[payList] onLoad', options)
     const globalData = app.globalData;
 
 
@@ -56,14 +68,15 @@ Page({
         disId: disInfoValue.nxDistributerId,
         subtotal: "1.0"
       })
-    }else{
+    } else {
       wx.redirectTo({
-        url: '../../../../pages/loginPay/loginPay',
+        url: '/subPackage/pages/loginPay/loginPay',
       })
+      return
     }
 
     var userInfo = wx.getStorageSync('userInfo');
-    if(userInfo){
+    if (userInfo) {
       this.setData({
         userInfo: userInfo
       })
@@ -88,6 +101,11 @@ Page({
 
 
   _initData(){
+    var that = this
+    if (!this.data.disId) {
+      console.warn('[payList] _initData skipped, missing disId')
+      return
+    }
     var data = {
       disId: this.data.disId,
     }
@@ -95,11 +113,17 @@ Page({
     disGetPayList(data).then(res =>{
       load.hideLoading();
       if(res.result.code ==0){
-        this.setData({
-          payArr: res.result.data,
+        that.setData({
+          payArr: Array.isArray(res.result.data) ? res.result.data : [],
         })
+      } else {
+        that.setData({ payArr: [] })
       }
 
+    }).catch(function(err) {
+      load.hideLoading();
+      console.error('[payList] disGetPayList fail', err)
+      that.setData({ payArr: [] })
     })
   },
 
@@ -162,7 +186,7 @@ Page({
 
   toPrintSet(){
     wx.navigateTo({
-      url: '/subPackage-charts/pages/order/pSearchPrinter/pSearchPrinter',
+      url: '/subPackage-order/pages/order/pSearchPrinter/pSearchPrinter',
     })
 
   },

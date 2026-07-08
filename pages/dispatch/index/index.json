@@ -1,4 +1,6 @@
 {
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark",
   "usingComponents": {
     "custom-navbar": "/components/custom-navbar/custom-navbar",
     "boss-tab-sandbox": "/subPackage-routeDispatch/pages/bossTab/sandbox/sandbox",

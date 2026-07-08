@@ -1,4 +1,5 @@
 var load = require('../../../lib/load.js');
+var tabBar = require('../../../lib/routeDispatchTabBar.js');
 
 const tabBarHeight = 50; // 根据实际情况调整
 const viewBarHeight = 50;
@@ -61,8 +62,12 @@ Component({
       //tabBar
       if (typeof this.getTabBar === 'function' &&
         this.getTabBar()) {
-        this.getTabBar().setData({
-          selected: 2
+        var tabBarComp = this.getTabBar()
+        if (typeof tabBarComp.refreshTabs === 'function') {
+          tabBarComp.refreshTabs()
+        }
+        tabBarComp.setData({
+          selected: tabBar.getTabIndex('pages/purchase/index/index')
         })
       }
 
@@ -2497,6 +2502,32 @@ Component({
       this.setData({
         buttonAnimation: this.animation.export(),
       });
+    },
+
+    onPullDownRefresh() {
+      this.setData({
+        selectedArr: [],
+        selectedPrintArr: [],
+        isAllDepartmentSelected: false,
+        currentPage: 1,
+        totalPage: 0,
+        totalCount: 0,
+        hasMore: true,
+        isLoading: false,
+        purGoodsArr: [],
+        purCataArr: [],
+        depArr: [],
+        selectedDepId: null,
+        selectedSubWx: 0,
+        toViewWx: '',
+        scrollTopLeftWx: 0,
+        categoryPositions: [],
+        scrollTimer: null,
+        isLoadingMoreForCategory: false,
+        refresherTriggered: false
+      })
+      this._initData()
+      wx.stopPullDownRefresh()
     },
 
     onRefresh() {

@@ -1,0 +1,36 @@
+<view class="time-window-mask" wx:if="{{visible}}" catchtouchmove="true">
+  <view class="time-window-dialog" catchtap="stopPropagation">
+    <view class="time-window-title">修改今天临时送达时间</view>
+    <view class="time-window-subtitle">{{form.customerName}}</view>
+    <view class="time-window-hint" wx:if="{{form.customerWindowLabel}}">
+      当前：{{form.customerWindowLabel}}
+    </view>
+    <view class="time-window-field">
+      <text class="time-window-label">最早送达</text>
+      <picker mode="time" value="{{form.earliestPicker}}" bindchange="onEarliestChange">
+        <view class="time-window-picker">{{form.earliestPicker || '请选择（可选）'}}</view>
+      </picker>
+    </view>
+    <view class="time-window-field">
+      <text class="time-window-label">最晚送达</text>
+      <picker mode="time" value="{{form.latestPicker}}" bindchange="onLatestChange">
+        <view class="time-window-picker">{{form.latestPicker || '请选择'}}</view>
+      </picker>
+    </view>
+    <view class="time-window-field">
+      <text class="time-window-label">调整原因（选填）</text>
+      <input
+        class="time-window-input"
+        placeholder="选填"
+        value="{{form.reason}}"
+        adjust-position="{{true}}"
+        cursor-spacing="120"
+        bindinput="onReasonInput"
+      />
+    </view>
+    <view class="time-window-actions">
+      <view class="time-window-btn time-window-btn-cancel" bindtap="onCancel">取消</view>
+      <view class="time-window-btn time-window-btn-confirm {{submitting ? 'time-window-btn-disabled' : ''}}" bindtap="onConfirm">保存</view>
+    </view>
+  </view>
+</view>

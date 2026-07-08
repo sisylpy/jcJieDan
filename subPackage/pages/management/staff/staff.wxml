@@ -73,6 +73,49 @@
       </view>
 
     </view>
+    <view class="flex-row-between p-20">
+      <text>京采司机用户</text>
+      <view class="flex-row  text-center">
+        <view class="mainBack_new_btn" bind:tap="toOpenDriver">邀请司机注册</view>
+      </view>
+    </view>
+
+    <view class="flex-row-between border-bottom bg-white p-20 driver-staff-row" wx:for="{{driverUserArr}}" wx:for-index="driverIndex" wx:key="nxDistributerUserId">
+
+      <view class="flex-row flex-1">
+        <image src='{{url + item.nxDiuWxAvartraUrl}}' class="member_url mr-20"></image>
+
+        <view class="flex-column">
+          <view class="flex-row align-center">
+            <text class="font-md">{{item.nxDiuWxNickName}}</text>
+            <text class="duty-self-tag" wx:if="{{item.nxDistributerUserId == userId}}">我</text>
+          </view>
+          <view class="flex-row" wx:if="{{item.nxDiuWxPhone}}">
+            <text class="font-md">{{item.nxDiuWxPhone}}</text>
+          </view>
+          <view class="flex-row" wx:if="{{item.dutyStatusLabel}}">
+            <text class="font-sm duty-status-label duty-status-label-{{item.dutySwitchOn ? 'on' : 'off'}}">{{item.dutyStatusLabel}}</text>
+          </view>
+        </view>
+
+      </view>
+
+      <view class="flex-row align-center">
+        <switch
+          class="driver-duty-switch"
+          checked="{{item.dutySwitchOn}}"
+          disabled="{{item.dutyToggleDisabled}}"
+          bindchange="onDriverDutyChange"
+          data-index="{{driverIndex}}"
+          color="#008c7a"
+        />
+        <view class="btnClick plr-20" bindtap="openOperation" data-id="{{item.nxDistributerUserId}}" hover-class="hover" data-type="dis" data-item="{{item}}">
+          <image src="../../../../images/points.png" class="icon"></image>
+        </view>
+      </view>
+
+    </view>
+
     <view style="height: 100rpx;"></view>
 
   </view>

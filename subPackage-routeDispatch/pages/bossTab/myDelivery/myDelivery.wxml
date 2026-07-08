@@ -1,0 +1,109 @@
+
+<view class="page flex flex-column page-tab-embed">
+  <view class="page-loading-wrap" wx:if="{{loading}}">
+    <text class="text-secondary font-md">加载中...</text>
+  </view>
+
+  <view class="empty-wrap" wx:if="{{!loading && loadError}}">
+    <text class="text-secondary font-md">{{loadError}}</text>
+  </view>
+
+  <scroll-view scroll-y class="page-scroll delivery-empty-scroll" wx:if="{{!loading && !loadError && pageViewModel && !hasActiveDeliveryRoutes}}" refresher-enabled="{{true}}" refresher-triggered="{{refresherTriggered}}" bindrefresherrefresh="onScrollRefresh">
+    <view class="empty-wrap delivery-empty-wrap">
+      <text class="text-secondary font-md">{{pageViewModel.pageHeader.subtitle || '暂无配送中路线'}}</text>
+      <text class="text-secondary font-sm delivery-empty-hint" wx:if="{{pageViewModel.pageHeader.operationHint}}">{{pageViewModel.pageHeader.operationHint}}</text>
+    </view>
+  </scroll-view>
+
+  <scroll-view scroll-y="{{pageScrollEnabled}}" class="page-scroll" wx:if="{{!loading && pageViewModel && hasActiveDeliveryRoutes}}" refresher-enabled="{{true}}" refresher-triggered="{{refresherTriggered}}" bindrefresherrefresh="onScrollRefresh">
+    <view class="map-overview-card" id="deliveryMapOverview" wx:if="{{pageViewModel.mapOverview}}">
+      <view class="map-topbar map-topbar-inline" wx:if="{{pageViewModel.mapOverview.hasMap && pageViewModel.mapOverview.summary}}">
+        <view class="map-summary-pill">
+          <view class="map-overview-stat">
+            <image class="map-stat-icon" src="/images/user-group-2.png"></image>
+            <text class="map-overview-stat-text">{{pageViewModel.mapOverview.summary.customerStopCount}} 个客户</text>
+          </view>
+          <view class="map-pill-divider"></view>
+          <view class="map-overview-stat">
+            <image class="map-stat-icon" src="/images/car.png"></image>
+            <text class="map-overview-stat-text">{{pageViewModel.mapOverview.summary.routeCount}} 条路线</text>
+          </view>
+        </view>
+        <view class="map-overview-refresh" bindtap="onRefreshMap">
+          <text class="map-refresh-symbol">↻</text>
+          <text>刷新</text>
+        </view>
+      </view>
+      <view class="map-overview-stage" wx:if="{{pageViewModel.mapOverview.hasMap}}">
+        <map
+          wx:if="{{mapOverviewVisible}}"
+          id="routeDispatchMapOverview"
+          class="map-overview"
+          longitude="{{pageViewModel.mapOverview.longitude}}"
+          latitude="{{pageViewModel.mapOverview.latitude}}"
+          scale="{{pageViewModel.mapOverview.scale}}"
+          subkey="{{pageViewModel.mapOverview.subkey}}"
+          layer-style="{{pageViewModel.mapOverview.layerStyle}}"
+          include-points="{{pageViewModel.mapOverview.includePoints}}"
+          padding="{{mapOverviewPadding}}"
+          markers="{{pageViewModel.mapOverview.markers}}"
+          polyline="{{pageViewModel.mapOverview.polylines}}"
+          setting="{{pageViewModel.mapOverview.setting}}"
+          enable-poi="{{false}}"
+          enable-building="{{false}}"
+          enable-scroll="{{true}}"
+          enable-zoom="{{true}}"
+          enable-rotate="{{false}}"
+          show-location="{{false}}"
+          show-compass="{{false}}"
+          enable-3D="{{false}}"
+          bindtouchstart="onMapTouchStart"
+          bindtouchend="onMapTouchEnd"
+          bindtouchcancel="onMapTouchEnd"
+        ></map>
+      </view>
+      <view class="map-legend map-legend-inline" wx:if="{{pageViewModel.mapOverview.hasMap && pageViewModel.mapOverview.legend && pageViewModel.mapOverview.legend.length > 0}}">
+        <view class="map-legend-item" wx:for="{{pageViewModel.mapOverview.legend}}" wx:for-item="legendItem" wx:for-index="legendIndex" wx:key="legendIndex">
+          <view class="map-legend-line map-legend-line-{{legendItem.lineStyle === 'DASHED' ? 'dashed' : 'solid'}}" style="border-color: {{legendItem.color}}; background-color: {{legendItem.lineStyle === 'DASHED' ? 'transparent' : legendItem.color}};"></view>
+          <text class="map-legend-label">{{legendItem.label}}</text>
+        </view>
+      </view>
+      <view class="map-empty-hint" wx:if="{{!pageViewModel.mapOverview.hasMap && pageViewModel.mapOverview.emptyHint}}">
+        <text>{{pageViewModel.mapOverview.emptyHint}}</text>
+      </view>
+      <view class="map-missing-hint" wx:if="{{pageViewModel.mapOverview.missingHint}}">
+        <text>{{pageViewModel.mapOverview.missingHint}}</text>
+      </view>
+    </view>
+
+    <view class="hero-card hero-card-compact" wx:if="{{pageViewModel.pageHeader.title}}">
+      <view class="hero-top">
+        <view class="hero-top-row">
+          <view class="hero-top-text">
+            <view class="hero-title">{{pageViewModel.pageHeader.title}}</view>
+            <view class="hero-subtitle" wx:if="{{pageViewModel.pageHeader.subtitle}}">{{pageViewModel.pageHeader.subtitle}}</view>
+            <view class="hero-banner" wx:if="{{pageViewModel.pageHeader.operationHint}}">{{pageViewModel.pageHeader.operationHint}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <block wx:for="{{pageViewModel.sections}}" wx:for-item="section" wx:for-index="sectionIndex" wx:key="sectionKey">
+      <view class="dispatch-section" wx:if="{{section.cards.length > 0}}">
+        <block wx:for="{{section.cards}}" wx:for-item="card" wx:for-index="cardIndex" wx:key="cardKey">
+          <driver-route-card
+            wx:if="{{card.cardType === 'DRIVER_ROUTE'}}"
+            card="{{card}}"
+            variant="delivery"
+            section-index="{{sectionIndex}}"
+            card-index="{{cardIndex}}"
+            card-id="route{{sectionIndex}}_{{cardIndex}}"
+            bind:viewroute="onViewRouteTap"
+            bind:primaryaction="onTimelineNodePrimaryAction"
+            bind:exceptionaction="onTimelineNodeExceptionAction"
+          ></driver-route-card>
+        </block>
+      </view>
+    </block>
+  </scroll-view>
+</view>

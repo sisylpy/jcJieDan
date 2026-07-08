@@ -1,0 +1,142 @@
+<block wx:if="{{stop}}">
+  <view
+    class="boss-timeline-stop-unit {{variant === 'delivery' && stop.cardToneClass ? stop.cardToneClass : ''}}"
+    wx:if="{{mode === 'timeline' || mode === 'delivery' || mode === 'edit'}}"
+  >
+    <view
+      class="boss-timeline-marker boss-timeline-marker-stop {{variant === 'delivery' && stop.stopDone ? 'boss-timeline-marker-done' : ''}}"
+    >
+      <text wx:if="{{variant === 'delivery' && stop.stopDone}}">✓</text>
+      <text wx:else>{{seq}}</text>
+    </view>
+    <view class="boss-timeline-unit-body">
+      <view class="boss-timeline-leg-pill" wx:if="{{stop.legText && !(variant === 'delivery' && stop.stopDone)}}">
+        <image class="boss-timeline-leg-icon" src="/images/car.png" mode="aspectFit"></image>
+        <text class="boss-timeline-leg-text">{{stop.legText}}</text>
+        <text class="boss-timeline-leg-chevron" wx:if="{{variant !== 'delivery'}}">›</text>
+      </view>
+      <view class="boss-timeline-stop-card">
+        <view class="boss-stop-head" catchtap="onHeadTap">
+          <view class="boss-stop-head-main">
+            <image class="boss-stop-pin" src="/images/app-shop.png" mode="aspectFit"></image>
+            <text class="boss-stop-name">{{stop.customerName}}</text>
+            <text class="route-stop-new-tag" wx:if="{{variant === 'edit' && showIncomingTag && stop.isIncomingStop}}">新店</text>
+            <view class="boss-stop-require-badge {{stop.windowRequirementModified ? 'boss-stop-require-badge-modified' : ''}}" wx:if="{{stop.windowRequirementLabel}}">
+              <text class="boss-stop-require-mark" wx:if="{{stop.windowRequirementModified}}">!</text>
+              <text>{{stop.windowRequirementLabel}}</text>
+            </view>
+          </view>
+          <view class="delivery-stop-actions" wx:if="{{variant === 'delivery' && (stop.showCancelDelivery || stop.showMarkException)}}">
+            <view
+              wx:if="{{stop.showCancelDelivery && stop.primaryAction && stop.primaryAction.label}}"
+              class="delivery-stop-action-btn delivery-stop-action-cancel {{stop.primaryAction.enabled === false ? 'delivery-stop-action-disabled' : ''}}"
+              catchtap="onPrimaryAction"
+            >{{stop.primaryAction.label}}</view>
+            <view
+              wx:if="{{stop.showMarkException && stop.exceptionAction && stop.exceptionAction.label}}"
+              class="delivery-stop-action-btn delivery-stop-action-exception"
+              catchtap="onExceptionAction"
+            >{{stop.exceptionAction.label}}</view>
+          </view>
+          <text class="boss-stop-delivered-label" wx:elif="{{variant === 'delivery' && stop.statusLabel === '已送达'}}">{{stop.statusLabel}}</text>
+          <text class="boss-stop-head-chevron" wx:elif="{{variant === 'edit' && stop.primaryAction}}">›</text>
+        </view>
+        <view class="boss-stop-goods" wx:if="{{variant === 'edit' && stop.goodsSummary}}">{{stop.goodsSummary}}</view>
+        <view class="boss-stop-divider"></view>
+        <view class="timeline-stop-goods boss-stop-goods" wx:if="{{variant !== 'edit' && stop.goodsSummary}}">{{stop.goodsSummary}}</view>
+        <view class="boss-stop-time-grid">
+          <view class="boss-stop-time-col">
+            <text class="boss-stop-time-label">{{stop.arrivalFieldLabel || '预计到达'}}</text>
+            <text class="boss-stop-time-val">{{stop.plannedArrivalLabel || '—'}}</text>
+            <view wx:if="{{stop.arrivalStatusLabel && variant !== 'delivery'}}" class="boss-stop-status-badge boss-stop-status-{{stop.arrivalStatusTone || 'ok'}}">
+              <text class="boss-stop-status-icon" wx:if="{{stop.arrivalStatusTone === 'ok'}}">✓</text>
+              <text class="boss-stop-status-icon boss-stop-status-icon-early" wx:elif="{{stop.arrivalStatusTone === 'early'}}">◷</text>
+              <text>{{stop.arrivalStatusLabel}}</text>
+            </view>
+          </view>
+          <view class="boss-stop-time-col" wx:if="{{!(variant === 'delivery' && stop.stopDone)}}">
+            <text class="boss-stop-time-label">卸货时长</text>
+            <text class="boss-stop-time-val boss-stop-time-val-muted">{{stop.serviceDurationLabel || '—'}}</text>
+          </view>
+          <view class="boss-stop-time-col">
+            <text class="boss-stop-time-label">{{stop.departureFieldLabel || '预计离开'}}</text>
+            <text class="boss-stop-time-val">{{stop.plannedDepartureLabel || '—'}}</text>
+          </view>
+        </view>
+        <view class="route-edit-stop-actions" wx:if="{{variant === 'edit'}}">
+          <view
+            class="route-stop-btn {{stop.stopIndex === 0 ? 'route-stop-btn-disabled' : ''}}"
+            catchtap="onMoveStop"
+            data-index="{{stop.stopIndex}}"
+            data-direction="-1"
+            hover-class="route-stop-btn-hover"
+          >上移</view>
+          <view
+            class="route-stop-btn {{stop.stopIndex === routeStopsLength - 1 ? 'route-stop-btn-disabled' : ''}}"
+            catchtap="onMoveStop"
+            data-index="{{stop.stopIndex}}"
+            data-direction="1"
+            hover-class="route-stop-btn-hover"
+          >下移</view>
+          <view
+            class="route-stop-btn route-stop-btn-danger {{removingStop ? 'route-stop-btn-disabled' : ''}}"
+            catchtap="onRemoveStop"
+            data-index="{{stop.stopIndex}}"
+            hover-class="route-stop-btn-hover"
+          >移除</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="store-stop-unit-standalone" wx:elif="{{mode === 'unassigned'}}">
+    <view class="unassigned-card-head" wx:if="{{badgeLabel || driverLabel}}">
+      <text class="driver-dispatch-badge" wx:if="{{badgeLabel}}">{{badgeLabel}}</text>
+      <text class="unassigned-meta-text" wx:if="{{driverLabel}}">{{driverLabel}}</text>
+    </view>
+    <view class="boss-timeline-unit-body">
+      <view class="boss-timeline-leg-pill" wx:if="{{stop.legText}}">
+        <image class="boss-timeline-leg-icon" src="/images/car.png" mode="aspectFit"></image>
+        <text class="boss-timeline-leg-text">{{stop.legText}}</text>
+      </view>
+      <view class="boss-timeline-stop-card">
+        <view class="boss-stop-head">
+          <view class="boss-stop-head-main">
+            <image class="boss-stop-pin" src="/images/app-shop.png" mode="aspectFit"></image>
+            <text class="boss-stop-name">{{stop.customerName}}</text>
+            <view class="boss-stop-require-badge {{stop.windowRequirementModified ? 'boss-stop-require-badge-modified' : ''}}" wx:if="{{stop.windowRequirementLabel}}">
+              <text class="boss-stop-require-mark" wx:if="{{stop.windowRequirementModified}}">!</text>
+              <text>{{stop.windowRequirementLabel}}</text>
+            </view>
+          </view>
+          <view
+            wx:if="{{primaryAction && primaryAction.label && !primaryAction.isStatusOnly}}"
+            class="stop-state-btn stop-state-action {{primaryAction.toneClass || 'stop-state-action'}}"
+            catchtap="onPrimaryAction"
+          >{{primaryAction.label}}</view>
+        </view>
+        <view class="boss-stop-divider"></view>
+        <view class="timeline-stop-goods boss-stop-goods" wx:if="{{stop.goodsSummary}}">{{stop.goodsSummary}}</view>
+        <view class="boss-stop-time-grid" wx:if="{{stop.plannedArrivalLabel || stop.plannedDepartureLabel || stop.serviceDurationLabel || stop.arrivalStatusLabel}}">
+          <view class="boss-stop-time-col">
+            <text class="boss-stop-time-label">预计到达</text>
+            <text class="boss-stop-time-val">{{stop.plannedArrivalLabel || '—'}}</text>
+            <view wx:if="{{stop.arrivalStatusLabel}}" class="boss-stop-status-badge boss-stop-status-{{stop.arrivalStatusTone || 'ok'}}">
+              <text class="boss-stop-status-icon" wx:if="{{stop.arrivalStatusTone === 'ok'}}">✓</text>
+              <text class="boss-stop-status-icon boss-stop-status-icon-early" wx:elif="{{stop.arrivalStatusTone === 'early'}}">◷</text>
+              <text>{{stop.arrivalStatusLabel}}</text>
+            </view>
+          </view>
+          <view class="boss-stop-time-col">
+            <text class="boss-stop-time-label">卸货时长</text>
+            <text class="boss-stop-time-val boss-stop-time-val-muted">{{stop.serviceDurationLabel || '—'}}</text>
+          </view>
+          <view class="boss-stop-time-col">
+            <text class="boss-stop-time-label">预计离开</text>
+            <text class="boss-stop-time-val">{{stop.plannedDepartureLabel || '—'}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</block>

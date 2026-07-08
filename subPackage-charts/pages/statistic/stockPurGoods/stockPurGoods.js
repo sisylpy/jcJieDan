@@ -554,7 +554,7 @@ Page({
     currentPage: 1,
     })
     wx.navigateTo({
-      url: '../../../../pages/sel/searchDate/searchDate?startDate=' + this.data.startDate + '&stopDate=' + this.data.stopDate + '&dateType=' + this.data.dateType + '&hanzi=' + this.data.hanzi, 
+      url: '/subPackage-charts/pages/sel/searchDate/searchDate?startDate=' + this.data.startDate + '&stopDate=' + this.data.stopDate + '&dateType=' + this.data.dateType + '&hanzi=' + this.data.hanzi, 
     })
   },
 

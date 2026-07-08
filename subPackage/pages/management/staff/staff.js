@@ -15,11 +15,14 @@ import {
 
 
 import {
-  
   getDisUsers,
-
-  
 } from '../../../../lib/apiDistributer.js'
+
+import {
+  getAvailableDrivers,
+  driverCheckIn,
+  driverCheckOut
+} from '../../../../lib/apiRouteDispatch.js'
 
 Page({
 
@@ -56,6 +59,8 @@ Page({
     ],
     admin: 0,
     showOperation: false,
+    dutyDate: '',
+    dutySubmitting: false,
 
   },
 
@@ -71,7 +76,8 @@ Page({
       navBarHeight: globalData.navBarHeight * globalData.rpxR,     
       rpxRcale: globalData.rpxR,
       url: apiUrl.server,
-      disId: options.disId
+      disId: options.disId,
+      dutyDate: getTodayDateStr()
     })
     var userInfo = wx.getStorageSync('userInfo');
     if (userInfo) {
@@ -89,26 +95,116 @@ Page({
 
  // 初始化数据
  _initData() {
-
+  var that = this
   getDisUsers(this.data.disId).then(res =>{
     if(res.result.code == 0){
-      console.log(res);
-      this.setData({
+      var drivers = res.result.data.driver || []
+      that.setData({
         zeroUserArr: res.result.data.zero,
         oneUserArr: res.result.data.one,
-        // twoUserArr: res.result.data.two,
-        // threeUserArr: res.result.data.three,
-
+        driverUserArr: drivers,
         editUser: false
       })
-
-       
+      that._loadDriverDutyState(drivers)
     }else{
       wx.showToast({
         title: '获取用户失败',
         icon: 'none'
       })
     }
+  })
+},
+
+_loadDriverDutyState(driverUserArr) {
+  var that = this
+  var disId = this.data.disId
+  if (!disId || !driverUserArr || driverUserArr.length === 0) {
+    return
+  }
+  getAvailableDrivers({
+    disId: disId,
+    routeDate: this.data.dutyDate || getTodayDateStr()
+  }).then(function (res) {
+    if (!res.result || res.result.code !== 0) {
+      return
+    }
+    var cards = (res.result.data && res.result.data.driverCards) || []
+    that.setData({
+      driverUserArr: mergeDriverDutyState(driverUserArr, cards)
+    })
+  })
+},
+
+onDriverDutyChange(e) {
+  var index = e.currentTarget.dataset.index
+  var wantOn = e.detail.value
+  var driver = (this.data.driverUserArr || [])[index]
+  var switchKey = 'driverUserArr[' + index + '].dutySwitchOn'
+  if (this.data.dutySubmitting || !driver || !driver.nxDistributerUserId) {
+    this.setData({ [switchKey]: !wantOn })
+    return
+  }
+  if (wantOn === false && driver.dutyToggleDisabled) {
+    wx.showToast({
+      title: driver.toggleDisabledReason || '当前不可关闭',
+      icon: 'none'
+    })
+    this.setData({ [switchKey]: true })
+    return
+  }
+  var driverName = driver.nxDiuWxNickName || '该司机'
+  var modal = wantOn
+    ? {
+        title: '开启可派',
+        content: '开启后，「' + driverName + '」将参与今日派车，确认开启？',
+        duty: 'on'
+      }
+    : {
+        title: '关闭可派',
+        content: '关闭后，系统不会给「' + driverName + '」派单，确认关闭？',
+        duty: 'off'
+      }
+  var that = this
+  wx.showModal({
+    title: modal.title,
+    content: modal.content,
+    success: function (res) {
+      if (res.confirm) {
+        that.submitDriverDuty(modal.duty, driver.nxDistributerUserId)
+      } else {
+        that.setData({ [switchKey]: !wantOn })
+      }
+    }
+  })
+},
+
+submitDriverDuty(action, driverUserId) {
+  var that = this
+  var apiFn = action === 'on' ? driverCheckIn : driverCheckOut
+  this.setData({ dutySubmitting: true })
+  load.showLoading(action === 'on' ? '开启中' : '关闭中')
+  apiFn({
+    disId: this.data.disId,
+    driverUserId: driverUserId,
+    dutyDate: this.data.dutyDate || getTodayDateStr(),
+    operatorUserId: this.data.userId
+  }).then(function (res) {
+    load.hideLoading()
+    that.setData({ dutySubmitting: false })
+    if (res.result.code !== 0) {
+      wx.showToast({ title: res.result.msg || '操作失败', icon: 'none' })
+      that._initData()
+      return
+    }
+    wx.showToast({
+      title: action === 'on' ? '已开启可派' : '已关闭可派',
+      icon: 'success'
+    })
+    that._initData()
+  }).catch(function () {
+    load.hideLoading()
+    that.setData({ dutySubmitting: false })
+    that._initData()
   })
 },
 
@@ -283,7 +379,60 @@ toOpenOrder() {
   })
 },
 
+toOpenDriver() {
+  var disId = this.data.disId
+  var disName = (this.data.disInfo && this.data.disInfo.nxDistributerName) ? this.data.disInfo.nxDistributerName : ''
+  var appId = 'wx2dccb807db0ea0d7'
+  var path = '/pages/inviteAdmin/inviteAdmin?disId=' + disId + '&disName=' + encodeURIComponent(disName)
+  var envVersion = 'trial'
 
+  console.log('========== 司机邀请注册 ==========')
+  console.log('[staff] appId:', appId)
+  console.log('[staff] envVersion:', envVersion)
+  console.log('[staff] path:', path)
+  console.log('[staff] 完整 query: disId=' + disId + '&disName=' + disName)
+  console.log('[staff] 司机端编译模式入口（复制此行）:')
+  console.log(path)
+  console.log('==================================')
 
+  wx.navigateToMiniProgram({
+    appId: appId,
+    path: path,
+    envVersion: envVersion,
+    success(res) {
+      console.log('[staff] navigateToMiniProgram success', res)
+    },
+    fail(err) {
+      console.error('[staff] navigateToMiniProgram fail', err)
+    }
+  })
+},
 
 })
+
+function getTodayDateStr() {
+  var d = new Date()
+  var y = d.getFullYear()
+  var m = ('0' + (d.getMonth() + 1)).slice(-2)
+  var day = ('0' + d.getDate()).slice(-2)
+  return y + '-' + m + '-' + day
+}
+
+function mergeDriverDutyState(driverUserArr, driverCards) {
+  var cardById = {}
+  ;(driverCards || []).forEach(function (card) {
+    if (card && card.driverUserId != null) {
+      cardById[card.driverUserId] = card
+    }
+  })
+  return (driverUserArr || []).map(function (user) {
+    var card = cardById[user.nxDistributerUserId]
+    var onDuty = card && card.dutyStatus !== 'OFF_DUTY'
+    return Object.assign({}, user, {
+      dutySwitchOn: onDuty,
+      dutyStatusLabel: card && card.dutyStatusLabel ? card.dutyStatusLabel : (onDuty ? '可派' : '不可派'),
+      dutyToggleDisabled: onDuty && card && card.canToggleDuty === false,
+      toggleDisabledReason: card ? card.toggleDisabledReason : null
+    })
+  })
+}

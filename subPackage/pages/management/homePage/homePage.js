@@ -12,9 +12,11 @@ import {getDisUserInfo} from '../../../../lib/apiDistributer'
 Page({
 
   onShow(){
-    
+    console.log('[homePage] onShow')
     var userInfo = wx.getStorageSync('userInfo');
-
+    if (!userInfo || !userInfo.nxDistributerUserId) {
+      return
+    }
     getDisUserInfo(userInfo.nxDistributerUserId)
     .then(res =>{
       if(res.result.code == 0){
@@ -22,7 +24,11 @@ Page({
         const isPlaceholderStoreImg = img.indexOf('uploadImage/r.jpg') >= 0;
         this.setData({
           userInfo: res.result.data,
-          disInfo: res.result.data.nxDistributerEntity,
+          disInfo: Object.assign({}, res.result.data.nxDistributerEntity, {
+            machinePayList: (res.result.data.nxDistributerEntity && res.result.data.nxDistributerEntity.machinePayList)
+              ? res.result.data.nxDistributerEntity.machinePayList
+              : []
+          }),
           disId: res.result.data.nxDistributerEntity.nxDistributerId,
           isPlaceholderStoreImg: isPlaceholderStoreImg
         })
@@ -40,16 +46,41 @@ Page({
     toOpenMini: false,
     isTishi: false,
     toSharePurchase: false,
-    editUser:  false,
+    editUser: false,
     yuyin: 0,
     isPlaceholderStoreImg: false,
+    userInfo: {
+      nxDistributerEntity: {
+        nxDistributerName: '',
+        nxDistributerShowName: '',
+        nxDistributerMarketName: '',
+        nxDistributerAddress: '',
+        nxDistributerImg: ''
+      },
+      nxDiuWxNickName: '',
+      nxDiuWxAvartraUrl: '',
+      nxDiuUrlChange: 0,
+      nxDiuPrintDeviceId: -1
+    },
+    disInfo: {
+      nxDistributerBusinessTypeId: 0,
+      nxDistributerBuyQuantity: 0,
+      machinePayList: [],
+      sysCityMarketEntity: {
+        sysCmSelfPrintEnabled: 0
+      }
+    },
+    disId: null
   },
 
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad: function (options) {
+    console.log('[homePage] onLoad', options)
     const globalData = app.globalData;
+    var cachedUser = wx.getStorageSync('userInfo') || {}
+    var cachedDis = wx.getStorageSync('disInfo') || cachedUser.nxDistributerEntity || {}
     
     this.setData({
       windowWidth: globalData.windowWidth * globalData.rpxR,
@@ -57,8 +88,10 @@ Page({
       navBarHeight: globalData.navBarHeight  * globalData.rpxR,
       sysDeviceId: globalData.sysDeviceId,
       url: apiUrl.server,
-      
-
+      userInfo: Object.assign({}, this.data.userInfo, cachedUser),
+      disInfo: Object.assign({}, this.data.disInfo, cachedDis, {
+        machinePayList: (cachedDis && cachedDis.machinePayList) ? cachedDis.machinePayList : []
+      })
     })
    
     
@@ -171,6 +204,57 @@ Page({
     wx.navigateTo({
       url: '../../../../subPackage-supplier/pages/supplier/index/index?disId=' + this.data.disInfo.nxDistributerId 
             +'&userId=' + this.data.userInfo.nxDistributerUserId,
+    })
+  },
+
+  navigateRouteDispatch: function (pagePath, label) {
+    label = label || pagePath
+    var url = '/subPackage-routeDispatch/pages/routeDispatch/' + pagePath
+    console.log('[homePage] navigateRouteDispatch START', {
+      label: label,
+      pagePath: pagePath,
+      url: url
+    })
+    wx.navigateTo({
+      url: url,
+      success: function (res) {
+        console.log('[homePage] navigateTo SUCCESS', label, url, res)
+      },
+      fail: function (err) {
+        console.error('[homePage] navigateTo FAIL', label, url, err)
+        wx.showModal({
+          title: label + ' 跳转失败',
+          content: (err && err.errMsg) ? err.errMsg : JSON.stringify(err || {}),
+          showCancel: false
+        })
+      }
+    })
+  },
+
+  onRouteMenuTap: function (e) {
+    var dataset = (e && e.currentTarget && e.currentTarget.dataset) || {}
+    var label = dataset.label || '未知菜单'
+    var pagePath = dataset.page || ''
+    console.log('[homePage] onRouteMenuTap', {
+      label: label,
+      pagePath: pagePath,
+      event: e
+    })
+    if (!pagePath) {
+      console.error('[homePage] onRouteMenuTap missing pagePath', dataset)
+      wx.showToast({
+        title: '缺少页面路径',
+        icon: 'none'
+      })
+      return
+    }
+    this.navigateRouteDispatch(pagePath, label)
+  },
+
+  toRouteDispatchDuty() {
+    wx.showToast({
+      title: '请在账户管理中设置司机可派状态',
+      icon: 'none'
     })
   },
 

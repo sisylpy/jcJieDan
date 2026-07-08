@@ -1,4 +1,5 @@
 var load = require('../../../lib/load.js');
+var tabBar = require('../../../lib/routeDispatchTabBar.js');
 let scrollDdirection = 0; // 用来计算滚动的方向
 
 const tabBarHeight = 50; // 根据实际情况调整
@@ -30,8 +31,12 @@ Component({
       //tabBar
       if (typeof this.getTabBar === 'function' &&
         this.getTabBar()) {
-        this.getTabBar().setData({
-          selected: 3
+        var tabBarComp = this.getTabBar()
+        if (typeof tabBarComp.refreshTabs === 'function') {
+          tabBarComp.refreshTabs()
+        }
+        tabBarComp.setData({
+          selected: tabBar.getTabIndex('pages/doing/index/index')
         })
       }
 
@@ -1195,40 +1200,6 @@ Component({
       this._getPageData(true);
       });
     },
-
-    // 下拉刷新
-    onPullDownRefresh() {
-      console.log('下拉刷新');
-      
-      // 重置分页数据，并清空选择数组
-      this.setData({
-        currentPage: 1,
-        totalPage: 0,
-        totalCount: 0,
-        hasMore: true,
-        isLoading: false,
-        goodsArr: [],
-        goodsCataArr: [],
-        depArr: [],
-        selectedDepId: null,
-        selDepName: '',
-        selectedSub: 0,
-        toView: 'position0',
-        scrollTopLeft: 0,
-        categoryPositions: [],
-        scrollTimer: null,
-        isLoadingMoreForCategory: false,
-        choiceStockArr: [], // 清空选择数组
-        isAllDepartmentSelected: false, // 重置全选状态
-      });
-      
-      // 重新初始化数据
-      this._initData();
-      
-      // 停止下拉刷新动画
-      wx.stopPullDownRefresh();
-    },
-
 
     // 计算分类位置（参考 resGoodsLess 的方法）
     calculateCategoryPositions() {

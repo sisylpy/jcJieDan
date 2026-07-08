@@ -532,7 +532,7 @@ Page({
         showCancel: false,
         success: function() {
           wx.navigateTo({
-            url: '/subPackage-charts/pages/order/pSearchPrinter/pSearchPrinter',
+            url: '/subPackage-order/pages/order/pSearchPrinter/pSearchPrinter',
           });
         }
       });
@@ -717,7 +717,7 @@ Page({
         showCancel: false,
         success: function() {
           wx.navigateTo({
-            url: '/subPackage-charts/pages/order/pSearchPrinter/pSearchPrinter',
+            url: '/subPackage-order/pages/order/pSearchPrinter/pSearchPrinter',
           });
         }
       });
@@ -832,7 +832,7 @@ Page({
           success: function(res) {
             if (res.confirm) {
               wx.navigateTo({
-                url: '/subPackage-charts/pages/order/pSearchPrinter/pSearchPrinter',
+                url: '/subPackage-order/pages/order/pSearchPrinter/pSearchPrinter',
               });
             }
           }
@@ -865,7 +865,7 @@ Page({
           showCancel: false,
           success: function() {
             wx.navigateTo({
-              url: '/subPackage-charts/pages/order/pSearchPrinter/pSearchPrinter',
+              url: '/subPackage-order/pages/order/pSearchPrinter/pSearchPrinter',
             });
           }
         });

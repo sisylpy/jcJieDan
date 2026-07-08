@@ -29,6 +29,7 @@
       "pages/customer/jrdhGoodsStars/jrdhGoodsStars",
       "pages/customer/customerPage/customerPage",
       "pages/customer/customerGoods/customerGoods",
+      "pages/customer/customerPdf/customerPdf",
       "pages/customer/customerGoodsPrice/customerGoodsPrice",
       "pages/customer/collNxDisGoodsPrice/collNxDisGoodsPrice",
       "pages/customer/customerGoodsGb/customerGoodsGb",
@@ -126,15 +127,7 @@
     "root": "subPackage-routeDispatch/",
     "name": "routeDispatch",
     "pages": [
-      "pages/routeDispatch/duty/duty",
-      "pages/routeDispatch/today/today",
-      "pages/routeDispatch/loading/loading",
-      "pages/routeDispatch/delivery/delivery",
-      "pages/routeDispatch/driverLoading/driverLoading",
-      "pages/routeDispatch/driverDelivery/driverDelivery",
-      "pages/routeDispatch/driverStopDetail/driverStopDetail",
       "pages/routeDispatch/manualDispatchDrivers/manualDispatchDrivers",
-      "pages/routeDispatch/manualRouteEdit/manualRouteEdit",
       "pages/routeDispatch/driverRouteEdit/driverRouteEdit"
     ]
     }, {
@@ -156,13 +149,25 @@
       "pages/stock/index/index",
         "pages/stock/stockList/stockList",
         "pages/stock/stockListOneDay/stockListOneDay",
-        "pages/order/ocrPaste/ocrPaste",
+      
+      "pages/mangement/costGoodsFenxi/costGoodsFenxi",
+      "pages/mangement/purGoodsFenxi/purGoodsFenxi",
+      "pages/mangement/goodsFenxiCost/goodsFenxiCost",
+      "pages/mangement/goodsFenxiPurchase/goodsFenxiPurchase"
+    ]
+    }, {
+    "root": "subPackage-order/",
+    "name": "order",
+    "pages": [
+      "pages/order/ocrPaste/ocrPaste",
       "pages/order/ocrOrder/ocrOrder",
       "pages/order/ocrUpload/ocrUpload",
       "pages/order/orderPrint/orderPrint",
       "pages/order/searchOrder/searchOrder",
       "pages/order/writePrice/writePrice",
       "pages/order/writeWeight/writeWeight",
+      "pages/order/writePriceGb/writePriceGb",
+      "pages/order/writeWeightGb/writeWeightGb",
       "pages/order/orderPage/orderPage",
       "pages/order/orderPageGb/orderPageGb",
       "pages/order/orderPageRetail/orderPageRetail",
@@ -176,16 +181,7 @@
       "pages/order/linshiOrderPage/linshiOrderPage",
       "pages/order/resGoodsList/resGoodsList",
       "pages/order/retailGoodsList/retailGoodsList",
-      "pages/order/resGoodsListTask/resGoodsListTask",
-      
-      "pages/mangement/costGoodsFenxi/costGoodsFenxi",
-      "pages/mangement/purGoodsFenxi/purGoodsFenxi",
-      "pages/mangement/goodsFenxiCost/goodsFenxiCost",
-      "pages/mangement/goodsFenxiPurchase/goodsFenxiPurchase",
-
-      "pages/route/mapNxDep/mapNxDep",
-      "pages/route/driver/driver",
-      "pages/route/deliveryRoute/deliveryRoute"
+      "pages/order/resGoodsListTask/resGoodsListTask"
     ]
     }, {
     "root": "subPackage-supplier/",

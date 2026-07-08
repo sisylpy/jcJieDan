@@ -1,6 +1,7 @@
 {
   "usingComponents": {
-    "back-navbar": "/components/back-navbar/back-navbar"
+    "back-navbar": "/components/back-navbar/back-navbar",
+    "store-stop-card": "../../../components/store-stop-card/store-stop-card"
   },
   "enablePullDownRefresh": true
 }

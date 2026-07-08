@@ -14,9 +14,10 @@ export function resolveSession() {
     userInfo: userInfo,
     disId: disId,
     operatorUserId: userInfo.nxDistributerUserId,
-    driverUserId: userInfo.nxDistributerUserId
+    driverUserId: 1
   }
 }
+
 
 export function getTodayDateStr() {
   var d = new Date()

@@ -2,11 +2,11 @@
 
 
 
-<view class="flex flex-column">
+<view class="flex flex-column pay-page">
 
 <back-navbar style="height: {{navBarHeight}}rpx;" title="充值记录" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
-<view class="flex-column" >
+<view class="flex-column pay-body" style="padding-top: {{navBarHeight}}rpx;">
 
   <view class="flex-row-between p-20" bind:tap="toPayDetail">
     <text></text>
@@ -14,7 +14,7 @@
   </view>
 
   <!-- emptyView -->
-  <view class=" {{payArr.length == 0   ? 'show' : 'hide'}}" style="height: {{windowHeight / 3}}rpx; text-align:center;">
+  <view class="{{!payArr || payArr.length == 0 ? 'show' : 'hide'}}" style="height: {{windowHeight / 3}}rpx; text-align:center;">
     <view class="font-lg  empty_view">
       <view class="flex-column center-content">
         <image class="empty_image" src="../../../../images/gouwucheicon-3.png"></image>
@@ -25,7 +25,7 @@
   </view>
   <!-- ./emptyView -->
 
-  <block wx:if="{{payArr.length > 0}}">
+  <block wx:if="{{payArr && payArr.length > 0}}">
     <view class="flex-column twenty_radius bg-white p-20 mb-20" wx:for="{{payArr}}">
 
 
@@ -84,7 +84,7 @@
         </view>
        
 
-      <view class="flex-row-between p-20 bg-white border-bottom" bind:tap="{{userInfo.nxDiuPrintDeviceId == '-1' ? 'toPrintSet' : 'delPrint'}}">
+      <view class="flex-row-between p-20 bg-white border-bottom" bind:tap="{{userInfo && userInfo.nxDiuPrintDeviceId == '-1' ? 'toPrintSet' : 'delPrint'}}" wx:if="{{userInfo}}">
 
         <view class="flex-row">
           <image src="{{userInfo.nxDiuPrintDeviceId !== '-1' ? '../../../../images/print-4.png' : '../../../../images/0dayinji-05.png'}}" class="icon mr-20"></image>

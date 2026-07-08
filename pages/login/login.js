@@ -583,9 +583,6 @@ Page({
                   nxDiuAdmin: 0,
                   nxDiuPrintDeviceId: -1,
                   nxDiuPrintBillDeviceId: -1,
-                  roleEntities: [{
-                    nxDurRoleId: 0
-                  }]
                 }
               }
               console.log(dep);
@@ -695,9 +692,6 @@ Page({
                     nxDiuAdmin: 0,
                     nxDiuPrintDeviceId: -1,
                     nxDiuPrintBillDeviceId: -1,
-                    // roleEntities: [{
-                    //   nxDurRoleId: 0
-                    // }]
                   }
                 }
                 wxworkRegister(dep)

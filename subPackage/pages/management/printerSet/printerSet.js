@@ -71,7 +71,7 @@ Page({
 
     console.log("toPrint")
     wx.navigateTo({
-      url: '/subPackage-charts/pages/order/pSearchPrinter/pSearchPrinter',
+      url: '/subPackage-order/pages/order/pSearchPrinter/pSearchPrinter',
     })
   },
 

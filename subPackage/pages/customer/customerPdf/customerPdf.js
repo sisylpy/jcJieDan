@@ -1,7 +1,7 @@
 import apiUrl from '../../../../config.js'
 var load = require('../../../../lib/load.js');
 var dateUtils = require('../../../../utils/dateUtil.js');
-import * as echarts from '../../../ec-canvas/echarts';
+import * as echarts from '../../../../subPackage-charts/ec-canvas/echarts';
 
 let windowWidth = 0;
 let itemWidth = 0;

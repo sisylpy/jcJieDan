@@ -1,0 +1,20 @@
+@import '../../pages/bossTab/dispatchPanelShared.wxss';
+
+.store-stop-unit-standalone {
+  padding: 0;
+}
+
+.boss-stop-goods {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  color: #666;
+  line-height: 1.5;
+}
+
+.unassigned-customer-card .boss-timeline-stop-unit {
+  display: block;
+}
+
+.unassigned-customer-card .boss-timeline-marker {
+  display: none;
+}

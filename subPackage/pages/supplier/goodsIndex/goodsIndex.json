@@ -1,8 +1,0 @@
-{
-  "usingComponents": {
-    
-    "goodsWillPirce": "/components/goodsWillPirce/goodsWillPirce",
-    "back-navbar": "/components/back-navbar/back-navbar"
-
-  }
-}

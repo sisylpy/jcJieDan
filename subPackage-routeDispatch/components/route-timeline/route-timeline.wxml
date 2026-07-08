@@ -1,0 +1,40 @@
+<view class="route-timeline boss-route-timeline" wx:if="{{timeline.length > 0}}">
+  <block wx:for="{{timeline}}" wx:for-item="node" wx:for-index="nodeIndex" wx:key="index">
+    <store-stop-card
+      wx:if="{{node.type === 'stop'}}"
+      mode="{{variant === 'delivery' ? 'delivery' : (variant === 'edit' ? 'edit' : 'timeline')}}"
+      variant="{{variant}}"
+      stop="{{node}}"
+      seq="{{node.seq}}"
+      show-incoming-tag="{{showIncomingTag}}"
+      route-stops-length="{{routeStopsLength}}"
+      removing-stop="{{removingStop}}"
+      section-index="{{sectionIndex}}"
+      card-index="{{cardIndex}}"
+      node-index="{{nodeIndex}}"
+      bind:headtap="relay"
+      bind:primaryaction="relay"
+      bind:exceptionaction="relay"
+      bind:movestop="relay"
+      bind:removestop="relay"
+    ></store-stop-card>
+
+    <view class="boss-timeline-end-unit" wx:elif="{{node.type === 'end'}}">
+      <view class="boss-timeline-marker boss-timeline-marker-end">{{node.marker}}</view>
+      <view class="boss-timeline-end-card">
+        <view class="boss-timeline-end-main">
+          <view class="boss-timeline-end-leg" wx:if="{{node.legText}}">
+            <image class="boss-timeline-leg-icon" src="/images/car.png" mode="aspectFit"></image>
+            <text class="boss-timeline-leg-text">{{node.legText}}</text>
+          </view>
+          <text class="boss-timeline-end-divider" wx:if="{{node.legText}}">|</text>
+          <text class="boss-timeline-end-name">{{node.name}}</text>
+          <view class="boss-timeline-end-status boss-timeline-end-status-done" wx:if="{{node.pointStatusLabel}}">
+            <text>{{node.pointStatusLabel}}</text>
+          </view>
+        </view>
+        <text class="boss-timeline-end-time">{{node.timeRight}}</text>
+      </view>
+    </view>
+  </block>
+</view>

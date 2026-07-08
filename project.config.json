@@ -69,8 +69,8 @@
         "type": "glob"
       },
       {
-        "value": "subPackage-charts/pages/order/ocrOrder_副本",
-        "type": "folder"
+        "value": "**/paste00.js",
+        "type": "glob"
       }
     ],
     "include": []

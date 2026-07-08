@@ -4,23 +4,57 @@ var app = getApp()
 import {
   postDriverRouteEditPage,
   postDriverRouteEditPreview,
-  postDriverRouteEditConfirm
+  postDriverRouteEditConfirm,
+  returnSandboxStopToSandbox,
+  overrideSandboxStopTimeWindow
 } from '../../../../lib/apiRouteDispatch.js'
 import { getPageViewModel } from '../_pageView.js'
 import { normalizeMapOverview } from '../_mapOverview.js'
+import { resolveSession } from '../_session.js'
+
+var timeWindowModal = require('../../../utils/timeWindowModal.js')
 
 var EDIT_PAYLOAD_STORAGE_KEY = 'routeDispatchDriverRouteEditPayload'
+
+function eventNodeDetail(e) {
+  if (e && e.detail && (e.detail.nodeIndex != null || e.detail.index != null)) {
+    return e.detail
+  }
+  return (e && e.currentTarget && e.currentTarget.dataset) || {}
+}
 
 function cloneJson(value) {
   return JSON.parse(JSON.stringify(value || {}))
 }
 
+function resolveStopKey(stop) {
+  if (!stop) {
+    return ''
+  }
+  if (stop.stopKey) {
+    return stop.stopKey
+  }
+  if (stop.departmentId != null) {
+    return 'dep:' + stop.departmentId
+  }
+  return ''
+}
+
 function extractStopKeys(routeStops) {
   return (routeStops || []).map(function (item) {
-    return item && item.stopKey
+    return resolveStopKey(item)
   }).filter(function (key) {
     return !!key
   })
+}
+
+function ensureStopKeys(stopKeys, routeStops) {
+  if (Array.isArray(stopKeys)) {
+    return stopKeys.filter(function (key) {
+      return !!key
+    })
+  }
+  return extractStopKeys(routeStops)
 }
 
 function normalizeStopList(stops) {
@@ -54,26 +88,107 @@ function mergeStopMap(baseMap, stops) {
   return next
 }
 
-function getWarnings(pageViewModel) {
-  var vm = pageViewModel || {}
-  if (Array.isArray(vm.warnings)) {
-    return vm.warnings
-  }
-  if (Array.isArray(vm.riskWarnings)) {
-    return vm.riskWarnings
-  }
-  return []
-}
-
-function hasErrorWarning(pageViewModel) {
-  return getWarnings(pageViewModel).some(function (item) {
-    return String(item.level || '').toLowerCase() === 'error'
-  })
-}
-
 function computeConfirmReady(pageViewModel) {
   var actions = (pageViewModel && pageViewModel.actions) || {}
-  return !!actions.confirmEnabled && !hasErrorWarning(pageViewModel)
+  return !!actions.confirmEnabled
+}
+
+function resolveTimelineStopKey(node, stop) {
+  if (stop && stop.stopKey) {
+    return stop.stopKey
+  }
+  if (node && node.stopKey) {
+    return node.stopKey
+  }
+  if (node && node.cardKey) {
+    return node.cardKey
+  }
+  if (node && node.depId != null) {
+    return 'dep:' + node.depId
+  }
+  if (stop && stop.departmentId != null) {
+    return 'dep:' + stop.departmentId
+  }
+  return ''
+}
+
+function buildTimelineStopLookup(timeline) {
+  var lookup = {}
+  ;(timeline || []).forEach(function (node) {
+    if (!node || node.type !== 'stop') {
+      return
+    }
+    var key = resolveTimelineStopKey(node, null)
+    if (key) {
+      lookup[key] = node
+    }
+    if (node.customerName) {
+      lookup['name:' + node.customerName] = node
+    }
+  })
+  return lookup
+}
+
+function buildEditTimeline(timeline, routeStops) {
+  timeline = timeline || []
+  routeStops = routeStops || []
+  var endNode = null
+  var returnLegText = null
+  timeline.forEach(function (node) {
+    if (!node) {
+      return
+    }
+    if (node.type === 'end') {
+      endNode = node
+    } else if (node.type === 'leg' && node.legRole === 'RETURN') {
+      returnLegText = node.legText
+    }
+  })
+  var stopLookup = buildTimelineStopLookup(timeline)
+  var result = []
+  routeStops.forEach(function (stop, stopIndex) {
+    if (!stop) {
+      return
+    }
+    var key = stop.stopKey || resolveTimelineStopKey(null, stop)
+    var node = (key && stopLookup[key])
+      || (stop.customerName && stopLookup['name:' + stop.customerName])
+      || {
+        type: 'stop',
+        customerName: stop.customerName,
+        plannedArrivalLabel: stop.plannedArrivalLabel,
+        plannedDepartureLabel: stop.plannedDepartureLabel,
+        goodsSummary: stop.goodsSummary,
+        constraintHint: stop.constraintHint
+      }
+    result.push(Object.assign({}, node, {
+      type: 'stop',
+      seq: stop.seq != null ? stop.seq : stopIndex + 1,
+      stopIndex: stopIndex,
+      isIncomingStop: stop.isIncomingStop,
+      customerName: stop.customerName || node.customerName,
+      windowRequirementLabel: node.windowRequirementLabel || stop.windowRequirementLabel,
+      windowRequirementModified: node.windowRequirementModified != null
+        ? node.windowRequirementModified
+        : stop.windowRequirementModified,
+      primaryAction: node.primaryAction
+    }))
+  })
+  if (endNode) {
+    var mergedEnd = Object.assign({}, endNode)
+    if (returnLegText && !mergedEnd.legText) {
+      mergedEnd.legText = returnLegText
+    }
+    result.push(mergedEnd)
+  } else if (returnLegText) {
+    result.push({
+      type: 'end',
+      marker: '终',
+      name: '回仓',
+      legText: returnLegText
+    })
+  }
+  return result
 }
 
 Page({
@@ -90,10 +205,14 @@ Page({
     stopMap: {},
     routeStops: [],
     addableStops: [],
-    displayWarnings: [],
+    editTimeline: [],
     confirmReady: false,
     pageScrollEnabled: true,
-    mapOverviewPadding: [56, 32, 72, 32]
+    mapOverviewPadding: [48, 48, 48, 48],
+    removingStop: false,
+    timeWindowModalVisible: false,
+    timeWindowSubmitting: false,
+    timeWindowPayload: null
   },
 
   onLoad: function () {
@@ -117,6 +236,14 @@ Page({
     return Object.assign({}, this.data.requestPayload || {}, {
       stopKeys: (this.data.stopKeys || []).slice()
     })
+  },
+
+  isLoadingRemoveMode: function () {
+    var pageViewModel = this.data.pageViewModel || {}
+    var payload = this.data.requestPayload || {}
+    return pageViewModel.removeStopMode === 'REMOTE'
+      || pageViewModel.removeStopMode === 'RETURN_TO_SANDBOX'
+      || payload.sourcePage === 'LOADING'
   },
 
   rememberActionPaths: function (pageViewModel) {
@@ -146,18 +273,19 @@ Page({
     var addableFromVm = pageViewModel.addableStops || pageViewModel.availableCustomers || []
     var stopMap = mergeStopMap(this.data.stopMap, routeStopsFromVm.concat(addableFromVm))
     var stopKeys = options.keepStopKeys
-      ? (this.data.stopKeys || []).slice()
-      : ((pageViewModel.stopKeys && pageViewModel.stopKeys.length)
-        ? pageViewModel.stopKeys.slice()
-        : extractStopKeys(routeStopsFromVm))
+      ? ensureStopKeys(this.data.stopKeys, routeStopsFromVm)
+      : ensureStopKeys(
+        Array.isArray(pageViewModel.stopKeys) ? pageViewModel.stopKeys : null,
+        routeStopsFromVm
+      )
     var that = this
+    this._pageTimeline = pageViewModel.timeline || []
     this.setData({
       loading: false,
       previewing: false,
       pageViewModel: pageViewModel,
       stopMap: stopMap,
       stopKeys: stopKeys,
-      displayWarnings: getWarnings(pageViewModel),
       confirmReady: computeConfirmReady(pageViewModel),
       loadError: '',
       pageTitle: pageViewModel.pageTitle || this.data.pageTitle
@@ -167,32 +295,21 @@ Page({
   },
 
   rebuildLists: function () {
-    var stopKeys = this.data.stopKeys || []
+    var stopKeys = Array.isArray(this.data.stopKeys)
+      ? this.data.stopKeys.filter(function (key) { return !!key })
+      : []
     var stopMap = this.data.stopMap || {}
-    var pageViewModel = this.data.pageViewModel || {}
     var incomingDepId = this.data.requestPayload && (this.data.requestPayload.departmentId || this.data.requestPayload.depFatherId)
     var currentSet = {}
-    var routeStops = []
-    if (stopKeys.length > 0) {
-      routeStops = stopKeys.map(function (stopKey, index) {
-        currentSet[stopKey] = true
-        var stop = stopMap[stopKey] || { stopKey: stopKey }
-        return Object.assign({}, stop, {
-          stopKey: stopKey,
-          seq: index + 1,
-          isIncomingStop: incomingDepId != null && stop.departmentId === incomingDepId
-        })
+    var routeStops = stopKeys.map(function (stopKey, index) {
+      currentSet[stopKey] = true
+      var stop = stopMap[stopKey] || { stopKey: stopKey }
+      return Object.assign({}, stop, {
+        stopKey: stopKey,
+        seq: index + 1,
+        isIncomingStop: incomingDepId != null && stop.departmentId === incomingDepId
       })
-    } else if ((pageViewModel.routeStops || []).length > 0) {
-      routeStops = normalizeStopList(pageViewModel.routeStops).map(function (stop) {
-        if (stop && stop.stopKey) {
-          currentSet[stop.stopKey] = true
-        }
-        return Object.assign({}, stop, {
-          isIncomingStop: incomingDepId != null && stop.departmentId === incomingDepId
-        })
-      })
-    }
+    })
     var addableStops = Object.keys(stopMap).filter(function (stopKey) {
       return !currentSet[stopKey]
     }).map(function (stopKey) {
@@ -200,7 +317,9 @@ Page({
     })
     this.setData({
       routeStops: routeStops,
-      addableStops: addableStops
+      addableStops: addableStops,
+      stopKeys: stopKeys,
+      editTimeline: buildEditTimeline(this._pageTimeline || [], routeStops)
     })
   },
 
@@ -263,12 +382,13 @@ Page({
   },
 
   onMoveStop: function (e) {
-    var index = Number(e.currentTarget.dataset.index)
-    var direction = Number(e.currentTarget.dataset.direction)
+    var ds = eventNodeDetail(e)
+    var index = Number(ds.index)
+    var direction = Number(ds.direction)
     if (isNaN(index) || !direction) {
       return
     }
-    var stopKeys = (this.data.stopKeys || []).slice()
+    var stopKeys = Array.isArray(this.data.stopKeys) ? this.data.stopKeys.slice() : []
     var target = index + direction
     if (target < 0 || target >= stopKeys.length) {
       return
@@ -281,11 +401,25 @@ Page({
   },
 
   onRemoveStop: function (e) {
-    var index = Number(e.currentTarget.dataset.index)
+    var ds = eventNodeDetail(e)
+    var index = Number(ds.index)
     if (isNaN(index)) {
       return
     }
-    var stopKeys = (this.data.stopKeys || []).slice()
+    var routeStops = this.data.routeStops || []
+    var target = routeStops[index]
+    if (!target) {
+      return
+    }
+    if (target.locked) {
+      wx.showToast({ title: target.lockReason || '该客户不可移除', icon: 'none' })
+      return
+    }
+    if (this.isLoadingRemoveMode()) {
+      this.submitLoadingRemoveStop(target)
+      return
+    }
+    var stopKeys = Array.isArray(this.data.stopKeys) ? this.data.stopKeys.slice() : []
     if (index < 0 || index >= stopKeys.length) {
       return
     }
@@ -294,12 +428,71 @@ Page({
     this.rebuildLists()
   },
 
+  submitLoadingRemoveStop: function (stop) {
+    var that = this
+    if (!stop || !stop.deliveryStopId) {
+      wx.showToast({ title: '缺少 deliveryStopId，无法移除', icon: 'none' })
+      return
+    }
+    if (this.data.removingStop) {
+      return
+    }
+    var session = resolveSession()
+    var payload = this.data.requestPayload || {}
+    var request = {
+      deliveryStopId: stop.deliveryStopId,
+      disId: payload.disId || session.disId,
+      routeDate: payload.routeDate,
+      batchCode: payload.batchCode,
+      operatorUserId: payload.operatorUserId || session.operatorUserId,
+      reason: '装车路线编辑移除',
+      suppressTodayResponse: true
+    }
+    var run = function () {
+      that.setData({ removingStop: true })
+      load.showLoading('移除中')
+      returnSandboxStopToSandbox(request).then(function (resp) {
+        load.hideLoading()
+        that.setData({ removingStop: false })
+        if (!resp.result || resp.result.code !== 0) {
+          wx.showToast({ title: (resp.result && resp.result.msg) || '移除失败', icon: 'none' })
+          return
+        }
+        var data = (resp.result && resp.result.data) || {}
+        if (data.exitedLoading) {
+          wx.showToast({ title: '路线已清空，已回到分派', icon: 'success' })
+          setTimeout(function () {
+            wx.navigateBack({ delta: 1 })
+          }, 400)
+          return
+        }
+        wx.showToast({ title: '已移除', icon: 'success' })
+        that.loadPage()
+      }).catch(function () {
+        load.hideLoading()
+        that.setData({ removingStop: false })
+        wx.showToast({ title: '网络异常', icon: 'none' })
+      })
+    }
+    wx.showModal({
+      title: stop.removeConfirmTitle || '移除门店',
+      content: stop.removeConfirmMessage || '移除后该店将从装车路线移除，是否确认？',
+      confirmText: '确认移除',
+      cancelText: '取消',
+      success: function (res) {
+        if (res.confirm) {
+          run()
+        }
+      }
+    })
+  },
+
   onAddStop: function (e) {
     var stopKey = e.currentTarget.dataset.stopKey
     if (!stopKey) {
       return
     }
-    var stopKeys = (this.data.stopKeys || []).slice()
+    var stopKeys = Array.isArray(this.data.stopKeys) ? this.data.stopKeys.slice() : []
     if (stopKeys.indexOf(stopKey) >= 0) {
       return
     }
@@ -314,8 +507,10 @@ Page({
       requestPayload: initial,
       stopMap: {},
       stopKeys: [],
+      editTimeline: [],
       pageTitle: initial && initial.manualDispatch ? '调整送货顺序' : '编辑司机路线'
     })
+    this._pageTimeline = []
     this.loadPage()
   },
 
@@ -348,12 +543,21 @@ Page({
         return
       }
       var data = (res.result && res.result.data) || {}
+      var payload = that.data.requestPayload || {}
+      if (payload.sourcePage === 'LOADING') {
+        wx.showToast({
+          title: data.exitedLoading ? '路线已清空并回到分派' : '已更新装车路线',
+          icon: 'success'
+        })
+        setTimeout(function () {
+          wx.navigateBack({ delta: 1 })
+        }, 400)
+        return
+      }
       if (data.enteredLoading) {
         wx.showToast({ title: '已确认并进入装车', icon: 'success' })
         setTimeout(function () {
-          wx.redirectTo({
-            url: '/subPackage-routeDispatch/pages/routeDispatch/loading/loading'
-          })
+          wx.navigateBack({ delta: 1 })
         }, 400)
         return
       }
@@ -392,5 +596,87 @@ Page({
     if (!this.data.pageScrollEnabled) {
       this.setData({ pageScrollEnabled: true })
     }
+  },
+
+  onTimelineStopHeadTap: function (e) {
+    var ds = eventNodeDetail(e)
+    var index = Number(ds.nodeIndex)
+    if (isNaN(index)) {
+      return
+    }
+    var node = (this.data.editTimeline || [])[index]
+    if (node && node.primaryAction) {
+      this.executeTimeWindowAction(node.primaryAction)
+    }
+  },
+
+  executeTimeWindowAction: function (action) {
+    action = action || {}
+    if (!action.actionType) {
+      return
+    }
+    var actionType = String(action.actionType).toUpperCase()
+    if (actionType === 'EDIT_TODAY_TIME_WINDOW') {
+      if (!action.enabled) {
+        wx.showToast({ title: action.disabledReason || '当前不可修改', icon: 'none' })
+        return
+      }
+      if (!action.payload || typeof action.payload !== 'object') {
+        wx.showToast({ title: '缺少时间窗口参数', icon: 'none' })
+        return
+      }
+      this.openTimeWindowModal(action.payload)
+      return
+    }
+    wx.showToast({ title: '未接入 actionType: ' + actionType, icon: 'none' })
+  },
+
+  openTimeWindowModal: function (payload) {
+    this.setData({
+      timeWindowModalVisible: true,
+      timeWindowPayload: payload || {}
+    })
+  },
+
+  closeTimeWindowModal: function () {
+    if (this.data.timeWindowSubmitting) {
+      return
+    }
+    this.setData({
+      timeWindowModalVisible: false,
+      timeWindowPayload: null
+    })
+  },
+
+  submitTimeWindowModal: function (e) {
+    var that = this
+    if (this.data.timeWindowSubmitting) {
+      return
+    }
+    var form = (e && e.detail && e.detail.form) || {}
+    var payload = this.data.timeWindowPayload || {}
+    var session = resolveSession()
+    var requestPayload = this.data.requestPayload || {}
+    var request = timeWindowModal.buildTimeWindowRequest(form, payload, {
+      session: session,
+      batchCode: payload.batchCode || requestPayload.batchCode
+    })
+    this.setData({ timeWindowSubmitting: true })
+    load.showLoading('保存中')
+    overrideSandboxStopTimeWindow(request).then(function (resp) {
+      load.hideLoading()
+      that.setData({ timeWindowSubmitting: false })
+      if (!resp.result || resp.result.code !== 0) {
+        wx.showToast({ title: (resp.result && resp.result.msg) || '保存失败', icon: 'none' })
+        return
+      }
+      that.setData({ timeWindowModalVisible: false, timeWindowPayload: null })
+      wx.showToast({ title: '已更新送达时间', icon: 'success' })
+      that.loadPage()
+    }).catch(function () {
+      load.hideLoading()
+      that.setData({ timeWindowSubmitting: false })
+      wx.showToast({ title: '网络异常', icon: 'none' })
+    })
   }
 })

@@ -646,20 +646,10 @@ _text(){
 
   // 测试企业微信群功能
   testGroupFunction() {
-    // 跳转到专门的群测试页面
-    wx.navigateTo({
-      url: '/subPackage/pages/test/groupTest/groupTest',
-      success: () => {
-        console.log('跳转到群测试页面成功');
-      },
-      fail: (err) => {
-        console.error('跳转失败:', err);
-        wx.showToast({
-          title: '跳转失败',
-          icon: 'none'
-        });
-      }
-    });
+    wx.showToast({
+      title: '测试页已移除',
+      icon: 'none'
+    })
   },
 
   

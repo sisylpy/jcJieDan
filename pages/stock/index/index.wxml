@@ -81,7 +81,20 @@
 
         <!-- 有数据时显示商品列表 -->
         <block wx:if="{{(viewMode === 'category' && goodsCataArr.length > 0) || (viewMode === 'department' && (depArr.length > 0 || offArr.length > 0))}}">
-          <scroll-view scroll-y="true" class=" goods-list" scroll-into-view="{{toView}}" scroll-top="0" bindscroll="scrollTo" bindscrolltolower="onReachBottom" lower-threshold="100" scroll-with-animation style="height:{{contentHeight - viewBarHeight }}rpx; ">
+          <scroll-view
+            scroll-y="true"
+            class=" goods-list"
+            scroll-into-view="{{toView}}"
+            scroll-top="0"
+            bindscroll="scrollTo"
+            bindscrolltolower="onReachBottom"
+            lower-threshold="100"
+            scroll-with-animation
+            refresher-enabled="{{true}}"
+            refresher-triggered="{{refresherTriggered}}"
+            bindrefresherrefresh="onScrollRefresh"
+            style="height:{{contentHeight - viewBarHeight }}rpx; "
+          >
             <!-- 部门模式下的全选按钮 -->
             <view wx:if="{{viewMode === 'department' && goodsArr.length > 0}}" class="flex flex-row-between bg-white border-bottom" style="width: {{windowWidth - leftMenuWidth - 10}}rpx; padding: 20rpx;">
               <view class="flex flex-row" style="align-items: center;">

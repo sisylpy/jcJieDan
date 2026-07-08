@@ -2,8 +2,6 @@ var load = require('../../../../lib/load.js')
 
 import {
   getDispatchSandboxToday,
-  returnSandboxStopToSandbox,
-  enterDriverRouteLoading,
   overrideSandboxStopTimeWindow
 } from '../../../../lib/apiRouteDispatch.js'
 
@@ -13,37 +11,17 @@ import {
   pickSectionCard,
   pickTimelineNode
 } from '../../routeDispatch/_pageView.js'
-import { normalizeMapOverview } from '../../routeDispatch/_mapOverview.js'
+import { normalizeMapOverview, resetMapViewport } from '../../routeDispatch/_mapOverview.js'
+
+var timeWindowModal = require('../../../utils/timeWindowModal.js')
 
 var BATCH_CODE = 'MORNING'
 
-function secondsToPickerValue(seconds) {
-  if (seconds == null || seconds === '') {
-    return ''
+function eventCardIndexes(e) {
+  if (e && e.detail && e.detail.sectionIndex != null) {
+    return e.detail
   }
-  var total = parseInt(seconds, 10)
-  if (isNaN(total)) {
-    return ''
-  }
-  var h = Math.floor(total / 3600)
-  var m = Math.floor((total % 3600) / 60)
-  return ('0' + h).slice(-2) + ':' + ('0' + m).slice(-2)
-}
-
-function pickerValueToSeconds(timeStr) {
-  if (!timeStr || typeof timeStr !== 'string') {
-    return null
-  }
-  var parts = timeStr.split(':')
-  if (parts.length < 2) {
-    return null
-  }
-  var h = parseInt(parts[0], 10)
-  var m = parseInt(parts[1], 10)
-  if (isNaN(h) || isNaN(m)) {
-    return null
-  }
-  return h * 3600 + m * 60
+  return (e && e.currentTarget && e.currentTarget.dataset) || {}
 }
 
 function applyPageViewModel(page, data) {
@@ -57,7 +35,8 @@ function applyPageViewModel(page, data) {
   page.setData({
     loading: false,
     pageViewModel: pageViewModel,
-    loadError: pageViewModel ? '' : '后端未返回 pageViewModel'
+    loadError: pageViewModel ? '' : '后端未返回 pageViewModel',
+    mapOverviewVisible: true
   })
 }
 
@@ -79,16 +58,11 @@ Component({
     loadError: '',
     actionSubmitting: false,
     pageScrollEnabled: true,
-    mapOverviewPadding: [132, 48, 112, 48],
+    refresherTriggered: false,
+    mapOverviewPadding: [48, 48, 48, 48],
+    mapOverviewVisible: true,
     timeWindowModalVisible: false,
     timeWindowSubmitting: false,
-    timeWindowForm: {
-      customerName: '',
-      customerWindowLabel: '',
-      earliestPicker: '',
-      latestPicker: '',
-      reason: ''
-    },
     timeWindowPayload: null
   },
 
@@ -119,7 +93,11 @@ Component({
   },
 
   onRefreshMap: function () {
-    this.scheduleLoad(true)
+    var mapOverview = this.data.pageViewModel && this.data.pageViewModel.mapOverview
+    resetMapViewport(this, {
+      mapOverview: mapOverview,
+      padding: this.data.mapOverviewPadding
+    })
   },
 
   onMapTouchStart: function () {
@@ -135,14 +113,34 @@ Component({
   },
 
   loadPage: function (fromPullDown) {
-    this.scheduleLoad(!!fromPullDown)
+    if (fromPullDown) {
+      this.loadPageInternal(true, false)
+      return
+    }
+    this.scheduleLoad(false)
   },
 
-  loadPageInternal: function (forceRefresh) {
+  onScrollRefresh: function () {
+    this.setData({ refresherTriggered: true })
+    this.loadPageInternal(true, true)
+  },
+
+  finishSilentRefresh: function (fromPullDown, fromRefresher) {
+    if (fromPullDown) {
+      wx.stopPullDownRefresh()
+    }
+    if (fromRefresher) {
+      this.setData({ refresherTriggered: false })
+    }
+  },
+
+  loadPageInternal: function (forceRefresh, fromRefresher) {
     var that = this
-    var fromPullDown = !!forceRefresh
+    fromRefresher = !!fromRefresher
+    var fromPullDown = !!forceRefresh && !fromRefresher
+    var force = !!forceRefresh
     var loadKey = this.properties.loadKey
-    if (!fromPullDown) {
+    if (!force) {
       if (this._inflightLoadKey === loadKey) {
         return
       }
@@ -152,13 +150,13 @@ Component({
     }
     var disId = resolveSession().disId
     if (!disId) {
-      this.setLoadError('未获取到配送商信息，请重新登录', fromPullDown)
+      this.setLoadError('未获取到配送商信息，请重新登录', fromPullDown, fromRefresher)
       return
     }
     this._inflightLoadKey = loadKey
     var seq = (this._loadSeq || 0) + 1
     this._loadSeq = seq
-    if (!fromPullDown) {
+    if (!force) {
       load.showLoading('加载今日计划')
     }
     getDispatchSandboxToday({
@@ -169,14 +167,12 @@ Component({
         return
       }
       that._inflightLoadKey = null
-      if (!fromPullDown) {
+      if (!force) {
         load.hideLoading()
       }
-      if (fromPullDown) {
-        wx.stopPullDownRefresh()
-      }
+      that.finishSilentRefresh(fromPullDown, fromRefresher)
       if (!res.result || res.result.code !== 0) {
-        that.setLoadError((res.result && res.result.msg) || '加载失败', false)
+        that.setLoadError((res.result && res.result.msg) || '加载失败', false, false)
         return
       }
       that._loadedKey = loadKey
@@ -186,42 +182,60 @@ Component({
         return
       }
       that._inflightLoadKey = null
-      if (!fromPullDown) {
+      if (!force) {
         load.hideLoading()
       }
-      if (fromPullDown) {
-        wx.stopPullDownRefresh()
-      }
-      that.setLoadError('网络异常，请稍后重试', false)
+      that.finishSilentRefresh(fromPullDown, fromRefresher)
+      that.setLoadError('网络异常，请稍后重试', false, false)
     })
   },
 
-  setLoadError: function (loadError, fromPullDown) {
+  setLoadError: function (loadError, fromPullDown, fromRefresher) {
     this.setData({
       loading: false,
       pageViewModel: null,
       loadError: loadError
     })
-    if (fromPullDown) {
-      wx.stopPullDownRefresh()
-    }
+    this.finishSilentRefresh(!!fromPullDown, !!fromRefresher)
   },
 
   onRouteCardPrimaryAction: function (e) {
-    var ds = e.currentTarget.dataset
+    var ds = eventCardIndexes(e)
     var card = pickSectionCard(this.data.pageViewModel, ds.sectionIndex, ds.cardIndex)
     if (card && card.cardType === 'DRIVER_ROUTE' && card.primaryAction) {
       this.executePrimaryAction(card.primaryAction)
     }
   },
 
+  onTimelineStopHeadTap: function (e) {
+    var ds = eventCardIndexes(e)
+    var node = pickTimelineNode(this.data.pageViewModel, ds.sectionIndex, ds.cardIndex, ds.nodeIndex)
+    if (node && node.primaryAction) {
+      this.executePrimaryAction(node.primaryAction)
+    }
+  },
+
   onDriverRouteEditTap: function (e) {
-    var ds = e.currentTarget.dataset
+    var ds = eventCardIndexes(e)
     var card = pickSectionCard(this.data.pageViewModel, ds.sectionIndex, ds.cardIndex)
     if (!card || card.cardType !== 'DRIVER_ROUTE') {
       return
     }
-    var action = card.routeEditAction || {}
+    this.openDriverRouteEditFromAction(card.routeEditAction)
+  },
+
+  onIdleDriverRouteEditTap: function (e) {
+    var driverIndex = e.currentTarget.dataset.driverIndex
+    var drivers = (this.data.pageViewModel && this.data.pageViewModel.availableDrivers) || []
+    var item = drivers[driverIndex]
+    if (!item) {
+      return
+    }
+    this.openDriverRouteEditFromAction(item.routeEditAction)
+  },
+
+  openDriverRouteEditFromAction: function (action) {
+    action = action || {}
     if (!action.payload || typeof action.payload !== 'object') {
       wx.showToast({ title: '缺少 routeEditAction.payload', icon: 'none' })
       return
@@ -237,7 +251,7 @@ Component({
   },
 
   onCardPrimaryAction: function (e) {
-    var ds = e.currentTarget.dataset
+    var ds = eventCardIndexes(e)
     var card = pickSectionCard(this.data.pageViewModel, ds.sectionIndex, ds.cardIndex)
     if (card) {
       this.executePrimaryAction(card.primaryAction)
@@ -266,22 +280,24 @@ Component({
       return
     }
 
-    if (!action.payload || typeof action.payload !== 'object') {
-      wx.showToast({ title: '缺少 primaryAction.payload', icon: 'none' })
+    if (actionType === 'RETURN_TO_SANDBOX'
+        || actionType === 'CONFIRM_SANDBOX_STOP'
+        || actionType === 'CONFIRM_ASSIGN') {
       return
     }
-    if (!action.enabled) {
+
+    if (action.enabled === false) {
       wx.showToast({ title: action.disabledReason || '当前不可操作', icon: 'none' })
       return
     }
 
-    if (actionType === 'RETURN_TO_SANDBOX') {
-      this.submitReturnToSandbox(action.payload)
+    if (!action.payload || typeof action.payload !== 'object') {
+      wx.showToast({ title: '缺少 primaryAction.payload', icon: 'none' })
       return
     }
 
     if (actionType === 'GO_LOADING') {
-      this.submitGoLoading(action.payload)
+      wx.showToast({ title: '请切换到装车 Tab 查看', icon: 'none' })
       return
     }
 
@@ -304,19 +320,9 @@ Component({
   },
 
   openTimeWindowModal: function (payload) {
-    payload = payload || {}
-    var earliest = payload.earliestDeliveryTimeS
-    var latest = payload.latestDeliveryTimeS
     this.setData({
       timeWindowModalVisible: true,
-      timeWindowPayload: payload,
-      timeWindowForm: {
-        customerName: payload.customerName || '客户',
-        customerWindowLabel: payload.customerWindowLabel || '',
-        earliestPicker: secondsToPickerValue(earliest),
-        latestPicker: secondsToPickerValue(latest),
-        reason: ''
-      }
+      timeWindowPayload: payload || {}
     })
   },
 
@@ -330,49 +336,17 @@ Component({
     })
   },
 
-  onTimeWindowEarliestChange: function (e) {
-    this.setData({
-      'timeWindowForm.earliestPicker': e.detail.value
-    })
-  },
-
-  onTimeWindowLatestChange: function (e) {
-    this.setData({
-      'timeWindowForm.latestPicker': e.detail.value
-    })
-  },
-
-  onTimeWindowReasonInput: function (e) {
-    this.setData({
-      'timeWindowForm.reason': e.detail.value
-    })
-  },
-
-  submitTimeWindowModal: function () {
+  submitTimeWindowModal: function (e) {
     var that = this
     if (this.data.timeWindowSubmitting) {
       return
     }
-    var form = this.data.timeWindowForm || {}
+    var form = (e && e.detail && e.detail.form) || {}
     var payload = this.data.timeWindowPayload || {}
     var session = resolveSession()
-    var latestSeconds = pickerValueToSeconds(form.latestPicker)
-    if (latestSeconds == null) {
-      wx.showToast({ title: '请选择最晚送达时间', icon: 'none' })
-      return
-    }
-    var reason = (form.reason || '').trim()
-    if (!reason) {
-      wx.showToast({ title: '请填写调整原因', icon: 'none' })
-      return
-    }
-    var request = Object.assign({}, payload, {
-      disId: payload.disId || session.disId,
-      batchCode: payload.batchCode || BATCH_CODE,
-      operatorUserId: payload.operatorUserId || session.operatorUserId,
-      earliestDeliveryTimeS: pickerValueToSeconds(form.earliestPicker),
-      latestDeliveryTimeS: latestSeconds,
-      reason: reason
+    var request = timeWindowModal.buildTimeWindowRequest(form, payload, {
+      session: session,
+      batchCode: BATCH_CODE
     })
     this.setData({ timeWindowSubmitting: true })
     load.showLoading('保存中')
@@ -394,8 +368,12 @@ Component({
   },
 
   openDriverRouteEdit: function (payload, action) {
+    this.openDriverRouteEditFromAction(Object.assign({}, action || {}, { payload: payload }))
+  },
+
+  openDriverRouteEditFromAction: function (action) {
     action = action || {}
-    if (!payload || typeof payload !== 'object') {
+    if (!action.payload || typeof action.payload !== 'object') {
       wx.showToast({ title: '缺少 routeEditAction.payload', icon: 'none' })
       return
     }
@@ -403,7 +381,7 @@ Component({
       wx.showToast({ title: action.disabledReason || '当前不可编辑路线', icon: 'none' })
       return
     }
-    wx.setStorageSync('routeDispatchDriverRouteEditPayload', payload)
+    wx.setStorageSync('routeDispatchDriverRouteEditPayload', action.payload)
     wx.navigateTo({
       url: '/subPackage-routeDispatch/pages/routeDispatch/driverRouteEdit/driverRouteEdit'
     })
@@ -420,78 +398,8 @@ Component({
     })
   },
 
-  submitReturnToSandbox: function (payload) {
-    var that = this
-    if (!payload.deliveryStopId) {
-      wx.showToast({ title: 'payload 缺少 deliveryStopId', icon: 'none' })
-      return
-    }
-    if (!payload.confirmTitle || !payload.confirmMessage) {
-      wx.showToast({ title: 'payload 缺少 confirmTitle / confirmMessage', icon: 'none' })
-      return
-    }
-    wx.showModal({
-      title: payload.confirmTitle,
-      content: payload.confirmMessage,
-      confirmText: '确认取消',
-      cancelText: '不取消',
-      success: function (res) {
-        if (!res.confirm) {
-          return
-        }
-        load.showLoading('取消中')
-        returnSandboxStopToSandbox(payload).then(function (resp) {
-          load.hideLoading()
-          if (resp.result.code !== 0) {
-            wx.showToast({ title: resp.result.msg || '取消失败', icon: 'none' })
-            return
-          }
-          wx.showToast({ title: '已返回沙盘', icon: 'success' })
-          applyPageViewModel(that, resp.result.data)
-        }).catch(function () {
-          load.hideLoading()
-        })
-      }
-    })
-  },
-
-  submitGoLoading: function (payload) {
-    var that = this
-    var run = function () {
-      if (that.data.actionSubmitting) {
-        return
-      }
-      that.setData({ actionSubmitting: true })
-      load.showLoading('提交中')
-      enterDriverRouteLoading(payload).then(function (resp) {
-        load.hideLoading()
-        that.setData({ actionSubmitting: false })
-        if (resp.result.code !== 0) {
-          wx.showToast({ title: resp.result.msg || '操作失败', icon: 'none' })
-          return
-        }
-        wx.showToast({ title: '已进入装车', icon: 'success' })
-        applyPageViewModel(that, resp.result.data)
-      }).catch(function () {
-        load.hideLoading()
-        that.setData({ actionSubmitting: false })
-      })
-    }
-    if (payload.confirmTitle && payload.confirmMessage) {
-      wx.showModal({
-        title: payload.confirmTitle,
-        content: payload.confirmMessage,
-        confirmText: '确认',
-        cancelText: '取消',
-        success: function (res) {
-          if (res.confirm) {
-            run()
-          }
-        }
-      })
-      return
-    }
-    run()
+  submitGoLoading: function () {
+    wx.showToast({ title: '请切换到装车 Tab 查看', icon: 'none' })
   }
   }
 })

@@ -25,3 +25,33 @@ button.group_btn::after {
   font-size: 34rpx;
   border-radius: 20rpx;
 }
+
+.driver-staff-row {
+  align-items: center;
+}
+
+.driver-duty-switch {
+  transform: scale(0.82);
+  margin-right: 8rpx;
+}
+
+.duty-self-tag {
+  margin-left: 12rpx;
+  padding: 2rpx 10rpx;
+  font-size: 22rpx;
+  color: #008c7a;
+  background: #e6f5f2;
+  border-radius: 8rpx;
+}
+
+.duty-status-label {
+  margin-top: 8rpx;
+}
+
+.duty-status-label-on {
+  color: #008c7a;
+}
+
+.duty-status-label-off {
+  color: #999;
+}

@@ -13,6 +13,18 @@
 
 ## 页面入口（app.json → routeDispatch 分包）
 
+### 老板底部 Tab「配送」（正式）
+
+主包 Tab 壳：`pages/dispatch/index/index`（swiper 三栏）
+
+| 子 Tab | 正式组件路径 | 接口 |
+|---|---|---|
+| 分派中 | `pages/bossTab/sandbox/sandbox` | `GET dispatch/sandbox/today` |
+| 装车中 | `pages/bossTab/myLoading/myLoading` | `GET loading/today` |
+| 配送中 | `pages/bossTab/myDelivery/myDelivery` | `GET delivery/today` |
+
+### 测试页（homePage 菜单，后续可删）
+
 | 页面 | 路径 |
 |---|---|
 | 司机可派状态 | `pages/routeDispatch/duty/duty` |
@@ -31,4 +43,10 @@ API：`lib/apiRouteDispatch.js`
 
 **静态审计：** 见交接文档 **§18**（2026-06-22 adapter 删除后全仓搜索结论）。
 
-**重要：** 司机端 `driverLoading` / `driverDelivery` 当前调用老板端 `GET loading/today`、`GET delivery/today`（非 `driver/*/today`），见交接文档 §13–§14、§18.6。
+## 司机端（KNOWN GAP）
+
+- `driverLoading` / `driverDelivery` / `driverStopDetail` 当前**临时**调用老板端 `GET loading/today`、`GET delivery/today`（传 `driverUserId` 过滤）。
+- 旧 HTTP **`driver/loading/today`、`driver/delivery/today` 已删除**；`apiRouteDispatch.js` 中 `getDriverLoadingToday` / `getDriverDeliveryToday` 为遗留封装，**不是**司机正式接口，**勿迁回**。
+- 后续应由**后台提供新的司机端 `pageViewModel`**（及 `stopDetail` 等子节点），前台 `setData` 直读即可；不是接回旧 `driver/*/today`。
+
+详见交接文档 §2.7–§2.9、§13–§14、§18.7。

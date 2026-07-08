@@ -246,14 +246,14 @@ Page({
       var name = e.currentTarget.dataset.name;
       wx.navigateTo({
         url: '../depOutOrder/depOutOrder?depFatherId=' + depId
-         + '&gbDepFatherId=-1&resFatherId=-1&goodsType=' + this.data.goodsType
+         + '&gbDepFatherId=-1&goodsType=' + this.data.goodsType
          +'&depName=' + name,
       }) 
     }else{
       var depId = e.currentTarget.dataset.id;
       var name = e.currentTarget.dataset.name;
       wx.navigateTo({
-        url: '../depOutOrder/depOutOrder?depFatherId==1&gbDepFatherId='+ depId + '&resFatherId=-1&goodsType=' + this.data.goodsType
+        url: '../depOutOrder/depOutOrder?depFatherId==1&gbDepFatherId='+ depId +  '&goodsType=' + this.data.goodsType
          +'&depName=' + name,
       }) 
     }

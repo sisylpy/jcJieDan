@@ -1,4 +1,4 @@
-@import '../today/today.wxss';
+@import '../routeDispatchShared.wxss';
 
 .page {
   min-height: 100vh;
@@ -45,6 +45,22 @@
   background: #ecf5ff;
   color: #409eff;
   font-size: 22rpx;
+}
+
+.driver-route-name-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+
+.duty-switch {
+  flex-shrink: 0;
+  transform: scale(0.88);
+}
+
+.driver-route-card-off {
+  padding-bottom: 24rpx;
 }
 
 .driver-duty-hint {

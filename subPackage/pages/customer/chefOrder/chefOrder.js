@@ -32,7 +32,6 @@ Page({
       windowHeight: windowInfo.windowHeight * globalData.rpxR,
       navBarHeight: globalData.navBarHeight * globalData.rpxR,
       gbDepFatherId: -1,
-      resFatherId: -1,
  
       
     });
@@ -125,7 +124,6 @@ Page({
     var data = {
       depFatherId: this.data.depFatherId,
       gbDepFatherId: this.data.gbDepFatherId,
-      resFatherId: this.data.resFatherId,
       disId: this.data.disId
     }
     load.showLoading("获取数据中");
@@ -333,19 +331,19 @@ Page({
       wx.navigateTo({
         url: '../../../pages/order/paste/paste?depFatherId=' + this.data.depFatherId +
           '&depId=' + this.data.depId + '&depName=' + depName +
-          '&gbDepFatherId=-1&resFatherId=-1&depSettleType=' + this.data.depSettleType,
+          '&gbDepFatherId=-1&depSettleType=' + this.data.depSettleType,
       })
     } else if (this.data.openType == 'voice') {
       wx.navigateTo({
         url: '../../../../subPackage/pages/voice/voice?depFatherId=' + this.data.depFatherId +
           '&depId=' + this.data.depId + '&depName=' + depName +
-          '&gbDepFatherId=-1&resFatherId=-1&depSettleType=' + this.data.depSettleType,
+          '&gbDepFatherId=-1&depSettleType=' + this.data.depSettleType,
       })
     }else {
       wx.navigateTo({
         url: '../../../../pages/order/resGoodsList/resGoodsList?depFatherId=' + this.data.depFatherId +
           '&depId=' + this.data.depId + '&depName=' + depName +
-          '&gbDepFatherId=-1&resFatherId=-1&depSettleType=' + this.data.depSettleType +
+          '&gbDepFatherId=-1&depSettleType=' + this.data.depSettleType +
           '&beforeId=-1',
       })
     }
@@ -365,7 +363,7 @@ Page({
     wx.navigateTo({
       url: '../../../../pages/order/resGoodsList/resGoodsList?depFatherId=' + this.data.depFatherId +
         '&depId=' + this.data.depId + '&depName=' + depName +
-        '&gbDepFatherId=-1&resFatherId=-1&depSettleType=' + this.data.depSettleType +
+        '&gbDepFatherId=-1&depSettleType=' + this.data.depSettleType +
         '&beforeId=' + e.currentTarget.dataset.id,
     })
   },
@@ -393,20 +391,20 @@ Page({
         wx.navigateTo({
           url: '../../../../pages/order/paste/paste?depFatherId=' + this.data.depFatherId +
             '&depId=' + this.data.depId + '&depName=' + this.data.depName +
-            '&gbDepFatherId=-1&resFatherId=-1&depSettleType=' + this.data.depSettleType,
+            '&gbDepFatherId=-1&depSettleType=' + this.data.depSettleType,
         })
         
       } else if (type == 'voice') {
         wx.navigateTo({
           url: '../../../../subPackage/pages/voice/voice?depFatherId=' + this.data.depFatherId +
             '&depId=' + this.data.depId + '&depName=' + this.data.depName +
-            '&gbDepFatherId=-1&resFatherId=-1&depSettleType=' + this.data.depSettleType,
+            '&gbDepFatherId=-1&depSettleType=' + this.data.depSettleType,
         })
       }else {
         wx.navigateTo({
           url: '../../../../pages/order/resGoodsList/resGoodsList?depFatherId=' + this.data.depFatherId +
             '&depId=' + this.data.depId + '&depName=' + this.data.depName +
-            '&gbDepFatherId=-1&resFatherId=-1&depSettleType=' + this.data.depSettleType +
+            '&gbDepFatherId=-1&depSettleType=' + this.data.depSettleType +
             '&beforeId=-1',
         })
       }
@@ -419,7 +417,7 @@ Page({
     wx.navigateTo({
       url: '../../../../subPackage/pages/order/record/record?depFatherId=' + this.data.depFatherId +
         '&depId=' + this.data.depId + '&depName=' + this.data.depName +
-        '&gbDepFatherId=-1&resFatherId=-1&depSettleType=' + this.data.depSettleType,
+        '&gbDepFatherId=-1&depSettleType=' + this.data.depSettleType,
     })
 
   },
@@ -431,7 +429,7 @@ Page({
     wx.navigateTo({
       url: '../paste/paste?depFatherId=' + this.data.depFatherId +
         '&depId=' + this.data.depId + '&depName=' + this.data.depName +
-        '&gbDepFatherId=-1&resFatherId=-1&depSettleType=' + this.data.depSettleType,
+        '&gbDepFatherId=-1&depSettleType=' + this.data.depSettleType,
     })
 
   },
@@ -444,7 +442,7 @@ Page({
   //   wx.navigateTo({
   //     url: '../paste/paste?depFatherId=' + this.data.depFatherId +
   //       '&depId=' + this.data.depId + '&depName=' + this.data.depName +
-  //       '&gbDepFatherId=-1&resFatherId=-1&depSettleType=' + this.data.depSettleType,
+  //       '&gbDepFatherId=-1&depSettleType=' + this.data.depSettleType,
   //   })
 
   // },
@@ -656,7 +654,6 @@ Page({
     var data = {
       depFatherId: this.data.depFatherId,
       gbDepFatherId: this.data.gbDepFatherId,
-      resFatherId: this.data.resFatherId,
       searchStr: this.data.searchStr
     }
     load.showLoading("查询订单")
@@ -685,15 +682,10 @@ Page({
       var comId = this.data.comId;
       var gbDepId = this.data.gbDepFatherId;
       var depId = this.data.depFatherId;
-      var resId = this.data.resFatherId;
       var depName = this.data.name;
       console.log('depFatherId=' + depId + '&depName=' + depName +
-        '&gbDepFatherId=' + gbDepId + '&resFatherId=' + resId + '&nxDisId=' + nxDisId + '&gbDisId=' + gbDisId + '&comId=' + comId + '&nxDisPurUserId=' + this.data.userInfo.nxDistributerUserId + '&admin=1&commPurUserId=-1&gbDepUserId=-1')
-      // wx.navigateToMiniProgram({
-      //   appId: 'wx2dccb807db0ea0d7',
-      //   path: 'pages/issuePage/issuePage?depFatherId=' + depId + '&depName=' + depName + '&gbDepFatherId=' + gbDepId + '&resFatherId=' + resId + '&nxDisId=' + nxDisId + '&gbDisId=' + gbDisId + '&comId=' + comId + '&nxDisPurUserId=' + this.data.userInfo.nxDistributerUserId + '&admin=1&commPurUserId=-1&gbDepUserId=-1',
-      //   envVersion: 'trial', //release  develop  trial
-      // })
+        '&gbDepFatherId=' + gbDepId  + '&nxDisId=' + nxDisId + '&gbDisId=' + gbDisId + '&comId=' + comId + '&nxDisPurUserId=' + this.data.userInfo.nxDistributerUserId + '&admin=1&commPurUserId=-1&gbDepUserId=-1')
+     
 
       load.showLoading("保存订单中");
       var bill = {
@@ -708,7 +700,6 @@ Page({
         nxDbDisId: this.data.nxDisId,
         nxDbGbDepId: this.data.gbDepFatherId,
         nxDbNxCommunityId: this.data.comId,
-        nxDbNxRestrauntId: this.data.resFatherId
       }
   
       console.log(bill);
@@ -944,7 +935,7 @@ Page({
   printPick() {
     console.log("printPickprintPick");
     wx.navigateTo({
-      url: '../orderPrint/orderPrint?gbDepFatherId=' + this.data.gbDepFatherId + '&depFatherId=' + this.data.depFatherId + '&resFatherId=' + this.data.resFatherId + '&name=' + this.data.name + '&hasSubAmount=' + this.data.depInfo.nxDepartmentSubAmount,
+      url: '../orderPrint/orderPrint?gbDepFatherId=' + this.data.gbDepFatherId + '&depFatherId=' + this.data.depFatherId  + '&name=' + this.data.name + '&hasSubAmount=' + this.data.depInfo.nxDepartmentSubAmount,
     })
 
   },
@@ -954,7 +945,7 @@ Page({
 
     wx.navigateTo({
       url: '../writePrice/writePrice?depFatherId=' + this.data.depFatherId +
-        '&name=' + this.data.name + '&gbDepFatherId=-1&resFatherId=-1' +
+        '&name=' + this.data.name + '&gbDepFatherId=-1' +
         '&depHasSubs=' + this.data.depHasSubs,
     })
   },
@@ -963,7 +954,7 @@ Page({
     wx.navigateTo({
       url: '../writeWeight/writeWeight?depFatherId=' + this.data.depFatherId +
         '&name=' + this.data.name + '&depHasSubs=' +
-        this.data.depHasSubs + '&resFatherId=-1&gbDepFatherId=-1',
+        this.data.depHasSubs + '&gbDepFatherId=-1',
     })
   },
 

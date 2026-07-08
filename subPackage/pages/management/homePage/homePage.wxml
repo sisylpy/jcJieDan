@@ -2,7 +2,7 @@
 
   <back-navbar style="height: {{navBarHeight}}rpx;" title="{{userInfo.nxDistributerEntity.nxDistributerName}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
-  <view class="flex-column mt-10">
+  <scroll-view scroll-y="true" class="home-scroll" >
     <view class="center-content">
       <image class="" wx:if="{{userInfo.nxDistributerEntity.nxDistributerImg.length > 0 && !isPlaceholderStoreImg}}" src="{{ url + userInfo.nxDistributerEntity.nxDistributerImg}}" style="width:{{windowWidth - 40}}rpx; height:300rpx; border-radius: 10rpx;"></image>
       <view wx:if="{{isPlaceholderStoreImg}}" class="store-img-placeholder" style="width:{{windowWidth - 40}}rpx; height:300rpx; border-radius: 10rpx;" bindtap="editHome">
@@ -11,19 +11,19 @@
       </view>
     </view>
 
-    <view class="flex-row-between p-20">
-      <view class="flex-column-center" style="position: absolute; left: 40rpx;">
-        <image src=" {{userInfo.nxDiuUrlChange == 1 ?  url + userInfo.nxDiuWxAvartraUrl : userInfo.nxDiuWxAvartraUrl}}" wx:if="{{userInfo.nxDiuWxAvartraUrl.length > 0}}" class="" style="width:{{windowWidth/5}}rpx; height:{{windowWidth/5}}rpx; border-radius: 50%;">
+    <view class="profile-row">
+      <view class="flex-column-center profile-left">
+        <image src=" {{userInfo.nxDiuUrlChange == 1 ?  url + userInfo.nxDiuWxAvartraUrl : userInfo.nxDiuWxAvartraUrl}}" wx:if="{{userInfo.nxDiuWxAvartraUrl && userInfo.nxDiuWxAvartraUrl.length > 0}}" class="profile-avatar" style="width:{{windowWidth/5}}rpx; height:{{windowWidth/5}}rpx;">
         </image>
         <view class="flex-row">
           <text class="font-md">{{userInfo.nxDiuWxNickName}}</text>
         </view>
       </view>
-      <view class="mainColor" bindtap="editHome" style="position: absolute; right: 80rpx;padding-top: 60rpx;">修改店铺</view>
+      <view class="mainColor profile-edit" catchtap="editHome">修改店铺</view>
     </view>
 
 
-    <view class="flex-cloumn" style="margin-top: 100rpx;">
+    <view class="flex-cloumn profile-info-block">
       <view class="flex-row p-10">
         <image src="../../../../images/0dayinji-05.png" class="icon"></image>
         <text class="m-10 flex-fixed">店铺简称:</text>
@@ -90,7 +90,7 @@
 
        
 
-        <view class="p-20 flex-row-between" wx:if="{{disInfo.machinePayList.length > 0}}">
+        <view class="p-20 flex-row-between" wx:if="{{disInfo.machinePayList && disInfo.machinePayList.length > 0}}">
 
           <view class="flex-row">
             <image src="{{userInfo.nxDiuPrintDeviceId !== -1 ? '../../../../images/print-7.png' : '../../../../images/print-3.png'}}" class="icon"></image>
@@ -131,7 +131,7 @@
 
     </view>
 
-    <view class="flex-column font-lg mt-10">
+    <view class="flex-column font-lg mt-10 menu-section">
       <view class="flex-row-between p-30 border-bottom bg-white " bindtap="toCustomer" hover-class="hover">
         <view class="flex-row">
           <image src="/images/dianpu.png" mode="aspectFill" class="icon-lg mr-20" />
@@ -243,6 +243,6 @@
       <text>版本: 3.0.6</text>
     </view>
 
-  </view>
+  </scroll-view>
 
 </view>

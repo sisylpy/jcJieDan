@@ -1,0 +1,13 @@
+{
+  "usingComponents": {
+    "back-navbar": "/components/back-navbar/back-navbar",
+    "ocrUpload": "/subPackage-order/components/ocrUpload/ocrUpload",
+    "ocrImagePreview": "/subPackage-order/components/ocrImagePreview/ocrImagePreview",
+    "ocrOrderList": "/subPackage-order/components/ocrOrderList/ocrOrderList",
+    "ocrOrderListNormal": "/subPackage-order/components/ocrOrderListNormal/ocrOrderListNormal",
+    "ocrTTSPlayer": "/subPackage-order/components/ocrTTSPlayer/ocrTTSPlayer",
+    "addOrder": "/components/addOrder/addOrder",
+    "delWarnModal": "/components/delWarnModal/delWarnModal"
+  }
+}
+
