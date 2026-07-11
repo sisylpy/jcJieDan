@@ -1,272 +1,206 @@
-<view class="flex flex-column">
+<view class="settings-page flex flex-column">
 
   <back-navbar style="height: {{navBarHeight}}rpx;" title="{{userInfo.nxDistributerEntity.nxDistributerName}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
-  <scroll-view scroll-y="true" class="home-scroll" >
-    <view class="center-content">
-      <image class="" wx:if="{{userInfo.nxDistributerEntity.nxDistributerImg.length > 0 && !isPlaceholderStoreImg}}" src="{{ url + userInfo.nxDistributerEntity.nxDistributerImg}}" style="width:{{windowWidth - 40}}rpx; height:300rpx; border-radius: 10rpx;"></image>
-      <view wx:if="{{isPlaceholderStoreImg}}" class="store-img-placeholder" style="width:{{windowWidth - 40}}rpx; height:300rpx; border-radius: 10rpx;" bindtap="editHome">
-        <text class="placeholder-title">请上传您店铺的横拍实景图</text>
-        <text class="placeholder-desc">点击「修改店铺」更换为真实店铺照片</text>
+  <scroll-view scroll-y="true" class="home-scroll">
+    <view class="store-hero">
+      <image
+        wx:if="{{userInfo.nxDistributerEntity.nxDistributerImg.length > 0 && !isPlaceholderStoreImg}}"
+        src="{{url + userInfo.nxDistributerEntity.nxDistributerImg}}"
+        class="store-cover"
+        mode="aspectFill"
+      ></image>
+      <view wx:if="{{isPlaceholderStoreImg}}" class="store-cover store-img-placeholder" bindtap="editHome">
+        <text class="placeholder-title">请上传店铺实景图</text>
+        <text class="placeholder-desc">点击这里或“修改店铺”完善门店资料</text>
+      </view>
+      <view class="cover-mask"></view>
+      <view class="store-card">
+        <view class="store-profile">
+          <image
+            src="{{userInfo.nxDiuUrlChange == 1 ? url + userInfo.nxDiuWxAvartraUrl : userInfo.nxDiuWxAvartraUrl}}"
+            wx:if="{{userInfo.nxDiuWxAvartraUrl && userInfo.nxDiuWxAvartraUrl.length > 0}}"
+            class="profile-avatar"
+            mode="aspectFill"
+          ></image>
+          <view class="avatar-placeholder" wx:else>店</view>
+          <view class="store-main">
+            <text class="store-name">{{userInfo.nxDistributerEntity.nxDistributerShowName || userInfo.nxDistributerEntity.nxDistributerName}}</text>
+            <text class="store-user">负责人：{{userInfo.nxDiuWxNickName || '未填写'}}</text>
+          </view>
+          <view class="edit-pill" catchtap="editHome">修改店铺</view>
+        </view>
       </view>
     </view>
 
-    <view class="profile-row">
-      <view class="flex-column-center profile-left">
-        <image src=" {{userInfo.nxDiuUrlChange == 1 ?  url + userInfo.nxDiuWxAvartraUrl : userInfo.nxDiuWxAvartraUrl}}" wx:if="{{userInfo.nxDiuWxAvartraUrl && userInfo.nxDiuWxAvartraUrl.length > 0}}" class="profile-avatar" style="width:{{windowWidth/5}}rpx; height:{{windowWidth/5}}rpx;">
-        </image>
-        <view class="flex-row">
-          <text class="font-md">{{userInfo.nxDiuWxNickName}}</text>
-        </view>
+    <view class="info-card">
+      <view class="info-row">
+        <text class="info-label">所在市场</text>
+        <text class="info-value">{{userInfo.nxDistributerEntity.nxDistributerMarketName || '不在批发市场'}}</text>
       </view>
-      <view class="mainColor profile-edit" catchtap="editHome">修改店铺</view>
+      <view class="info-row">
+        <text class="info-label">经营类型</text>
+        <text class="info-value" wx:if="{{disInfo.nxDistributerBusinessTypeId == 0}}">专业配送</text>
+        <text class="info-value" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 1}}">小规模批发商</text>
+        <text class="info-value" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 2}}">货架型业务批发商</text>
+        <text class="info-value" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 3}}">货架型专业批发商</text>
+        <text class="info-value" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 4}}">学校企事业配送商</text>
+        <text class="info-value" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 5}}">分布式库房配送</text>
+        <text class="info-value" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 6}}">平台型批发商</text>
+        <text class="info-value" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 7}}">专业平台型批发商</text>
+        <text class="info-value" wx:else>未设置</text>
+      </view>
+      <view class="info-row">
+        <text class="info-label">具体地址</text>
+        <text class="info-value address">{{userInfo.nxDistributerEntity.nxDistributerAddress || '—'}}</text>
+      </view>
     </view>
 
-
-    <view class="flex-cloumn profile-info-block">
-      <view class="flex-row p-10">
-        <image src="../../../../images/0dayinji-05.png" class="icon"></image>
-        <text class="m-10 flex-fixed">店铺简称:</text>
-        <text class="mr-20">{{userInfo.nxDistributerEntity.nxDistributerShowName}}</text>
+    <view class="quick-grid">
+      <view class="quick-item" bindtap="toStaff" hover-class="hover">
+        <image src="../../../../images/user-group-2.png" class="quick-icon"></image>
+        <text>账号</text>
       </view>
-      <view class="flex-row p-10">
-        <image src="../../../../images/0dayinji-05.png" class="icon"></image>
-        <text class="m-10 flex-fixed">所在批发市场:</text>
-        <text class="mr-20">{{userInfo.nxDistributerEntity.nxDistributerMarketName}}</text>
+      <view class="quick-item" bindtap="toPayPageList" hover-class="hover">
+        <image src="/images/contract-pay-history.png" class="quick-icon"></image>
+        <text>充值记录</text>
       </view>
-      <view class="flex-row p-10">
-        <image src="../../../../images/0dayinji-05.png" class="icon"></image>
-        <text class="m-10 flex-fixed">经营类型:</text>
-        <text class="mr-20" wx:if="{{disInfo.nxDistributerBusinessTypeId == 0}}">专业配送</text>
-        <text class="mr-20" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 1}}">小规模批发商</text>
-        <text class="mr-20" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 2}}">货架型业务批发商</text>
-        <text class="mr-20" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 3}}">货架型专业批发商</text>
-        <text class="mr-20" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 4}}">学校企事业配送商</text>
-        <text class="mr-20" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 5}}">分布式库房配送</text>
-        <text class="mr-20" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 6}}">平台型批发商</text>
-        <text class="mr-20" wx:elif="{{disInfo.nxDistributerBusinessTypeId == 7}}">专业平台型批发商</text>
+      <view class="quick-item" bindtap="toPayPage" data-type="0" hover-class="hover">
+        <image src="/images/wallet.png" class="quick-icon"></image>
+        <text>流量 {{disInfo.nxDistributerBuyQuantity || 0}}点</text>
       </view>
-      <view class="flex-row-default p-20">
-        <view class="flex-fixed">
-          <image src="../../../../images/ditu.png" class="icon"></image>
-          <text class="m-10 flex-fixed">具体地址:</text>
-        </view>
-        <text class="flex-1">{{userInfo.nxDistributerEntity.nxDistributerAddress}}</text>
+      <view class="quick-item" wx:if="{{disInfo.machinePayList && disInfo.machinePayList.length > 0}}">
+        <image src="{{userInfo.nxDiuPrintDeviceId !== -1 ? '../../../../images/print-7.png' : '../../../../images/print-3.png'}}" class="quick-icon"></image>
+        <text>{{userInfo.nxDiuPrintDeviceId == sysDeviceId ? 'PT-380' : '打印机'}}</text>
       </view>
-
-      <view class="bg-white">
-
-        <view class="flex-row-between p-20 mb-10 border-bottom" bindtap="toStaff" hover-class="hover">
-          <view class="flex-row">
-            <image src="../../../../images/user-group-2.png" class="icon mr-20"></image>
-            <text>账号管理</text>
-          </view>
-          <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
-        </view>
-
-         <view class="flex-row-between p-20 border-bottom" bindtap="toPayPageList" hover-class="hover">
-          <view class="flex-row">
-            <image src="/images/contract-pay-history.png" mode="aspectFill" class="icon mr-20" />
-            <text>充值记录</text>
-          </view>
-          <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
-        </view>
-
-
-        <view class="flex-row-between p-20 border-bottom" bind:tap="toPayPage" data-type="0" hover-class="hover">
-          <view class="flex-row">
-            <image src="/images/wallet.png" mode="aspectFill" class="icon mr-20" />
-            <view class="flex-row">
-              <text class="mr-10">流量剩余:</text>
-              <text>{{disInfo.nxDistributerBuyQuantity}}点</text>
-            </view>
-          </view>
-
-          <view class="flex-row">
-            <text class="mainColor">获取流量</text>
-            <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
-          </view>
-        </view>
-
-       
-
-        <view class="p-20 flex-row-between" wx:if="{{disInfo.machinePayList && disInfo.machinePayList.length > 0}}">
-
-          <view class="flex-row">
-            <image src="{{userInfo.nxDiuPrintDeviceId !== -1 ? '../../../../images/print-7.png' : '../../../../images/print-3.png'}}" class="icon"></image>
-            <text class="m-10 flex-fixed">打印机:</text>
-          </view>
-          <text class="mr-20" wx:if="{{userInfo.nxDiuPrintDeviceId == sysDeviceId}}">型号PT-380</text>
-          <image wx:else src="../../../../images/arrow-right-3.png" bindtap="toPrint" class="icon"> </image>
-        </view>
-      </view>
-      <!-- <view class="flex-row-between p-20 bg-white border-bottom">
-        <view class="flex-row">
-          <image src="{{yuyin > 0 ? '/images/record-2.png' : '/images/record.png'}}" class="icon"></image>
-          <text class="m-10">语音文件:</text>
-          <text>{{yuyin}}个</text>
-        </view>
-
-        <view class="bg-light p-10 radius-10" wx:if="{{yuyin == 0 }}" bindtap="downLoadYuyin">下载</view>
-        <view wx:else="" class="bg-warning p-10 radius-10" bindtap="removeYuyin">
-          关闭
-        </view>
-      </view> -->
-
-      <!-- <view class="flex-row-between p-20  bg-white border-bottom" bindtap="requestSubscribeMessage" hover-class="hover">
-
-        <view class="flex-row">
-          <view class="flex-column">
-            <view class="title">消息通知设置</view>
-            <view class=" font-sm">
-              开启后，您将及时收到重要通知（如订单状态、活动提醒等）。
-            </view>
-          </view>
-
-        </view>
-        <view class="flex-row">
-          <image src="/images/arrow-right-3.png" mode="aspectFill" class="icon" />
-        </view>
-      </view> -->
-
     </view>
 
-    <view class="flex-column font-lg mt-10 menu-section">
-      <view class="flex-row-between p-30 border-bottom bg-white " bindtap="toCustomer" hover-class="hover">
-        <view class="flex-row">
-          <image src="/images/dianpu.png" mode="aspectFill" class="icon-lg mr-20" />
-          <text>客户</text>
+    <view class="section-card">
+      <view class="section-title-row">
+        <view>
+          <text class="section-title">常用管理</text>
+          <text class="section-subtitle">客户、商品和协作伙伴</text>
         </view>
-        <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
       </view>
-      
-      <view class="flex-row-between p-30 border-bottom bg-white " bindtap="toRetailer" hover-class="hover"
-      wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
-        <view class="flex-row" >
-          <image src="/images/customer.png" mode="aspectFill" class="icon-lg mr-20" />
-          <text>零售</text>
+      <view class="menu-grid">
+        <view class="menu-tile" bindtap="toCustomer" hover-class="hover">
+          <image src="/images/dianpu.png" class="tile-icon"></image>
+          <text class="tile-title">客户</text>
         </view>
-        <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
+        <view class="menu-tile" bindtap="toRetailer" hover-class="hover" wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+          <image src="/images/customer.png" class="tile-icon"></image>
+          <text class="tile-title">零售</text>
+        </view>
+        <view class="menu-tile" bindtap="toGoods" hover-class="hover">
+          <image src="/images/icon_goods_active.png" class="tile-icon"></image>
+          <text class="tile-title">商品</text>
+        </view>
+        <view class="menu-tile" bindtap="toNxDisList" hover-class="hover">
+          <image src="/images/gongyingshang.png" class="tile-icon"></image>
+          <text class="tile-title">市场伙伴</text>
+        </view>
       </view>
-
-      <view class="flex-row-between p-30 border-bottom bg-white " bindtap="toGoods" hover-class="hover">
-            <view class="flex-row">
-              <image src="/images/icon_goods_active.png" mode="aspectFill" class="icon mr-20" />
-              <text>商品</text>
-            </view>
-            <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
-          </view>
-          <view class="flex-row-between p-30 border-bottom  bg-white " bindtap="toNxDisList" hover-class="hover">
-            <view class="flex-row">
-              <image src="/images/gongyingshang.png" mode="aspectFill" class="icon mr-20" />
-              <text>市场协作伙伴</text>
-            </view>
-            <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
-          </view>
-
-          <view class="flex-column bg-white font-lg mt-10">
-            <view class="flex-row-between p-30 border-bottom" bindtap="toDeliveryStrategy" hover-class="hover">
-              <view class="flex-row">
-                <image src="/images/car.png" mode="aspectFill" class="icon mr-20" />
-                <view class="flex-column">
-                  <text>配送策略</text>
-                  <text class="font-sm text-secondary">设置配送费、适用客户类型、配送/自提规则</text>
-                </view>
-              </view>
-              <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
-            </view>
-
-            <view class="flex-row-between p-30 border-bottom" bindtap="toCoupon" hover-class="hover">
-              <view class="flex-row">
-                <image src="/images/money-2.png" mode="aspectFill" class="icon mr-20" />
-                <view class="flex-column">
-                  <text>优惠券</text>
-                  <text class="font-sm text-secondary">设置客户优惠券、适用现金/记账、配送/自提范围</text>
-                </view>
-              </view>
-              <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
-            </view>
-          </view>
-
-
-      <block wx:if="{{disInfo.nxDistributerBusinessTypeId  > 1}}">
-
-        <view class="flex-column bg-white font-lg mt-10">
-
-          <view class="flex-row-between p-30 border-bottom" bindtap="toMyShelf" hover-class="hover">
-            <view class="flex-row">
-              <image src="/images/Focus-Auto.png" mode="aspectFill" class="icon mr-20" />
-              <text>货架</text>
-            </view>
-            <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
-          </view>
-        </view>
-
-        
-
-        <view class="flex-column bg-white font-lg mt-10" wx:if="{{disInfo.nxDistributerBusinessTypeId  > 2}}">
-
-          <view class="flex-row-between p-30 border-bottom" bindtap="toSupplierList" hover-class="hover">
-            <view class="flex-row">
-              <image src="/images/gongyingshang.png" mode="aspectFill" class="icon mr-20" />
-              <text>供货商</text>
-            </view>
-            <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
-          </view>
-          
-          <view class="flex-row-between p-20 border-bottom" bindtap="toStock" hover-class="hover">
-            <view class="flex-row">
-              <image src="/images/goods.png" mode="aspectFill" class="icon mr-20" />
-              <text>库存</text>
-            </view>
-            <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
-          </view>
-
-
-          <view class="flex-row-between p-20 border-bottom" bindtap="toMyPurchase" hover-class="hover">
-            <view class="flex-row">
-              <image src="/images/calender.png" mode="aspectFill" class="icon mr-20" />
-              <text>日看板</text>
-            </view>
-            <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
-          </view>
-
-          <view class="flex-row-between p-20 border-bottom" bindtap="toPurchaseGoods" hover-class="hover">
-            <view class="flex-row">
-              <image src="/images/icon_goods_active.png" mode="aspectFill" class="icon mr-20" />
-              <text>商品看板</text>
-            </view>
-            <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
-          </view>
-
-          <view class="flex-row-between p-20 border-bottom" bindtap="toPurGoodsFenxi" hover-class="hover">
-            <view class="flex-row">
-              <image src="/images/caigou2.png" mode="aspectFill" class="icon mr-20" />
-              <text>采购分析</text>
-            </view>
-            <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
-          </view>
-
-          <view class="flex-row-between p-20 border-bottom" bindtap="toCostGoodsFenxi" hover-class="hover">
-            <view class="flex-row">
-              <image src="/images/money-2.png" mode="aspectFill" class="icon mr-20" />
-              <text>成本分析</text>
-            </view>
-            <image src="../../../../images/arrow-right-3.png" class="icon"> </image>
-          </view>
-
-      
-        </view>
-
-      </block>
-
     </view>
 
+    <view class="section-card">
+      <view class="section-title-row">
+        <view>
+          <text class="section-title">经营设置</text>
+          <text class="section-subtitle">费用、促销和店铺履约规则</text>
+        </view>
+      </view>
 
-    <view class="center-content  text-secondary" style="height: 140rpx;">
-      <text>版本: 3.0.6</text>
+      <view class="setting-row highlight" bindtap="toDeliveryStrategy" hover-class="hover">
+        <view class="setting-icon-wrap blue">
+          <image src="/images/car.png" class="setting-icon"></image>
+        </view>
+        <view class="setting-main">
+          <text class="setting-title">配送策略</text>
+          <text class="setting-desc">设置配送费、客户类型、配送/自提规则</text>
+        </view>
+        <image src="../../../../images/arrow-right-3.png" class="arrow-icon"></image>
+      </view>
+
+      <view class="setting-row highlight" bindtap="toCoupon" hover-class="hover">
+        <view class="setting-icon-wrap green">
+          <image src="/images/money-2.png" class="setting-icon"></image>
+        </view>
+        <view class="setting-main">
+          <text class="setting-title">优惠券</text>
+          <text class="setting-desc">设置满减/折扣、有效期和适用范围</text>
+        </view>
+        <image src="../../../../images/arrow-right-3.png" class="arrow-icon"></image>
+      </view>
+
+      <view class="setting-row" bindtap="toMyShelf" hover-class="hover" wx:if="{{disInfo.nxDistributerBusinessTypeId > 1}}">
+        <view class="setting-icon-wrap cyan">
+          <image src="/images/Focus-Auto.png" class="setting-icon"></image>
+        </view>
+        <view class="setting-main">
+          <text class="setting-title">货架</text>
+          <text class="setting-desc">维护货架商品和陈列</text>
+        </view>
+        <image src="../../../../images/arrow-right-3.png" class="arrow-icon"></image>
+      </view>
     </view>
 
+    <view class="section-card" wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+      <view class="section-title-row">
+        <view>
+          <text class="section-title">采购与库存</text>
+          <text class="section-subtitle">供货、库存和每日采购看板</text>
+        </view>
+      </view>
+
+      <view class="compact-list">
+        <view class="compact-row" bindtap="toSupplierList" hover-class="hover">
+          <image src="/images/gongyingshang.png" class="compact-icon"></image>
+          <text class="compact-title">供货商</text>
+          <image src="../../../../images/arrow-right-3.png" class="arrow-icon"></image>
+        </view>
+        <view class="compact-row" bindtap="toStock" hover-class="hover">
+          <image src="/images/goods.png" class="compact-icon"></image>
+          <text class="compact-title">库存</text>
+          <image src="../../../../images/arrow-right-3.png" class="arrow-icon"></image>
+        </view>
+        <view class="compact-row" bindtap="toMyPurchase" hover-class="hover">
+          <image src="/images/calender.png" class="compact-icon"></image>
+          <text class="compact-title">日看板</text>
+          <image src="../../../../images/arrow-right-3.png" class="arrow-icon"></image>
+        </view>
+        <view class="compact-row" bindtap="toPurchaseGoods" hover-class="hover">
+          <image src="/images/icon_goods_active.png" class="compact-icon"></image>
+          <text class="compact-title">商品看板</text>
+          <image src="../../../../images/arrow-right-3.png" class="arrow-icon"></image>
+        </view>
+      </view>
+    </view>
+
+    <view class="section-card" wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+      <view class="section-title-row">
+        <view>
+          <text class="section-title">经营分析</text>
+          <text class="section-subtitle">看采购效率和商品成本</text>
+        </view>
+      </view>
+
+      <view class="analysis-grid">
+        <view class="analysis-card" bindtap="toPurGoodsFenxi" hover-class="hover">
+          <image src="/images/caigou2.png" class="analysis-icon"></image>
+          <text class="analysis-title">采购分析</text>
+          <text class="analysis-desc">按商品查看采购走势</text>
+        </view>
+        <view class="analysis-card" bindtap="toCostGoodsFenxi" hover-class="hover">
+          <image src="/images/money-2.png" class="analysis-icon"></image>
+          <text class="analysis-title">成本分析</text>
+          <text class="analysis-desc">跟踪商品成本变化</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="version-footer">
+      <text>版本 3.0.6</text>
+    </view>
   </scroll-view>
 
 </view>

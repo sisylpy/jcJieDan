@@ -1658,13 +1658,11 @@ Component({
                 console.log("第一个订单数据结构:", firstOrder);
                 console.log("第一个订单是否包含 purSelected:", !!firstOrder.purSelected);
                 console.log("第一个订单是否包含 nxDoGbDepartmentId:", !!firstOrder.nxDoGbDepartmentId);
-                console.log("第一个订单是否包含 nxDoNxCommRestrauntId:", !!firstOrder.nxDoNxCommRestrauntId);
                 console.log("第一个订单是否包含 nxDepartmentAttrName:", !!firstOrder.nxDepartmentAttrName);
                 console.log("第一个订单是否包含 gbDepartmentName:", !!firstOrder.gbDepartmentName);
                 console.log("第一个订单是否包含 nxRestrauntAttrName:", !!firstOrder.nxRestrauntAttrName);
                 console.log("第一个订单是否包含嵌套对象 (gbDepartmentEntity):", !!firstOrder.gbDepartmentEntity);
                 console.log("第一个订单是否包含嵌套对象 (nxDepartmentEntity):", !!firstOrder.nxDepartmentEntity);
-                console.log("第一个订单是否包含嵌套对象 (nxRestrauntEntity):", !!firstOrder.nxRestrauntEntity);
               }
               
               console.log("goodsCataArr:", this.data.goodsCataArr);
@@ -2006,7 +2004,6 @@ Component({
               nxDoStandard: order.nxDoStandard,
               nxDoRemark: order.nxDoRemark,
               nxDoGbDepartmentId: order.nxDoGbDepartmentId,
-              nxDoNxCommRestrauntId: order.nxDoNxCommRestrauntId,
               gbDepartmentName: order.gbDepartmentName,
               fatherGbDepartmentName: order.fatherGbDepartmentName,
               nxDepartmentAttrName: order.nxDepartmentAttrName,
@@ -2044,7 +2041,6 @@ Component({
                 nxDoStandard: order.nxDoStandard,
                 nxDoRemark: order.nxDoRemark,
                 nxDoGbDepartmentId: order.nxDoGbDepartmentId,
-                nxDoNxCommRestrauntId: order.nxDoNxCommRestrauntId,
                 gbDepartmentName: order.gbDepartmentName,
                 fatherGbDepartmentName: order.fatherGbDepartmentName,
                 nxDepartmentAttrName: order.nxDepartmentAttrName,
@@ -2567,7 +2563,6 @@ Component({
                   nxDoStandard: order.nxDoStandard,
                   nxDoRemark: order.nxDoRemark,
                   nxDoGbDepartmentId: order.nxDoGbDepartmentId,
-                  nxDoNxCommRestrauntId: order.nxDoNxCommRestrauntId,
                   gbDepartmentName: order.gbDepartmentName,
                   fatherGbDepartmentName: order.fatherGbDepartmentName,
                   nxDepartmentAttrName: order.nxDepartmentAttrName,
@@ -2661,7 +2656,6 @@ Component({
                   nxDoDepartmentId: order.nxDoDepartmentId,
                   nxDoDepartmentFatherId: order.nxDoDepartmentFatherId,
                   nxDoGbDepartmentId: order.nxDoGbDepartmentId,
-                  nxDoNxCommRestrauntId: order.nxDoNxCommRestrauntId,
                   gbDepartmentName: order.gbDepartmentName,
                   fatherGbDepartmentName: order.fatherGbDepartmentName,
                   nxDepartmentAttrName: order.nxDepartmentAttrName,
@@ -2670,7 +2664,6 @@ Component({
                   // 保留嵌套对象（打印页面可能需要）
                   gbDepartmentEntity: order.gbDepartmentEntity,
                   nxDepartmentEntity: order.nxDepartmentEntity,
-                  nxRestrauntEntity: order.nxRestrauntEntity
                 };
                 // 协作订单：传递协作商名称和部门编码，用于打印标签
                 // 调试日志：打印订单的协作相关字段
@@ -2851,7 +2844,6 @@ Component({
                 nxDoDepartmentId: order.nxDoDepartmentId,
                 nxDoDepartmentFatherId: order.nxDoDepartmentFatherId,
                 nxDoGbDepartmentId: order.nxDoGbDepartmentId,
-                nxDoNxCommRestrauntId: order.nxDoNxCommRestrauntId,
                 gbDepartmentName: order.gbDepartmentName,
                 fatherGbDepartmentName: order.fatherGbDepartmentName,
                 nxDepartmentAttrName: order.nxDepartmentAttrName,

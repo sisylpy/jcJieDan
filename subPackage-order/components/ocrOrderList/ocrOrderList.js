@@ -1,14 +1,14 @@
 // components/ocrOrderList/ocrOrderList.js
-import { parseOrderFromText } from '../../lib/orderParser';
-import { correctOrder, deleteTaskOrder } from '../../lib/apiDepOrder';
-import load from '../../lib/load';
-import { optimizeTextWithDeepSeek, detectBusinessType } from '../../lib/deepSeekHelper';
+import { parseOrderFromText } from '../../../lib/orderParser';
+import { correctOrder, deleteTaskOrder } from '../../../lib/apiDepOrder';
+import load from '../../../lib/load';
+import { optimizeTextWithDeepSeek, detectBusinessType } from '../../../lib/deepSeekHelper';
 
 const plugin = requirePlugin("QCloudAIVoice");
 const speechRecognizerManager = plugin.speechRecognizerManager();
 
 // 从配置文件读取腾讯云配置
-const config = require('../../config');
+const config = require('../../../config');
 const TENCENT_CLOUD_SECRET_ID = config.tencentCloud?.secretId || '';
 const TENCENT_CLOUD_SECRET_KEY = config.tencentCloud?.secretKey || '';
 const TENCENT_CLOUD_APP_ID = config.tencentCloud?.appId || '1308821743';

@@ -20,7 +20,7 @@
 
           <view bindtap="{{isRecording ? 'stopRecord' : 'startRecord'}}" class="third_btn  mb-20 {{isRecording ? 'recording' : ''}}" hover-class="thirdHover" style="text-align: center; font-size: 32rpx; margin-bottom: 40rpx;"> {{isRecording ? '停止录音' : '开始录音'}}</view>
         
-          <view bindtap="formatContent" class="third_btn mb-20" hover-class="{{sentence == null ? 'thirdHover' : ''}}">预览</view>
+          <view bindtap="formatContent" class="third_btn mb-20" hover-class="{{sentence == null ? 'thirdHover' : ''}}">识别</view>
           <view bindtap="aiRecogniseFirst" class="third_btn mt-10 mb-20">AI识别</view>
           <view class="" style="border: 1px solid #c9f1eb; width: 100%;height: 1rpx; margin-bottom: 40rpx;"></view>
 
@@ -232,15 +232,15 @@
                                 <text class="font-lg mr-20" style="color: #333; font-size: 32rpx; font-weight: 500; line-height: 1.5;">{{goods.nxGoodsName}}</text>
                                
                                 <block wx:if="{{goods.nxGoodsStandardWeight !== 'null' && goods.nxGoodsStandardWeight.length > 0}}">
-                                  <text class="small mr-10"   style="color: #666; font-size: 32rpx; margin-right: 12rpx;">({{goods.nxGoodsStandardname}}/{{goods.nxGoodsStandardWeight}})</text>
+                                  <text class="font-xs mr-10"   style="color: #666; font-size: 32rpx; margin-right: 12rpx;">({{goods.nxGoodsStandardname}}/{{goods.nxGoodsStandardWeight}})</text>
                                 </block>
                                 <block wx:else>
                                   <text class="normalmr-10" style="color: #666; font-size: 32rpx; margin-right: 12rpx;">({{goods.nxGoodsStandardname}})</text>
                                 </block>
 
-                                <text class="small mr-20 gray" wx:if="{{goods.nxGoodsPlace !== 'null' && goods.nxGoodsPlace.length > 0}}" style="color: #666; font-size: 26rpx; margin-right: 12rpx;">产地:{{goods.nxGoodsPlace}}</text>
+                                <text class="font-xs mr-20 gray" wx:if="{{goods.nxGoodsPlace !== 'null' && goods.nxGoodsPlace.length > 0}}" style="color: #666; font-size: 26rpx; margin-right: 12rpx;">产地:{{goods.nxGoodsPlace}}</text>
 
-                                <text class="small gray" wx:if="{{goods.nxGoodsDetail.length > 0 && goods.nxGoodsDetail !==  'null'}}" style="color: #666; font-size: 26rpx;">{{goods.nxGoodsDetail}}</text>
+                                <text class="font-xs gray" wx:if="{{goods.nxGoodsDetail.length > 0 && goods.nxGoodsDetail !==  'null'}}" style="color: #666; font-size: 26rpx;">{{goods.nxGoodsDetail}}</text>
                               </view>
                             </view>
 
@@ -287,14 +287,14 @@
                         <text class="font-lg mr-20" style="color: #333; font-size: 32rpx; font-weight: 500; line-height: 1.5;">{{goods.nxGoodsName}}</text>
                         <text class="" wx:if="{{goods.nxAliasEntities.length > 0}}" wx:for="{{goods.nxAliasEntities}}" wx:for-item="alias" wx:key="nxDaAliasName" style="color: #1c7efb; font-size: 32rpx; margin-right: 8rpx;">@{{alias.nxDaAliasName}}</text>
                         <block wx:if="{{goods.nxGoodsStandardWeight !== 'null' && goods.nxGoodsStandardWeight.length > 0}}">
-                          <text class="small mr-10" wx:if="{{goods.nxGoodsStandardname !== '斤'}}" style="color: #666; font-size: 32rpx; margin-right: 12rpx;">({{goods.nxGoodsStandardWeight}}/{{goods.nxGoodsStandardname}})</text>
+                          <text class="font-xs mr-10" wx:if="{{goods.nxGoodsStandardname !== '斤'}}" style="color: #666; font-size: 32rpx; margin-right: 12rpx;">({{goods.nxGoodsStandardWeight}}/{{goods.nxGoodsStandardname}})</text>
                         </block>
                         <block wx:else>
                           <text class="font-lg mr-10" style="color: #666; font-size: 32rpx; margin-right: 12rpx;">({{goods.nxGoodsStandardname}})</text>
                         </block>
 
-                        <text class="small mr-20 gray" wx:if="{{goods.nxGoodsPlace !== 'null' && goods.nxGoodsPlace.length > 0}}" style="color: #666; font-size: 26rpx; margin-right: 12rpx;">产地:{{goods.nxGoodsPlace}}</text>
-                        <text class="small gray" wx:if="{{goods.nxGoodsDetail.length > 0 && goods.nxGoodsDetail !==  'null'}}" style="color: #666; font-size: 26rpx;">{{goods.nxGoodsDetail}}</text>
+                        <text class="font-xs mr-20 gray" wx:if="{{goods.nxGoodsPlace !== 'null' && goods.nxGoodsPlace.length > 0}}" style="color: #666; font-size: 26rpx; margin-right: 12rpx;">产地:{{goods.nxGoodsPlace}}</text>
+                        <text class="font-xs gray" wx:if="{{goods.nxGoodsDetail.length > 0 && goods.nxGoodsDetail !==  'null'}}" style="color: #666; font-size: 26rpx;">{{goods.nxGoodsDetail}}</text>
                       </view>
                     </view>
 

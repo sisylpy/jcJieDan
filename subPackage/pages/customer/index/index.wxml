@@ -37,25 +37,6 @@
   </view>
   <!-- bb -->
   <view class="flex-column ">
-    <!-- <block wx:if="{{showInvite}}">
-      <view class="flex-column p-20">
-        <view class="flex-row-reverse p-10" bind:tap="closeTishi">
-          <image src="/images/del.png" mode="aspectFill" class="icon" />
-        </view>
-        <view class="flex-row-default" style="width: {{windowWidth - 40}}rpx;">
-          <image src="/images/jjcg.png" mode="aspectFill" class="logoimg mr-30 " />
-          <view class="flex-column" style="width: {{windowWidth - 240}}rpx;">
-            <view class="flex-row">
-              <text class="font-md font-bold">京京采购小程序</text>
-            </view>
-            <view class="flex-row-wrap">
-              ‘京京订货’小程序专为后厨下单设计，您可在采购小程序上查看订单，并根据不同采购方式制定第二天的采购计划
-            </view>
-            <button class="submit-btn mb-20" bindtap="toPasteInviteUrl">复制订货小程序的注册链接</button>
-          </view>
-        </view>
-      </view>
-    </block> -->
     <view class="flex-row-between p-20">
       <view class="flex-row">
         <image src="../../../../images/pay-2.png" class="icon"></image>
@@ -235,9 +216,9 @@
         <text class="ml-20 font-sl text-secondary ">京采账本App</text>
         <text class="font-sl text-secondary">(成为指定商品配送商)</text>
       </view>
-      <!-- <view class="button-container mr-30" bindtap="toOpenPrint" hover-class="button-hover">
+      <view class="button-container mr-30" bindtap="toConectRestraunt" hover-class="button-hover">
         <image src="/images/jjcg.png" class="button-image"></image>
-      </view> -->
+      </view>
     </view>
 
     <view class="border-bottom flex-column  bg-white p-20" bindtap="toYifaPage" data-item="{{item}}" hover-class="hover" wx:for="{{yifaArr}}" >

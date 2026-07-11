@@ -62,11 +62,10 @@
                       <block wx:else>
                         <text class="mr-30">({{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
                       </block>
-                      <view class="flex-row">
-                        <!-- <text class="text-secondary">数量:</text> -->
+                      <!-- <view class="flex-row">
                         <text>{{item.nxDpgQuantity}}{{item.nxDpgStandard}}</text>
 
-                      </view>
+                      </view> -->
                     </view>
                     <view class="button-container-white" wx:if="{{item.nxDpgStatus < 3}}">
                       <view class="" bindtap="cancelDisBatchItem" hover-class="hover"
@@ -107,32 +106,6 @@
                           </view>
                         </view>
                       </block>
-                      <block wx:elif="{{order.nxRestrauntEntity !== null}}">
-                        <view class="flex-row p-10 mr-20"
-                          wx:if="{{order.gbDepartmentEntity !== null && order.gbDepartmentEntity.gbDepartmentSubAmount > 1}}">
-                          <view class='flex-row '>
-
-                            <text>{{order.gbDepartmentEntity.fatherGbDepartmentEntity.gbDepartmentName}}.</text>
-                            <text>{{order.gbDepartmentEntity.gbDepartmentName}}</text>
-
-                          </view>
-                          <view class="text-secondary flex-column"
-                            wx:if="{{order.nxDoRemark !== 'null' && order.nxDoRemark.length > 0}}">
-                            <text>备注:</text>
-                            <text class="red">{{order.nxDoRemark}}</text>
-                          </view>
-
-                        </view>
-                        <view wx:else class="flex-column p-10 mr-20">
-                          <text class=' '>{{order.nxRestrauntEntity.nxRestrauntAttrName}}</text>
-                          <text wx:if="{{batch.nxDpbStatus < 0}}">{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
-                          <view class="text-secondary"
-                            wx:if="{{order.nxDoRemark !== 'null' && order.nxDoRemark.length > 0}}">
-                            备注:<text class="red">{{order.nxDoRemark}}</text>
-                          </view>
-                        </view>
-                      </block>
-
                       <block wx:else>
                         <view class="flex-row" wx:if="{{order.nxDepartmentEntity.fatherDepartmentEntity !== null}}">
                           <view class='flex-row '>
@@ -325,30 +298,6 @@
                                   wx:if="{{order.nxDoRemark !== 'null' && order.nxDoRemark.length > 0}}">
                                   <text>备注:</text>
                                   <text class="text-danger">{{order.nxDoRemark}}</text>
-                                </view>
-                              </view>
-                            </block>
-                            <block wx:elif="{{order.nxRestrauntEntity !== null}}">
-                              <view class="flex-row-default p-10 mr-20"
-                                wx:if="{{order.gbDepartmentEntity !== null && order.gbDepartmentEntity.gbDepartmentSubAmount > 1}}">
-                                <view class='flex-column '>
-                                  <text>{{order.gbDepartmentEntity.fatherGbDepartmentEntity.gbDepartmentName}}.</text>
-                                  <text>{{order.gbDepartmentEntity.gbDepartmentName}}</text>
-                                </view>
-                                <view class="text-secondary"
-                                  wx:if="{{order.nxDoRemark !== 'null' && order.nxDoRemark.length > 0}}">
-                                  <text>备注:</text>
-                                  <text class="red">{{order.nxDoRemark}}</text>
-                                </view>
-
-                              </view>
-                              <view wx:else class="flex-column p-10 mr-20">
-                                <text class=' '>{{order.nxRestrauntEntity.nxRestrauntAttrName}}</text>
-                                <text
-                                  wx:if="{{batch.nxDpbStatus < 0}}">{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
-                                <view class="text-secondary"
-                                  wx:if="{{order.nxDoRemark !== 'null' && order.nxDoRemark.length > 0}}">
-                                  备注:<text class="text-danger">{{order.nxDoRemark}}</text>
                                 </view>
                               </view>
                             </block>

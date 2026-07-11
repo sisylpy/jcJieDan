@@ -24,8 +24,6 @@
     "pages/agreement/privacyPolicy/privacyPolicy",
       "pages/customer/index/index",
       "pages/customer/choiceDep/choiceDep",
-      "pages/customer/chefAi/chefAi", 
-      "pages/customer/chefOrder/chefOrder", 
       "pages/customer/jrdhGoodsStars/jrdhGoodsStars",
       "pages/customer/customerPage/customerPage",
       "pages/customer/customerGoods/customerGoods",
@@ -71,7 +69,6 @@
       "pages/management/homeEdit/homeEdit",
       "pages/management/userNameEdit/userNameEdit",
       "pages/management/myBills/myBills",
-      "pages/management/invitePage/invitePage",
   
       "pages/management/printerSet/printerSet",
       "pages/management/labelPrinter/labelPrinter",
@@ -255,11 +252,7 @@
   "requiredBackgroundModes": ["audio"],
   
   "requiredPrivateInfos": [
-    "getLocation",
-    "chooseLocation",
-    "onLocationChange",
-    "startLocationUpdate",
-    "startLocationUpdateBackground"
+    "chooseLocation"
   ],
   
   "permission": {

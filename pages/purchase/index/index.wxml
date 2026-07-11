@@ -25,16 +25,6 @@
       <swiper-item>
 
         <view class="content flex-1 flex-column">
-
-          <!-- <view class="flex  flex-row-reverse bg-white border-bottom" style=" height: {{viewBarHeight}}rpx; ">
-            <view class="flex flex-row p-20" style="height: {{viewBarHeight}}rpx; ">
-              <view class="button-container mr-40" bindtap="changeShwoType">
-                <image src="{{viewMode === 'category' ? '/images/icon_goods_active.png' : '/images/dianpu.png'}}"
-                  class="icon"></image>
-              </view>
-            </view>
-          </view> -->
-
           <view
             class="{{(viewMode === 'category' && purCataArr.length == 0) || (viewMode === 'department' && depArr.length == 0) ? 'show' : 'hide'}}">
             <view class="flex-column center-content" style="height: {{windowHeight - 500}}rpx;">
@@ -118,7 +108,7 @@
                   </block>
 
 
-                  <!-- 按类别模式：保持原有布局 -->
+                  <!-- 按类别模式：保持原有布局r -->
                   <view wx:if="{{viewMode === 'category'}}"
                     class="flex-column-center  border-bottom bg-white {{item.isSelected ? 'bg-mainColor' : ''}}"
                     style="width: {{windowWidth - leftMenuWidth }}rpx; ">
@@ -132,6 +122,11 @@
                             <text class="brand"
                               wx:if="{{item.nxDgGoodsBrand !== null && item.nxDgGoodsBrand.length > 0}}">{{item.nxDgGoodsBrand}}</text>
                             <text class="font-bold font-lg">{{item.nxDgGoodsName}}</text>
+                            <text class="font-sm"
+                              wx:if="{{item.nxDgGoodsStandardWeight !== null && item.nxDgGoodsStandardWeight.length > 0}}"
+                              style="flex-shrink: 1; min-width: 0; word-break: break-all;">({{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}})</text>
+                            <text class="font-sm" wx:else
+                              style="flex-shrink: 1; min-width: 0; word-break: break-all;">({{item.nxDgGoodsStandardname}})</text>
                           </view>
                         </view>
                         <view class="flex-column-center p-10 mr-20">
@@ -157,24 +152,20 @@
                               <block wx:if="{{orders.gbDepName}}">
                                 <text>{{orders.gbDepName}}</text>
                               </block>
-                              <!-- 餐厅名称 -->
-                              <block wx:if="{{orders.restrauntName}}">
-                                <text>{{orders.restrauntName}}</text>
-                              </block>
 
                               <!-- NX部门名称（扁平化） -->
                               <block wx:if="{{orders.depName}}">
                                 <text>{{orders.depName}}</text>
                               </block>
 
-                              <text class="">{{orders.nxDoQuantity}}{{orders.nxDoStandard}}</text>
+                              <text class="ml-10">{{orders.nxDoQuantity}}{{orders.nxDoStandard}}</text>
 
                             </view>
                             </block>
                             <block wx:else="">
                               <view class="flex-row mr-30">
                                 <text class="mr-10">[{{orders.nxDoCollaborativeDistributerName}}]</text>
-                              <text class="">{{orders.nxDoQuantity}}{{orders.nxDoStandard}}</text>
+                              <text class="ml-10">{{orders.nxDoQuantity}}{{orders.nxDoStandard}}</text>
                             </view>
                             </block>
                            
@@ -235,7 +226,7 @@
                         </view>
                         <!-- 右侧：数量和备注 -->
                         <view class="flex flex-row" style="flex-shrink: 0; align-items: center; margin-left: 20rpx;">
-                          <text class="font-lg font-bold">{{orders.nxDoQuantity}}{{orders.nxDoStandard}}</text>
+                          <text class="font-lg font-bold ml-10">{{orders.nxDoQuantity}}{{orders.nxDoStandard}}</text>
                           <block
                             wx:if="{{orders.nxDoDsStandardScale !== null && orders.nxDoDsStandardScale.length > 0 && orders.nxDoDsStandardScale !== '-1'}}">
                             <text

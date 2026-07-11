@@ -70,8 +70,8 @@
                     <text class="mr-10">({{goods.nxDgGoodsStandardname}})</text>
                   </block>
 
-                  <text class="small mr-20 text-secondary" wx:if="{{goods.nxDgGoodsPlace !== null && goods.nxDgGoodsPlace.length > 0}}">产地:{{goods.nxDgGoodsPlace}}</text>
-                  <text class="small text-secondary" wx:if="{{goods.nxDgGoodsDetail.length > 0 && goods.nxDgGoodsDetail !==  'null'}}">{{goods.nxDgGoodsDetail}}</text>
+                  <text class="font-xs mr-20 text-secondary" wx:if="{{goods.nxDgGoodsPlace !== null && goods.nxDgGoodsPlace.length > 0}}">产地:{{goods.nxDgGoodsPlace}}</text>
+                  <text class="font-xs text-secondary" wx:if="{{goods.nxDgGoodsDetail.length > 0 && goods.nxDgGoodsDetail !==  'null'}}">{{goods.nxDgGoodsDetail}}</text>
                 </view>
               </view>
               <view class="flex-row-between p-20">

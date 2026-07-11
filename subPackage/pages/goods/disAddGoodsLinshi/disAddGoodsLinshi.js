@@ -131,11 +131,7 @@ Page({
         nxDistributerStandardEntities: [],
         nxDgCartonUnit: cartonUnit,
         nxDgItemsPerCarton: itemsPerCarton,
-        nxDgPriceStrategy: "STANDARD_PRICE",
-        nxDgGrossWeightJin: "",
-        nxDgNetWeightJin: "",
-        nxDgGrossWeightPricePerJin: "",
-        nxDgNetWeightPricePerJin: ""
+        nxDgPriceStrategy: "STANDARD_PRICE"
       },
       fatherName: "临时添加",
       isGrade: 0,
@@ -313,6 +309,18 @@ Page({
     }
     if (e.currentTarget.dataset.type == 15) {
       this.setData({ "goods.nxDgNetWeightPricePerJin": e.detail.value })
+    }
+    if (e.currentTarget.dataset.type == 16) {
+      this.setData({ "goods.nxDgOuterGrossWeightJin": e.detail.value })
+    }
+    if (e.currentTarget.dataset.type == 17) {
+      this.setData({ "goods.nxDgOuterNetWeightJin": e.detail.value })
+    }
+    if (e.currentTarget.dataset.type == 18) {
+      this.setData({ "goods.nxDgOuterGrossWeightPricePerJin": e.detail.value })
+    }
+    if (e.currentTarget.dataset.type == 19) {
+      this.setData({ "goods.nxDgOuterNetWeightPricePerJin": e.detail.value })
     }
 
     this._ifCanSave();

@@ -20,7 +20,7 @@
 
     <view class="flex-column center-content">
     <view class='word'>京采接单</view>
-    <view class="small gray" style="margin-bottom: 40rpx;">专业配送商户专用版</view>
+    <view class="font-xs gray" style="margin-bottom: 40rpx;">专业配送商户专用版</view>
     
     <!-- 企业微信环境提示 -->
     <view wx:if="{{environment == 'wxwork'}}" class="wxwork-tip">

@@ -186,7 +186,16 @@ save() {
 
 chooseLocation: function() {
   const that = this;
+  const disInfo = that.data.disInfo || {};
+  const lan = disInfo.nxDistributerLan;
+  const lun = disInfo.nxDistributerLun;
+  const params = {};
+  if (lan !== null && lan !== undefined && lan !== '' && lun !== null && lun !== undefined && lun !== '') {
+    params.latitude = Number(lan);
+    params.longitude = Number(lun);
+  }
   wx.chooseLocation({
+    ...params,
     success: function(res) {
         console.log(res);
         var disInfo = that.data.disInfo;

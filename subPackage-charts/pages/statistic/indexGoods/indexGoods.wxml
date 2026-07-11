@@ -14,10 +14,10 @@
       <view class="p-20" bindtap="toDatePage">
         <image src="../../../../images/calender.png" class="icon"></image>
       </view>
-      <view class="flex-column pt-10">
+      <view class="flex-column pt-10 font-xs">
         <view class="font-yuan">{{hanzi}}</view>
         <view class="flex-row" wx:if="{{startDate == stopDate}}">
-          <view class=" small" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
+          <view class=" " wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
         </view>
         <view class="flex-row" wx:else>
           <view class="" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>

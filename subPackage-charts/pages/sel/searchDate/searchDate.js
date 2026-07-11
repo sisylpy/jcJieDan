@@ -1,8 +1,24 @@
 var load = require('../../../../lib/load.js');
+var dateUtils = require('../../../../utils/dateUtil');
 const globalData = getApp().globalData;
 
 let windowWidth = 0;
 let itemWidth = 0;
+
+function formatDateDisplay(dateStr) {
+  if (!dateStr) return '';
+  var s = String(dateStr);
+  if (s.indexOf(' ') > -1) s = s.split(' ')[0];
+  var parts = s.split('-');
+  if (parts.length < 3) return s;
+  return Number(parts[1]) + '月' + Number(parts[2]) + '日';
+}
+
+function getWeekDay(dateStr) {
+  var weeks = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+  var d = new Date(dateStr);
+  return isNaN(d.getTime()) ? '' : weeks[d.getDay()];
+}
 
 import {
   getDate
@@ -37,13 +53,46 @@ Page({
     console.log('stopDate:', options.stopDate);
     console.log('dateType:', options.dateType);
     
+    // 规范化日期：保证日期选择器带上“月”和“日”（YYYY-MM-DD），
+    // 缺失 / 非法 / 只到“年-月”的日期统一补全日，并去掉可能附带的时间
+    function pad(n) { return n < 10 ? '0' + n : '' + n; }
+    function getTodayStr() {
+      var d = new Date();
+      return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+    }
+    function normalizeDate(val) {
+      if (val === undefined || val === null || val === '') return getTodayStr();
+      var s = String(val);
+      if (s.indexOf(' ') > -1) s = s.split(' ')[0]; // 去掉附带的时间
+      var parts = s.split('-');
+      if (parts.length === 2) s = s + '-01'; // 仅“年-月”时补上“日”
+      return s;
+    }
+    var startDate = normalizeDate(options.startDate);
+    var stopDate = normalizeDate(options.stopDate);
+    console.log('normalize 后的 startDate:', startDate, ' stopDate:', stopDate);
+
+    // 根据传入的日期范围匹配对应预设名称，让打开页面时默认选中并显示出来
+    var dateType = options.dateType;
+    var selectedDateName = '';
+    var presetNames = ['today', 'yesterday', 'lastSevenDays', 'thisWeek', 'lastWeek', 'lastThirtyDays', 'thisMonth', 'lastMonth'];
+    for (var i = 0; i < presetNames.length; i++) {
+      var range = dateUtils.getDateRange(presetNames[i]);
+      if (range.startDate && range.stopDate && range.startDate === startDate && range.stopDate === stopDate) {
+        selectedDateName = presetNames[i];
+        break;
+      }
+    }
+    console.log('匹配到的预设名称:', selectedDateName);
+
     this.setData({
       windowWidth: globalData.windowWidth * globalData.rpxR,
       windowHeight: globalData.windowHeight * globalData.rpxR,
       navBarHeight: globalData.navBarHeight  * globalData.rpxR,
-      startDate: options.startDate,
-      stopDate: options.stopDate,
-      dateType: options.dateType,
+      startDate: startDate,
+      stopDate: stopDate,
+      dateType: dateType,
+      selectedDateName: selectedDateName,
 
     });
     
@@ -102,10 +151,14 @@ Page({
             todayWeek: res.result.data.day.today.todayWeek
           });
         }
+        var dayMap = res.result.data.day;
+        var weekMap = res.result.data.week;
+        var monthArr = res.result.data.month;
+        this._ensureDisplayStrings(dayMap, weekMap, monthArr);
         this.setData({
-          dayMap: res.result.data.day,
-          weekMap: res.result.data.week,
-          monthArr: res.result.data.month,
+          dayMap: dayMap,
+          weekMap: weekMap,
+          monthArr: monthArr,
         });
         console.log('日期数据已设置到 data');
         console.log('=== searchDate _initData 结束 ===');
@@ -115,6 +168,55 @@ Page({
     }).catch(err => {
       console.error('获取日期数据异常:', err);
     });
+  },
+
+  _ensureDisplayStrings(dayMap, weekMap, monthArr) {
+    if (!dayMap) dayMap = {};
+    if (!weekMap) weekMap = {};
+    if (!monthArr) monthArr = {};
+
+    if (dayMap.today) {
+      var t = dayMap.today;
+      if (t.todayStartDate && !t.todayString) t.todayString = formatDateDisplay(t.todayStartDate);
+      if (t.todayStartDate && !t.todayWeek) t.todayWeek = getWeekDay(t.todayStartDate);
+    }
+    if (dayMap.yesterday) {
+      var y = dayMap.yesterday;
+      if (y.yesterdayStartDate && !y.yesterdayString) y.yesterdayString = formatDateDisplay(y.yesterdayStartDate);
+      if (y.yesterdayStartDate && !y.yesterdayWeek) y.yesterdayWeek = getWeekDay(y.yesterdayStartDate);
+    }
+
+    if (weekMap.lastSevenDay) {
+      var lsd = weekMap.lastSevenDay;
+      if (lsd.lastSevenDayStartDate && !lsd.lastSevenDayStartDateString) lsd.lastSevenDayStartDateString = formatDateDisplay(lsd.lastSevenDayStartDate);
+      if (lsd.lastSevenDayStopDate && !lsd.lastSevenDayStopDateString) lsd.lastSevenDayStopDateString = formatDateDisplay(lsd.lastSevenDayStopDate);
+    }
+    if (weekMap.thisWeek) {
+      var tw = weekMap.thisWeek;
+      if (tw.thisWeekStartDate && !tw.thisWeekStartString) tw.thisWeekStartString = formatDateDisplay(tw.thisWeekStartDate);
+      if (tw.thisWeekStopDate && !tw.thisWeekStopString) tw.thisWeekStopString = formatDateDisplay(tw.thisWeekStopDate);
+    }
+    if (weekMap.lastWeek && weekMap.lastWeek.lastWeekStartDate) {
+      var lwsd = weekMap.lastWeek.lastWeekStartDate;
+      if (lwsd.monday && !lwsd.mondayString) lwsd.mondayString = formatDateDisplay(lwsd.monday);
+      if (lwsd.sunday && !lwsd.sundayString) lwsd.sundayString = formatDateDisplay(lwsd.sunday);
+    }
+
+    if (monthArr.lastThirtyDay) {
+      var ltd = monthArr.lastThirtyDay;
+      if (ltd.lastThirtyDayStartDate && !ltd.lastThirtyDayStartDateString) ltd.lastThirtyDayStartDateString = formatDateDisplay(ltd.lastThirtyDayStartDate);
+      if (ltd.lastThirtyDayStopDate && !ltd.lastThirtyDayStopDateString) ltd.lastThirtyDayStopDateString = formatDateDisplay(ltd.lastThirtyDayStopDate);
+    }
+    if (monthArr.thisMonth) {
+      var tm = monthArr.thisMonth;
+      if (tm.thisMonthStartDate && !tm.thisMonthStartDateString) tm.thisMonthStartDateString = formatDateDisplay(tm.thisMonthStartDate);
+      if (tm.thisMonthStopDate && !tm.thisMonthStopDateString) tm.thisMonthStopDateString = formatDateDisplay(tm.thisMonthStopDate);
+    }
+    if (monthArr.lastMonth) {
+      var lm = monthArr.lastMonth;
+      if (lm.lastMonthStartDate && !lm.lastMonthStartDateString) lm.lastMonthStartDateString = formatDateDisplay(lm.lastMonthStartDate);
+      if (lm.lastMonthStopDate && !lm.lastMonthStopDateString) lm.lastMonthStopDateString = formatDateDisplay(lm.lastMonthStopDate);
+    }
   },
 
   selectDay(e) {
@@ -159,6 +261,9 @@ Page({
       hanzi: hanzi
     });
     
+    // 同步更新当前页面选中状态，再回传上一页
+    this.setData({ selectedDateName: dateName });
+
     //直接调用上一个页面的setData()方法，把数据存到上一个页面中去
     // 使用回调确保数据设置完成后再返回
     prevPage.setData({

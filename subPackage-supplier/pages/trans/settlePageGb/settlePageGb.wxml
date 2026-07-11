@@ -17,7 +17,7 @@
           <view class="flex-column-center">
             <image class="empty_image" src="../../../../images/paste.png"></image>
             <text class="big">现在没有账单</text>
-            <text class="small gray with-tb-padding"></text>
+            <text class="font-xs gray with-tb-padding"></text>
           </view>
         </view>
       </view>

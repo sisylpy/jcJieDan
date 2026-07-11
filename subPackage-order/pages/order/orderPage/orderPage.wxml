@@ -9,7 +9,19 @@
       <view class="button-container">
         <image src="../../../../images/robot-solid.png" class="icon"></image>
       </view>
+      
     </view>
+
+    <view class="flex flex-row mr-30" bind:tap="toOpenDepGoods" wx:else="">
+      <view class="button-container">
+        <image src="../../../../images/To_Do.png" class="icon"></image>
+      </view>
+      
+    </view>
+
+
+
+    
 
     <view class="flex flex-row mr-30" bind:tap="toChangeKg">
       <view class="button-container">
@@ -299,6 +311,141 @@
 
       </block>
 
+      <view wx:if="{{showCashSettle && (orderPreviewLoading || (orderPreview && orderPreview.showFeeCard))}}" class="order-fee-card-wrap">
+        <view class="order-fee-card">
+          <view wx:if="{{orderPreviewLoading}}" class="order-fee-loading">正在计算优惠与配送费...</view>
+          <block wx:elif="{{orderPreview}}">
+            <view class="order-fee-row">
+              <text class="order-fee-label">商品金额</text>
+              <text class="order-fee-value">¥{{orderPreview.goodsAmount}}</text>
+            </view>
+
+            <view class="order-fee-row" wx:if="{{orderPreview.hasCouponDiscount}}">
+              <view class="order-fee-label-group">
+                <text class="order-fee-label">优惠券优惠</text>
+                <view class="order-fee-coupon-badge" wx:if="{{orderPreview.couponBadgeText}}">{{orderPreview.couponBadgeText}}</view>
+              </view>
+              <text class="order-fee-discount">-¥{{orderPreview.estimatedDiscount}}</text>
+            </view>
+
+            <view class="order-fee-row" wx:if="{{orderPreview.showDeliveryFee}}">
+              <view class="order-fee-label-group">
+                <text class="order-fee-label">配送费</text>
+                <text class="order-fee-sub-label" wx:if="{{orderPreview.deliveryModeLabel}}">（{{orderPreview.deliveryModeLabel}}）</text>
+              </view>
+              <view class="order-fee-value-wrap">
+                <text class="order-fee-value">¥{{orderPreview.deliveryFee}}</text>
+                <text class="order-fee-estimate-tag" wx:if="{{orderPreview.deliveryFeeEstimate}}">预估</text>
+              </view>
+            </view>
+
+            <view class="order-fee-delivery-detail" wx:if="{{orderPreview.showDeliveryFeeDetail}}">
+              <view class="order-fee-detail-title">运费说明</view>
+              <view class="order-fee-detail-row" wx:if="{{orderPreview.deliveryAddress}}">
+                <text class="order-fee-detail-label">配送地址</text>
+                <text class="order-fee-detail-value order-fee-detail-address">{{orderPreview.deliveryAddress}}</text>
+              </view>
+              <view class="order-fee-detail-row" wx:if="{{orderPreview.distanceKm}}">
+                <text class="order-fee-detail-label">配送距离</text>
+                <text class="order-fee-detail-value">{{orderPreview.distanceKm}} km</text>
+              </view>
+              <view class="order-fee-detail-row" wx:if="{{orderPreview.feeModeLabel}}">
+                <text class="order-fee-detail-label">计费方式</text>
+                <text class="order-fee-detail-value">{{orderPreview.feeModeLabel}}</text>
+              </view>
+              <view class="order-fee-detail-row" wx:if="{{orderPreview.feeMode === 'FIXED_AMOUNT' && orderPreview.startFeeAmount}}">
+                <text class="order-fee-detail-label">固定运费</text>
+                <text class="order-fee-detail-value">¥{{orderPreview.startFeeAmount}}</text>
+              </view>
+              <block wx:elif="{{orderPreview.feeMode === 'DISTANCE_ONLY'}}">
+                <view class="order-fee-detail-row" wx:if="{{orderPreview.startFeeAmount}}">
+                  <text class="order-fee-detail-label">起步价</text>
+                  <text class="order-fee-detail-value">¥{{orderPreview.startFeeAmount}}</text>
+                </view>
+                <view class="order-fee-detail-row" wx:if="{{orderPreview.baseDistanceKm !== ''}}">
+                  <text class="order-fee-detail-label">起步里程</text>
+                  <text class="order-fee-detail-value">{{orderPreview.baseDistanceKm}} km 内</text>
+                </view>
+                <view class="order-fee-detail-row" wx:if="{{orderPreview.pricePerKm}}">
+                  <text class="order-fee-detail-label">超出每公里</text>
+                  <text class="order-fee-detail-value">¥{{orderPreview.pricePerKm}}/km</text>
+                </view>
+                <view class="order-fee-detail-row" wx:if="{{orderPreview.chargeableKm && orderPreview.chargeableKm != '0.00' && orderPreview.chargeableKm != '0'}}">
+                  <text class="order-fee-detail-label">超出里程</text>
+                  <text class="order-fee-detail-value">{{orderPreview.chargeableKm}} km</text>
+                </view>
+              </block>
+              <block wx:elif="{{orderPreview.feeMode === 'WEIGHT_ONLY'}}">
+                <view class="order-fee-detail-row" wx:if="{{orderPreview.grossWeightJin}}">
+                  <text class="order-fee-detail-label">商品总重</text>
+                  <text class="order-fee-detail-value">{{orderPreview.grossWeightJin}} 斤</text>
+                </view>
+                <view class="order-fee-detail-row" wx:if="{{orderPreview.startFeeAmount}}">
+                  <text class="order-fee-detail-label">起步价</text>
+                  <text class="order-fee-detail-value">¥{{orderPreview.startFeeAmount}}</text>
+                </view>
+                <view class="order-fee-detail-row" wx:if="{{orderPreview.baseWeightJin !== '' || orderPreview.baseDistanceKm !== ''}}">
+                  <text class="order-fee-detail-label">起步重量</text>
+                  <text class="order-fee-detail-value">{{orderPreview.baseWeightJin || orderPreview.baseDistanceKm}} 斤</text>
+                </view>
+                <view class="order-fee-detail-row" wx:if="{{orderPreview.pricePerJin || orderPreview.pricePerJinPerKm}}">
+                  <text class="order-fee-detail-label">超出每斤</text>
+                  <text class="order-fee-detail-value">¥{{orderPreview.pricePerJin || orderPreview.pricePerJinPerKm}}/斤</text>
+                </view>
+              </block>
+              <block wx:elif="{{orderPreview.feeMode === 'WEIGHT_DISTANCE'}}">
+                <view class="order-fee-detail-row" wx:if="{{orderPreview.grossWeightJin}}">
+                  <text class="order-fee-detail-label">商品总重</text>
+                  <text class="order-fee-detail-value">{{orderPreview.grossWeightJin}} 斤</text>
+                </view>
+                <view class="order-fee-detail-row" wx:if="{{orderPreview.startFeeAmount}}">
+                  <text class="order-fee-detail-label">起步价</text>
+                  <text class="order-fee-detail-value">¥{{orderPreview.startFeeAmount}}</text>
+                </view>
+                <view class="order-fee-detail-row" wx:if="{{orderPreview.baseDistanceKm !== ''}}">
+                  <text class="order-fee-detail-label">起步里程</text>
+                  <text class="order-fee-detail-value">{{orderPreview.baseDistanceKm}} km</text>
+                </view>
+                <view class="order-fee-detail-row" wx:if="{{orderPreview.baseChargeKm}}">
+                  <text class="order-fee-detail-label">最低计费公里</text>
+                  <text class="order-fee-detail-value">{{orderPreview.baseChargeKm}} km</text>
+                </view>
+                <view class="order-fee-detail-row" wx:if="{{orderPreview.chargeableKm && orderPreview.chargeableKm != '0.00' && orderPreview.chargeableKm != '0'}}">
+                  <text class="order-fee-detail-label">计费公里</text>
+                  <text class="order-fee-detail-value">{{orderPreview.chargeableKm}} km</text>
+                </view>
+                <view class="order-fee-detail-row" wx:if="{{orderPreview.pricePerJinPerKm}}">
+                  <text class="order-fee-detail-label">每斤每公里</text>
+                  <text class="order-fee-detail-value">¥{{orderPreview.pricePerJinPerKm}}/斤/km</text>
+                </view>
+              </block>
+              <view class="order-fee-detail-formula" wx:if="{{orderPreview.deliveryFeeFormula}}">{{orderPreview.deliveryFeeFormula}}</view>
+            </view>
+
+            <view class="order-fee-divider"></view>
+
+            <view class="order-fee-row order-fee-total-row">
+              <text class="order-fee-total-label">预计应付</text>
+              <text class="order-fee-total-value">¥{{orderPreview.estimatedPayAmount}}</text>
+            </view>
+
+            <view wx:if="{{orderPreview.deliveryFeePending}}" class="order-fee-tip">暂无匹配运费规则，配送费将在送货出账后一并结算</view>
+            <view wx:elif="{{orderPreview.deliveryFeeEstimate && orderPreview.deliveryFee != '0.00'}}" class="order-fee-tip">配送费为下单预估，出账时按实际规则结算</view>
+
+            <view wx:if="{{!orderPreview.hasCouponDiscount && orderPreview.unavailableCoupons.length > 0}}" class="order-fee-unavailable">
+              <view class="order-fee-unavailable-line" wx:for="{{orderPreview.unavailableCoupons}}" wx:key="userCouponId">{{item.couponName}}：{{item.reason || '暂不可用'}}</view>
+            </view>
+            <view wx:if="{{orderPreview.availableCoupons.length > 0 && !orderPreview.hasCouponDiscount}}" class="order-fee-available">
+              <view class="order-fee-available-title">客户可用优惠券</view>
+              <view class="order-fee-available-line" wx:for="{{orderPreview.availableCoupons}}" wx:key="userCouponId">
+                <view class="order-fee-coupon-badge">{{item.descText || item.couponName}}</view>
+                <text class="order-fee-available-name">{{item.couponName}}</text>
+              </view>
+            </view>
+          </block>
+        </view>
+      </view>
+
       <view class="p-20" style="height: 200rpx;">
         <view class="p-20 text-secondary font-sl" style="text-align:center;">没有数据啦！</view>
       </view>
@@ -344,6 +491,11 @@
         <text class="">总计:</text>
         <text class="font-bold" style="font-size: 42rpx;">{{total}}</text>
         <text>元</text>
+      </view>
+      <view class="flex-row p-20 pt-0" wx:if="{{showCashSettle && orderPreview && orderPreview.estimatedPayAmount}}">
+        <text class="font-sl text-secondary">预计应付:</text>
+        <text class="font-bold text-primary" style="font-size: 34rpx;">{{orderPreview.estimatedPayAmount}}</text>
+        <text class="font-sl">元</text>
       </view>
       <!-- <text class="text-secondary font-xs flex-row-reverse">利润率:{{scale > 0 ? scale: '0'}}%</text> -->
     </view>

@@ -42,9 +42,9 @@ Page({
       url: apiUrl.server,
     })
 
-    // if(this.data.update){
+    if(this.data.update){
       this._getDepInfo();
-    // }
+    }
     
   },
 

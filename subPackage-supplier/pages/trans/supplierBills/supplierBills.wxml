@@ -10,14 +10,14 @@
     <view class="p-20" bindtap="toDatePage">
       <image src="../../../../images/calender.png" class="icon"></image>
     </view>
-    <view class="flex-column">
+    <view class="flex-column font-xs">
       <view class="flex-row" wx:if="{{startDate == stopDate}}">
-        <view class=" small" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
+        <view class=" font-xs" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
       </view>
       <view class="flex-row" wx:else>
-        <view class=" small" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
+        <view class="" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
         <text class="p-10">-</text>
-        <view class=" small" wx:if="{{stopDate}}">{{tool.transferDateString(stopDate)}}</view>
+        <view class=" " wx:if="{{stopDate}}">{{tool.transferDateString(stopDate)}}</view>
       </view>
     </view>
   </view>
@@ -42,10 +42,10 @@
     <view class="liziBack big_full_padding ">
 
       <!-- <text class="big mr-20">{{supplierName}}</text> -->
-      <text class="small text-secondary">未结金额</text>
+      <text class="font-xs text-secondary">未结金额</text>
       <view class="flex-row-between">
         <view class="flex-row">
-          <text class="excreambig mr-20">{{totalSettle}}</text> <text class="small">元</text>
+          <text class="excreambig mr-20">{{totalSettle}}</text> <text class="font-xs">元</text>
         </view>
 
         <view class="mainBack_new_btn" bindtap="toSettle">

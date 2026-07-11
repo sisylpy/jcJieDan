@@ -6,7 +6,7 @@
         <!-- <view  class="dot">{{applyNumber}}</view> -->
         <!-- <image class="gouwuche" src="/images/gouwuche.png"></image> -->
         <view class="order_content">
-        <text class="m-10 small">订单金额</text>
+        <text class="m-10 font-xs">订单金额</text>
         <text class="big ">{{total}}</text>
         </view>
       </view>

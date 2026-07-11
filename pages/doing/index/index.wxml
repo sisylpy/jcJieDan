@@ -196,12 +196,7 @@
                               <text>{{order.gbDepartmentName}}</text>
                             </view>
                           </block>
-                          <!-- 餐厅（扁平化） -->
-                          <block wx:elif="{{order.nxDoNxCommRestrauntId !== -1}}">
-                            <view class="flex-row ">
-                              <text>{{order.nxRestrauntAttrName}}</text>
-                            </view>
-                          </block>
+                         
                           <!-- NX部门（扁平化） -->
                           <block wx:else>
 

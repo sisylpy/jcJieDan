@@ -54,7 +54,7 @@
                   <view class="flex flex-row">
                     <text class="text-white">{{index + 1}}.</text>
                     <view class="flex-column">
-                      <view class="flex-row-between small" style="width: {{windowWidth / 2 - 60}}rpx; ">
+                      <view class="flex-row-between font-xs" style="width: {{windowWidth / 2 - 60}}rpx; ">
 
                         <view class=" flex-row">
                           <text class="text-secondary">出货:</text>

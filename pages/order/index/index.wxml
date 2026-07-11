@@ -476,7 +476,7 @@
                 <view class="flex-row">
                   <text class="normal margin-right">{{item.gbDep.gbDepartmentName}}</text>
                 </view>
-                <view class="flex-row small" style="width: {{windowWidth - 80}}rpx;">
+                <view class="flex-row font-xs" style="width: {{windowWidth - 80}}rpx;">
 
                   <view class="flex-row third-row">
                     <text class="margin-l-right gray">出库订单:</text>
@@ -494,7 +494,7 @@
                   </view>
                 </view>
 
-                <view class="flex-row small" style="width: {{windowWidth - 80}}rpx; ">
+                <view class="flex-row font-xs" style="width: {{windowWidth - 80}}rpx; ">
                   <view class="flex-row third-row">
                     <text class="margin-l-right gray">出库完成:</text>
                     <text
@@ -512,7 +512,7 @@
                   </view>
                 </view>
 
-                <view class="flex-row small" style="width: {{windowWidth - 80}}rpx; ">
+                <view class="flex-row font-xs" style="width: {{windowWidth - 80}}rpx; ">
                   <view class="flex-row third-row">
                     <text class="margin-l-right gray">未写价格:</text>
                     <text class="">{{item.hasNotPrice}}个</text>

@@ -57,16 +57,20 @@
     <text class="text-secondary " style="width:200rpx;">店铺简称:</text>
     <input class="standardInput mainColor" value="{{disInfo.nxDistributerShowName}}" bindinput="getShowName" placeholder="请输入店铺简称"></input>
   </view>
-</view>
 
-<view class="flex-row p-20 border-bottom" bind:tap="chooseLocation">
-            <text class="mr-10 text-secondary">定位经纬度:</text>
+
+
+  <view class="flex-row p-20 border-bottom" bind:tap="chooseLocation">
+            <text class="mr-10 text-secondary">配送出发坐标:</text>
             <view class="flex-row font-sl mainColor" wx:if="{{disInfo.nxDistributerLan !== null}}">
-             <text>{{disInfo.nxDistributerLan}}</text>
+             <text class="mr-20">{{disInfo.nxDistributerLan}},</text>
              <text>{{disInfo.nxDistributerLun}}</text>
             </view>
 
           </view>
+
+
+</view>
 
 
 <view class="center-content " >

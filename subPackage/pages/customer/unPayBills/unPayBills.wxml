@@ -18,7 +18,7 @@
 					<view class="flex-row font-lg">
 						<text class="">{{item.nxDepartmentEntity.nxDepartmentName}}</text>
 					</view>
-          <view class="flex-row small">
+          <view class="flex-row font-xs">
 						<text class="text-secondary m-10">打印:</text>
 						<text>{{item.nxDbTime}}</text>
 					</view>
@@ -35,7 +35,7 @@
        
         <view class="mr-20">
 				<text class="big">{{item.nxDbTotal}}</text>
-				<text class="small">元</text>
+				<text class="font-xs">元</text>
 			</view>
 
       <image src="/images/arrow-right-3.png" mode="aspectFill" class="icon"/>

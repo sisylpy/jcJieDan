@@ -7,17 +7,20 @@
   background: rgba(0, 0, 0, 0.45);
   z-index: 10050;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
 }
 
 .sgpm-sheet {
-  width: 100%;
-  max-height: 85vh;
+  width: 86%;
+  max-width: 620rpx;
+  max-height: 76vh;
   background: #fff;
-  border-radius: 24rpx 24rpx 0 0;
-  padding-bottom: env(safe-area-inset-bottom);
+  border-radius: 24rpx;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .sgpm-head {
@@ -57,6 +60,9 @@
 
 .sgpm-body {
   padding: 12rpx 28rpx 8rpx;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .sgpm-row {
@@ -150,6 +156,7 @@
   flex-direction: row;
   padding: 20rpx 28rpx 32rpx;
   gap: 24rpx;
+  flex-shrink: 0;
 }
 
 .sgpm-btn {

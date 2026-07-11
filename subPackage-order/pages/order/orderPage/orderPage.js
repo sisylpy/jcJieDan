@@ -25,7 +25,7 @@ import {
   cancleDeliveryOrder,
   updateDepPickName,
   confirmDepApplyGoods,
-  
+  orderGroupPreview,
 
 } from '../../../../lib/apiDepOrder'
 
@@ -93,6 +93,9 @@ Page({
       currentEditOrderIndex: null,
       editPrintStandard: '',
       currentEditOrder: null,
+      showCashSettle: false,
+      orderPreview: null,
+      orderPreviewLoading: false,
     })
   },
 
@@ -143,6 +146,7 @@ Page({
       gbDepFatherId: options.gbDepFatherId,
       depId: depInfo && depInfo.nxDepartmentId,
       depName: options.name || (depInfo && depInfo.nxDepartmentAttrName),
+      showCashSettle: depInfo && Number(depInfo.nxDepartmentSettleType) === 0,
     })
     console.log('[orderPage] 路由参数 depFatherId=', options.depFatherId, 'gbDepFatherId=', options.gbDepFatherId);
   },
@@ -327,6 +331,7 @@ Page({
               applyArr: res.result.data.arr,
             })
           }
+          this._afterOrderDataLoaded();
 
         } else {
 
@@ -388,6 +393,7 @@ Page({
             title: newMode ? '已转换为公斤' : '已转换为斤',
             icon: 'success'
           })
+          this._afterOrderDataLoaded();
 
         } else {
 
@@ -422,6 +428,19 @@ Page({
   },
 
 
+  toOpenDepGoods() {
+    // customerGoods 页面从 storage 读取 depInfo，当前下单流程存的是 depItem，
+    // 这里同步到 depInfo 以便页面正确加载当前部门
+    var depInfo = this.data.depInfo;
+    if (depInfo) {
+      wx.setStorageSync('depInfo', depInfo);
+      wx.setStorageSync('depFatherId', this.data.depFatherId);
+    }
+    wx.navigateTo({
+      url: '/subPackage/pages/customer/customerGoods/customerGoods',
+    })
+  },
+
   toOpenOrder() {
     var appId = this.data.disInfo.nxDistributerAppId;
     console.log('depFatherId=' + this.data.depFatherId + '&disId=' + this.data.disId);
@@ -429,7 +448,7 @@ Page({
     wx.navigateToMiniProgram({
       appId: appId,
       path: '/pages/ai/customer/chefOrder/chefOrder?depFatherId=' + this.data.depFatherId + '&disId=' + this.data.disId,
-      envVersion: 'release', //release develop trial
+      envVersion: 'trial', //release develop trial
       success(res) {
         // that.setData({
         //   toOpenMini: false
@@ -816,100 +835,6 @@ Page({
 
 
 
-  // 跳转到 OCR 识别页面
-  // recognizeOrder1(e) {
-  //   console.log("========== recognizeOrder 开始 ==========");
-  //   console.log("点击事件 e:", e);
-  //   console.log("dataset:", e.currentTarget.dataset);
-  //   var type = e.currentTarget.dataset.type;
-  //   console.log("type:", type);
-    
-  //   console.log("当前部门信息:");
-  //   console.log("  depInfo:", this.data.depInfo);
-  //   console.log("  depFatherId:", this.data.depFatherId);
-  //   console.log("  depId:", this.data.depId);
-  //   console.log("  depName:", this.data.depName);
-    
-  //   // 检查是否有子部门
-  //   const hasSubDepartments = this.data.depInfo && 
-  //                             this.data.depInfo.nxDepartmentEntities && 
-  //                             this.data.depInfo.nxDepartmentEntities.length > 0;
-  //   console.log("是否有子部门:", hasSubDepartments);
-  //   if (hasSubDepartments) {
-  //     console.log("子部门数量:", this.data.depInfo.nxDepartmentEntities.length);
-  //     console.log("显示部门选择弹窗");
-  //     this.setData({
-  //       showChoice: true,
-  //       openType: 'ocr',
-  //     })
-  //     console.log("已设置 showChoice: true, openType: 'ocr'");
-  //   } else {
-  //     // 直接跳转到 OCR 识别页面
-  //     // 使用分包路径格式：/分包root/页面路径
-  //     const depName = this.data.depName || '';
-  //     const depFatherId = this.data.depFatherId || '';
-  //     const depId = this.data.depId || '';
-      
-  //     // 构建 URL，参数使用 encodeURIComponent 编码（wx.navigateTo 不会自动编码中文）
-  //     const url = '/subPackage-order/pages/order/ocrUpload/ocrUpload' +
-  //       '?depFatherId=' + depFatherId +
-  //       '&depId=' + depId +
-  //       '&depName=' + encodeURIComponent(depName);
-      
-  //     console.log("直接跳转到 OCR 识别页面");
-  //     console.log("跳转 URL:", url);
-  //     console.log("参数详情:", {
-  //       depFatherId: depFatherId,
-  //       depId: depId,
-  //       depName: depName,
-  //       depNameEncoded: encodeURIComponent(depName)
-  //     });
-      
-  //     wx.navigateTo({
-  //       url: url,
-  //       success: (res) => {
-  //         console.log("跳转成功:", res);
-  //       },
-  //       fail: (err) => {
-  //         console.error("跳转失败:", err);
-  //         console.error("错误详情:", JSON.stringify(err, null, 2));
-  //         console.error("尝试的 URL:", url);
-          
-  //         // 尝试不带参数跳转，测试页面是否存在
-  //         console.log("尝试不带参数跳转测试...");
-  //         wx.navigateTo({
-  //           url: '/subPackage-order/pages/order/ocrUpload/ocrUpload',
-  //           success: (testRes) => {
-  //             console.log("不带参数跳转成功，说明页面存在，问题可能在参数");
-  //           },
-  //           fail: (testErr) => {
-  //             console.error("不带参数也失败，说明页面配置有问题:", testErr);
-  //             wx.showModal({
-  //               title: '页面未找到',
-  //               content: '请检查：\n1. app.json 中是否已配置页面\n2. 是否需要重新编译小程序\n3. 页面文件是否存在',
-  //               showCancel: false
-  //             });
-  //           }
-  //         });
-  //       }
-  //     })
-  //   }
-  //   console.log("========== recognizeOrder 结束 ==========");
-  // },
-
-
-  // toPaste() {
-  //   this.hideOperation();
-
-  //   wx.navigateTo({
-  //     url: '../paste/paste?depFatherId=' + this.data.depFatherId +
-  //       '&depId=' + this.data.depId + '&depName=' + this.data.depName +
-  //       '&gbDepFatherId=-1&depSettleType=' + this.data.depSettleType,
-  //   })
-
-  // },
-
-
   // /////
   chooseSezi: function (e) {
     // 用that取代this，防止不必要的情况发生
@@ -1158,7 +1083,7 @@ Page({
         '&gbDepFatherId=' + gbDepId +  '&nxDisId=' + nxDisId + '&gbDisId=' + gbDisId + '&comId=' + comId + '&nxDisPurUserId=' + this.data.userInfo.nxDistributerUserId + '&admin=1&commPurUserId=-1&gbDepUserId=-1')
      
       load.showLoading("保存订单中");
-      var bill = {
+      var bill = this._appendBillCouponFields({
         nxDbTradeNo: this.data.tradeNo,
         nxDbDepId: this.data.depFatherId,
         nxDbDepFatherId: this.data.depFatherId,
@@ -1170,7 +1095,7 @@ Page({
         nxDbDisId: this.data.nxDisId,
         nxDbGbDepId: this.data.gbDepFatherId,
         nxDbNxCommunityId: this.data.comId,
-      }
+      });
 
       console.log(bill);
       saveAccountBillPhoneFeiE(bill)
@@ -2160,7 +2085,7 @@ Page({
 
   confirmSaveBill() {
     load.showLoading("保存订单中");
-    var bill = {
+    var bill = this._appendBillCouponFields({
       nxDbTradeNo: this.data.tradeNo,
       nxDbDepId: this.data.depFatherId,
       nxDbDepFatherId: this.data.depFatherId,
@@ -2172,7 +2097,7 @@ Page({
       nxDbDisId: this.data.nxDisId,
       nxDbGbDepId: this.data.gbDepFatherId,
       nxDbNxCommunityId: this.data.comId,
-    }
+    })
 
     console.log(bill);
     saveAccountBillPhone(bill)
@@ -2384,36 +2309,322 @@ Page({
   /**
    * 点击任务项，跳转到订单页面
    */
-  // getTaskOrder: function(e) {
-  //   const item = e.currentTarget.dataset.item;
-  //   if (!item) {
-  //     return;
-  //   }
-
-  //   // 如果任务状态为0（识别中），提示用户等待
-  //   if (item.nxOcrTaskStatus == 0) {
-  //     wx.showToast({
-  //       title: '订单解析中，请稍等',
-  //       icon: 'none'
-  //     });
-  //     return;
-  //   }
-
-  //   // 获取部门信息并跳转
-  //   // 跳转到订单页面
-  //   wx.navigateTo({
-  //     url: '/subPackage-order/pages/order/ocrOrder/ocrOrder?taskId=' + item.nxOcrTaskId,
-  //   });
-  // },
-  /**
-   * 点击任务项，跳转到订单页面
-   */
   getTaskOrder: function(e) {
     var item = e.currentTarget.dataset.item;
     wx.navigateTo({
       url: '/subPackage-order/pages/order/ocrOrder/ocrOrder?taskId=' + item.nxOcrTaskId
       + '&depFatherId=' + this.data.depFatherId + '&depId=' + this.data.depId + '&depName='  + this.data.depName,
     });
+  },
+
+  _resolveSelectedUserCouponId() {
+    if (!this._isCashSettle()) {
+      return null;
+    }
+    var preview = this.data.orderPreview;
+    if (!preview || !preview.bestCoupon) {
+      return null;
+    }
+    var id = preview.bestCoupon.userCouponId;
+    if (id == null || Number(id) <= 0) {
+      return null;
+    }
+    return Number(id);
+  },
+
+  _appendBillCouponFields(bill) {
+    var selectedUserCouponId = this._resolveSelectedUserCouponId();
+    if (selectedUserCouponId) {
+      bill.selectedUserCouponId = selectedUserCouponId;
+    }
+    return bill;
+  },
+    // var depInfo = this.data.depInfo;
+    // return depInfo && Number(depInfo.nxDepartmentSettleType) === 0;
+  // },
+
+  _collectAllOrders() {
+    var orders = [];
+    var applyArr = this.data.applyArr || [];
+    var depArr = this.data.depArr || [];
+
+    if (applyArr.length > 0 && applyArr[0].nxDepartmentOrdersId) {
+      return applyArr.slice();
+    }
+
+    depArr.forEach(function (dep) {
+      (dep.depOrders || []).forEach(function (order) {
+        if (order && order.nxDepartmentOrdersId) {
+          orders.push(order);
+        }
+      });
+    });
+
+    return orders;
+  },
+
+  _collectUnbilledPreviewOrders() {
+    return this._collectAllOrders().filter(function (order) {
+      return order && order.nxDepartmentOrdersId != null && (order.nxDoBillId == null || order.nxDoBillId === -1);
+    });
+  },
+
+  _resolvePreviewDepartmentId() {
+    if (this.data.depId) {
+      return this.data.depId;
+    }
+    var depInfo = this.data.depInfo;
+    if (depInfo && depInfo.nxDepartmentId) {
+      return depInfo.nxDepartmentId;
+    }
+    return this.data.depFatherId;
+  },
+
+  _formatDeliveryModeLabel(mode) {
+    if (mode === 'SELF_PICKUP') return '到店自提';
+    if (mode === 'DELIVERY') return '配送上门';
+    return mode || '配送';
+  },
+
+  _formatFeeModeLabel(feeMode) {
+    if (feeMode === 'DISTANCE_ONLY') return '按距离计费';
+    if (feeMode === 'WEIGHT_DISTANCE') return '按重量和距离计费';
+    if (feeMode === 'WEIGHT_ONLY') return '按重量计费';
+    if (feeMode === 'FIXED_AMOUNT') return '固定运费';
+    if (feeMode === 'FREE') return '免运费';
+    if (feeMode === 'SELF_PICKUP') return '自提免运费';
+    if (feeMode === 'NO_RULE') return '暂无运费规则';
+    return feeMode || '';
+  },
+
+  _formatCouponTypeLabel(couponType) {
+    if (Number(couponType) === 1) return '折扣券';
+    return '满减券';
+  },
+
+  _buildCouponBadgeText(coupon) {
+    if (!coupon) return '';
+    if (coupon.descText) {
+      return String(coupon.descText).replace(/\s+/g, '');
+    }
+    if (Number(coupon.couponType) === 1) {
+      var percent = coupon.discountPercent || '0';
+      var percentNum = Number(percent);
+      var percentLabel = (!isNaN(percentNum) && percentNum > 10)
+        ? (percentNum / 10) + '折'
+        : percent + '折';
+      return '满' + (coupon.thresholdAmount || '0') + '享' + percentLabel;
+    }
+    return '满' + (coupon.thresholdAmount || '0') + '减' + (coupon.discountAmount || '0') + '元';
+  },
+
+  _moneyText(value) {
+    var num = Number(value);
+    if (isNaN(num)) return '0.00';
+    return num.toFixed(2);
+  },
+
+  _buildDeliveryFeeFormula(data) {
+    if (!data) return '';
+    var mode = data.feeMode || '';
+    var deliveryFee = this._moneyText(data.deliveryFee);
+    if (mode === 'SELF_PICKUP') return '自提订单，免配送费';
+    if (mode === 'NO_RULE') return '';
+    if (mode === 'FREE') return '当前运费策略：免运费';
+    if (mode === 'FIXED_AMOUNT') {
+      var fixed = this._moneyText(data.startFeeAmount || data.deliveryFee);
+      return '固定运费 ¥' + fixed;
+    }
+    if (mode === 'DISTANCE_ONLY') {
+      var dist = data.distanceKm || '0';
+      var baseKm = data.baseDistanceKm != null && data.baseDistanceKm !== '' ? data.baseDistanceKm : '0';
+      var startFee = this._moneyText(data.startFeeAmount || '0');
+      var chargeKm = data.chargeableKm != null && data.chargeableKm !== '' ? data.chargeableKm : '0';
+      var perKm = this._moneyText(data.pricePerKm || '0');
+      var chargeNum = Number(chargeKm);
+      if (isNaN(chargeNum) || chargeNum <= 0) {
+        return '配送距离 ' + dist + ' km，' + baseKm + ' km 内起步价 ¥' + startFee;
+      }
+      var extraFee = this._moneyText(chargeNum * Number(perKm));
+      return '配送距离 ' + dist + ' km；起步 ' + baseKm + ' km 内 ¥' + startFee
+        + '，超出 ' + chargeKm + ' km × ¥' + perKm + '/km = ¥' + extraFee
+        + '，合计 ¥' + deliveryFee;
+    }
+    if (mode === 'WEIGHT_ONLY') {
+      var gross = data.grossWeightJin || '0';
+      var baseWeight = data.baseWeightJin != null && data.baseWeightJin !== '' ? data.baseWeightJin : (data.baseDistanceKm || '0');
+      var start = this._moneyText(data.startFeeAmount || '0');
+      var perJin = this._moneyText(data.pricePerJin || data.pricePerJinPerKm || '0');
+      var grossNum = Number(gross);
+      var baseNum = Number(baseWeight);
+      if (isNaN(grossNum) || grossNum <= baseNum) {
+        return '商品总重 ' + gross + ' 斤，' + baseWeight + ' 斤内起步价 ¥' + start;
+      }
+      var extra = this._moneyText((grossNum - baseNum) * Number(perJin));
+      return '商品总重 ' + gross + ' 斤；起步 ' + baseWeight + ' 斤内 ¥' + start
+        + '，超出 ' + this._moneyText(grossNum - baseNum) + ' 斤 × ¥' + perJin + '/斤 = ¥' + extra
+        + '，合计 ¥' + deliveryFee;
+    }
+    if (mode === 'WEIGHT_DISTANCE') {
+      var dist2 = data.distanceKm || '0';
+      var gross2 = data.grossWeightJin || '0';
+      var chargeKm2 = data.chargeableKm || '0';
+      var perJinKm = this._moneyText(data.pricePerJinPerKm || '0');
+      var start2 = this._moneyText(data.startFeeAmount || '0');
+      var weightFee = this._moneyText(Number(chargeKm2) * Number(gross2) * Number(perJinKm));
+      return '距离 ' + dist2 + ' km，商品 ' + gross2 + ' 斤；计费 ' + chargeKm2 + ' km × ' + gross2 + ' 斤 × ¥' + perJinKm + '/斤/km = ¥' + weightFee
+        + '，与起步价 ¥' + start2 + ' 取高，合计 ¥' + deliveryFee;
+    }
+    if (data.distanceKm) {
+      return '配送距离 ' + data.distanceKm + ' km，按策略计费 ¥' + deliveryFee;
+    }
+    return '';
+  },
+
+  _processOrderPreview(data) {
+    if (!data) return null;
+    var couponPreview = data.couponPreview || {};
+    var availableCoupons = (couponPreview.availableCoupons || []).map(function (item) {
+      return Object.assign({}, item, {
+        couponTypeLabel: item.couponTypeLabel || this._formatCouponTypeLabel(item.couponType),
+      });
+    }.bind(this));
+    var unavailableCoupons = (couponPreview.unavailableCoupons || []).map(function (item) {
+      return Object.assign({}, item, {
+        couponTypeLabel: item.couponTypeLabel || this._formatCouponTypeLabel(item.couponType),
+      });
+    }.bind(this));
+    var bestCoupon = couponPreview.bestCoupon || null;
+    var estimatedDiscount = this._moneyText(couponPreview.estimatedDiscountAmount);
+    var deliveryFee = this._moneyText(data.deliveryFee);
+    var deliveryMode = data.deliveryMode || 'DELIVERY';
+    var isSelfPickup = deliveryMode === 'SELF_PICKUP';
+    var deliveryFeeNum = Number(deliveryFee);
+    var goodsAmountNum = Number(this._moneyText(data.goodsAmount));
+    var estimatedPayFromApi = this._moneyText(couponPreview.estimatedPayAmount);
+    var estimatedPayAmount = estimatedPayFromApi;
+    if (!estimatedPayAmount || estimatedPayAmount === '0.00') {
+      estimatedPayAmount = this._moneyText(Math.max(0, goodsAmountNum + deliveryFeeNum - Number(estimatedDiscount)));
+    }
+    var hasCouponDiscount = Number(estimatedDiscount) > 0;
+    var deliveryFeeFormula = this._buildDeliveryFeeFormula(data);
+    var showDeliveryFeeDetail = !isSelfPickup && data.feeMode && data.feeMode !== 'NO_RULE';
+    // 是否有运费：存在实际运费(>0) 或 存在有效运费规则(非 NO_RULE)
+    var hasFee = !isSelfPickup && (deliveryFeeNum > 0 || (data.feeMode && data.feeMode !== 'NO_RULE'));
+    // 是否有优惠券：有折扣 或 有可用/不可用券
+    var hasCoupon = hasCouponDiscount || availableCoupons.length > 0 || unavailableCoupons.length > 0;
+    // 既无运费也无优惠券时整块不展示
+    var showFeeCard = hasFee || hasCoupon;
+    return {
+      goodsAmount: this._moneyText(data.goodsAmount),
+      deliveryFee: deliveryFee,
+      payAmount: this._moneyText(data.payAmount),
+      deliveryMode: deliveryMode,
+      deliveryModeLabel: this._formatDeliveryModeLabel(deliveryMode),
+      deliveryAddress: data.deliveryAddress || '',
+      distanceKm: data.distanceKm || '',
+      baseDistanceKm: data.baseDistanceKm || '',
+      baseWeightJin: data.baseWeightJin || '',
+      grossWeightJin: data.grossWeightJin || '',
+      startFeeAmount: data.startFeeAmount ? this._moneyText(data.startFeeAmount) : '',
+      pricePerKm: data.pricePerKm ? this._moneyText(data.pricePerKm) : '',
+      pricePerJin: data.pricePerJin ? this._moneyText(data.pricePerJin) : '',
+      pricePerJinPerKm: data.pricePerJinPerKm ? this._moneyText(data.pricePerJinPerKm) : '',
+      baseChargeKm: data.baseChargeKm || '',
+      chargeableKm: data.chargeableKm || '',
+      deliveryFeeFormula: deliveryFeeFormula,
+      showDeliveryFeeDetail: showDeliveryFeeDetail,
+      feeMode: data.feeMode || '',
+      feeModeLabel: data.feeModeLabel || this._formatFeeModeLabel(data.feeMode),
+      deliveryFeeEstimate: !!data.deliveryFeeEstimate,
+      deliveryFeePending: !isSelfPickup && (data.feeMode === 'NO_RULE' || deliveryFeeNum === 0),
+      showDeliveryFee: !isSelfPickup,
+      availableCoupons: availableCoupons,
+      unavailableCoupons: unavailableCoupons,
+      bestCoupon: bestCoupon,
+      couponBadgeText: this._buildCouponBadgeText(bestCoupon),
+      hasCouponDiscount: hasCouponDiscount,
+      estimatedDiscount: estimatedDiscount,
+      estimatedPayAmount: estimatedPayAmount,
+      hasCoupons: availableCoupons.length > 0 || unavailableCoupons.length > 0,
+      showFeeCard: showFeeCard,
+    };
+  },
+
+
+  _isCashSettle() {
+    var depInfo = this.data.depInfo;
+    return depInfo && Number(depInfo.nxDepartmentSettleType) === 0;
+  },
+
+  _afterOrderDataLoaded() {
+    console.log("_afterOrderDataLoaded_afterOrderDataLoaded")
+    var showCashSettle = this._isCashSettle();
+    this.setData({ showCashSettle: showCashSettle });
+    if (!showCashSettle) {
+      this.setData({ orderPreview: null, orderPreviewLoading: false });
+      return;
+    }
+    this._refreshOrderPreview();
+  },
+
+  _refreshOrderPreview() {
+    if (!this._isCashSettle()) {
+      this.setData({ orderPreview: null, orderPreviewLoading: false });
+      return;
+    }
+
+    var unbilledOrders = this._collectUnbilledPreviewOrders();
+    var distributerId = this.data.nxDisId || this.data.disId;
+    if (!unbilledOrders.length || !distributerId) {
+      this.setData({ orderPreview: null, orderPreviewLoading: false });
+      return;
+    }
+
+    var departmentId = unbilledOrders[0].nxDoDepartmentId || this._resolvePreviewDepartmentId();
+    if (!departmentId) {
+      this.setData({ orderPreview: null, orderPreviewLoading: false });
+      return;
+    }
+
+    var orderIds = unbilledOrders
+      .filter(function (order) {
+        return !order.nxDoDepartmentId || Number(order.nxDoDepartmentId) === Number(departmentId);
+      })
+      .map(function (order) {
+        return order.nxDepartmentOrdersId;
+      });
+
+    if (!orderIds.length) {
+      this.setData({ orderPreview: null, orderPreviewLoading: false });
+      return;
+    }
+
+    var payload = {
+      distributerId: distributerId,
+      departmentId: departmentId,
+      orderIds: orderIds,
+    };
+
+    this.setData({ orderPreviewLoading: true });
+    orderGroupPreview(payload).then(function (res) {
+      if (res.result && res.result.code === 0) {
+        this.setData({
+          orderPreview: this._processOrderPreview(res.result.data),
+          orderPreviewLoading: false,
+        });
+      } else {
+        this.setData({
+          orderPreview: null,
+          orderPreviewLoading: false,
+        });
+      }
+    }.bind(this)).catch(function () {
+      this.setData({
+        orderPreview: null,
+        orderPreviewLoading: false,
+      });
+    }.bind(this));
   },
 
 

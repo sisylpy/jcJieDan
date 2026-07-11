@@ -13,7 +13,7 @@
 							<text class="big">暂时无订购商品</text>
 							<view class="p-20flex-row">
 								<image src="/images/atm-away.png" class="show_icon"></image>
-								<view class="text-secondary small">显示3个月内订过的商品。</view>
+								<view class="text-secondary font-xs">显示3个月内订过的商品。</view>
 							</view>
 							<!-- <text class="font-sldarktext-secondary with-tb-padding">订购成功的商品将添加在这里！</text> -->
 						</view>
@@ -199,7 +199,7 @@
 				<view class="flex-column-center" wx:if="{{depGoodsArr.length > 0}}">
 					<view class="p-20flex-row">
 						<image src="/images/atm-away.png" class="show_icon"></image>
-						<view class="text-secondary small">显示3个月内订过的商品。</view>
+						<view class="text-secondary font-xs">显示3个月内订过的商品。</view>
 					</view>
 				</view>
 			</scroll-view>

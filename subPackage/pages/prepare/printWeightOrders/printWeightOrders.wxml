@@ -53,12 +53,7 @@
                   <text>{{order.gbDepartmentName}}</text>
                 </view>
               </block>
-              <!-- 餐厅（扁平化） -->
-              <block wx:elif="{{order.nxDoNxCommRestrauntId !== -1}}">
-                <view class="flex-row ">
-                  <text>{{order.nxRestrauntAttrName}}</text>
-                </view>
-              </block>
+             
               <!-- NX部门（扁平化） -->
               <block wx:else>
                 <view class="flex-row ">
@@ -96,12 +91,6 @@
                 <view class="flex-row ">
                   <text wx:if="{{order.gbDepartmentEntity && order.gbDepartmentEntity.fatherGbDepartmentEntity !== null}}">{{order.gbDepartmentEntity.fatherGbDepartmentEntity.gbDepartmentName}}.</text>
                   <text>{{order.gbDepartmentEntity.gbDepartmentName}}</text>
-                </view>
-              </block>
-
-              <block wx:elif="{{order.nxDoNxCommRestrauntId !== -1 && order.nxRestrauntEntity}}">
-                <view class="flex-row ">
-                  <text>{{order.nxRestrauntEntity.nxRestrauntAttrName}}</text>
                 </view>
               </block>
 

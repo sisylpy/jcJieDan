@@ -841,7 +841,6 @@ Page({
       depName: order.depName,
       hasGbDepartmentEntity: !!order.gbDepartmentEntity,
       hasNxDepartmentEntity: !!order.nxDepartmentEntity,
-      hasNxRestrauntEntity: !!order.nxRestrauntEntity
     });
     
     // 优先使用扁平化字段（页面已传递）
@@ -937,14 +936,8 @@ Page({
         }
         console.log('  ✓ 使用GB部门（旧格式）:', depName);
         return { depName: depName || '未分类', isCustomer: true };
-      } else if (order.nxRestrauntEntity) {
-        var restrauntName = order.nxRestrauntEntity.nxRestrauntAttrName || '未分类';
-        console.log('  ✓ 使用餐厅（旧格式）:', restrauntName);
-        return {
-          depName: restrauntName,
-          isCustomer: true
-        };
-      } else if (order.nxDepartmentEntity) {
+      } 
+       else if (order.nxDepartmentEntity) {
         var nxDep = order.nxDepartmentEntity;
         var depName = '';
         var shouldShowFather = false;

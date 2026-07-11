@@ -6,7 +6,7 @@
         <text>{{item.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
         <text wx:for="{{item.nxDistributerGoodsEntity.nxAliasEntities}}" wx:for-item="alias">={{alias.nxDaAliasName}}</text>
         <block wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0}}">
-          <text class="small" >({{item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight}}/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+          <text class="font-xs" >({{item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight}}/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
         </block>
 
         <block wx:else>
@@ -25,7 +25,7 @@
          <block wx:if="{{item.nxDistributerGoodsEntity.nxDgCartonUnit !== '' && item.nxDistributerGoodsEntity.nxDgCartonUnit !== null}}">
           <view class="flex-row-between p-20">
           <text>采购单位:</text>
-          <text class="small">{{item.nxDistributerGoodsEntity.nxDgItemsPerCarton}}{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}/{{item.nxDistributerGoodsEntity.nxDgCartonUnit}}</text>
+          <text class="font-xs">{{item.nxDistributerGoodsEntity.nxDgItemsPerCarton}}{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}/{{item.nxDistributerGoodsEntity.nxDgCartonUnit}}</text>
         </view>
         </block>
       

@@ -33,7 +33,7 @@
               <text class="big">暂时无常购商品</text>
               <view class="with-padding flex-row">
                 <image src="../../images/atm-away.png" class="show_icon"></image>
-                <view class="gray small">显示3个月内订过的商品。</view>
+                <view class="gray font-xs">显示3个月内订过的商品。</view>
               </view>
             </view>
           </view>
@@ -107,7 +107,7 @@
                       </view>
 
 
-                      <view class="flex-row small" wx:if="{{goods.nxDdgDepGoodsStandardname !== '斤' }}">
+                      <view class="flex-row font-xs" wx:if="{{goods.nxDdgDepGoodsStandardname !== '斤' }}">
                         <view class="flex-row">
                           <text class="gray">规格:</text>
                           <block wx:if="{{goods.nxDisStandardWeight !== null}}">
@@ -121,7 +121,7 @@
                           </block>
                         </view>
                       </view>
-                      <view class="flex-row small">
+                      <view class="flex-row font-xs">
                         <view class="flex-row half-row" wx:if="{{goods.nxDdgDepGoodsDetail !== null  && goods.nxDdgDepGoodsDetail !== '' }}">
                           <text class="gray">说明:</text>
                           <text>{{goods.nxDdgDepGoodsDetail}}</text>

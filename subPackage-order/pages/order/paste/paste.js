@@ -253,54 +253,18 @@ Page({
         const recognizedText = this.data.sentence;
         console.log('识别到的原始文本:', recognizedText);
         
-        if (!recognizedText || recognizedText.trim() === '') {
-          console.log('识别文本为空，跳过优化');
+        if (!recognizedText || recognizedText.trim().length < 3) {
+          console.log('识别文本为空或太短，跳过解析');
           return;
         }
 
-        // 先显示原始识别结果，提升用户体验
-        // 保存原始内容，用于"重新修改"功能
+        // 仅显示原始识别结果到输入框，不自动解析（用户可手动修改后点"识别"）
         this.setData({
           inputContent: recognizedText,
           sentence: recognizedText,
-          originSentence: recognizedText, // 保存原始语音识别内容
-          isAiOptimizing: true // 标记 AI 正在优化
+          originSentence: recognizedText // 保存原始语音文本，用于"重新粘贴"恢复
         });
-
-        // 显示 DeepSeek loading 动画
-        this.setData({ showDeepSeekLoading: true });
-        
-        try {
-          // 调用 DeepSeek API 优化文本，传入品牌列表
-          const optimizedText = await optimizeTextWithDeepSeek(recognizedText, {
-            brandList: this.data.brandPrompts || [],
-            temperature: 0.2,
-            logPrefix: '[paste]'
-          });
-          this.setData({ showDeepSeekLoading: false, isAiOptimizing: false });
-        console.log('优化后的文本:', optimizedText);
-        
-          // 更新输入框内容（AI 优化后的结果）
-        this.setData({
-          inputContent: optimizedText,
-          sentence: optimizedText
-        });
-
-          // 自动格式化内容（现在会解析 JSON）
-        this.formatContent();
-        } catch (error) {
-          // 如果 AI 优化失败，保持原始文本
-          this.setData({ 
-            showDeepSeekLoading: false, 
-            isAiOptimizing: false 
-          });
-          console.error('AI 优化失败，使用原始文本:', error);
-          // formatContent 会处理原始文本的解析
-          this.formatContent();
-        }
       } catch (error) {
-        // 隐藏 DeepSeek loading 动画（异常时也要隐藏）
-        this.setData({ showDeepSeekLoading: false });
         console.error('处理语音识别结果时出错:', error);
         wx.showToast({
           title: '文本优化失败，使用原始文本',
@@ -614,7 +578,14 @@ Page({
         logPrefix: '[paste]'
       });
       console.log('第一次 AI 识别完成，优化后内容:', optimizedText);
-      
+
+      // DeepSeek 返回空结果时跳过解析
+      if (!optimizedText || optimizedText.trim() === '' || optimizedText.trim() === '[]') {
+        this.setData({ showDeepSeekLoading: false });
+        wx.showToast({ title: '未识别到有效内容，请重试', icon: 'none', duration: 2000 });
+        return;
+      }
+
       this.setData({
         inputContent: optimizedText,
         sentence: optimizedText,
@@ -666,7 +637,7 @@ Page({
     });
     
     if (result.orders && result.orders.length > 0) {
-      // 若存在不合格片段：在原文插入【！】标记，回显到 textarea
+      // 若存在不合格片段：在原文插入【】标记，回显到 textarea
       if (result.invalidSegments && result.invalidSegments.length > 0) {
         const contentForHighlight = result.contentForHighlight || content;
         const modifiedContent = this._insertInvalidMarkersInContent(contentForHighlight, result.invalidSegments);
@@ -729,19 +700,15 @@ Page({
   },
 
   /**
-   * 根据 invalidSegments 在原始内容中把不合格片段用红色标注，生成 rich-text 可用的 HTML
+   * 根据 invalidSegments 在原始内容中把不合格片段用红色标注
+   * 返回 rich-text 用的 nodes 数组（color 等内联 style 在 nodes 数组模式下不会被过滤）
    */
   _buildHighlightedContent: function (content, invalidSegments) {
-    if (!content || !invalidSegments || invalidSegments.length === 0) return '';
-    const escapeHtml = (s) => {
-      if (s == null) return '';
-      return String(s)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;');
-    };
-    let result = '';
+    if (!content || !invalidSegments || invalidSegments.length === 0) return [];
+    const imgBefore = this.data.pasteImageBefore || '';
+    const imgAfter  = this.data.pasteImageAfter  || '';
+
+    const nodes = [];
     let remaining = content;
     let matchedCount = 0;
     while (true) {
@@ -755,19 +722,53 @@ Page({
       }
       if (best.pos < 0) break;
       matchedCount++;
-      result += escapeHtml(remaining.slice(0, best.pos)).replace(/\n/g, '<br/>');
-      // 不合格文字前后插入提示图片，标记修改位置
-      const imgBefore = this.data.pasteImageBefore ? `<img src="${this.data.pasteImageBefore}" style="vertical-align:middle;width:36rpx;height:36rpx;margin:0 4rpx"/>` : '';
-      const imgAfter = this.data.pasteImageAfter ? `<img src="${this.data.pasteImageAfter}" style="vertical-align:middle;width:36rpx;height:36rpx;margin:0 4rpx"/>` : '';
-      result += imgBefore + '<span style="color:red;font-weight:bold">' + escapeHtml(best.seg.segmentText) + '</span>' + imgAfter;
+      // 前段普通文本（保留换行）
+      if (best.pos > 0) {
+        nodes.push(this._plainTextToNodes(remaining.slice(0, best.pos)));
+      }
+      if (imgBefore) nodes.push({ name: 'img', attrs: { src: imgBefore, style: 'vertical-align:middle;width:36rpx;height:36rpx;margin:0 4rpx' } });
+      // 红色标注的不合格文字
+      nodes.push({ name: 'span', attrs: { style: 'color:red;font-weight:bold' }, children: [{ type: 'text', text: best.seg.segmentText }] });
+      if (imgAfter) nodes.push({ name: 'img', attrs: { src: imgAfter, style: 'vertical-align:middle;width:36rpx;height:36rpx;margin:0 4rpx' } });
       remaining = remaining.slice(best.pos + best.seg.segmentText.length);
     }
-    result += escapeHtml(remaining).replace(/\n/g, '<br/>');
+    // 尾部剩余
+    if (remaining) nodes.push(this._plainTextToNodes(remaining));
+
     if (matchedCount === 0) {
       console.warn('[_buildHighlightedContent] 未匹配到任何片段', invalidSegments.map(s => s.segmentText));
-      return '<div style="white-space:pre-wrap;word-break:break-all;font-size:28rpx;line-height:1.5">以下内容格式不合格：<span style="color:red">' + escapeHtml(invalidSegments.map(s => s.segmentText).join('、')) + '</span></div>';
+      return [{
+        name: 'div',
+        attrs: { style: 'white-space:pre-wrap;word-break:break-all;font-size:28rpx;line-height:1.5' },
+        children: [
+          { type: 'text', text: '以下内容格式不合格：' },
+          { name: 'span', attrs: { style: 'color:red' }, children: [{ type: 'text', text: invalidSegments.map(s => s.segmentText).join('、') }] }
+        ]
+      }];
     }
-    return '<div style="white-space:pre-wrap;word-break:break-all;font-size:28rpx;line-height:1.5">' + result + '</div>';
+    return [{
+      name: 'div',
+      attrs: { style: 'white-space:pre-wrap;word-break:break-all;font-size:28rpx;line-height:1.5' },
+      children: nodes
+    }];
+  },
+
+  /**
+   * 将纯文本（含换行）转 rich-text nodes
+   * 每行用单独的 div 包，保证换行显示
+   */
+  _plainTextToNodes: function (text) {
+    if (!text) return { type: 'text', text: '' };
+    const lines = String(text).split('\n');
+    return {
+      name: 'span',
+      children: lines.map((line, idx) => {
+        const arr = [];
+        if (line) arr.push({ type: 'text', text: line });
+        if (idx < lines.length - 1) arr.push({ name: 'br' });
+        return { name: 'span', children: arr };
+      })
+    };
   },
 
 

@@ -47,7 +47,7 @@
   <block wx:if="{{ totalArr > 0}}">
     <view class="p-20">
       <view class="flex-column liziBack big_full_padding ">
-        <text class="small gray">账款总额</text>
+        <text class="font-xs gray">账款总额</text>
         <view class="flex-row-between mb-10">
           <view class="flex-row">
             <text class="excreambig mr-20">{{totalSettle}}</text> <text class="small">元</text>
@@ -65,7 +65,7 @@
       <view wx:if="{{month.arr.length > 0}}">
         <view class="flex-column border-bottom p-20 ">
           <text class="normal">{{month.month}}月</text>
-          <view class="flex-row gray small">
+          <view class="flex-row gray font-xs">
             <text class="mr-10">全部账单</text>
             <text class="mr-10">{{month.arr.length}}个</text>
             <text class="mr-10">未结账单</text>

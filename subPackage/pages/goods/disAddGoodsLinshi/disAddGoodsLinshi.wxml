@@ -1,29 +1,11 @@
-<view class="flex flex-column height-100">
-
+<view class="flex flex-column">
 
   <back-navbar style="height: {{navBarHeight}}rpx;" title="添加商品" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
-	<view class="p-20 flex-row-between" style="margin-top: {{100 + statusBarHeight}}rpx;">
-	<view >必填:</view>
-		<view class="flex-column-center">
-		<view class="addBtn {{canSave ? 'is-active' : ''}}" bindtap="saveDisGoods">添加
-		</view>
-	</view>
-	</view>
+	<view style="height: {{100 + statusBarHeight}}rpx;"></view>
 
 	<view class="bg-white p-20 font-md flex-column">
 	
-  	<!-- <view class=" flex-row with-l-margin-bottom">
-			<view class="flex-row shrink_fix ">
-				<text class="gray margin-l-right">所属大类:</text>
-			</view>
-      <view class="flex-row" bindtap="toGreatGrandGoods" 
-				style="width: {{windowWidth - 100}}rpx;" hover-class="hover">
-      	<input class="goodsInput p-10" disabled="true" value="{{fatherName}}" ></input>
-        <image src="../../../../images/arrow-right-3.png" class="icon"></image>
-      </view> 
-		
-		</view> -->
   
   	<view class="flex-row border-bottom p-20">
 			<view class="flex-row flex-fixed ">
@@ -83,34 +65,6 @@
 				data-type="5"></input>
 		</view>
 
-	<view class="p-20">价格与重量:</view>
-	<view class="bg-white p-20 font-md flex-column border-bottom">
-		<view class="flex-row p-20">
-			<text class="text-secondary flex-fixed">价格策略</text>
-			<picker class="inputAddGoods p-10" mode="selector" range="{{priceStrategyList}}" range-key="label" value="{{priceStrategyIndex}}" bindchange="changePriceStrategy">
-				<view class="flex-row">
-					<text>{{priceStrategyList[priceStrategyIndex].label}}</text>
-				</view>
-			</picker>
-		</view>
-		<view class="flex-row p-20">
-			<text class="text-secondary flex-fixed">毛重(斤)</text>
-			<input class="inputAddGoods p-10" type="digit" value="{{goods.nxDgGrossWeightJin}}" bindinput="getDisGoodsContent" data-type="12" placeholder="0"></input>
-		</view>
-		<view class="flex-row p-20">
-			<text class="text-secondary flex-fixed">净重(斤)</text>
-			<input class="inputAddGoods p-10" type="digit" value="{{goods.nxDgNetWeightJin}}" bindinput="getDisGoodsContent" data-type="13" placeholder="0"></input>
-		</view>
-		<view class="flex-row p-20">
-			<text class="text-secondary flex-fixed">毛重单价(元/斤)</text>
-			<input class="inputAddGoods p-10" type="digit" value="{{goods.nxDgGrossWeightPricePerJin}}" bindinput="getDisGoodsContent" data-type="14" placeholder="0"></input>
-		</view>
-		<view class="flex-row p-20">
-			<text class="text-secondary flex-fixed">净重单价(元/斤)</text>
-			<input class="inputAddGoods p-10" type="digit" value="{{goods.nxDgNetWeightPricePerJin}}" bindinput="getDisGoodsContent" data-type="15" placeholder="0"></input>
-		</view>
-	</view>
-		
 	
 	
 	</view>
@@ -122,6 +76,10 @@
 
 
 
+
+	<view class="p-20 flex-row-reverse">
+		<view class="addBtn {{canSave ? 'is-active' : ''}}" bindtap="saveDisGoods">添加</view>
+	</view>
 
 <!-- mask -->
 <view class='mask {{showTishi ? "is-active" : ""}}' catchtap="hideMask" style="height:{{maskHeight > windowHeight ? maskHeight : windowHeight}}rpx;">

@@ -1,14 +1,8 @@
-<view class="flex flex-column font-lg height-100">
+<view class="flex flex-column font-lg">
   <back-navbar style="height: {{navBarHeight}}rpx;" title="商品详细" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
 
   <view class="flex-column ">
-    <view class="p-20 flex-row-reverse border-bottom mr-20">
-      <view class="addBtn {{canSave ? 'is-active' : ''}} ml-20" bindtap="updateDisGoods">保存
-      </view>
-
-    </view>
-
     <view class="flex-column bg-white">
       <view class=" flex-row p-20 ">
         <view class="flex-row flex-fixed ">
@@ -145,7 +139,7 @@
 
     </view>
 
-    <view class="text-secondary p-20">价格与重量:</view>
+    <view class="text-secondary p-20">商品重量与单价:</view>
     <view class="bg-white flex-column">
       <view class="flex-row p-20">
         <text class="text-secondary flex-fixed m-10">价格策略</text>
@@ -156,23 +150,117 @@
         </picker>
       </view>
       <view class="flex-row p-20">
-        <text class="text-secondary flex-fixed m-10">毛重(斤)</text>
+        <text class="text-secondary flex-fixed m-10">商品毛重(斤)</text>
         <input class="inputAddGoods with-tb-padding" type="digit" value="{{goods.nxDgGrossWeightJin}}" bindinput="getDisGoodsContent" data-type="12" placeholder="0"></input>
       </view>
       <view class="flex-row p-20">
-        <text class="text-secondary flex-fixed m-10">净重(斤)</text>
+        <text class="text-secondary flex-fixed m-10">商品净重(斤)</text>
         <input class="inputAddGoods with-tb-padding" type="digit" value="{{goods.nxDgNetWeightJin}}" bindinput="getDisGoodsContent" data-type="13" placeholder="0"></input>
       </view>
       <view class="flex-row p-20">
-        <text class="text-secondary flex-fixed m-10">毛重单价(元/斤)</text>
+        <text class="text-secondary flex-fixed m-10">商品毛重单价(元/斤)</text>
         <input class="inputAddGoods with-tb-padding" type="digit" value="{{goods.nxDgGrossWeightPricePerJin}}" bindinput="getDisGoodsContent" data-type="14" placeholder="0"></input>
       </view>
       <view class="flex-row p-20">
-        <text class="text-secondary flex-fixed m-10">净重单价(元/斤)</text>
+        <text class="text-secondary flex-fixed m-10">商品净重单价(元/斤)</text>
         <input class="inputAddGoods with-tb-padding" type="digit" value="{{goods.nxDgNetWeightPricePerJin}}" bindinput="getDisGoodsContent" data-type="15" placeholder="0"></input>
+      </view>
+    </view>
+
+    <view class="text-secondary p-20">外包装重量与单价:</view>
+    <view class="bg-white flex-column">
+      <view class="flex-row p-20">
+        <text class="text-secondary flex-fixed m-10">外包装毛重(斤)</text>
+        <input class="inputAddGoods with-tb-padding" type="digit" value="{{goods.nxDgOuterGrossWeightJin}}" bindinput="getDisGoodsContent" data-type="16" placeholder="0"></input>
+      </view>
+      <view class="flex-row p-20">
+        <text class="text-secondary flex-fixed m-10">外包装净重(斤)</text>
+        <input class="inputAddGoods with-tb-padding" type="digit" value="{{goods.nxDgOuterNetWeightJin}}" bindinput="getDisGoodsContent" data-type="17" placeholder="0"></input>
+      </view>
+      <view class="flex-row p-20">
+        <text class="text-secondary flex-fixed m-10">外包装毛重单价(元/斤)</text>
+        <input class="inputAddGoods with-tb-padding" type="digit" value="{{goods.nxDgOuterGrossWeightPricePerJin}}" bindinput="getDisGoodsContent" data-type="18" placeholder="0"></input>
+      </view>
+      <view class="flex-row p-20">
+        <text class="text-secondary flex-fixed m-10">外包装净重单价(元/斤)</text>
+        <input class="inputAddGoods with-tb-padding" type="digit" value="{{goods.nxDgOuterNetWeightPricePerJin}}" bindinput="getDisGoodsContent" data-type="19" placeholder="0"></input>
+      </view>
+    </view>
+
+    <!-- 价格阶梯 -->
+    <view class="text-secondary p-20">价格阶梯:</view>
+    <view class="bg-white flex-column">
+      <view class="flex-row p-20">
+        <text class="text-secondary flex-fixed m-10">说明</text>
+        <text class="flex-fixed m-10">按购买数量设置不同单价</text>
+      </view>
+
+      <view class="flex-row p-20">
+        <text class="text-secondary flex-fixed m-10">价格阶梯类型</text>
+        <picker class="inputAddGoods with-tb-padding" mode="selector" range="{{tierPriceUnitTypeList}}" range-key="label" value="{{tierPriceUnitTypeIndex}}" bindchange="changeTierPriceUnitType">
+          <view class="flex-row">
+            <text>{{tierPriceUnitTypeList[tierPriceUnitTypeIndex].label}}</text>
+          </view>
+        </picker>
+      </view>
+
+      <view class="flex-row p-20">
+        <text class="text-secondary flex-fixed m-10">销售单位</text>
+        <input class="inputAddGoods with-tb-padding" value="{{saleRule.saleUnit}}" bindinput="onTierSaleUnit" placeholder="销售单位"></input>
+      </view>
+      <view class="flex-row p-20">
+        <text class="text-secondary flex-fixed m-10">最低起订量</text>
+        <input class="inputAddGoods with-tb-padding" type="digit" value="{{saleRule.minOrderQuantity}}" bindinput="onTierMinOrder" placeholder="0"></input>
+      </view>
+      <view class="flex-row p-20">
+        <text class="text-secondary flex-fixed m-10">递增步长</text>
+        <input class="inputAddGoods with-tb-padding" type="digit" value="{{saleRule.incrementStep}}" bindinput="onTierIncrement" placeholder="1"></input>
+      </view>
+      <view class="flex-row p-20">
+        <text class="text-secondary flex-fixed m-10">单次最大购买量</text>
+        <input class="inputAddGoods with-tb-padding" type="digit" value="{{saleRule.maxOrderQuantity}}" bindinput="onTierMaxOrder" placeholder="可不填"></input>
+      </view>
+      <view class="flex-row p-20">
+        <text class="text-secondary flex-fixed m-10">每人限购</text>
+        <input class="inputAddGoods with-tb-padding" type="digit" value="{{saleRule.perUserLimitQuantity}}" bindinput="onTierPerUser" placeholder="可不填"></input>
+      </view>
+
+      <view class="flex-row p-20 flex-row-between">
+        <text class="text-secondary m-10">阶梯价明细</text>
+        <view class="addBtn-sm" bindtap="addTierRow">+ 添加一档</view>
+      </view>
+
+      <block wx:for="{{tierPrices}}" wx:key="key" wx:for-index="ti">
+        <view class="flex-row p-20 tier-row">
+          <view class="flex-column flex-1">
+            <view class="flex-row">
+              <text class="text-secondary flex-fixed m-10">起始</text>
+              <input class="inputAddGoods with-tb-padding" type="digit" value="{{item.minQuantity}}" bindinput="onTierMin" data-index="{{ti}}" placeholder="数量"></input>
+            </view>
+            <view class="flex-row">
+              <text class="text-secondary flex-fixed m-10">结束</text>
+              <input class="inputAddGoods with-tb-padding" type="digit" value="{{item.maxQuantity}}" bindinput="onTierMax" data-index="{{ti}}" placeholder="空=以上"></input>
+            </view>
+            <view class="flex-row">
+              <text class="text-secondary flex-fixed m-10">单价</text>
+              <input class="inputAddGoods with-tb-padding" type="digit" value="{{item.unitPrice}}" bindinput="onTierUnitPrice" data-index="{{ti}}" placeholder="元"></input>
+            </view>
+          </view>
+          <view class="flex-column-center ml-10">
+            <image src="/images/del-6.png" mode="aspectFill" bind:tap="deleteTierRow" data-index="{{ti}}" class="icon"></image>
+          </view>
+        </view>
+      </block>
+
+      <view class="flex-row p-20 flex-row-between">
+        <text class="text-secondary m-10">启用价格阶梯</text>
+        <switch checked="{{saleRule.status === 'ACTIVE'}}" bindchange="toggleTierStatus"></switch>
       </view>
     </view>
 
   </view>
 
+    <view class="p-20 flex-row-reverse">
+      <view class="addBtn {{canSave ? 'is-active' : ''}} ml-20" bindtap="updateDisGoods">保存</view>
+    </view>
 </view>

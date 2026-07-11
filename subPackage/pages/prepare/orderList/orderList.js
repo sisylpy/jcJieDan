@@ -464,11 +464,35 @@ Page({
         if (item.nxDpgQuantity !== null) {
             // 适配简化DTO：使用扁平化的商品字段
             const goodsName = item.nxDgGoodsName || (item.nxDistributerGoodsEntity && item.nxDistributerGoodsEntity.nxDgGoodsName) || '';
-            const quantity = item.nxDpgQuantity;
-            const standard = item.nxDpgStandard;
+            let quantity = item.nxDpgQuantity;
+            let standard = item.nxDpgStandard;
+            const weight = item.nxDgGoodsStandardWeight || (item.nxDistributerGoodsEntity && item.nxDistributerGoodsEntity.nxDgGoodsStandardWeight) || '';
+            const standardName = item.nxDgGoodsStandardname || (item.nxDistributerGoodsEntity && item.nxDistributerGoodsEntity.nxDgGoodsStandardname) || '';
+
+            // 规格重量信息，例如：6.5kg/桶
+            let spec = '';
+            if (weight && weight !== 'null' && String(weight).length > 0 && standardName && standardName !== 'null' && String(standardName).length > 0) {
+              spec = `(${weight}/${standardName})`;
+            } else if (standardName && standardName !== 'null' && String(standardName).length > 0) {
+              spec = `(${standardName})`;
+            }
+
+            // 如果采购数量为空，但下面有订单，则按订单数量汇总作为商品数量
+            const orders = item.orders || [];
+            const hasNoQuantity = !quantity || quantity === 'null' || String(quantity).trim().length === 0;
+            if (hasNoQuantity && orders.length > 0) {
+              let total = 0;
+              for (let j = 0; j < orders.length; j++) {
+                total += Number(orders[j].nxDoQuantity || 0);
+                if (j === 0 && orders[j].nxDoStandard && orders[j].nxDoStandard !== 'null') {
+                  standard = orders[j].nxDoStandard;
+                }
+              }
+              quantity = total;
+            }
             
-            // 输出采购商品信息
-            orderContent += `${i + 1}, ${goodsName} ${quantity}${standard}\n`;
+            // 输出采购商品信息：序号、名称(规格/重量)、数量单位
+            orderContent += `${i + 1}, ${goodsName}${spec} ${quantity}${standard}\n`;
             
             // 如果开关关闭（onlyGoodsNameAndTotal为false），才输出订单详情
             if (!onlyGoodsNameAndTotal) {
@@ -1157,11 +1181,6 @@ Page({
                   }
                   isCustomer = true; // GB部门，是客户
                 } else {
-                  var nxRest = order.nxRestrauntEntity;
-                  if (nxRest && nxRest !== null && nxRest.nxRestrauntAttrName) {
-                    depName = nxRest.nxRestrauntAttrName;
-                    isCustomer = true; // 餐厅，是客户
-                  } else {
                     var nxDep = order.nxDepartmentEntity;
                     if (nxDep && nxDep !== null) {
                       var fatherNxDep = nxDep.fatherDepartmentEntity;
@@ -1173,7 +1192,6 @@ Page({
                       isCustomer = false; // NX部门，不是客户
                     }
                   }
-                }
               } catch (e) {
                 console.error('  ✗ 处理部门信息时出错:', e);
               }
@@ -1354,8 +1372,6 @@ Page({
                 } else {
                   orderInfo += order.gbDepartmentEntity.gbDepartmentName;
                 }
-              } else if (order.nxRestrauntEntity !== null) {
-                orderInfo += order.nxRestrauntEntity.nxRestrauntAttrName;
               } else if (order.nxDepartmentEntity !== null) {
                 if (order.nxDepartmentEntity.fatherDepartmentEntity !== null) {
                   orderInfo += order.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentName + "." + order.nxDepartmentEntity.nxDepartmentName;

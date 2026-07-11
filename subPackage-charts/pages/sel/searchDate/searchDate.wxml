@@ -2,7 +2,7 @@
 
 
 <view class="flex flex-column">
-<back-navbar  style="height: {{navBarHeight}}rpx;" title="设置查询日期" avatar="/images/back-3.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+<back-navbar  style="height: {{navBarHeight}}rpx;" title="设置查询日期" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
 <view class='navbar bg-white border-bottom'>
   <block wx:for="{{tabs}}" wx:for-item="tabs" wx:key="id">
@@ -26,19 +26,19 @@
 
         <view class="flex-row-between p-20 border-bottom" bindtap="selectDay" data-type="day" data-startdate="{{dayMap.yesterday.yesterdayStartDate}}" data-stopdate="{{dayMap.yesterday.yesterdayStopDate}}" data-name="yesterday"  data-hanzi="昨天">
           <view class="flex-column">
-            <view class="font-lg {{dateType == 'day' && startDate == dayMap.yesterday.yesterdayStartDate && stopDate ==  dayMap.yesterday.yesterdayStopDate ? 'text-main' :''}}">昨天</view>
+            <view class="font-lg {{selectedDateName == 'yesterday' ? 'text-main' :''}}">昨天</view>
             <view class="font-md text-secondary">{{dayMap.yesterday.yesterdayString}} {{dayMap.yesterday.yesterdayWeek}}</view>
           </view>
-          <view class="flex-row  {{dateType == 'day' && startDate == dayMap.yesterday.yesterdayStartDate && stopDate ==  dayMap.yesterday.yesterdayStopDate ? 'show' :'hide'}}">
+          <view class="flex-row  {{selectedDateName == 'yesterday' ? 'show' :'hide'}}">
             <image src="../../../../images/correct.png" class="icon"></image>
           </view>
         </view>
         <view class="flex-row-between p-20 border-bottom" bindtap="selectDay" data-type="day" data-startdate="{{dayMap.today.todayStartDate}}" data-stopdate="{{dayMap.today.todayStopDate}}" data-name="today"   data-hanzi="今天">
           <view class="flex-column">
-            <view class="font-lg {{dateType == 'day' && startDate == dayMap.today.todayStartDate && stopDate ==  dayMap.today.todayStopDate ? 'text-main' :''}}">今天</view>
+            <view class="font-lg {{selectedDateName == 'today' ? 'text-main' :''}}">今天</view>
             <view class="font-md text-secondary">{{dayMap.today.todayString}} {{dayMap.today.todayWeek}}</view>
           </view>
-          <view class="flex-row  {{dateType == 'day' && startDate == dayMap.today.todayStartDate && stopDate ==  dayMap.today.todayStopDate  ? 'show' :'hide'}}">
+          <view class="flex-row  {{selectedDateName == 'today' ? 'show' :'hide'}}">
             <image src="../../../../images/correct.png" class="icon"></image>
           </view>
         </view>
@@ -73,10 +73,10 @@
         </view>
         <view class="flex-row-between p-20 border-bottom" bindtap="selectDay" data-type="week" data-startdate="{{weekMap.lastWeek.lastWeekStartDate.monday}}" data-stopdate="{{weekMap.lastWeek.lastWeekStartDate.sunday}}" data-name="lastWeek"    data-hanzi="上周">
           <view class="flex-column">
-            <view class="font-lg   {{dateType == 'week'  && startDate == weekMap.lastWeek.lastWeekStartDate.monday && stopDate ==  weekMap.lastWeek.lastWeekStartDate.sunday  ? 'text-main' :''}}">上周</view>
+            <view class="font-lg   {{selectedDateName == 'lastWeek' ? 'text-main' :''}}">上周</view>
             <view class="font-md text-secondary">{{weekMap.lastWeek.lastWeekStartDate.mondayString}}-{{weekMap.lastWeek.lastWeekStartDate.sundayString}}</view>
           </view>
-          <view class="flex-row  {{dateType == 'week'  && startDate == weekMap.lastWeek.lastWeekStartDate.monday && stopDate ==  weekMap.lastWeek.lastWeekStartDate.sunday   ? 'show' :'hide'}}">
+          <view class="flex-row  {{selectedDateName == 'lastWeek' ? 'show' :'hide'}}">
             <image src="../../../../images/correct.png" class="icon"></image>
           </view>
         </view>
@@ -96,7 +96,7 @@
             <view class="font-lg  {{dateType == 'month'  && startDate == monthArr.lastThirtyDay.lastThirtyDayStartDate && stopDate ==  monthArr.lastThirtyDay.lastThirtyDayStopDate  ? 'text-main' :''}}">过去30天</view>
             <view class="font-md text-secondary">{{monthArr.lastThirtyDay.lastThirtyDayStartDateString}}-{{monthArr.lastThirtyDay.lastThirtyDayStopDateString}}</view>
           </view>
-          <view class="flex-row  {{dateType == 'month'  && startDate == monthArr.lastThirtyDay.lastThirtyDayStartDate && stopDate ==  monthArr.lastThirtyDay.lastThirtyDayStopDate ? 'show' : 'hide'}}">
+          <view class="flex-row  {{selectedDateName == 'lastThirtyDays' ? 'show' : 'hide'}}">
             <image src="../../../../images/correct.png" class="icon"></image>
           </view>
         </view>
@@ -111,10 +111,10 @@
         </view>
         <view class="flex-row-between p-20 border-bottom" bindtap="selectDay" data-type="month" data-startdate="{{monthArr.lastMonth.lastMonthStartDate}}" data-stopdate="{{monthArr.lastMonth.lastMonthStopDate}}" data-startdatestring="{{monthArr.lastMonth.lastMonthStartDate}}" data-name="lastMonth"    data-hanzi="上月">
           <view class="flex-column">
-            <view class="font-lg   {{dateType == 'month'  && startDate == monthArr.lastMonth.lastMonthStartDate && stopDate ==  monthArr.lastMonth.lastMonthStopDate ? 'text-main' :''}}">上月</view>
-            <view class="font-md text-secondary">{{monthArr.lastMonth.lastMonthStartDateString}}</view>
+            <view class="font-lg   {{selectedDateName == 'lastMonth' ? 'text-main' :''}}">上月</view>
+            <view class="font-md text-secondary">{{monthArr.lastMonth.lastMonthStartDateString}}-{{monthArr.lastMonth.lastMonthStopDateString}}</view>
           </view>
-          <view class="flex-row  {{dateType == 'month'  && startDate == monthArr.lastMonth.lastMonthStartDate && stopDate ==  monthArr.lastMonth.lastMonthStopDate ? 'show' :'hide'}}">
+          <view class="flex-row  {{selectedDateName == 'lastMonth' ? 'show' :'hide'}}">
             <image src="../../../../images/correct.png" class="icon"></image>
           </view>
         </view>

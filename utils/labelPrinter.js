@@ -156,12 +156,7 @@ class LabelPrinter {
         }
       }
     } 
-    // 最后使用 nxRestrauntEntity
-    else if (order.nxRestrauntEntity) {
-      customerName = order.nxRestrauntEntity.nxRestrauntAttrName || 
-                    order.nxRestrauntEntity.nxRestrauntName || '';
-    }
-    
+  
     return customerName || '';
   }
 

@@ -161,6 +161,9 @@ page {
   font-size: 32rpx;
 }
 
+.font-yuan{
+  font-size: 24rpx;
+}
 .font-md{
   font-size: 34rpx;
 }

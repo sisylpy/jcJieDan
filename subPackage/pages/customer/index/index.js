@@ -205,10 +205,10 @@ Page({
   },
 
 
-toOpenPrint() {
+toConectRestraunt() {
   wx.navigateToMiniProgram({
-    appId: 'wx2dccb807db0ea0d7',
-    path: 'pages/issuePageTwo/issuePageTwo?billId=' + this.data.billId +'&depFatherId=' + this.data.depFatherId + '&depHasSubs=' + this.data.depHasSubs + '&depName=' + this.data.depName +'&userId=' + this.data.userInfo.nxDistributerUserId,
+    appId: 'wx58ba279bc3d04c4a',
+    path: 'subPackage-jrdh/pages/fromJingjing/fromJingjing?nxDisId=' + this.data.disId,
     envVersion: 'trial', //release  develop  trial
   })
 },

@@ -11,7 +11,7 @@
 					<image src='{{url + item.nxDuWxAvartraUrl}}'
 						class="member_url mr-20"></image>
 				</view>
-				<view class="p-20flex-column small" >
+				<view class="p-20 flex-column font-xs" >
 				<view class="flex-row-between ">
 					<text class="text-secondary shrink_fix m-10">管理员</text>
 					<switch checked="{{item.nxDuAdmin == 1 ? 'checked' : ''}}" bindchange="switchChange"  data-index="{{index}}" />

@@ -37,7 +37,7 @@
 
 			</view>
 
-			<view class="flex-row p-20 border-bottom small">
+			<view class="flex-row p-20 border-bottom font-xs">
 				<text class="index">序号</text>
 				<text class="goods_name">商品</text>
 				<text class="weight">数量</text>

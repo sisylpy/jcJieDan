@@ -1,87 +1,211 @@
-<view class="flex flex-column">
-  <back-navbar style="height: {{navBarHeight}}rpx;" title="优惠券" bindnavbuttontap="toBack"></back-navbar>
+<view class="coupon-page flex flex-column">
+  <back-navbar style="height: {{navBarHeight}}rpx;"  avatar="/images/back-gray.png"  title="优惠券" bindnavbuttontap="toBack"></back-navbar>
 
   <scroll-view scroll-y="true" class="page-scroll">
-    <view class="bg-white" wx:if="{{list.length > 0}}">
+    <view class="hero-card">
+      <view class="hero-title">店铺优惠券</view>
+      <view class="hero-subtitle">设置领取期限、适用范围和结算方式，客户领取后会按规则自动抵扣。</view>
+      <view class="hero-actions">
+        <view class="hero-stat">
+          <text class="hero-stat-num">{{list.length}}</text>
+          <text class="hero-stat-label">张券</text>
+        </view>
+        <button class="hero-add-btn" bindtap="toAdd" wx:if="{{!editing}}">+ 新增优惠券</button>
+      </view>
+    </view>
+
+    <view class="coupon-list" wx:if="{{list.length > 0}}">
       <view class="coupon-item" wx:for="{{list}}" wx:key="nxDistributerCouponId">
-        <view class="flex-row-between p-20 border-bottom">
-          <view class="flex-column flex-1">
-            <text class="font-md">{{item.nxDistributerCouponName}}</text>
-            <text class="font-sm text-secondary mt-10">{{item.typeText}}</text>
-            <text class="font-sm text-secondary">{{item.descText}}</text>
-            <text class="font-sm text-secondary">交付:{{item.applyDeliveryModeText}}  结算:{{item.applySettlementTypeText}}</text>
+        <view class="coupon-ticket">
+          <view class="ticket-left">
+            <text class="ticket-amount">{{item.amountText}}</text>
+            <text class="ticket-threshold">{{item.thresholdText}}</text>
           </view>
-          <view class="flex-row">
-            <text class="status-tag {{item.nxDcStatus === 1 ? 'status-on' : 'status-off'}}">{{item.statusText}}</text>
+          <view class="ticket-divider"></view>
+          <view class="ticket-right">
+            <view class="ticket-title-row">
+              <text class="ticket-name">{{item.nxDistributerCouponName}}</text>
+              <text class="status-tag {{item.nxDcStatus === 1 ? 'status-on' : 'status-off'}}">{{item.statusText}}</text>
+            </view>
+            <text class="ticket-desc">{{item.descText}}</text>
+            <text class="ticket-meta">期限：{{item.validPeriodText}}</text>
+            <text class="ticket-meta">范围：{{item.scopeTypeText || '全店通用'}} ｜ 交付：{{item.applyDeliveryModeText}} ｜ 结算：{{item.applySettlementTypeText}}</text>
           </view>
         </view>
-        <view class="flex-row-between p-20 border-bottom operate-row">
-          <switch checked="{{item.nxDcStatus === 1}}" bindchange="bindStatusChange" data-id="{{item.nxDistributerCouponId}}" color="#07c160"/>
-          <view>
-            <text class="mainColor mr-40" bindtap="toEdit" data-id="{{item.nxDistributerCouponId}}">编辑</text>
-            <text class="text-danger" bindtap="deleteItem" data-id="{{item.nxDistributerCouponId}}">删除</text>
+
+        <view class="operate-row">
+          <view class="switch-wrap">
+            <switch checked="{{item.nxDcStatus === 1}}" bindchange="bindStatusChange" data-id="{{item.nxDistributerCouponId}}" color="#07c160"/>
+            <text>{{item.nxDcStatus === 1 ? '正在启用' : '已停用'}}</text>
+          </view>
+          <view class="operate-actions">
+            <text class="operate-link" bindtap="previewListItem" data-id="{{item.nxDistributerCouponId}}">预览</text>
+            <text class="operate-link" bindtap="toEdit" data-id="{{item.nxDistributerCouponId}}">编辑</text>
+            <text class="operate-link danger" bindtap="deleteItem" data-id="{{item.nxDistributerCouponId}}">删除</text>
           </view>
         </view>
       </view>
     </view>
 
-    <view class="empty" wx:else>
-      <text class="text-secondary">暂无优惠券，点击下方按钮新增</text>
+    <view class="empty-card" wx:elif="{{!editing}}">
+      <view class="empty-icon">券</view>
+      <text class="empty-title">还没有优惠券</text>
+      <text class="empty-sub">新增一张满减券或折扣券，客户就能在下单时领取使用。</text>
+      <button class="empty-btn" bindtap="toAdd" wx:if="{{!editing}}">新增优惠券</button>
     </view>
 
-    <view class="bg-white mt-10 p-30" wx:if="{{editing}}">
-      <view class="font-lg mb-20">优惠券编辑</view>
+    <view class="edit-card" wx:if="{{editing}}">
+      <view class="section-head">
+        <view>
+          <view class="section-title">{{formData.nxDistributerCouponId ? '编辑优惠券' : '新增优惠券'}}</view>
+          <view class="section-subtitle">日期留空则按后端默认有效期生成；填写后客户领取会展示对应期限。</view>
+        </view>
+        <text class="preview-mini" bindtap="previewCurrentForm">预览</text>
+      </view>
 
-      <view class="form-row flex-row-between">
+      <view class="form-row">
         <text class="label">优惠券名称</text>
-        <input class="input" value="{{formData.nxDistributerCouponName}}" bindinput="bindName" placeholder="如 满100减10"/>
+        <input class="input" value="{{formData.nxDistributerCouponName}}" bindinput="bindName" placeholder="如 冰品满35减6"/>
       </view>
 
-      <view class="form-row flex-row-between">
+      <view class="form-row">
         <text class="label">优惠券类型</text>
         <picker mode="selector" range="{{typeTexts}}" value="{{typeIndex}}" bindchange="bindTypeChange">
           <view class="picker-value">{{typeTexts[typeIndex]}}</view>
         </picker>
       </view>
 
-      <view class="form-row flex-row-between">
-        <text class="label">门槛金额</text>
-        <input class="input" type="digit" value="{{formData.nxDcSubtotalPrice}}" bindinput="bindSubtotal" placeholder="如 100"/>
+      <view class="form-grid">
+        <view class="mini-field">
+          <text class="mini-label">门槛金额</text>
+          <input class="mini-input" type="digit" value="{{formData.nxDcSubtotalPrice}}" bindinput="bindSubtotal" placeholder="39"/>
+        </view>
+        <view class="mini-field" wx:if="{{formData.nxDcType === 0}}">
+          <text class="mini-label">满减金额</text>
+          <input class="mini-input" type="digit" value="{{formData.nxDcPrice}}" bindinput="bindPrice" placeholder="5"/>
+        </view>
+        <view class="mini-field" wx:else>
+          <text class="mini-label">折扣</text>
+          <input class="mini-input" type="digit" value="{{formData.nxDcPricePercent}}" bindinput="bindPercent" placeholder="9=9折"/>
+        </view>
       </view>
 
-      <block wx:if="{{formData.nxDcType === 0}}">
-        <view class="form-row flex-row-between">
-          <text class="label">优惠金额</text>
-          <input class="input" type="digit" value="{{formData.nxDcPrice}}" bindinput="bindPrice" placeholder="如 10"/>
+      <view class="date-card">
+        <view class="date-title">领取后有效期限</view>
+        <view class="date-row">
+          <picker class="date-picker" mode="date" value="{{formData.nxDcStartDate}}" bindchange="bindStartDate">
+            <view>
+              <text class="date-label">开始日期</text>
+              <text class="date-value">{{formData.nxDcStartDate || '请选择'}}</text>
+            </view>
+          </picker>
+          <view class="date-line"></view>
+          <picker class="date-picker" mode="date" value="{{formData.nxDcStopDate}}" bindchange="bindStopDate">
+            <view>
+              <text class="date-label">截止日期</text>
+              <text class="date-value">{{formData.nxDcStopDate || '请选择'}}</text>
+            </view>
+          </picker>
         </view>
-      </block>
-      <block wx:else>
-        <view class="form-row flex-row-between">
-          <text class="label">折扣率(%)</text>
-          <input class="input" type="digit" value="{{formData.nxDcPricePercent}}" bindinput="bindPercent" placeholder="如 90 表示9折"/>
-        </view>
-      </block>
+      </view>
 
-      <view class="form-row flex-row-between">
+      <view class="form-row">
+        <text class="label">适用范围</text>
+        <picker mode="selector" range="{{scopeTypeTexts}}" value="{{scopeTypeIndex}}" bindchange="bindScopeTypeChange">
+          <view class="picker-value">{{scopeTypeTexts[scopeTypeIndex]}}</view>
+        </picker>
+      </view>
+
+      <view class="scope-panel" wx:if="{{formData.scopeType === 'CATEGORY'}}">
+        <view class="scope-title">选择分类（可多选）</view>
+        <view class="scope-list">
+          <view
+            class="scope-item {{item.selected ? 'active' : ''}}"
+            wx:for="{{scopeOptions}}"
+            wx:key="id"
+            data-id="{{item.id}}"
+            data-name="{{item.name}}"
+            bindtap="toggleScopeId"
+          >{{item.name}}</view>
+          <view wx:if="{{scopeOptions.length === 0}}" class="scope-hint">暂无分类，请先维护商品分类</view>
+        </view>
+        <view class="scope-list selected-list" wx:if="{{selectedScopeItems.length > 0}}">
+          <view class="scope-title">已选分类</view>
+          <view class="scope-item active" wx:for="{{selectedScopeItems}}" wx:key="id">{{item.name}}</view>
+        </view>
+      </view>
+
+      <view class="scope-panel" wx:if="{{formData.scopeType === 'GOODS'}}">
+        <view class="scope-title">选择商品（可多选）</view>
+        <view class="goods-search-row">
+          <input class="goods-search-input" value="{{goodsSearchStr}}" bindinput="bindGoodsSearchInput" placeholder="输入商品名搜索"/>
+          <text class="goods-search-btn" bindtap="searchGoods">搜索</text>
+        </view>
+        <view class="scope-list" wx:if="{{goodsSearchResults.length > 0}}">
+          <view
+            class="scope-item {{item.selected ? 'active' : ''}}"
+            wx:for="{{goodsSearchResults}}"
+            wx:key="id"
+            data-id="{{item.id}}"
+            data-name="{{item.name}}"
+            bindtap="toggleGoodsResult"
+          >{{item.name}}<text wx:if="{{item.standard}}" class="scope-sub">({{item.standard}})</text></view>
+        </view>
+        <view class="scope-list selected-list" wx:if="{{selectedScopeItems.length > 0}}">
+          <view class="scope-title">已选商品</view>
+          <view class="scope-item active" wx:for="{{selectedScopeItems}}" wx:key="id">{{item.name}}</view>
+        </view>
+      </view>
+
+      <view class="form-row">
         <text class="label">适用交付方式</text>
         <picker mode="selector" range="{{deliveryModeTexts}}" value="{{deliveryModeIndex}}" bindchange="bindDeliveryModeChange">
           <view class="picker-value">{{deliveryModeTexts[deliveryModeIndex]}}</view>
         </picker>
       </view>
 
-      <view class="form-row flex-row-between">
+      <view class="form-row">
         <text class="label">适用结算方式</text>
         <picker mode="selector" range="{{settlementTexts}}" value="{{settlementIndex}}" bindchange="bindSettlementChange">
           <view class="picker-value">{{settlementTexts[settlementIndex]}}</view>
         </picker>
       </view>
 
-      <view class="flex-row-between mt-20">
+      <view class="edit-actions">
         <button class="btn-cancel" bindtap="cancelEdit">取消</button>
+        <button class="btn-preview" bindtap="previewCurrentForm">预览</button>
         <button class="btn-save" bindtap="save">保存</button>
       </view>
     </view>
+
+    <view class="scroll-safe"></view>
   </scroll-view>
 
-  <view class="fab" bindtap="toAdd" wx:if="{{!editing}}">+ 新增</view>
+  <view class="preview-mask" wx:if="{{showPreview}}" catchtouchmove="noop" bindtap="closePreview"></view>
+  <view class="preview-sheet" wx:if="{{showPreview}}">
+    <view class="preview-head">
+      <view>
+        <view class="preview-title">优惠券预览</view>
+        <view class="preview-sub">客户可领取页面中的最终展示效果</view>
+      </view>
+      <text class="preview-close" bindtap="closePreview">关闭</text>
+    </view>
+
+    <view class="preview-board">
+      <view class="preview-ticket">
+        <view class="preview-left">
+          <text class="preview-amount">{{previewCoupon.previewAmountText}}</text>
+          <text class="preview-threshold">{{previewCoupon.previewThresholdText}}</text>
+        </view>
+        <view class="preview-dash"></view>
+        <view class="preview-right">
+          <text class="preview-coupon-name">{{previewCoupon.previewName}}</text>
+          <text class="preview-desc">{{previewCoupon.previewDescText}}</text>
+          <text class="preview-valid">{{previewCoupon.previewValidText}}</text>
+          <text class="preview-scope">{{previewCoupon.previewScopeText}}</text>
+        </view>
+      </view>
+      <view class="preview-tip">下载/领取后，客户会看到优惠金额、使用门槛和有效期限。</view>
+    </view>
+  </view>
 </view>

@@ -9,8 +9,8 @@ import {
 
 var app = getApp();
 
-const FEE_MODES = ['FREE', 'FIXED_AMOUNT', 'DISTANCE_ONLY'];
-const FEE_MODE_TEXTS = ['免费', '固定金额', '按距离'];
+const FEE_MODES = ['DISTANCE_ONLY', 'WEIGHT_DISTANCE', 'WEIGHT_ONLY', 'FIXED_AMOUNT', 'FREE'];
+const FEE_MODE_TEXTS = ['纯距离', '重量+距离', '纯重量', '固定运费', '免费'];
 const DELIVERY_MODES = ['ALL', 'DELIVERY', 'SELF_PICKUP'];
 const DELIVERY_MODE_TEXTS = ['全部', '配送', '自提'];
 const SETTLEMENT_TYPES = ['ALL', 'CASH', 'ACCOUNT'];
@@ -28,19 +28,22 @@ Page({
     deliveryModeTexts: DELIVERY_MODE_TEXTS,
     settlementTypes: SETTLEMENT_TYPES,
     settlementTexts: SETTLEMENT_TEXTS,
-    feeModeIndex: 1,
+    feeModeIndex: 0,
     deliveryModeIndex: 0,
     settlementIndex: 0,
     formData: {
       nxDistributerDeliveryFeeRuleId: null,
       distributerId: null,
-      feeMode: 'FIXED_AMOUNT',
+      feeMode: 'DISTANCE_ONLY',
       baseDistanceKm: '',
+      baseChargeKm: '',
       startFeeAmount: '',
       pricePerKm: '',
+      pricePerJinPerKm: '',
       applyDeliveryMode: 'ALL',
       applySettlementType: 'ALL',
-      ruleStatus: 'ENABLED'
+      ruleStatus: 'ENABLED',
+      remark: ''
     }
   },
 
@@ -78,8 +81,40 @@ Page({
     return Object.assign({}, item, {
       feeModeText: this.feeModeText(item.feeMode),
       applyDeliveryModeText: this.deliveryModeText(item.applyDeliveryMode),
-      applySettlementTypeText: this.settlementText(item.applySettlementType)
+      applySettlementTypeText: this.settlementText(item.applySettlementType),
+      ruleSummary: this.ruleSummary(item),
+      feeAmountText: this.feeAmountText(item),
+      ruleStatusText: item.ruleStatus === 'ENABLED' ? '启用' : '停用',
+      modeBadgeText: this.modeBadgeText(item.feeMode)
     });
+  },
+
+  ruleSummary(item) {
+    if (item.feeMode === 'FREE') return '免运费';
+    if (item.feeMode === 'FIXED_AMOUNT') return '固定 ¥' + (item.startFeeAmount || '0');
+    if (item.feeMode === 'WEIGHT_ONLY') {
+      return '起步' + (item.baseDistanceKm || '0') + '斤 ¥' + (item.startFeeAmount || '0')
+        + ' 超出¥' + (item.pricePerJinPerKm || '0') + '/斤';
+    }
+    if (item.feeMode === 'WEIGHT_DISTANCE') {
+      return '起步' + (item.baseDistanceKm || '0') + 'km ¥' + (item.startFeeAmount || '0')
+        + ' 最低' + (item.baseChargeKm || '1') + 'km ¥' + (item.pricePerJinPerKm || '0') + '/斤/km';
+    }
+    return '起步' + (item.baseDistanceKm || '0') + 'km ¥' + (item.startFeeAmount || '0')
+      + ' 超出¥' + (item.pricePerKm || '0') + '/km';
+  },
+
+  feeAmountText(item) {
+    if (item.feeMode === 'FREE') return '免费';
+    return '¥' + (item.startFeeAmount || '0');
+  },
+
+  modeBadgeText(mode) {
+    if (mode === 'FREE') return '免';
+    if (mode === 'FIXED_AMOUNT') return '固';
+    if (mode === 'WEIGHT_ONLY') return '重';
+    if (mode === 'WEIGHT_DISTANCE') return '重距';
+    return '距';
   },
 
   feeModeText(v) { return FEE_MODE_TEXTS[FEE_MODES.indexOf(v)] || v; },
@@ -89,19 +124,22 @@ Page({
   toAdd() {
     this.setData({
       editing: true,
-      feeModeIndex: 1,
+      feeModeIndex: 0,
       deliveryModeIndex: 0,
       settlementIndex: 0,
       formData: {
         nxDistributerDeliveryFeeRuleId: null,
         distributerId: this.data.disId,
-        feeMode: 'FIXED_AMOUNT',
+        feeMode: 'DISTANCE_ONLY',
         baseDistanceKm: '',
+        baseChargeKm: '1',
         startFeeAmount: '',
         pricePerKm: '',
+        pricePerJinPerKm: '',
         applyDeliveryMode: 'ALL',
         applySettlementType: 'ALL',
-        ruleStatus: 'ENABLED'
+        ruleStatus: 'ENABLED',
+        remark: ''
       }
     });
   },
@@ -120,11 +158,14 @@ Page({
         distributerId: item.distributerId || this.data.disId,
         feeMode: item.feeMode,
         baseDistanceKm: item.baseDistanceKm,
+        baseChargeKm: item.baseChargeKm,
         startFeeAmount: item.startFeeAmount,
         pricePerKm: item.pricePerKm,
+        pricePerJinPerKm: item.pricePerJinPerKm,
         applyDeliveryMode: item.applyDeliveryMode,
         applySettlementType: item.applySettlementType,
-        ruleStatus: item.ruleStatus || 'ENABLED'
+        ruleStatus: item.ruleStatus || 'ENABLED',
+        remark: item.remark || ''
       }
     });
   },
@@ -146,18 +187,34 @@ Page({
     this.setData({ settlementIndex: i, 'formData.applySettlementType': SETTLEMENT_TYPES[i] });
   },
   bindBaseDistance(e) { this.setData({ 'formData.baseDistanceKm': e.detail.value }); },
+  bindBaseCharge(e) { this.setData({ 'formData.baseChargeKm': e.detail.value }); },
   bindStartFee(e) { this.setData({ 'formData.startFeeAmount': e.detail.value }); },
   bindPricePerKm(e) { this.setData({ 'formData.pricePerKm': e.detail.value }); },
+  bindPricePerJinPerKm(e) { this.setData({ 'formData.pricePerJinPerKm': e.detail.value }); },
+  bindRemark(e) { this.setData({ 'formData.remark': e.detail.value }); },
   bindStatusChange(e) {
     this.setData({ 'formData.ruleStatus': e.detail.value ? 'ENABLED' : 'DISABLED' });
   },
 
   save() {
     const f = this.data.formData;
-    if (f.feeMode !== 'FREE') {
-      if (!f.baseDistanceKm && f.baseDistanceKm !== 0) { wx.showToast({ title: '请填写基础距离', icon: 'none' }); return; }
-      if (!f.startFeeAmount && f.startFeeAmount !== 0) { wx.showToast({ title: '请填写起步费', icon: 'none' }); return; }
-      if (!f.pricePerKm && f.pricePerKm !== 0) { wx.showToast({ title: '请填写每公里费用', icon: 'none' }); return; }
+    if (f.feeMode === 'FREE') {
+      // no extra fields
+    } else if (f.feeMode === 'FIXED_AMOUNT') {
+      if (!f.startFeeAmount && f.startFeeAmount !== 0) { wx.showToast({ title: '请填写固定运费', icon: 'none' }); return; }
+    } else if (f.feeMode === 'WEIGHT_ONLY') {
+      if (!f.startFeeAmount && f.startFeeAmount !== 0) { wx.showToast({ title: '请填写起步价', icon: 'none' }); return; }
+      if (!f.baseDistanceKm && f.baseDistanceKm !== 0) { wx.showToast({ title: '请填写起步重量', icon: 'none' }); return; }
+      if (!f.pricePerJinPerKm && f.pricePerJinPerKm !== 0) { wx.showToast({ title: '请填写超出每斤加收', icon: 'none' }); return; }
+    } else if (f.feeMode === 'WEIGHT_DISTANCE') {
+      if (!f.startFeeAmount && f.startFeeAmount !== 0) { wx.showToast({ title: '请填写起步价', icon: 'none' }); return; }
+      if (!f.baseDistanceKm && f.baseDistanceKm !== 0) { wx.showToast({ title: '请填写起步里程', icon: 'none' }); return; }
+      if (!f.baseChargeKm && f.baseChargeKm !== 0) { wx.showToast({ title: '请填写最低计费公里', icon: 'none' }); return; }
+      if (!f.pricePerJinPerKm && f.pricePerJinPerKm !== 0) { wx.showToast({ title: '请填写每斤每公里价', icon: 'none' }); return; }
+    } else {
+      if (!f.startFeeAmount && f.startFeeAmount !== 0) { wx.showToast({ title: '请填写起步价', icon: 'none' }); return; }
+      if (!f.baseDistanceKm && f.baseDistanceKm !== 0) { wx.showToast({ title: '请填写起步里程', icon: 'none' }); return; }
+      if (!f.pricePerKm && f.pricePerKm !== 0) { wx.showToast({ title: '请填写超出每公里加收', icon: 'none' }); return; }
     }
     load.showLoading('保存中');
     const api = f.nxDistributerDeliveryFeeRuleId ? updateDeliveryFeeRule : saveDeliveryFeeRule;

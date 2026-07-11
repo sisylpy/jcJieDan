@@ -12,6 +12,8 @@ Page({
     longitude: "",
     scale: 14,
     markers: [],
+    address: "",
+    name: "",
     //controls控件 是左下角圆圈小图标,用户无论放大多少,点这里可以立刻回到当前定位(控件（更新一下,即将废弃，建议使用 cover-view 代替）)
     controls: [{
       id: 1,
@@ -41,18 +43,8 @@ Page({
     
     })
 
-    var that = this;
-    wx.getLocation({
-      type: 'wgs84', // 默认为 wgs84 返回 gps 坐标，gcj02 返回可用于 wx.openLocation 的坐标
-      success: function (res) {
-        //赋值经纬度
-        that.setData({
-          latitude: res.latitude,
-          longitude: res.longitude,
- 
-        })
-      }
-    })
+    // 不再自动调用 wx.getLocation（该接口审核不通过）
+    // 如需获取位置，由用户主动通过 wx.chooseLocation 选择
   },
 
 
@@ -61,42 +53,28 @@ Page({
   var that = this;
   if (e.controlId == 1) {
     that.setData({
-      latitude: this.data.latitude,
-      longitude: this.data.longitude,
+      latitude: that.data.latitude,
+      longitude: that.data.longitude,
       scale: 14,
     })
   }
-},
+ },
 
-//controls控件的点击事件
-  bindcontroltap(e) {
-    var that = this;
-    if (e.controlId == 1) {
+//导航：打开地图选位置
+onGuideTap: function (event) {
+  var that = this;
+  wx.chooseLocation({
+    latitude: that.data.latitude,
+    longitude: that.data.longitude,
+    success: function (res) {
       that.setData({
-        latitude: this.data.latitude,
-        longitude: this.data.longitude,
-        scale: 14,
+        latitude: res.latitude,
+        longitude: res.longitude,
+        address: res.address || '',
+        name: res.name || '',
+        addmissage: res.name || res.address || '已选位置'
       })
     }
-  },
-
-//导航
-onGuideTap: function (event) {
-  // var lat = Number(event.currentTarget.dataset.latitude);
-  // var lon = Number(event.currentTarget.dataset.longitude);
-  // var bankName = event.currentTarget.dataset.bankname;
-  
-  // wx.openLocation({
-  //   type: 'gcj02',
-  //   latitude: this.data.latitude,
-  //   longitude: this.data.longitude,
-  // })
-
-
-  wx.chooseLocation({
-    latitude: this.data.latitude,
-    longitude: this.data.longitude,
-
   })
 },
 

@@ -45,3 +45,16 @@ page{
   background-color: #187e6e;
 
 }
+
+.addBtn-sm{
+  border-radius: 30rpx;
+  padding: 4rpx 24rpx;
+  text-align: center;
+  font-size: 26rpx;
+  color: #fff;
+  background-color: #187e6e;
+}
+
+.tier-row{
+  border-bottom: 1px solid rgb(233, 231, 231);
+}

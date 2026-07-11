@@ -1535,11 +1535,7 @@ Component({
                 ? `${gbDep.fatherGbDepartmentEntity.gbDepartmentName}.${gbDep.gbDepartmentName}`
                 : gbDep.gbDepartmentName;
             }
-            
-            // 扁平化餐厅信息
-            if (order.nxRestrauntEntity) {
-              convertedOrder.restrauntName = order.nxRestrauntEntity.nxRestrauntAttrName;
-            }
+           
             
             return convertedOrder;
           });
@@ -3171,8 +3167,6 @@ Component({
                  } else {
                    depName = order.gbDepartmentEntity.gbDepartmentName;
                  }
-               } else if (order.nxRestrauntEntity) {
-                 depName = order.nxRestrauntEntity.nxRestrauntAttrName;
                } else if (order.nxDepartmentEntity) {
                  if (order.nxDepartmentEntity.fatherDepartmentEntity) {
                    depName = `${order.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentAttrName}.${order.nxDepartmentEntity.nxDepartmentName}`;

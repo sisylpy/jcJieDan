@@ -145,9 +145,6 @@
                           <text wx:if="{{order.fatherGbDepartmentName}}">{{order.fatherGbDepartmentName}}.</text>
                           <text>{{order.gbDepartmentName}}</text>
                         </block>
-                        <block wx:elif="{{order.nxDoNxCommRestrauntId !== -1}}">
-                          <text>{{order.nxRestrauntAttrName}}</text>
-                        </block>
                         <block wx:else>
                           <text wx:if="{{order.nxDoDepartmentFatherId !== order.nxDoDepartmentId}}">{{order.fatherDepartmentAttrName}}.{{order.nxDepartmentOrderCode}}</text>
                           <text wx:else>{{order.nxDepartmentAttrName}}</text>
@@ -185,11 +182,11 @@
                       <text class="text-secondary" wx:if="{{item.nxDgGoodsPlace !== null && item.nxDgGoodsPlace.length > 0}}">{{item.nxDgGoodsPlace}}</text>
                       <text class="text-secondary  text-secondary" wx:if="{{item.nxDgGoodsDetail.length > 0 && item.nxDgGoodsDetail !==  'null'}}">{{item.nxDgGoodsDetail}}</text>
                     </view>
-                    <view class="goods-qty-summary font-sm mt-5" wx:if="{{item._hasPlatformQty || item._hasOwnQty}}">
+                    <!-- <view class="goods-qty-summary font-sm mt-5" wx:if="{{item._hasPlatformQty || item._hasOwnQty}}">
                       <text class="text-secondary">合计{{item._totalQuantity}}{{item.nxDgGoodsStandardname}}</text>
                       <text wx:if="{{item._hasPlatformQty}}" class="platform-tag ml-10">平台 {{item.platformQuantity}}{{item.nxDgGoodsStandardname}}</text>
                       <text wx:if="{{item._hasOwnQty}}" class="text-secondary ml-10">自有 {{item.ownQuantity}}{{item.nxDgGoodsStandardname}}</text>
-                    </view>
+                    </view> -->
                     <view class="">
                       <view class="custom-checkbox {{item.isSelected ? 'checked' : ''}}">
                         <text class="checkbox-icon" wx:if="{{item.isSelected}}">✓</text>
@@ -217,12 +214,7 @@
                           <text>{{order.gbDepartmentName}}</text>
                         </view>
                       </block>
-                      <!-- 餐厅（扁平化） -->
-                      <block wx:elif="{{order.nxDoNxCommRestrauntId !== -1}}">
-                        <view class="flex-row ">
-                          <text>{{order.nxRestrauntAttrName}}</text>
-                        </view>
-                      </block>
+                    
                       <!-- NX部门（扁平化） -->
                       <block wx:else>
 

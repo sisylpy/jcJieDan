@@ -48,7 +48,7 @@
 						<view class="flex-column">
 							<view class="flex-row">
 								<text class="big ">{{item.nxDbTotal}}</text>
-								<text class="small">元</text>
+								<text class="font-xs">元</text>
 							</view>
 							<text wx:if="{{item.nxDbStatus == 0}}" class=" font-xs text-danger">未结账</text>
 							<text wx:elif="{{item.nxDbStatus == 1}}" class="font-xs text-secondary">已结账</text>
@@ -70,7 +70,7 @@
 				<text class="font-sl text-secondary">账款总额</text>
 				<view class="flex-row-between">
 					<view class="flex-row">
-						<text class="excreambig mr-20">{{totalSettle}}</text> <text class="small">元</text>
+						<text class="excreambig mr-20">{{totalSettle}}</text> <text class="font-xs">元</text>
 					</view>
 					<view class="p-20 bg-success radius-10 font-md" bindtap="toSettleBills">结账</view>
 				</view>
@@ -79,7 +79,7 @@
 			<view wx:if="{{month.arr.length > 0}}" >
 				<view class="flex-column border-bottom p-20">
 					<text class="font-lg">{{month.month}}月</text>
-					<view class="flex-row text-secondary small">
+					<view class="flex-row text-secondary font-xs">
 						<text class="mr-10">全部账单</text>
 						<text class="mr-10">{{month.arr.length}}个</text>
 						<text class="mr-10">未结账单</text>
@@ -120,7 +120,7 @@
 						<view class="flex-column">
 							<view class="flex-row">
 								<text class="big ">{{item.nxDbTotal}}</text>
-								<text class="small">元</text>
+								<text class="font-xs">元</text>
 								<text class="text-warning" wx:if="{{item.nxDbTotal < 0}}">（退货）</text>
 							</view>
 							<text wx:if="{{item.nxDbStatus == 0}}" class=" font-xs text-danger">未结账</text>

@@ -401,7 +401,6 @@ Component({
                 console.log("第一个订单是否包含 nxRestrauntAttrName:", !!firstOrder.nxRestrauntAttrName);
                 console.log("第一个订单是否包含嵌套对象 (gbDepartmentEntity):", !!firstOrder.gbDepartmentEntity);
                 console.log("第一个订单是否包含嵌套对象 (nxDepartmentEntity):", !!firstOrder.nxDepartmentEntity);
-                console.log("第一个订单是否包含嵌套对象 (nxRestrauntEntity):", !!firstOrder.nxRestrauntEntity);
               }
               
               console.log("goodsCataArr:", this.data.goodsCataArr);

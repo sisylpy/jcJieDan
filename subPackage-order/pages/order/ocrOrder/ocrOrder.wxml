@@ -148,8 +148,7 @@
           bind:scrollToItem="onScrollToItem" bind:confirmSearch="confirmSearchGoods" 
           bind:orderUpdated="onOrderUpdated"
           bind:orderDeleted="onOrderDeleted"           
-          bind:addOrder
-          Before="onAddOrderBefore"
+          bind:addOrderBefore="onAddOrderBefore"
           bind:addDisAlias="onOrderAddDisAlias" bind:recognitionModalChange="onRecognitionModalChange"></ocrOrderList>
 
         <!-- 非朗读模式且还有后续页时：显示加载中 -->
