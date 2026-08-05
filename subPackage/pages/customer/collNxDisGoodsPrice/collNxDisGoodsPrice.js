@@ -51,7 +51,7 @@ Page({
       windowHeight: globalData.windowHeight * globalData.rpxR,
       navBarHeight: globalData.navBarHeight * globalData.rpxR,
       url: apiUrl.server,
-      collNxDisId: options.coolNxDisId,
+      requestDisId: options.coolNxDisId,
       goodsId: options.goodsId,
       disId: options.disId
     })
@@ -73,7 +73,7 @@ Page({
   _initData() {
     load.showLoading("获取数据");
     var data = {
-      collNxDisId: this.data.collNxDisId,
+      requestDisId: this.data.requestDisId,
       goodsId: this.data.goodsId,
       disId: this.data.disId
     }

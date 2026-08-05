@@ -77,8 +77,8 @@
             <view class="flex-row third-row" wx:if="{{item.nxDgWillPriceOne !== '0.1' && item.nxDgWillPriceOne != null && item.nxDgWillPriceOne !== ''}}">
               <text>{{item.nxDgWillPriceOne}}元/{{item.nxDgGoodsStandardname}}</text>
             </view>
-            <view class="flex-row third-row" wx:elif="{{item.nxDgWillPrice && item.nxDgWillPrice !== '0.1'}}">
-              <text>{{item.nxDgWillPrice}}元/{{item.nxDgGoodsStandardname}}</text>
+            <view class="flex-row third-row" wx:elif="{{item.nxDgWillPriceOne && item.nxDgWillPriceOne !== '0.1'}}">
+              <text>{{item.nxDgWillPriceOne}}元/{{item.nxDgGoodsStandardname}}</text>
             </view>
             <view class="flex-row third-row" wx:else>
               <text>待报价</text>

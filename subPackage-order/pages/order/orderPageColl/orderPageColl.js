@@ -6,11 +6,7 @@ import apiUrl from '../../../../config.js'
 
 import {
  
-  updateOrder,
-  deleteOrder,
   getCollectionDisOrders,
-
-  saveCollationoBill,
 
   phoneGetToFillDepOrdersWithKg,
   phoneGetToFillDepOrdersWithJin,
@@ -18,21 +14,8 @@ import {
   giveOrderWeightListForStockAndFinish,
   giveOrderWeightListForStockShelfGoods,
   cancelOutOrder,
-  deliveryOrder,
-  cancleDeliveryOrder,
-  updateDepPickName,
-  confirmDepApplyGoods,
-
-  
 
 } from '../../../../lib/apiDepOrder'
-
-import {
-  disSaveStandard,
-  disDeleteStandard,
-
-} from '../../../../lib/apiDistributer'
-
 
 Page({
 
@@ -370,7 +353,7 @@ Page({
 
   toInputNumber() {
     wx.navigateTo({
-      url: '../writePriceColl/writePriceColl?collNxDisId=' + this.data.collDisId + '&disId=' + this.data.nxDisId,
+      url: '../writePriceColl/writePriceColl?requestDisId=' + this.data.collDisId + '&disId=' + this.data.nxDisId + '&name=' + this.data.name,
     })
   },
 

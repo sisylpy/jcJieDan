@@ -928,7 +928,7 @@ Page({
     var subtotal = null;
     var costSubtotal = 0;
     var profitSubtotal = 0;
-    var costPrice = this.data.itemDis.nxDgBuyingPrice;
+    var costPrice = this.data.itemDis.nxDgBuyingPriceOne;
 
     //是否给weight赋值
     // if (e.detail.applyStandardName == this.data.itemDis.nxDgGoodsStandardname) {
@@ -966,7 +966,7 @@ Page({
       nxDoArriveOnlyDate: arriveOnlyDate,
       nxDoArriveWhatDay: week,
       nxDoCostPriceUpdate: this.data.itemDis.nxDgBuyingPriceUpdate,
-      nxDoCostPrice: this.data.itemDis.nxDgBuyingPrice,
+      nxDoCostPrice: this.data.itemDis.nxDgBuyingPriceOne,
       nxDoPurchaseGoodsId: this.data.itemDis.nxDgPurchaseAuto,
       nxDoNxGoodsId: this.data.itemDis.nxDgNxGoodsId,
       nxDoNxGoodsFatherId: this.data.itemDis.nxDgNxFatherId,

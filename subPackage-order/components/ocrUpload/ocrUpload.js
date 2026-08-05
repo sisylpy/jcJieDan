@@ -29,6 +29,11 @@ Component({
     resetKey: {
       type: Number,
       value: 0
+    },
+    // 是否隐藏顶部“选择图片/Excel”上传区（用于外部页面仅复用选图+裁剪逻辑，通过 chooseImages 主动触发）
+    hideUpload: {
+      type: Boolean,
+      value: false
     }
   },
 

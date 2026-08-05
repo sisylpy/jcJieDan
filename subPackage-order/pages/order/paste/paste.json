@@ -6,6 +6,7 @@
     "delWarnModal": "/components/delWarnModal/delWarnModal",
     "addOrder": "/components/addOrder/addOrder",
     "deepseek-loading": "/components/deepseek-loading/deepseek-loading",
-    "correctionModal": "/components/correctionModal/correctionModal"
+    "correctionModal": "/components/correctionModal/correctionModal",
+    "ocrUpload": "/subPackage-order/components/ocrUpload/ocrUpload"
   }
 }

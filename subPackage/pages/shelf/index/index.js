@@ -213,10 +213,9 @@ Page({
     shelfGoodsQuerySort: 0,
     showShelfQuerySortMenu: false,
 
-    /** 货架型批发商（businessTypeId==3）快速编辑商品零售价 */
-    showShelfPriceModal: false,
-    shelfPriceModalItem: null,
-    shelfPriceModalIndex: -1,
+    showIsPurchase: false,
+    item: null,
+    priceEditIndex: -1,
 
   },
 
@@ -994,69 +993,31 @@ Page({
     })
   },
 
-  /**
-   * 货架型专业批发商：编辑商品零售价（一级基本单位 / 二级大包装），写 nxDgWillPriceOne、nxDgWillPriceTwo
-   */
-  openShelfGoodsPriceModal(e) {
-    const typeId = Number(this.data.disInfo && this.data.disInfo.nxDistributerBusinessTypeId);
-    if (!this.data.disInfo || typeId !== 3) {
-      return;
-    }
-    const idx = Number(e.currentTarget.dataset.index);
-    const list = this.data.shelfGoodsList || [];
-    const shelfGoods = list[idx];
-    if (!shelfGoods || !shelfGoods.nxDistributerGoodsEntity) {
-      return;
-    }
-    let entity;
-    try {
-      entity = JSON.parse(JSON.stringify(shelfGoods.nxDistributerGoodsEntity));
-    } catch (err) {
-      entity = Object.assign({}, shelfGoods.nxDistributerGoodsEntity);
-    }
+  showIsPurchase(e) {
+    const item = e.currentTarget.dataset.item;
     this.setData({
-      showShelfPriceModal: true,
-      shelfPriceModalItem: entity,
-      shelfPriceModalIndex: idx,
+      priceEditIndex: e.currentTarget.dataset.index,
+      showIsPurchase: true,
+      item: item
     });
   },
 
-  onShelfPriceModalCancel() {
-    this.setData({
-      showShelfPriceModal: false,
-      shelfPriceModalItem: null,
-      shelfPriceModalIndex: -1,
-    });
-  },
-
-  onShelfPriceModalConfirm(e) {
-    const updated = e.detail && e.detail.item;
-    const idx = this.data.shelfPriceModalIndex;
-    if (!updated || idx < 0) {
-      this.onShelfPriceModalCancel();
+  confirm(e) {
+    const item = e.detail.item;
+    const idx = this.data.priceEditIndex;
+    if (idx < 0) {
       return;
     }
-    load.showLoading('保存价格');
-    disUpdateBuyingPrice(updated)
+    disUpdateBuyingPrice(item)
       .then(res => {
-        load.hideLoading();
         if (res.result.code === 0) {
           const path = `shelfGoodsList[${idx}].nxDistributerGoodsEntity`;
-          this.setData({
-            [path]: updated,
-            showShelfPriceModal: false,
-            shelfPriceModalItem: null,
-            shelfPriceModalIndex: -1,
-          });
-          wx.showToast({ title: '已保存', icon: 'success' });
-        } else {
-          wx.showToast({ title: res.result.msg || '保存失败', icon: 'none' });
+          this.setData({ [path]: item });
         }
-      })
-      .catch(() => {
-        load.hideLoading();
       });
   },
+
+  cancleIsPurchase() {},
 
   showChoiceUn(e) {
     var disGoods = e.currentTarget.dataset.goods;
@@ -2248,7 +2209,6 @@ Page({
       url: '../inventory/inventory?shelfId=' + this.data.shelfId + '&shelfName=' + encodeURIComponent(this.data.shelfItem.nxDistributerGoodsShelfName || '货架'),
     })
   },
-
 
 
 

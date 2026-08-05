@@ -1,0 +1,7 @@
+{
+  "usingComponents": {
+    "back-navbar": "/components/back-navbar/back-navbar",
+    "unpayBills": "/subPackage/components/unpayBills/unpayBills",
+    "nxBillBusiness": "/subPackage/components/nxBillBusiness/nxBillBusiness"
+  }
+}

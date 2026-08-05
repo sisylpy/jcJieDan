@@ -1,4 +1,6 @@
 import load from '../../../../lib/load';
+import apiUrl from '../../../../config.js'
+
 import {
   pasteSearchGoods,
   choiceGoodsForApply,
@@ -8,6 +10,8 @@ import {
   correctOrders,
   deleteBatchOrders,
   depGetTaskList,
+  recognizeOrderAsync,
+  recognizeOrderFast,
 } from '../../../../lib/apiDepOrder';
 
 import { resolveNxDoCostPriceLevel } from '../../../../lib/retailPriceLevel';
@@ -17,6 +21,7 @@ import {
   queryDisGoodsByQuickSearchWithDepId,
   disDeleteStandard,
   getBrandForPrompts,
+  saveRetailDepartment,
 } from '../../../../lib/apiDistributer';
 
 import {
@@ -68,6 +73,7 @@ Page({
 
   data: {
     orderArr: [],
+    ocrImageList: [], // 图片识别：复用 ocrUpload 组件的已选图片列表
     show: false,
     showOperation: false,
     findGoods: false,
@@ -119,6 +125,7 @@ Page({
       windowWidth: windowWidth,
       windowHeight: globalData.windowHeight * globalData.rpxR,
       navBarHeight: globalData.navBarHeight * globalData.rpxR,
+      url: apiUrl.server,
       goodsNameWidth: goodsNameWidth,
       quantityWidth: quantityWidth,
       standardWidth: standardWidth,
@@ -126,6 +133,7 @@ Page({
       depFatherId: options.depFatherId,
       depId: options.depId,
       depName: options.depName,
+
       // 重置 AI 识别相关状态
       aiRetryCount: 0,
       hasAiRecognized: false,
@@ -136,12 +144,33 @@ Page({
    
     var userInfo = wx.getStorageSync('userInfo');
     if (userInfo) {
+      const isRetail = options.isRetail == '1';
+      // 零售页优先使用经销商实体 id
+      var disIdVal = isRetail
+        ? (userInfo.nxDistributerEntity && userInfo.nxDistributerEntity.nxDistributerId != null
+            ? userInfo.nxDistributerEntity.nxDistributerId
+            : userInfo.nxDiuDistributerId)
+        : userInfo.nxDiuDistributerId;
+
       this.setData({
         userInfo: userInfo,
         userId: userInfo.nxDistributerUserId,
-        disId: userInfo.nxDiuDistributerId,
+        disId: disIdVal,
         disInfo: userInfo.nxDistributerEntity,
       })
+
+      // 零售入口：通过 saveRetailDepartment 获取/创建零售部门
+      if (isRetail) {
+        saveRetailDepartment(disIdVal).then(res => {
+          if (res.result.code == 0) {
+            this.setData({
+              depId: res.result.data.nxDepartmentId,
+              depFatherId: res.result.data.nxDepartmentFatherId,
+              depName: res.result.data.nxDepartmentName || '零售订货',
+            })
+          }
+        })
+      }
     }
 
     var depInfo = wx.getStorageSync('depItem');
@@ -508,6 +537,28 @@ Page({
       originSentence: "",
       hasUnsavedOrders: false, // 清空订单后，没有未保存的订单
     })
+  },
+
+  // 粘贴剪贴板文字到输入框
+  pasteFromClipboard() {
+    const that = this;
+    wx.getClipboardData({
+      success: (res) => {
+        const text = (res.data || '').trim();
+        if (!text) {
+          wx.showToast({ title: '剪贴板为空', icon: 'none' });
+          return;
+        }
+        that.setData({
+          sentence: text,
+          inputContent: text,
+        });
+        wx.showToast({ title: '已粘贴', icon: 'success', duration: 1000 });
+      },
+      fail: () => {
+        wx.showToast({ title: '读取剪贴板失败', icon: 'none' });
+      }
+    });
   },
 
  
@@ -1867,7 +1918,7 @@ Page({
       load.hideLoading();
       if (res.result.code == 0) {
         wx.redirectTo({
-          url: '../ocrOrder/ocrOrder?taskId=' + res.result.taskId  + '&depFatherId=' + this.data.depFatherId + '&depId=' + this.data.depId + '&depName=' + this.data.depName,
+          url: '../ocrOrder/ocrOrder?taskId=' + res.result.taskId,
         });
       } else {
         wx.showToast({
@@ -3216,6 +3267,148 @@ Page({
       });
     });
   },
+
+
+
+  // 跳转到 OCR 识别页面
+  /**
+   * 点击“图片”按钮：直接复用 ocrUpload 组件的选图 + 裁剪 + 单列/多列模式选择逻辑
+   * 选完并裁剪后，组件会通过 startOCR / startOCRFast 事件回调，在本页内直接识别，无需跳转 ocrUpload 页面
+   */
+  recognizeOrder(e) {
+    const ocr = this.selectComponent('#pasteOcrUpload');
+    if (!ocr) {
+      wx.showToast({ title: '图片组件未就绪，请重试', icon: 'none' });
+      return;
+    }
+    // 触发组件内的选图 → 裁剪弹窗（含单列/多列模式选择、开始识别）
+    ocr.chooseImages();
+  },
+
+  /**
+   * 组件图片列表变化（选图/裁剪完成后同步到页面）
+   */
+  onOcrImageChange(e) {
+    this.setData({
+      ocrImageList: (e.detail && e.detail.imageList) || []
+    });
+  },
+
+  /**
+   * 获取本页有效的部门参数（带兜底，避免 depFatherId 为空导致后端报“参数 depFatherId 不能为空”）
+   */
+  _getOcrDepParams() {
+    const depInfo = this.data.depInfo || {};
+    const depId = this.data.depId || depInfo.nxDepartmentId || '';
+    // depFatherId 兜底：优先 URL 参数 → depInfo 的父部门 → 退回 depId
+    let depFatherId = this.data.depFatherId;
+    if (depFatherId === undefined || depFatherId === null || depFatherId === '' || depFatherId === 'null') {
+      depFatherId = depInfo.nxDepartmentFatherId || depId;
+    }
+    return {
+      depId: depId,
+      depFatherId: depFatherId,
+      disId: this.data.disId || '',
+      userId: this.data.userId || -1,
+      depName: this.data.depName || ''
+    };
+  },
+
+  /**
+   * 复杂图片识别（多列）：调用异步接口，后台队列处理
+   */
+  async onStartOCR(e) {
+    const imageList = (e.detail && e.detail.imageList) || this.data.ocrImageList || [];
+    if (!imageList.length) {
+      wx.showToast({ title: '请先选择图片', icon: 'none' });
+      return;
+    }
+    const params = this._getOcrDepParams();
+    if (!params.depFatherId) {
+      wx.showToast({ title: '缺少部门信息，请返回重进', icon: 'none' });
+      return;
+    }
+    load.showLoading('正在上传识别...');
+    try {
+      const base64 = await this._ocrImageToBase64(imageList[0].path);
+      const res = await recognizeOrderAsync({
+        ImageBase64: base64,
+        SecretId: config.tencentCloud?.secretId || '',
+        SecretKey: config.tencentCloud?.secretKey || '',
+        Action: 'GeneralAccurateOCR',
+        Version: '2018-11-19',
+        depId: params.depId,
+        disId: params.disId,
+        depFatherId: params.depFatherId,
+        userId: -1
+      });
+      load.hideLoading();
+      const data = res.result;
+      if (data && data.code === 0) {
+        this.setData({ ocrImageList: [] });
+        wx.showToast({ title: '已加入识别队列', icon: 'success', duration: 1500 });
+        wx.navigateBack({ delta: 2 });
+      } else {
+        wx.showToast({ title: (data && (data.msg || data.message)) || '上传失败', icon: 'none', duration: 3000 });
+      }
+    } catch (err) {
+      load.hideLoading();
+      wx.showToast({ title: err.message || '上传失败', icon: 'none', duration: 3000 });
+    }
+  },
+
+  /**
+   * 单列快速识别：调用快速接口，成功后跳转 ocrOrder 复核结果
+   */
+  async onStartOCRFast(e) {
+    const imageList = (e.detail && e.detail.imageList) || this.data.ocrImageList || [];
+    if (!imageList.length) {
+      wx.showToast({ title: '请先选择图片', icon: 'none' });
+      return;
+    }
+    const params = this._getOcrDepParams();
+    if (!params.depId || !params.disId || !params.depFatherId) {
+      wx.showToast({ title: '缺少必要参数，请重新进入', icon: 'none', duration: 3000 });
+      return;
+    }
+    load.showLoading('单列图片识别中...');
+    try {
+      const base64 = await this._ocrImageToBase64(imageList[0].path);
+      const res = await recognizeOrderFast({
+        ImageBase64: base64,
+        depId: params.depId,
+        disId: params.disId,
+        depFatherId: params.depFatherId,
+        userId: params.userId
+      });
+      load.hideLoading();
+      const data = res.result;
+      if (data && data.code === 0) {
+        this.setData({ ocrImageList: [] });
+        wx.navigateBack({ delta: 2 });
+      } else {
+        wx.showToast({ title: (data && (data.msg || data.message)) || '快速识别失败', icon: 'none', duration: 3000 });
+      }
+    } catch (err) {
+      load.hideLoading();
+      wx.showToast({ title: err.message || '快速识别失败', icon: 'none', duration: 3000 });
+    }
+  },
+
+  /**
+   * 图片转 Base64
+   */
+  _ocrImageToBase64(filePath) {
+    return new Promise((resolve, reject) => {
+      wx.getFileSystemManager().readFile({
+        filePath: filePath,
+        encoding: 'base64',
+        success: (res) => resolve(res.data),
+        fail: (err) => reject(err)
+      });
+    });
+  },
+
 
 
 })

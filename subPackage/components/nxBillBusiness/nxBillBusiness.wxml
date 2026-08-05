@@ -1,0 +1,162 @@
+<wxs src="/utils/fn.wxs" module="tool" />
+<import src='/template/billPay/billPay.wxml' />
+
+<view class="flex flex-column" style="height:100%;">
+
+  <view class="flex-column p-20" style="height:100%;">
+
+    <view class="flex-column {{arr.length == 0 ? 'show' : 'hide'}}" style="height: {{windowHeight /3}}rpx;">
+      <view class="flex-column center-content" style="margin-top: 200rpx;">
+        <image class="empty_image" src="/images/xiuxi.png"></image>
+        <text class="p-30">暂无待确认协作订单</text>
+      </view>
+    </view>
+    <scroll-view scroll-y="true" style="height:100%;">
+      <block wx:if="{{toSettle}}">
+        <!-- 全选功能栏 -->
+        <view class="select-all-bar" wx:if="{{arr.length > 0 && status !== 'havePayed'}}">
+          <view class="select-all-content">
+            <view class="select-all-checkbox">
+              <switch type="checkbox" checked="{{isAllSelected}}" bindchange="selectAllBills" />
+            </view>
+            <view class="select-all-text">
+              <text class="select-all-label">全选</text>
+              <text class="select-count">已选择 {{selectedCount}} 个订单</text>
+            </view>
+          </view>
+          <view class="select-all-actions">
+            <view class="clear-selection-btn" bindtap="clearAllSelection" wx:if="{{selectedCount > 0}}">
+              <text class="clear-text">清空</text>
+            </view>
+          </view>
+        </view>
+        <view class="bill-item {{item.isSelect ? 'bill-item-selected' : ''}}" wx:for="{{arr}}" wx:for-item="item"
+          wx:for-index="index" wx:key="nxDbdId">
+
+          <!-- 选择框 -->
+          <view class="bill-checkbox" wx:if="{{status !== 'havePayed'}}">
+            <switch type="checkbox" checked="{{item.isSelect}}" bindchange="selectBill" data-index="{{index}}" />
+          </view>
+
+          <!-- 订单内容 -->
+          <view class="bill-content">
+
+            <!-- 订单头部信息 -->
+            <view class="bill-header">
+              <view class="bill-number">{{index + 1}}</view>
+              <view class="bill-date-section">
+                <view class="bill-date">{{item.nxDbdDate}}</view>
+                <view class="bill-week">{{item.nxDbdDay}}</view>
+                <!-- 订单状态显示 - 只在已结账单页面显示 -->
+                <view class="status-badge status-settled" wx:if="{{status === 'havePayed' && item.nxDbdStatus == 4}}">
+                  付款完成</view>
+                <view class="status-badge status-pending" wx:elif="{{status === 'havePayed' && item.nxDbdStatus == 1}}">
+                  待付款</view>
+                <view class="status-badge status-processing"
+                  wx:elif="{{status === 'havePayed' && item.nxDbdStatus == 2}}">处理中</view>
+                <view class="status-badge status-cancelled"
+                  wx:elif="{{status === 'havePayed' && item.nxDbdStatus == 3}}">已取消</view>
+              </view>
+            </view>
+
+            <!-- 订单金额和箭头 -->
+            <view class="bill-amount-section flex-column">
+              <view class="bill-amount">{{item.nxDbdTotal}}元</view>
+              <text class="bill-type-text tag-return" wx:if="{{item.nxDbdPurchaseType == 9}}">退货单</text>
+              <text class="bill-type-text tag-auto" wx:elif="{{item.nxDbdPurchaseType == 21}}">自动订货</text>
+              <text class="bill-type-text tag-purchase" wx:else="">采购员订货</text>
+            </view>
+
+          </view>
+
+        </view>
+      </block>
+
+
+      <block wx:else="">
+
+        <view class="bill-item" wx:for="{{arr}}" wx:for-item="item" wx:for-index="index" wx:key="nxDbdId"
+          bind:tap="toDetail" data-item="{{item}}" data-id="{{item.nxDistributerBillId}}"
+          data-value="{{item.nxDbdTotal}}">
+
+
+          <!-- 订单内容 -->
+          <view class="bill-content">
+
+            <!-- 订单头部信息 -->
+            <view class="bill-header p-20">
+              <view class="bill-date-section">
+                <view class="font-md">
+                  <text class="text-secondary mr-10">协作商家:</text>
+                  <text>{{item.offerNxDistributer.nxDistributerShowName}}</text>
+                </view>
+                <view class="font-md">
+                  <text class="text-secondary mr-10">订单来源:</text>
+                  <text>{{item.orderNxDistributer.nxDistributerShowName}}</text>
+                </view>
+                <view class="font-xs">{{item.nxDbdTime}}</view>
+                <!-- 订单状态显示 - 只在已结账单页面显示 -->
+                <view class="status-badge status-settled" wx:if="{{item.nxDbdStatus == 0}}">
+                  收货确认</view>
+                <view class="status-badge status-pending" wx:elif="{{item.nxDbdStatus == 2}}">
+                  收款确认</view>
+
+              </view>
+            </view>
+
+            <!-- 订单金额和箭头 -->
+            <view class="bill-amount-section flex-column">
+              <view class="bill-amount">{{item.nxDbdTotal}}元</view>
+              <text class="bill-type-text tag-offer " wx:if="{{item.nxDbdOfferNxDisId == disId}}">销售单</text>
+              <text class="bill-type-text tag-purchase " wx:else="">进货单</text>
+            </view>
+
+          </view>
+
+        </view>
+
+      </block>
+
+    </scroll-view>
+
+  </view>
+
+</view>
+
+
+
+
+<!-- 结账确认弹窗 -->
+<view class="modal-overlay {{isTishi ? 'modal-show' : 'modal-hide'}}" bindtap="closeMask">
+  <view class="modal-container" catchtap="">
+
+    <!-- 弹窗头部 -->
+    <view class="modal-header">
+      <view class="modal-icon">
+        <image src="/images/aixin.png" class="modal-icon-img"></image>
+      </view>
+      <view class="modal-title">结账确认</view>
+    </view>
+
+    <!-- 弹窗内容 -->
+    <view class="modal-content">
+      <view class="modal-message">
+        <text class="modal-text-primary">客户已完成付款</text>
+        <text class="modal-text-warning">结账确认以后，订单状态不可修改！</text>
+      </view>
+    </view>
+
+    <!-- 弹窗按钮 -->
+    <view class="modal-actions">
+      <view class="modal-btn modal-btn-cancel" bindtap="cancleSettle">
+        <text class="modal-btn-text">取消</text>
+      </view>
+      <view class="modal-btn modal-btn-confirm" bindtap="settleAccount">
+        <text class="modal-btn-text">确定结账</text>
+      </view>
+    </view>
+
+  </view>
+</view>
+
+<template is="billPay" wx:if="{{active}}" data='{{selAmount:selAmount, total: total}}'></template>

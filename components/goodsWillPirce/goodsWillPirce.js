@@ -1,54 +1,58 @@
-const { disGetToStockGoodsWithDepIds } = require("../../lib/apiDistributer")
-
 Component({
   /**
    * 组件的属性列表
    */
   properties: {
-    //是否显示modal
+    // 是否显示弹窗
     show: {
       type: Boolean,
-      value: true
+      value: false
     },
+    // 当前商品（仅作为数据源，编辑时复制到 form，不直接改它）
     item: {
       type: Object,
-      value: ""
+      value: null,
+      observer: function (newVal) {
+        if (newVal && typeof newVal === 'object') {
+          var form = Object.assign({}, newVal);
+          var std = newVal.nxDgWillPriceTwoStandard;
+          var carton = newVal.nxDgCartonUnit;
+          var hasOuter = (std && std !== '' && std !== 'null') ||
+            (carton && carton !== '' && carton !== 'null' &&
+              (Number(newVal.nxDgItemsPerCarton) > 0 || Number(newVal.nxDgWillPriceTwoWeight) > 0));
+          // 弹窗显示时，根据初始采购价/售价计算毛利率
+          var profitOne = this._calc(newVal.nxDgWillPriceOne, newVal.nxDgBuyingPriceOne);
+          if (profitOne !== '') form.nxDgPriceProfitOne = profitOne;
+          if (hasOuter) {
+            var profitTwo = this._calc(newVal.nxDgWillPriceTwo, newVal.nxDgBuyingPriceTwo);
+            if (profitTwo !== '') form.nxDgPriceProfitTwo = profitTwo;
+          }
+          this.setData({ form: form, hasOuter: hasOuter });
+        } else {
+          this.setData({ form: {}, hasOuter: false });
+        }
+      }
     },
-   
-    maskHeight: {
-      type: Number,
-      value: ""
+    consultItem: {
+      type: Object,
+      value: null
     },
     windowHeight: {
       type: Number,
-      value: ""
+      value: 0
     },
     windowWidth: {
       type: Number,
-      value: ""
-    },
-    scrollViewTop: {
-      type: Number,
-      value: ""
-    },
-    percentOne: {
-      type: Number,
-      value: ""
-    },
-    level: {
-      type: Number,
-      value: ""
-    },
-    
-     
-
+      value: 0
+    }
   },
 
   /**
    * 组件的初始数据
    */
   data: {
-
+    hasOuter: false,
+    form: {}
   },
 
   /**
@@ -59,233 +63,59 @@ Component({
     cancle() {
       this.setData({
         show: false,
-        item: "",
-      })
-      this.triggerEvent('cancle')
+        form: {},
+        item: null
+      });
+      this.triggerEvent('cancle');
     },
 
-    delPrice(e){
-      this.triggerEvent('delPrice', {
-        item: this.data.item,
-      
-      })
-      this.setData({
-        show: false,
-        item : ""
-      })
-    },
-
-
-    confirm(e) {
+    confirm() {
       this.triggerEvent('confirm', {
-        item: this.data.item,
-      
-      })
+        item: this.data.form
+      });
       this.setData({
         show: false,
-        item : ""
-      })
+        form: {},
+        item: null
+      });
     },
 
-    changeWillPrice(e){
-      var itemData = "item.nxDgWillPrice";
-      var price = this.data.item.nxDgWillPrice;
-      var newPrice = "";
-      var type = e.currentTarget.dataset.type;
-      if(type == 'add'){
-        newPrice = (Number(price) + Number(0.1)).toFixed(1);
-        
-      }
-      if(type == 'reduce'){
-         newPrice = (Number(price) - Number(0.1)).toFixed(1);
-      }
-
+    getBuyingPrice(e) {
+      var level = e.currentTarget.dataset.level;
+      var field = level == 1 ? 'form.nxDgBuyingPriceOne' : 'form.nxDgBuyingPriceTwo';
       this.setData({
-        [itemData]: newPrice,
-      })
-      this._getPercent();
+        [field]: e.detail.value
+      });
+      this._getPercent(level);
     },
 
-    // changePrice(e){
-    //   var itemData = "item.nxDgBuyingPrice";
-    //   var price = this.data.item.nxDgBuyingPrice;
-    //   var newPrice = "";
-    //   var type = e.currentTarget.dataset.type;
-    //   if(type == 'add'){
-    //     newPrice = (Number(price) + Number(0.1)).toFixed(1);
-        
-    //   }
-    //   if(type == 'reduce'){
-    //      newPrice = (Number(price) - Number(0.1)).toFixed(1);
-    //   }
-
-    //   this.setData({
-    //     [itemData]: newPrice,
-    //   })
-    //   this._getPercent();
-    // },
-
-
-
-    editLevelWeight(e){
-
-     
-      if(this.data.level == 1){
-        var itemData = "item.nxDgWillPriceOneWeight";
-        this.setData({
-         [itemData]: e.detail.value,
-        })
-      }else if(this.data.level == 2){
-        var itemData = "item.nxDgWillPriceTwoWeight";
-        this.setData({
-         [itemData]: e.detail.value,
-        })
-      }
-      else if(this.data.level == 3){
-        var itemData = "item.nxDgWillPriceThreeWeight";
-        this.setData({
-         [itemData]: e.detail.value,
-        })
-      }
-
-      this._getPercent();
+    getWillPrice(e) {
+      var level = e.currentTarget.dataset.level;
+      var field = level == 1 ? 'form.nxDgWillPriceOne' : 'form.nxDgWillPriceTwo';
+      this.setData({
+        [field]: e.detail.value
+      });
+      this._getPercent(level);
     },
 
-
-    getLevelStandard(e){
-
-      if(this.data.level == 1){
-        var itemData = "item.nxDgWillPriceOneStandard";
-        this.setData({
-         [itemData]: e.detail.value,
-        })
-      }else if(this.data.level == 2){
-        var itemData = "item.nxDgWillPriceTwoStandard";
-        this.setData({
-         [itemData]: e.detail.value,
-        })
-      }
-      else if(this.data.level == 3){
-        var itemData = "item.nxDgWillPriceThreeStandard";
-        this.setData({
-         [itemData]: e.detail.value,
-        })
-      }
-
+    _getPercent(level) {
+      var form = this.data.form;
+      var will = level == 1 ? form.nxDgWillPriceOne : form.nxDgWillPriceTwo;
+      var buy = level == 1 ? form.nxDgBuyingPriceOne : form.nxDgBuyingPriceTwo;
+      var percent = this._calc(will, buy);
+      var field = level == 1 ? 'form.nxDgPriceProfitOne' : 'form.nxDgPriceProfitTwo';
+      this.setData({
+        [field]: percent
+      });
     },
 
+    _calc(will, buy) {
+      will = Number(will);
+      buy = Number(buy);
+      if (!will || will <= 0) return '';
+      var p = ((will - buy) / will) * 100;
+      return p.toFixed(2);
+    }
 
-    getBuyingPrice(e){
-      if(this.data.level == 1){
-        var itemData = "item.nxDgBuyingPriceOne";
-        this.setData({
-         [itemData]: e.detail.value,
-        })
-      }else if(this.data.level == 2){
-        var itemData = "item.nxDgBuyingPriceTwo";
-        this.setData({
-         [itemData]: e.detail.value,
-        })
-      }
-      else if(this.data.level == 3){
-        var itemData = "item.nxDgBuyingPriceThree";
-        this.setData({
-         [itemData]: e.detail.value,
-        })
-      }
-     
-      this._getPercent();
-
-    },
-
-    getWillPrice(e){
-      if(this.data.level == 1){
-        var itemData = "item.nxDgWillPriceOne";
-        this.setData({
-         [itemData]: e.detail.value,
-        })
-      }else if(this.data.level == 2){
-        var itemData = "item.nxDgWillPriceTwo";
-        this.setData({
-         [itemData]: e.detail.value,
-        })
-      }
-      else if(this.data.level == 3){
-        var itemData = "item.nxDgWillPriceThree";
-        this.setData({
-         [itemData]: e.detail.value,
-        })
-      }
-     
-      this._getPercent(); 
-      
-
-    },
-   
-
-    _getPercent(){
-      if(this.data.level == 1){
-        var willPrice = this.data.item.nxDgWillPriceOne;
-        var outPrice = this.data.item.nxDgBuyingPriceOne;
-        var levelWeight = this.data.item.nxDgWillPriceOneWeight;
-        var percent = (Number(willPrice) - Number(outPrice)) / Number(willPrice);
-        percent = (percent * 100).toFixed(2);
-        var itemData = "item.nxDgPriceProfitOne";
-        var itemAboutData = "item.nxDgWillPriceOneAboutPrice";
-        // var aboutPrice = (Number(willPrice) / Number(levelWeight)).toFixed(1);
-        this.setData({
-          percentOne: percent,
-          [itemData]: percent,
-          [itemAboutData]: willPrice,
-        })
-      }else if(this.data.level == 2){
-        var willPrice = this.data.item.nxDgWillPriceTwo;
-        var outPrice = this.data.item.nxDgBuyingPriceTwo;
-        var levelWeight = this.data.item.nxDgWillPriceTwoWeight;
-        var percent = (Number(willPrice) - Number(outPrice)) / Number(willPrice);
-        console.log(percent);
-        percent = (percent * 100).toFixed(2);
-        var itemData = "item.nxDgPriceProfitTwo";
-        var itemAboutData = "item.nxDgWillPriceTwoAboutPrice";
-        var aboutPrice = (Number(willPrice) / Number(levelWeight)).toFixed(1);
-        this.setData({
-          percentTwo: percent,
-          [itemData]: percent,
-          [itemAboutData]: aboutPrice,
-        })
-      }else if(this.data.level == 3){
-        var willPrice = this.data.item.nxDgWillPriceThree;
-        var outPrice = this.data.item.nxDgBuyingPriceThree;
-        var levelWeight = this.data.item.nxDgWillPriceThreeWeight;
-        var percent = (Number(willPrice) - Number(outPrice)) / Number(willPrice);
-        console.log(percent);
-        percent = (percent * 100).toFixed(2);
-        var itemData = "item.nxDgPriceProfitThree";
-        var itemAboutData = "item.nxDgWillPriceThreeAboutPrice";
-        var aboutPrice = (Number(willPrice) / Number(levelWeight)).toFixed(1);
-        this.setData({
-          percentThree: percent,
-          [itemData]: percent,
-          [itemAboutData]: aboutPrice,
-        })
-      }
-      
-    },
-
-
-
-
-
-
-
-
-
-
-
-
-  },
-
-
-
-
-})
+  }
+});

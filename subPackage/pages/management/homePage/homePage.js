@@ -453,6 +453,23 @@ Page({
 
 
 
+
+
+  toPurchase(e) {
+    console.log("nxDisId=" + this.data.disId + '&nxDisPurUserId=' + this.data.userInfo.nxDistributerUserId + '&from=nx');
+    wx.navigateToMiniProgram({
+      appId: 'wx1ea78d3f33234284',
+      path: 'pages/jinriListWithLogin/jinriListWithLogin?nxDisId=' + this.data.disId + '&nxDisPurUserId=' + this.data.userInfo.nxDistributerUserId + '&from=nx',
+      envVersion: 'trial', //release  develop  trial
+      success(res) {
+
+      },
+      fail() {
+
+      },
+    })
+  },
+
   
   toStaff(){
     wx.navigateTo({

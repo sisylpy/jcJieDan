@@ -26,8 +26,9 @@ Page({
       windowHeight: globalData.windowHeight * globalData.rpxR,
       statusBarHeight: globalData.statusBarHeight * globalData.rpxR,
       navBarHeight: globalData.navBarHeight * globalData.rpxR,
-      collNxDisId: options.collNxDisId,
+      requestDisId: options.requestDisId,
       nxDisId: options.disId,
+      name: options.name,
       focusIndex: -1,
       focusParentIndex: -1,
     })
@@ -62,7 +63,7 @@ Page({
   _initData() {
     var data = {
       disId: this.data.nxDisId,
-      collDisId: this.data.collNxDisId,
+      collDisId: this.data.requestDisId,
     }
     load.showLoading("获取订单中")
     getCollectionDisOrders(data)
@@ -495,7 +496,7 @@ Page({
   toHistoryPrice(e){
       wx.setStorageSync('disGoods', e.currentTarget.dataset.item);
     wx.navigateTo({
-      url: '/subPackage/pages/customer/collNxDisGoodsPrice/collNxDisGoodsPrice?coolNxDisId=' + this.data.collNxDisId + '&disId=' + this.data.nxDisId + '&name=' + this.data.name+ '&goodsId=' +  e.currentTarget.dataset.id,
+      url: '/subPackage/pages/customer/collNxDisGoodsPrice/collNxDisGoodsPrice?coolNxDisId=' + this.data.requestDisId + '&disId=' + this.data.nxDisId + '&name=' + this.data.name+ '&goodsId=' +  e.currentTarget.dataset.id,
     })
 
 

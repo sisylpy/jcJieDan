@@ -497,7 +497,7 @@ Page({
           returnFromOcrOrder: true
         });
         wx.navigateTo({
-          url: '../ocrOrder/ocrOrder?taskId=' + res.result.taskId + '&depFatherId=' + this.data.depFatherId + '&depId=' + this.data.depId + '&depName=' + this.data.depName,
+          url: '../ocrOrder/ocrOrder?taskId=' + res.result.taskId,
         });
       
       } else {

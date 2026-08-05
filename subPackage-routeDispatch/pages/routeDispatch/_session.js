@@ -18,11 +18,3 @@ export function resolveSession() {
   }
 }
 
-
-export function getTodayDateStr() {
-  var d = new Date()
-  var y = d.getFullYear()
-  var m = ('0' + (d.getMonth() + 1)).slice(-2)
-  var day = ('0' + d.getDate()).slice(-2)
-  return y + '-' + m + '-' + day
-}

@@ -1,4 +1,4 @@
-<view class="upload-section">
+<view class="upload-section" wx:if="{{!hideUpload}}">
   <!-- 图片上传区域 -->
   <view class="section-title">
     <text>📷 选择图片</text>

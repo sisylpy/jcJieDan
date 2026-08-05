@@ -146,7 +146,7 @@
                               <image src="../../../images/selected-2.png" class="icon "></image>
                             </view>
                             <view class="circle_default" wx:else=""></view>
-                            <block wx:if="{{orders.nxDoCollaborativeNxDisId == -1}}">
+                            <block wx:if="{{orders.nxDoRequestDisId == -1}}">
                               <view class="flex-row mr-30">
                               <!-- GB部门名称（扁平化） -->
                               <block wx:if="{{orders.gbDepName}}">
@@ -164,7 +164,7 @@
                             </block>
                             <block wx:else="">
                               <view class="flex-row mr-30">
-                                <text class="mr-10">[{{orders.nxDoCollaborativeDistributerName}}]</text>
+                                <text class="mr-10">[{{orders.nxDoRequestDistributerName}}]</text>
                               <text class="ml-10">{{orders.nxDoQuantity}}{{orders.nxDoStandard}}</text>
                             </view>
                             </block>

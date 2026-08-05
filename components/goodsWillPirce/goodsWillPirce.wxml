@@ -1,162 +1,53 @@
-<view class='overlay' wx:if='{{show}}'>
-  <view class='popup '>
-    <view class="top">
-      <view class='goodsTitle flex-row'>
-        <text class="brand" wx:if="{{item.nxDgGoodsBrand.length > 0 && item.nxDgGoodsBrand !== 'null'}}">{{item.nxDgGoodsBrand}}</text>
-        <text>{{item.nxDgGoodsName}}</text>
+<view class="modal-mask" wx:if="{{show}}">
+  <view class="modal">
+    <view class="modal-header">
+      <text wx:if="{{form.nxDgGoodsBrand && form.nxDgGoodsBrand !== 'null' && form.nxDgGoodsBrand.length > 0}}" class="modal-brand">{{form.nxDgGoodsBrand}}</text>
+      <text class="modal-name">{{form.nxDgGoodsName}}</text>
+      <text class="modal-spec" wx:if="{{form.nxDgGoodsStandardname && form.nxDgGoodsStandardname !== '斤'}}">（{{form.nxDgGoodsStandardWeight && form.nxDgGoodsStandardWeight !== 'null' ? form.nxDgGoodsStandardWeight + '/' : ''}}{{form.nxDgGoodsStandardname}}）</text>
+    </view>
 
-        <block wx:if="{{item.nxDgGoodsStandardWeight !== 'null' && item.nxDgGoodsStandardWeight.length > 0}}">
-          <text class="" wx:if="{{item.nxDgGoodsStandardname !== '斤'}}">({{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}})</text>
-        </block>
-        <block wx:else>
-          <text class="" wx:if="{{item.nxDgGoodsStandardname !== '斤' }}">({{item.nxDgGoodsStandardname}})</text>
-        </block>
+    <view class="modal-body">
+      <!-- 一档：基本单位 -->
+      <view class="section">
+        <view class="section-title">基本单位</view>
+
+        <view class="field">
+          <text class="field-label">基本单位采购价</text>
+          <input class="field-input" type="digit" value="{{form.nxDgBuyingPriceOne}}" data-level="1" bindinput="getBuyingPrice" hold-keyboard="true" />
+        </view>
+
+        <view class="field">
+          <text class="field-label">基本单位售价</text>
+          <input class="field-input" type="digit" value="{{form.nxDgWillPriceOne}}" data-level="1" bindinput="getWillPrice" hold-keyboard="true" />
+        </view>
+
+        <view class="profit">毛利率：<text class="profit-num">{{form.nxDgPriceProfitOne !== undefined && form.nxDgPriceProfitOne !== '' ? form.nxDgPriceProfitOne : '—'}}%</text></view>
+      </view>
+
+      <!-- 二档：外包装（有外包装时才显示） -->
+      <view class="section" wx:if="{{hasOuter}}">
+        <view class="section-title">外包装</view>
+
+        <view class="field">
+          <text class="field-label">外包装采购价</text>
+          <input class="field-input" type="digit" value="{{form.nxDgBuyingPriceTwo}}" data-level="2" bindinput="getBuyingPrice" hold-keyboard="true" />
+        </view>
+
+        <view class="field">
+          <text class="field-label">外包装售价</text>
+          <input class="field-input" type="digit" value="{{form.nxDgWillPriceTwo}}" data-level="2" bindinput="getWillPrice" hold-keyboard="true" />
+          <text class="field-unit">/{{form.nxDgCartonUnit}}</text>
+        </view>
+
+        <view class="profit">外包装数量：{{form.nxDgItemsPerCarton}}{{form.nxDgGoodsStandardname}}/{{form.nxDgCartonUnit}}</view>
+
+        <view class="profit">毛利率：<text class="profit-num">{{form.nxDgPriceProfitTwo !== undefined && form.nxDgPriceProfitTwo !== '' ? form.nxDgPriceProfitTwo : '—'}}%</text></view>
       </view>
     </view>
 
-    <view class="body">
-      <view class='goods_contents'>
-
-        <view class="flex-row-between" style="padding: 30rpx 20rpx;">
-          <view>
-            <text wx:if="{{level == 1}}">一级</text>
-            <text wx:elif="{{level == 2}}">二级</text>
-            <text wx:elif="{{level == 3}}">三级</text>
-            <text class="m-10">出货价:</text>
-          </view>
-
-          <view class="flex-row">
-            <view class="inputView" style="width: {{windowWidth / 5}}rpx; margin-right: 10rpx; ">
-              <block wx:if="{{level == 1}}">
-                <input class='input' type='digit' value="{{item.nxDgBuyingPriceOne}}" bindinput="getBuyingPrice" hold-keyboard='true'></input>
-              </block>
-              <block wx:if="{{level == 2}}">
-                <input class='input' type='digit' value="{{item.nxDgBuyingPriceTwo}}" bindinput="getBuyingPrice" hold-keyboard='true'></input>
-              </block>
-              <block wx:if="{{level == 3}}">
-                <input class='input' type='digit' value="{{item.nxDgBuyingPriceThree}}" bindinput="getBuyingPrice" hold-keyboard='true'></input>
-              </block>
-
-            </view>
-          </view>
-        </view>
-
-        <view class="flex-row-between" style="padding: 30rpx 20rpx;">
-          <view>
-            <text wx:if="{{level == 1}}">一级</text>
-            <text wx:elif="{{level == 2}}">二级</text>
-            <text wx:elif="{{level == 3}}">三级</text>
-            <text class="m-10">平台价:</text>
-          </view>
-          <view class="flex-row">
-            <view class="inputView" style="width: {{windowWidth / 5}}rpx; margin-right: 10rpx; ">
-              <block wx:if="{{level == 1}}">
-                <input class='input' type='digit' value="{{item.nxDgWillPriceOne}}" bindinput="getWillPrice" hold-keyboard='true'></input>
-              </block>
-              <block wx:if="{{level == 2}}">
-                <input class='input' type='digit' value="{{item.nxDgWillPriceTwo}}" bindinput="getWillPrice" hold-keyboard='true'></input>
-              </block>
-              <block wx:if="{{level == 3}}">
-                <input class='input' type='digit' value="{{item.nxDgWillPriceThree}}" bindinput="getWillPrice" hold-keyboard='true'></input>
-              </block>
-
-            </view>
-          </view>
-        </view>
-
-
-        <block wx:if="{{level > 1}}">
-          <view class="flex-row-between" style="padding: 30rpx 20rpx;">
-            <view>
-              <text wx:if="{{level == 1}}">一级</text>
-              <text wx:elif="{{level == 2}}">二级</text>
-              <text wx:elif="{{level == 3}}">三级</text>
-              <text class="m-10">销售规格名称:</text>
-            </view>
-
-            <view class="flex-row">
-              <view class="inputView" style="width: {{windowWidth / 5}}rpx; margin-right: 10rpx; ">
-                <block wx:if="{{level == 1}}">
-                  <input class='input' value="{{item.nxDgWillPriceOneStandard}}" bindinput="getLevelStandard" hold-keyboard='true'></input>
-                </block>
-                <block wx:if="{{level == 2}}">
-                  <input class='input' value="{{item.nxDgWillPriceTwoStandard}}" bindinput="getLevelStandard" hold-keyboard='true'></input>
-                </block>
-                <block wx:if="{{level == 3}}">
-                  <input class='input' value="{{item.nxDgWillPriceThreeStandard}}" bindinput="getLevelStandard" hold-keyboard='true'></input>
-                </block>
-
-              </view>
-            </view>
-          </view>
-          <view class="flex-row-between" style="padding: 30rpx 20rpx;">
-
-            <text class="m-10">规格数量:</text>
-            <view class="flex-row">
-              <view class="inputView" style="width: {{windowWidth / 5}}rpx; margin-right: 10rpx;">
-                <block wx:if="{{level == 1}}">
-                  <input class='input' type='digit' value="{{item.nxDgWillPriceOneWeight}}" bindinput="editLevelWeight" hold-keyboard='true'></input>
-                </block>
-                <block wx:if="{{level == 2}}">
-                  <input class='input' type='digit' value="{{item.nxDgWillPriceTwoWeight}}" bindinput="editLevelWeight" hold-keyboard='true'></input>
-                </block>
-                <block wx:if="{{level == 3}}">
-                  <input class='input' type='digit' value="{{item.nxDgWillPriceThreeWeight}}" bindinput="editLevelWeight" hold-keyboard='true'></input>
-                </block>
-
-              </view>
-              <text>{{item.nxDgGoodsStandardname}}</text>
-            </view>
-          </view>
-
-          <view class="flex-row-between" style="padding: 30rpx 20rpx;">
-
-            <text class="m-10">平均单价:</text>
-            <view class="flex-row">
-              <block wx:if="{{level == 1}}">
-                   <text>{{item.nxDgWillPriceOneAboutPrice}}</text>
-                   <text>元/{{item.nxDgGoodsStandardname}}</text>
-                </block>
-                <block wx:if="{{level == 2}}">
-                  <text>{{item.nxDgWillPriceTwoAboutPrice}}</text>
-                  <text>元/{{item.nxDgGoodsStandardname}}</text>
-                </block>
-                <block wx:if="{{level == 3}}">
-                  <text>{{item.nxDgWillPriceThreeAboutPrice}}</text>
-                  <text>元/{{item.nxDgGoodsStandardname}}</text>
-                </block>
-            </view>
-          </view>
-
-        </block>
-
-      </view>
-
-      <view class='flex-row'>
-        <view class="btn_row">
-          <view class="finish-btn1  flex-row">
-            <view class="flex-row p-20">
-              <view class="">
-                <block wx:if="{{level == 1}}">
-                  <text>{{item.nxDgPriceProfitOne}}%</text>
-                </block>
-                <block wx:if="{{level == 2}}">
-                  <text>{{item.nxDgPriceProfitTwo}}%</text>
-                </block>
-                <block wx:if="{{level == 3}}">
-                  <text>{{item.nxDgPriceProfitThree}}%</text>
-                </block>
-              </view>
-            </view>
-          </view>
-          <view class="btn_row_finish" style="width: {{windowWidth - 460}}rpx;  ">
-            <text class='red-btn'   bindtap="delPrice" hover-class="hoverBtn">删除</text>
-            <text class='gray_btn'   bindtap="cancle" hover-class="hoverBtn">关闭</text>
-            <text class='mainColor' catchtap='confirm' hover-class="hoverBtn">完成</text>
-          </view>
-        </view>
-      </view>
+    <view class="modal-footer">
+      <view class="btn btn-cancel" bindtap="cancle">关闭</view>
+      <view class="btn btn-confirm" catchtap="confirm">完成</view>
     </view>
-
   </view>
 </view>

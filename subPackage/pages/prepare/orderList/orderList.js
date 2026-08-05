@@ -503,10 +503,10 @@ Page({
                   // 获取部门名称
                   let depName = '';
                   // 协作订单：优先使用 [协作商名称]fatherDepartmentOrderCode（不含空格）
-                  const collabId = order.nxDoCollaborativeNxDisId;
+                  const collabId = order.nxDoRequestDisId;
                   const isCollaborative = collabId !== undefined && collabId !== null && collabId !== -1 && String(collabId) !== '-1';
                   if (isCollaborative) {
-                    depName = '[' + (order.nxDoCollaborativeDistributerName || '') + ']';
+                    depName = '[' + (order.nxDoRequestDistributerName || '') + ']';
                     const fatherCode = order.fatherDepartmentOrderCode || (order.nxDepartmentEntity && order.nxDepartmentEntity.fatherDepartmentEntity ? order.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentOrderCode : null);
                     if (fatherCode) depName += fatherCode;
                   } else {
@@ -1130,10 +1130,10 @@ Page({
             var isCustomer = false; // 是否是客户（GB部门或餐厅），客户不打印#
             
             // 协作订单：优先使用 [协作商名称]fatherDepartmentOrderCode（不含空格）
-            var collabId = order.nxDoCollaborativeNxDisId;
+            var collabId = order.nxDoRequestDisId;
             var isCollaborative = collabId !== undefined && collabId !== null && collabId !== -1 && String(collabId) !== '-1';
             if (isCollaborative) {
-              depName = '[' + (order.nxDoCollaborativeDistributerName || '') + ']';
+              depName = '[' + (order.nxDoRequestDistributerName || '') + ']';
               var fatherCode = order.fatherDepartmentOrderCode || (order.nxDepartmentEntity && order.nxDepartmentEntity.fatherDepartmentEntity ? order.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentOrderCode : null);
               if (fatherCode) depName += fatherCode;
               isCustomer = false;

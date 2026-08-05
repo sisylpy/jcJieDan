@@ -2,7 +2,8 @@
 var load = require('../../../../lib/load.js');
 
 import {
-  disGetAllCustomer
+  disGetAllCustomer,
+  disGetLabels
 } from '../../../../lib/apiDistributer.js'
 
 
@@ -11,22 +12,35 @@ Page({
   onShow(){
 
     this._initData();
+    this._getDistributerLabels();
 
   },
 
   onLoad: function (options) {
     const globalData = getApp().globalData;
+    // 调用方（order/index）通过 ?disId= 传入的是配送商实体 id，标签挂在该实体上，必须优先使用
+    const passedDisId = options && options.disId != null && String(options.disId).trim() !== ''
+      ? String(options.disId)
+      : null;
     this.setData({
       windowWidth: globalData.windowWidth * globalData.rpxR,
       windowHeight: globalData.windowHeight * globalData.rpxR,
       navBarHeight: globalData.navBarHeight * globalData.rpxR,
       rpxR: globalData.rpxR,
+      labelList: [],          // 配送商全部标签
+      selectedLabelId: null,  // 当前选中的标签ID，null表示全部
     })
     var userInfo = wx.getStorageSync('userInfo');
     if (userInfo) {
+      // 标签查询使用实体 id：优先用 URL 传入的 disId，否则用 userInfo 中的实体 id
+      var labelDisId = passedDisId
+        || (userInfo.nxDistributerEntity && userInfo.nxDistributerEntity.nxDistributerId != null
+          ? userInfo.nxDistributerEntity.nxDistributerId
+          : userInfo.nxDiuDistributerId);
       this.setData({
         userInfo: userInfo,
-        disId: userInfo.nxDiuDistributerId,
+        disId: passedDisId || userInfo.nxDiuDistributerId,
+        labelDisId: labelDisId,
         deviceId: userInfo.nxDiuPrintDeviceId,
         disInfo: userInfo.nxDistributerEntity,
       })
@@ -49,6 +63,58 @@ Page({
     this.setData({
       customerFilterKeyword: e.detail.value
     }, () => this._filterCustomers());
+  },
+
+  // 获取配送商标签列表
+  _getDistributerLabels() {
+    const { labelDisId } = this.data;
+    if (!labelDisId) return;
+
+    disGetLabels(labelDisId).then(res => {
+      if (res.result.code == 0) {
+        this.setData({
+          labelList: res.result.data || []
+        });
+      }
+    });
+  },
+
+  // 按标签筛选客户
+  filterByLabel(e) {
+    const labelId = e.currentTarget.dataset.id;
+    const { selectedLabelId } = this.data;
+
+    // 点击已选中的标签则取消筛选
+    if (selectedLabelId === labelId) {
+      this.setData({ selectedLabelId: null });
+      this._initData();
+    } else {
+      this.setData({ selectedLabelId: labelId });
+      this._filterCustomerByLabel(labelId);
+    }
+  },
+
+  // 根据标签筛选客户
+  _filterCustomerByLabel(labelId) {
+    load.showLoading('筛选中...');
+
+    disGetAllCustomer(this.data.labelDisId, labelId).then(res => {
+      load.hideLoading();
+      if (res.result.code == 0) {
+        const arrOne = res.result.data.settleTypeOne || [];
+        const arrTwo = res.result.data.settleTypeTwo || [];
+        this.setData({
+          myCustomerArrOne: arrOne,
+          myCustomerArrTwo: arrTwo,
+          myCustomerArrThree: res.result.data.settleTypeThree || [],
+        }, () => this._filterCustomers());
+      } else {
+        wx.showToast({
+          title: res.result.msg || '筛选失败',
+          icon: 'none'
+        });
+      }
+    });
   },
 
   _initData() {
@@ -84,12 +150,6 @@ Page({
 
 
 
-  addNewCustomer(e) {
-    wx.navigateTo({
-      url: '../../../../subPackage/pages/customer/addCustomer/addCustomer?disId=' + this.data.disId,
-    })
-  },
-
 
   toDepOrders(e) {
     wx.setStorageSync('depItem', e.currentTarget.dataset.item);
@@ -110,94 +170,22 @@ Page({
   },
 
 
-  
-
-  selectDepartment(e){
-    console.log(e.currentTarget.dataset.item);
-    var dep = e.currentTarget.dataset.item;
-    var depFatherId = dep.nxDepartmentId;
-    var depId = dep.nxDepartmentId;
-    var depName = dep.nxDepartmentName;
-    if(dep.nxDepartmentFatherId > 0){
-       depFatherId = dep.nxDepartmentFatherId;
-       depName = e.currentTarget.dataset.fathername + "-" + depName
-    }
-   
-    this.setData({
-      dep: dep,
-      depFatherId: depFatherId,
-      depId: depId,
-      depName: depName,
-      showOperation: true,
-    })
-  },
-
-
-  hideMast(){
-    this.setData({
-      showOperation: false
-    })
-  },
-
-  toResGoods(){
-    this.hideMast();
-    wx.setStorageSync('depItem', this.data.dep);
+  addNewCustomer(e) {
     wx.navigateTo({
-      url: '../resGoodsList/resGoodsList?depFatherId=' + this.data.depFatherId
-      +'&depId=' + this.data.depId + '&depName=' + this.data.depName +
-      '&gbDepFatherId=-1&depSettleType=' + this.data.dep.nxDepartmentSettleType + '&beforeId=-1',
+      url: '../../../../subPackage/pages/customer/addCustomer/addCustomer?disId=' + this.data.disId,
     })
   },
 
-  toResGoodsList(e) {
-    this.setData({
-      showOperation:false
-    })
-    console.log("depId=" + this.data.depFatherId + '&depHasSubs=' + this.data.dep.nxDepartmentSubAmount)
-   var appId = this.data.disInfo.nxDistributerAppId;
-    wx.navigateToMiniProgram({
-      appId: appId,
-      path: '/pages/index_admin/index_admin?depId=' + this.data.depFatherId + '&depHasSubs=' + this.data.dep.nxDepartmentSubAmount , 
-      envVersion: 'release', //release develop trial
-      success(res) {
-        // that.setData({
-        //   toOpenMini: false
-        // })
-      }
-    })
 
-  },
-
-  toRecord(){
-    this.hideMast();
-    wx.setStorageSync('depItem', this.data.dep);
+  toRetailGoods(){
     wx.navigateTo({
-      url: '../../../../subPackage/pages/order/record/record?depFatherId=' + this.data.depFatherId
-      +'&depId=' + this.data.depId + '&depName=' + this.data.depName +
-      '&gbDepFatherId=-1&depType=' + this.data.dep.nxDepartmentType,
-    })
-
-  },
-
-
-  toPaste(){
-    this.hideMast();
-    wx.setStorageSync('depItem', this.data.dep);
-    wx.navigateTo({
-      url: '../paste/paste?depFatherId=' + this.data.depFatherId
-      +'&depId=' + this.data.depId + '&depName=' + this.data.depName +
-      '&gbDepFatherId=-1&depType=' + this.data.dep.nxDepartmentType,
+      url: '/subPackage-order/pages/order/paste/paste?isRetail=1',
     })
 
   },
 
 
 
-  hideMask(){
-    this.setData({
-      showOperation: false,
-    })
-  },
   toBack() {
     wx.navigateBack({
       delta: 2,

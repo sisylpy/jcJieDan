@@ -140,7 +140,7 @@
                     <!-- 订单信息（客户名称） -->
                     <view class="flex-row font-sm ml-10" style="flex-shrink: 1; min-width: 0;">
                       <text wx:if="{{order.isPlatformOrder === 1}}" class="platform-tag mr-10">{{order.platformLabel || '平台'}}</text>
-                      <block wx:if="{{order.nxDoCollaborativeNxDisId == -1}}">
+                      <block wx:if="{{order.nxDoRequestDisId == -1}}">
                         <block wx:if="{{order.nxDoGbDepartmentId !== -1}}">
                           <text wx:if="{{order.fatherGbDepartmentName}}">{{order.fatherGbDepartmentName}}.</text>
                           <text>{{order.gbDepartmentName}}</text>
@@ -151,7 +151,7 @@
                         </block>
                       </block>
                       <block wx:else>
-                        <text>[{{order.nxDoCollaborativeDistributerName}}]</text>
+                        <text>[{{order.nxDoRequestDistributerName}}]</text>
                       </block>
                     </view>
                   </view>
@@ -206,7 +206,7 @@
 
                       <text wx:if="{{order.isPlatformOrder === 1}}" class="platform-tag mr-10">{{order.platformLabel || '平台'}}</text>
 
-                      <block wx:if="{{order.nxDoCollaborativeNxDisId == -1}}">
+                      <block wx:if="{{order.nxDoRequestDisId == -1}}">
                          <!-- GB部门（扁平化） -->
                       <block wx:if="{{order.nxDoGbDepartmentId  !== -1}}">
                         <view class="flex-row ">
@@ -225,7 +225,7 @@
                       </block>
                       </block>
                       <block wx:else="">
-                        <text class="mr-10">[{{order.nxDoCollaborativeDistributerName}}]</text>
+                        <text class="mr-10">[{{order.nxDoRequestDistributerName}}]</text>
                       </block>
                     
                       <text class="ml-20">{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>

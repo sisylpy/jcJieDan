@@ -111,7 +111,8 @@ Component({
       load.showLoading("获取数据中");
       var data = {
         orderDisId: this.data.disId,
-        
+        disId: this.data.disId,
+        purType: 1
       }
       
       // 根据显示模式调用不同接口

@@ -2,7 +2,7 @@ var load = require('../../../../lib/load.js')
 var app = getApp()
 
 import { getAvailableDrivers, driverCheckIn, driverCheckOut } from '../../../../lib/apiRouteDispatch.js'
-import { resolveSession, getTodayDateStr } from '../_session.js'
+import { resolveSession } from '../_session.js'
 
 function applyPageData(page, data) {
   if (data && data.driverCards) {
@@ -26,7 +26,6 @@ Page({
     disId: null,
     operatorUserId: null,
     currentDriverUserId: null,
-    dutyDate: '',
     pageData: null,
     loadError: ''
   },
@@ -38,8 +37,7 @@ Page({
       navBarHeight: globalData.navBarHeight * globalData.rpxR,
       disId: session.disId,
       operatorUserId: session.operatorUserId,
-      currentDriverUserId: session.driverUserId,
-      dutyDate: getTodayDateStr()
+      currentDriverUserId: session.driverUserId
     })
   },
 
@@ -61,8 +59,7 @@ Page({
       load.showLoading('加载司机')
     }
     getAvailableDrivers({
-      disId: this.data.disId,
-      routeDate: this.data.dutyDate || getTodayDateStr()
+      disId: this.data.disId
     }).then(function (res) {
       if (!res.result || res.result.code !== 0) {
         that.setLoadError((res.result && res.result.msg) || '加载司机失败', false)
@@ -152,7 +149,6 @@ Page({
     apiFn({
       disId: this.data.disId,
       driverUserId: driverUserId,
-      dutyDate: this.data.dutyDate,
       operatorUserId: this.data.operatorUserId
     }).then(function (res) {
       load.hideLoading()

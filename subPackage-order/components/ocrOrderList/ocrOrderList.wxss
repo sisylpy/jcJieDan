@@ -142,6 +142,25 @@ input.input.status-draft {
   align-items: center;
 }
 
+/* 已保存订单商品名称行：拍平后的各片段，便于单独设置样式 */
+.goods-name-row {
+  align-items: baseline;
+}
+.distributer-tag {
+  margin-right: 6rpx;
+}
+.goods-name {
+  font-weight: 500;
+}
+.goods-standard {
+  color: #888888;
+  margin-left: 4rpx;
+}
+.goods-carton {
+  color: #888888;
+  margin-left: 8rpx;
+}
+
 .mainColor{
   color: #187e6e;
 }

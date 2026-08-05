@@ -253,105 +253,11 @@ Page({
 
 
   showIsPurchase(e) {
-    var item = e.currentTarget.dataset.item;
-    if (this.data.disInfo.nxDistributerType == 1 && this.data.type == 'sell') {
-      this.setData({
-        goodsIndex: e.currentTarget.dataset.index,
-        showBuyingPrice: true,
-        item: item,
-        // level: e.currentTarget.dataset.level,
-        // profit:profit,
-        // willPrice: willPrice,
-        // buyingPrice: buyingPrice,
-        // weight: weight
-      })
-    } else if (this.data.disInfo.nxDistributerType == 1 && this.data.type == 'buyingPrice') {
-      this.setData({
-        goodsIndex: e.currentTarget.dataset.index,
-        showIsPurchaseSingle: true,
-        item: item,
-        // level: e.currentTarget.dataset.level,
-        // profit:profit,
-        // willPrice: willPrice,
-        // buyingPrice: buyingPrice,
-        // weight: weight
-      })
-    } else if (this.data.disInfo.nxDistributerType == 3) {
-
-      console.log(e);
-      console.log(e.currentTarget.dataset.level);
-      var profit = "";
-      var willPrice = "";
-      var buyingPrice = "";
-      var weight = "";
-      // if(e.currentTarget.dataset.level == 1){
-      //   profit = item.nxDgPriceProfitOne;
-      //   willPrice = item.nxDgWillPriceOne;
-      //   buyingPrice = item.nxDgBuyingPriceOne;
-      //   weight = item.nxDgWillPriceOneWeight;
-      // }
-      // if(e.currentTarget.dataset.level == 2){
-      //   profit = item.nxDgPriceProfitTwo;
-      //   willPrice = item.nxDgWillPriceTwo;
-      //   buyingPrice = item.nxDgBuyingPriceTwo;
-      //   weight = item.nxDgWillPriceTwoWeight;
-      // }
-      // if(e.currentTarget.dataset.level == 3){
-      //   profit = item.nxDgPriceProfitThree;
-      //   willPrice = item.nxDgWillPriceThree;
-      //   buyingPrice = item.nxDgBuyingPriceThree;
-      //   weight = item.nxDgWillPriceThreeWeight;
-      // }
-
-      this.setData({
-        goodsIndex: e.currentTarget.dataset.index,
-        showIsPurchase: true,
-        item: item,
-        // level: e.currentTarget.dataset.level,
-        // profit:profit,
-        // willPrice: willPrice,
-        // buyingPrice: buyingPrice,
-        // weight: weight
-      })
-    } else if (this.data.disInfo.nxDistributerType == 1) {
-
-      console.log(e);
-      console.log(e.currentTarget.dataset.level);
-      var profit = "";
-      var willPrice = "";
-      var buyingPrice = "";
-      var weight = "";
-      if (e.currentTarget.dataset.level == 1) {
-        profit = item.nxDgPriceProfitOne;
-        willPrice = item.nxDgWillPriceOne;
-        buyingPrice = item.nxDgBuyingPriceOne;
-        weight = item.nxDgWillPriceOneWeight;
-      }
-      if (e.currentTarget.dataset.level == 2) {
-        profit = item.nxDgPriceProfitTwo;
-        willPrice = item.nxDgWillPriceTwo;
-        buyingPrice = item.nxDgBuyingPriceTwo;
-        weight = item.nxDgWillPriceTwoWeight;
-      }
-      if (e.currentTarget.dataset.level == 3) {
-        profit = item.nxDgPriceProfitThree;
-        willPrice = item.nxDgWillPriceThree;
-        buyingPrice = item.nxDgBuyingPriceThree;
-        weight = item.nxDgWillPriceThreeWeight;
-      }
-
-      this.setData({
-        goodsIndex: e.currentTarget.dataset.index,
-        showIsPurchaseSingle: true,
-        item: item,
-        level: e.currentTarget.dataset.level,
-        profit: profit,
-        willPrice: willPrice,
-        buyingPrice: buyingPrice,
-        weight: weight
-      })
-    }
-
+    this.setData({
+      goodsIndex: e.currentTarget.dataset.index,
+      showBuyingPrice: true,
+      item: e.currentTarget.dataset.item,
+    })
   },
 
 
@@ -360,7 +266,6 @@ Page({
     console.log(item);
     item.nxDgWillPriceOneWeight = 0;
     item.nxDgWillPriceTwoWeight = 0;
-    item.nxDgWillPriceThreeWeight = 0;
 
     disUpdateBuyingPrice(item)
       .then(res => {
@@ -394,55 +299,13 @@ Page({
     }
   },
 
-  radioChange(e) {
-    console.log(e.detail.value);
-    this.setData({
-      purchaseAuto: e.detail.value,
-    })
-  },
-
-  handleContact(e) {
-    console.log(e)
-  },
 
 
 
 
 
-  radioChange(e) {
-    console.log(e.detail.value);
-    this.setData({
-      isGrade: e.detail.value,
-    })
-    if (this.data.isGrade == 0) {
-      if (this.data.buyingPrice > 0) {
-        console.log("buyingPrice>000")
-        this.setData({
-          canDownLoad: true
-        })
-      }
-    } else {
-      this.setData({
-        canDownLoad: false
-      })
-    }
-    if (this.data.isGrade == 1) {
 
-      if (this.data.buyingPriceOne > 0 && this.data.buyingPriceTwo > 0 &&
-        this.data.buyingPriceThree > 0) {
-        if (this.data.buyingPrice > 0) {
-          this.setData({
-            canDownLoad: true
-          })
-        }
-      } else {
-        this.setData({
-          canDownLoad: false
-        })
-      }
-    }
 
-  },
 
 
 

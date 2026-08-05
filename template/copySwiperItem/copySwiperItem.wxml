@@ -81,7 +81,7 @@
                     wx:for-index="orderIndex" wx:key="nxDepartmentOrdersId" style=" width: {{windowWidth - 160}}rpx; ">
                     <view class="flex flex-row " style="width: {{windowWidth - 140}}rpx;">
                       <text class="circle_default"></text>
-                      <block wx:if="{{order.nxDoCollaborativeNxDisId == -1}}">
+                      <block wx:if="{{order.nxDoRequestDisId == -1}}">
                         <block wx:if="{{order.gbDepartmentEntity !== null}}">
                         <view class="flex-column p-10 mr-20"
                           wx:if="{{order.gbDepartmentEntity.fatherGbDepartmentEntity !== null}}">
@@ -134,7 +134,7 @@
                       </block>
 
                       <block wx:else="">
-                        <text class="mr-10">[{{order.nxDoCollaborativeDistributerName}}]</text>
+                        <text class="mr-10">[{{order.nxDoRequestDistributerName}}]</text>
                       </block>
                      
 

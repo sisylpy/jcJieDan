@@ -1508,11 +1508,11 @@ Component({
             };
             
             // 协作订单：保留协作商名称和部门编码
-            const collabId = order.nxDoCollaborativeNxDisId;
+            const collabId = order.nxDoRequestDisId;
             const isCollaborative = collabId !== undefined && collabId !== null && collabId !== -1 && String(collabId) !== '-1';
             if (isCollaborative) {
-              convertedOrder.nxDoCollaborativeNxDisId = collabId;
-              convertedOrder.nxDoCollaborativeDistributerName = order.nxDoCollaborativeDistributerName;
+              convertedOrder.nxDoRequestDisId = collabId;
+              convertedOrder.nxDoRequestDistributerName = order.nxDoRequestDistributerName;
               convertedOrder.fatherDepartmentOrderCode = order.fatherDepartmentOrderCode || (order.nxDepartmentEntity && order.nxDepartmentEntity.fatherDepartmentEntity ? order.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentOrderCode : null);
             }
             // 扁平化部门信息
@@ -2444,13 +2444,30 @@ Component({
               });
             },
           })
-  
-        } else {
-          wx.showToast({
-            title: res.result.msg,
-            icon: 'none'
-          })
-        }
+
+          } else {
+            wx.showToast({
+              title: res.result.msg,
+              icon: 'none'
+            })
+          }
+        })
+    },
+
+    // 点击批次「分享/卖家」按钮：打开「精彩订货 AI」小程序，按 batchId 打开对应批次页
+    toShareBatch(e) {
+      var id = e.currentTarget.dataset.id;
+      console.log("toShareBatch batchId=" + id + "&retName=" + this.data.disInfo.nxDistributerName + "&disId=" + this.data.disId + "&purUserId=" + this.data.userInfo.nxDistributerUserId + "&buyUserId=" + this.data.userInfo.nxDistributerUserId + "&fromBuyer=1&fromBoss=1")
+      wx.navigateToMiniProgram({
+        appId: 'wx1ea78d3f33234284',
+        path: 'pages/txs/disOrderBatch/disOrderBatch?batchId=' + id + '&retName=' + this.data.disInfo.nxDistributerName + '&disId=' + this.data.disId + '&purUserId=' + this.data.userInfo.nxDistributerUserId + '&buyUserId=' + this.data.userInfo.nxDistributerUserId + '&fromBuyer=1&fromBoss=1',
+        envVersion: 'trial', //release  develop  trial
+        success(res) {
+
+        },
+        fail() {
+
+        },
       })
     },
 
@@ -3153,10 +3170,10 @@ Component({
               // 获取部门名称
               let depName = '';
               // 协作订单：优先使用 [协作商名称]fatherDepartmentOrderCode（不含空格）
-              const collabId = order.nxDoCollaborativeNxDisId;
+              const collabId = order.nxDoRequestDisId;
               const isCollaborative = collabId !== undefined && collabId !== null && collabId !== -1 && String(collabId) !== '-1';
               if (isCollaborative) {
-                depName = '[' + (order.nxDoCollaborativeDistributerName || '') + ']';
+                depName = '[' + (order.nxDoRequestDistributerName || '') + ']';
                 const fatherCode = order.fatherDepartmentOrderCode || (order.nxDepartmentEntity && order.nxDepartmentEntity.fatherDepartmentEntity ? order.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentOrderCode : null);
                 if (fatherCode) {
                   depName += fatherCode;

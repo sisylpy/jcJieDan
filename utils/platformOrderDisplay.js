@@ -59,6 +59,18 @@ function sortOrders(orders) {
   });
 }
 
+// 斤/公斤展示归一化：未定价用原始斤单价(0.1)判定；有公斤值优先显示公斤，否则回退原值
+// 箱/袋等非斤商品后端不转公斤(kg 字段为空)，自动回退显示箱/袋价
+function normalizeKgDisplay(order) {
+  if (!order) return order;
+  var price = order.nxDoPrice;
+  order._unpriced = price === 0.1 || price === '0.1' || price === '' || price == null;
+  order._displayPrice = order._unpriced ? '-' : (order.nxDoPriceKg ? order.nxDoPriceKg : price);
+  order._displayWeight = order.nxDoWeightKg ? order.nxDoWeightKg : order.nxDoWeight;
+  order._weightDanger = (order.nxDoWeight === '' || order.nxDoWeight == null);
+  return order;
+}
+
 function normalizeOrder(order) {
   if (!order) return order;
   var platform = isPlatformOrder(order);
@@ -81,6 +93,7 @@ function normalizeOrder(order) {
   if (order.hasChoice === undefined || order.hasChoice === null) {
     order.hasChoice = false;
   }
+  normalizeKgDisplay(order);
   return order;
 }
 
@@ -215,6 +228,7 @@ module.exports = {
   isPlatformOrder: isPlatformOrder,
   isPlatformFlag: isPlatformFlag,
   normalizeOrder: normalizeOrder,
+  normalizeKgDisplay: normalizeKgDisplay,
   processGoodsItem: processGoodsItem,
   processGoodsList: processGoodsList,
   buildCustomerGroups: buildCustomerGroups,

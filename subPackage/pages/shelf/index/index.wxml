@@ -63,7 +63,7 @@
         </view>
 
       
-        <!-- <view class="button-container mr-20" wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}" bindtap="toPurchase" data-type="sell">
+        <!-- <view class="button-container mr-20" wx:if="{{disInfo.nxDistributerBusinessTypeId > 1}}" bindtap="toPurchase" data-type="sell">
           <image src="../../../../images/jjdhn.png" class="icon"></image>
         </view> -->
 
@@ -227,7 +227,7 @@
                                 <text class="shelf-list-carton-main">{{shelfGoods.nxDistributerGoodsEntity.nxDgItemsPerCarton}}{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
                                 <text class="shelf-list-carton-unit">/{{shelfGoods.nxDistributerGoodsEntity.nxDgCartonUnit}}</text>
                               </view>
-                              <text wx:if="{{disInfo.nxDistributerBusinessTypeId == 3}}" class="shelf-goods-price-edit" catchtap="openShelfGoodsPriceModal" data-index="{{index}}">设价</text>
+                              <text class="shelf-goods-price-edit" catchtap="showIsPurchase" data-item="{{shelfGoods.nxDistributerGoodsEntity}}" data-index="{{index}}">设价</text>
                             </view>
                             <view class="shelf-list-line-full" wx:if="{{shelfGoods.nxDistributerGoodsEntity.nxDgNxGoodsId == null}}">
                               <text class="text-danger font-xs">[临时]</text>
@@ -695,7 +695,7 @@
   </view>
 </block>
 
-<shelf-goods-price-modal wx:if="{{disInfo.nxDistributerBusinessTypeId == 3}}" show="{{showShelfPriceModal}}" item="{{shelfPriceModalItem}}" windowWidth="{{windowWidth}}" bindcancel="onShelfPriceModalCancel" bindconfirm="onShelfPriceModalConfirm" />
+<goodsWillPirce show="{{showIsPurchase}}" item="{{item}}" windowHeight="{{windowHeight}}" windowWidth="{{windowWidth}}" bindconfirm="confirm" bindcancle="cancleIsPurchase" />
 
 <!-- 图片弹窗 -->
 <view class="image-modal" wx:if="{{showImageModal}}" bindtap="hideImageModal">

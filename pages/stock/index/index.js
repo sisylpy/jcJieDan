@@ -1804,13 +1804,13 @@ Component({
         })));
         // 协作订单调试：选择商品时打印每个订单的协作相关字段
         orders.forEach((order, idx) => {
-          var collabId = order.nxDoCollaborativeNxDisId;
+          var collabId = order.nxDoRequestDisId;
           var isCollab = collabId !== undefined && collabId !== null && collabId !== -1 && String(collabId) !== '-1';
           var fatherCode = order.fatherDepartmentOrderCode || (order.nxDepartmentEntity && order.nxDepartmentEntity.fatherDepartmentEntity ? order.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentOrderCode : null);
           var deptCode = order.nxDepartmentOrderCode || (order.nxDepartmentEntity ? order.nxDepartmentEntity.nxDepartmentOrderCode : null);
           var printName = '';
           if (isCollab) {
-            printName = '[' + (order.nxDoCollaborativeDistributerName || '') + ']';
+            printName = '[' + (order.nxDoRequestDistributerName || '') + ']';
             if (fatherCode) {
               printName += fatherCode;
             }
@@ -1825,8 +1825,8 @@ Component({
           }
           console.log('🖨️ 订单[' + idx + '] 协作调试:', {
             nxDepartmentOrdersId: order.nxDepartmentOrdersId,
-            nxDoCollaborativeNxDisId: collabId,
-            nxDoCollaborativeDistributerName: order.nxDoCollaborativeDistributerName,
+            nxDoRequestDisId: collabId,
+            nxDoRequestDistributerName: order.nxDoRequestDistributerName,
             isCollaborative: isCollab,
             fatherDepartmentOrderCode: fatherCode,
             nxDepartmentOrderCode: deptCode,
@@ -1992,7 +1992,7 @@ Component({
           nxDgGoodsName: goodsItem.nxDgGoodsName,
           nxDgDfgGoodsFatherId: goodsItem.nxDgDfgGoodsFatherId,
           nxDgDfgGoodsGrandId: goodsItem.nxDgDfgGoodsGrandId,
-          nxDgBuyingPrice: goodsItem.nxDgBuyingPrice,
+          nxDgBuyingPriceOne: goodsItem.nxDgBuyingPriceOne,
           nxDgGoodsStandardname: goodsItem.nxDgGoodsStandardname,
           nxDepartmentOrdersEntities: goodsItem.nxDepartmentOrdersEntities ? goodsItem.nxDepartmentOrdersEntities.map(function(order) {
             // 只复制订单的必要字段
@@ -2030,7 +2030,7 @@ Component({
             nxDgGoodsName: oldGoods.nxDgGoodsName,
             nxDgDfgGoodsFatherId: oldGoods.nxDgDfgGoodsFatherId,
             nxDgDfgGoodsGrandId: oldGoods.nxDgDfgGoodsGrandId,
-            nxDgBuyingPrice: oldGoods.nxDgBuyingPrice,
+            nxDgBuyingPriceOne: oldGoods.nxDgBuyingPriceOne,
             nxDgGoodsStandardname: oldGoods.nxDgGoodsStandardname,
             nxDepartmentOrdersEntities: oldGoods.nxDepartmentOrdersEntities ? oldGoods.nxDepartmentOrdersEntities.map(function(order) {
               return {
@@ -2120,14 +2120,14 @@ Component({
         console.log('📊 订单对象:', order);
         console.log('📊 订单ID:', order?.nxDepartmentOrdersId);
         // 协作订单调试：选择订单时立即打印
-        var collabId = order?.nxDoCollaborativeNxDisId;
-        var collabName = order?.nxDoCollaborativeDistributerName;
+        var collabId = order?.nxDoRequestDisId;
+        var collabName = order?.nxDoRequestDistributerName;
         var isCollaborative = collabId !== undefined && collabId !== null && collabId !== -1 && String(collabId) !== '-1';
         console.log('🖨️ 选择订单-协作调试:', {
           nxDepartmentOrdersId: order?.nxDepartmentOrdersId,
-          nxDoCollaborativeNxDisId: collabId,
-          nxDoCollaborativeNxDisId_type: typeof collabId,
-          nxDoCollaborativeDistributerName: collabName,
+          nxDoRequestDisId: collabId,
+          nxDoRequestDisId_type: typeof collabId,
+          nxDoRequestDistributerName: collabName,
           isCollaborative: isCollaborative,
           fatherDepartmentOrderCode: order?.fatherDepartmentOrderCode,
           nxDepartmentOrderCode: order?.nxDepartmentOrderCode,
@@ -2545,16 +2545,29 @@ Component({
           var goodsId = goods.nxDistributerGoodsId;
           var fatherGoodsId = goods.nxDgDfgGoodsFatherId;
           var grandGoodsId = goods.nxDgDfgGoodsGrandId;
-          var costPrice = goods.nxDgBuyingPrice;
+          var costPrice = goods.nxDgBuyingPriceOne;
+          var defaultStandard = goods.nxDgGoodsStandardname || '';
           
-          // 从 goodsArr 实时读取最新的 purSelected 状态，只处理选中的订单
-          var tempArr = [];
+          // 按 nxDoStandard 分组收集选中的订单
+          // key: 规格名, value: { orders: [订单副本数组], totalQuantity: 数量合计 }
+          var standardGroupMap = {};
+          
           if (goods.nxDepartmentOrdersEntities && goods.nxDepartmentOrdersEntities.length > 0) {
             for (var j = 0; j < goods.nxDepartmentOrdersEntities.length; j++) {
               var order = goods.nxDepartmentOrdersEntities[j];
               // 只处理 purSelected 为 true 的订单
               if (order.purSelected) {
-                // 创建订单副本，避免修改原数据
+                // 订单规格：如果为空则用商品默认规格
+                var orderStandard = order.nxDoStandard || defaultStandard;
+                
+                if (!standardGroupMap[orderStandard]) {
+                  standardGroupMap[orderStandard] = {
+                    orders: [],
+                    totalQuantity: 0
+                  };
+                }
+                
+                // 创建订单副本
                 var orderCopy = {
                   nxDepartmentOrdersId: order.nxDepartmentOrdersId,
                   purSelected: order.purSelected,
@@ -2575,41 +2588,51 @@ Component({
                 orderCopy.nxDoCostPriceLevel = 0;
                 orderCopy.nxDoCostPriceUpdate = this.data.upTime;
                 
-                tempArr.push(orderCopy);
+                standardGroupMap[orderStandard].orders.push(orderCopy);
+                standardGroupMap[orderStandard].totalQuantity += Number(order.nxDoQuantity) || 0;
               }
             }
           }
 
-          // 只有当有选中的订单时，才添加到采购列表
-          if (tempArr.length > 0) {
-          var purGoods = {
-            nxDpgDisGoodsId: goodsId,
-            nxDpgDisGoodsFatherId: fatherGoodsId,
-            nxDpgDisGoodsGrandId: grandGoodsId,
-            nxDpgDistributerId: this.data.disId,
-            nxDepartmentOrdersEntities: tempArr,
-            nxDpgApplyDate: this.data.arriveDate,
-            nxDpgPurUserId: this.data.userInfo.nxDistributerUserId,
-            nxDpgCostLevel: priceLeve,
-            nxDpgExpectPrice: costPrice,
-            nxDpgPurchaseType: 1,
-            nxDpgInputType: 1,
-            nxDpgStandard: goods.nxDgGoodsStandardname,
-            };
-          list.push(purGoods);
+          // 每个规格组生成一个采购商品
+          var standardKeys = Object.keys(standardGroupMap);
+          for (var s = 0; s < standardKeys.length; s++) {
+            var standardName = standardKeys[s];
+            var group = standardGroupMap[standardName];
             
-            console.log(`📊 商品 ${goods.nxDgGoodsName} 有 ${tempArr.length} 个选中的订单`);
-          } else {
-            console.log(`⚠️ 商品 ${goods.nxDgGoodsName} 没有选中的订单，跳过`);
+            if (group.orders.length > 0) {
+              var purGoods = {
+                nxDpgDisGoodsId: goodsId,
+                nxDpgDisGoodsFatherId: fatherGoodsId,
+                nxDpgDisGoodsGrandId: grandGoodsId,
+                nxDpgDistributerId: this.data.disId,
+                nxDepartmentOrdersEntities: group.orders,
+                nxDpgQuantity: group.totalQuantity,
+                nxDpgApplyDate: this.data.arriveDate,
+                nxDpgPurUserId: this.data.userInfo.nxDistributerUserId,
+                nxDpgCostLevel: priceLeve,
+                nxDpgExpectPrice: costPrice,
+                nxDpgPurchaseType: 1,
+                nxDpgInputType: 1,
+                nxDpgStandard: standardName,
+              };
+              list.push(purGoods);
+              
+              console.log(`📊 商品 ${goods.nxDgGoodsName} 规格"${standardName}" → ${group.orders.length} 个订单，数量合计 ${group.totalQuantity}`);
+            }
           }
         }
       }
       
       console.log('📊 最终采购商品数量:', list.length);
-      console.log('📊 采购订单详情:', list.map(item => ({
-        goodsId: item.nxDpgDisGoodsId,
-        orderCount: item.nxDepartmentOrdersEntities.length
-      })));
+      console.log('📊 采购商品详情:', list.map(function(item) {
+        return {
+          goodsId: item.nxDpgDisGoodsId,
+          standard: item.nxDpgStandard,
+          quantity: item.nxDpgQuantity,
+          orderCount: item.nxDepartmentOrdersEntities.length
+        };
+      }));
       
       return list;
 
@@ -2667,22 +2690,22 @@ Component({
                 };
                 // 协作订单：传递协作商名称和部门编码，用于打印标签
                 // 调试日志：打印订单的协作相关字段
-                var collabId = order.nxDoCollaborativeNxDisId;
-                var collabName = order.nxDoCollaborativeDistributerName;
+                var collabId = order.nxDoRequestDisId;
+                var collabName = order.nxDoRequestDistributerName;
                 var isCollaborative = collabId !== undefined && collabId !== null && collabId !== -1 && String(collabId) !== '-1';
                 console.log('🖨️ 打印订单调试:', {
                   nxDepartmentOrdersId: order.nxDepartmentOrdersId,
-                  nxDoCollaborativeNxDisId: collabId,
-                  nxDoCollaborativeNxDisId_type: typeof collabId,
-                  nxDoCollaborativeDistributerName: collabName,
+                  nxDoRequestDisId: collabId,
+                  nxDoRequestDisId_type: typeof collabId,
+                  nxDoRequestDistributerName: collabName,
                   isCollaborative: isCollaborative,
                   fatherDepartmentOrderCode: order.fatherDepartmentOrderCode,
                   nxDepartmentOrderCode: order.nxDepartmentOrderCode,
                   hasNxDepartmentEntity: !!order.nxDepartmentEntity
                 });
                 if (isCollaborative) {
-                  orderCopy.nxDoCollaborativeNxDisId = collabId;
-                  orderCopy.nxDoCollaborativeDistributerName = collabName;
+                  orderCopy.nxDoRequestDisId = collabId;
+                  orderCopy.nxDoRequestDistributerName = collabName;
                   orderCopy.fatherDepartmentOrderCode = order.fatherDepartmentOrderCode || (order.nxDepartmentEntity && order.nxDepartmentEntity.fatherDepartmentEntity ? order.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentOrderCode : null);
                   orderCopy.nxDepartmentOrderCode = order.nxDepartmentOrderCode || (order.nxDepartmentEntity ? order.nxDepartmentEntity.nxDepartmentOrderCode : null);
                   console.log('🖨️ 协作订单已标记:', { orderCopy: orderCopy });
@@ -2700,7 +2723,7 @@ Component({
               nxDgGoodsName: goods.nxDgGoodsName,
               nxDgDfgGoodsFatherId: goods.nxDgDfgGoodsFatherId,
               nxDgDfgGoodsGrandId: goods.nxDgDfgGoodsGrandId,
-              nxDgBuyingPrice: goods.nxDgBuyingPrice,
+              nxDgBuyingPriceOne: goods.nxDgBuyingPriceOne,
               nxDgGoodsStandardname: goods.nxDgGoodsStandardname,
               nxDgGoodsBrand: goods.nxDgGoodsBrand,
               nxDgGoodsStandardWeight: goods.nxDgGoodsStandardWeight,
@@ -2851,11 +2874,11 @@ Component({
                 nxRestrauntAttrName: order.nxRestrauntAttrName
               };
               // 协作订单：传递协作商名称和部门编码，用于标签打印
-              var collabId = order.nxDoCollaborativeNxDisId;
+              var collabId = order.nxDoRequestDisId;
               var isCollab = collabId !== undefined && collabId !== null && collabId !== -1 && String(collabId) !== '-1';
               if (isCollab) {
-                orderCopy.nxDoCollaborativeNxDisId = collabId;
-                orderCopy.nxDoCollaborativeDistributerName = order.nxDoCollaborativeDistributerName;
+                orderCopy.nxDoRequestDisId = collabId;
+                orderCopy.nxDoRequestDistributerName = order.nxDoRequestDistributerName;
                 orderCopy.fatherDepartmentOrderCode = order.fatherDepartmentOrderCode || (order.nxDepartmentEntity && order.nxDepartmentEntity.fatherDepartmentEntity ? order.nxDepartmentEntity.fatherDepartmentEntity.nxDepartmentOrderCode : null);
               }
               
@@ -2865,7 +2888,7 @@ Component({
                 nxDgGoodsName: goods.nxDgGoodsName,
                 nxDgDfgGoodsFatherId: goods.nxDgDfgGoodsFatherId,
                 nxDgDfgGoodsGrandId: goods.nxDgDfgGoodsGrandId,
-                nxDgBuyingPrice: goods.nxDgBuyingPrice,
+                nxDgBuyingPriceOne: goods.nxDgBuyingPriceOne,
                 nxDgGoodsStandardname: goods.nxDgGoodsStandardname
               };
               

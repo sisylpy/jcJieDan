@@ -137,7 +137,7 @@ Component({
           const p =
             item.nxDgWillPriceOne != null && item.nxDgWillPriceOne !== ""
               ? item.nxDgWillPriceOne
-              : item.nxDgWillPrice;
+              : item.nxDgWillPriceOne;
           if (p == null || p === "" || String(p).trim() === "0.1" || Number(p) === 0.1) {
             sub = "-";
           } else if (Number.isFinite(num) && Number.isFinite(Number(p))) {
@@ -155,7 +155,7 @@ Component({
         bigPack: isBigPackStandardName(item, standardName),
         nxDgWillPriceTwo: item.nxDgWillPriceTwo,
         nxDgWillPriceOne: item.nxDgWillPriceOne,
-        nxDgWillPrice: item.nxDgWillPrice,
+        nxDgWillPriceOne: item.nxDgWillPriceOne,
         nxDgWillPriceTwoStandard: item.nxDgWillPriceTwoStandard,
         nxDgGoodsStandardname: item.nxDgGoodsStandardname,
       });

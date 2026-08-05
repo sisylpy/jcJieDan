@@ -191,17 +191,6 @@
         <view class="control-icon replay-icon">↻</view>
         <text class="menu-text">继续朗读</text>
       </view>
-      <!-- <view class="player-menu-item" bindtap="onCheckColse"
-        wx:if="{{stoppedIndex >= 0 && !isTTSPlaying && !isTTSLoading && !isStoppedByStatusMinus2}}">
-        <image src="/images/edit-3.png" class="menu-icon" mode="aspectFit"></image>
-        <text class="menu-text">全屏</text>
-      </view>
-      <view class="player-menu-item" bindtap="coloseReadingMode"
-        wx:if="{{stoppedIndex >= 0 && !isTTSPlaying && !isTTSLoading && !isStoppedByStatusMinus2}}">
-        <image src="/images/edit-3.png" class="menu-icon" mode="aspectFit"></image>
-        <text class="menu-text">关闭</text>
-      </view> -->
-
     </view>
   </view>
 

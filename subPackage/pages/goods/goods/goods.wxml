@@ -32,12 +32,8 @@
           <image src="../../../../images/edit.png" class="button-image"></image>
         </view>
 
-        <!-- <view class="button-container mr-20" bindtap="toUpdatePriceGoods" data-type="buyingPrice">
-          <image src="../../../../images/points.png" class="button-image"></image>
-          <view class="badge {{buyPriceCount > 0 ? 'show' : 'hide'}}">{{buyPriceCount}}</view>
-        </view> -->
-
-        <view class="button-container mr-40" wx:if="{{disInfo.nxDistributerBusinessTypeId > 5}}"
+      
+        <view class="button-container mr-40" 
           hover-class="button-hover" bindtap="toUpdatePriceGoods" data-type="sell">
           <image src="../../../../images/warn-3.png" class="button-image"></image>
           <view class="badge {{priceCount > 0 ? 'show' : 'hide'}}">{{priceCount}}</view>
@@ -195,70 +191,26 @@
               </view>
             </block>
             
-            <block wx:if="{{disInfo.nxDistributerBusinessTypeId == 3}}">
-              <view class="flex flex-row-between p-10 goods-shelf-price-row">
-                <view class="flex-column flex-1 min-w-0">
-                  <view class="flex-row-wrap align-center">
-                    <text class="text-secondary font-sm mr-10">基本单位</text>
-                    <block wx:if="{{sons.nxDgWillPriceOne !== null && sons.nxDgWillPriceOne !== ''}}">
-                      <text class="font-md">{{sons.nxDgWillPriceOne}}元/{{sons.nxDgGoodsStandardname}}</text>
-                    </block>
-                    <text wx:else class="text-secondary font-sm">未设置</text>
-                  </view>
-                  <view class="flex-row-wrap align-center pt-10"
-                    wx:if="{{(sons.nxDgCartonUnit && sons.nxDgCartonUnit !== '' && sons.nxDgCartonUnit !== 'null' && (sons.nxDgItemsPerCarton > 0 || sons.nxDgWillPriceTwoWeight > 0)) || (sons.nxDgWillPriceTwoStandard && sons.nxDgWillPriceTwoStandard !== '' && sons.nxDgWillPriceTwoStandard !== 'null')}}">
-                    <text class="text-secondary font-sm mr-10">大包装</text>
-                    <block wx:if="{{sons.nxDgWillPriceTwo !== null && sons.nxDgWillPriceTwo !== ''}}">
-                      <text class="font-md">{{sons.nxDgWillPriceTwo}}元/{{sons.nxDgWillPriceTwoStandard || sons.nxDgCartonUnit}}</text>
-                    </block>
-                    <text wx:else class="text-secondary font-sm">未设置</text>
-                  </view>
-                  <view class="flex-row-wrap align-center pt-10"
-                    wx:if="{{tool.shelfGoodsAvgFromCartonAbout(sons.nxDgWillPriceTwoAboutPrice, sons.nxDgWillPriceTwo, sons.nxDgItemsPerCarton, sons.nxDgWillPriceTwoWeight)}}">
-                    <text class="text-secondary font-sm mr-10">平均单价</text>
-                    <text class="font-md">{{tool.shelfGoodsAvgFromCartonAbout(sons.nxDgWillPriceTwoAboutPrice, sons.nxDgWillPriceTwo, sons.nxDgItemsPerCarton, sons.nxDgWillPriceTwoWeight)}}元/{{sons.nxDgGoodsStandardname}}</text>
-                    <text class="text-secondary font-xs pl-10">（按大包装折合）</text>
-                  </view>
-                </view>
-                <view class="goods-shelf-price-edit-hit" catchtap="openShelfGoodsPriceModal" data-index="{{goodsIndex}}"
-                  hover-class="hover">
-                  <image src="/images/edit-main.png" mode="aspectFit" class="icon-md goods-shelf-price-edit-icon" />
-                </view>
-              </view>
-            </block>
-
-            <block wx:if="{{disInfo.nxDistributerBusinessTypeId > 5}}">
-              <view class="flex flex-row-between p-10" bindtap="showIsPurchase" data-item="{{sons}}"
-                data-index="{{goodsIndex}}" data-level="1" hover-class="hover">
-                <text class="text-secondary font-md">售价:</text>
-                <view class="flex-row">
-
-                  <block wx:if="{{sons.nxDgWillPriceOne !== null}}">
+            <!-- 单价：统一改价入口 -->
+            <view class="flex flex-row-between p-10" bindtap="showIsPurchase" data-item="{{sons}}" data-index="{{goodsIndex}}" hover-class="hover">
+              <view class="flex-column flex-1 min-w-0">
+                <view class="flex-row-wrap align-center">
+                  <text class="text-secondary font-md mr-10">基本单位售价</text>
+                  <block wx:if="{{sons.nxDgWillPriceOne !== null && sons.nxDgWillPriceOne !== ''}}">
                     <text class="mr-20 font-md">{{sons.nxDgWillPriceOne}}元/{{sons.nxDgGoodsStandardname}}</text>
-                    <image src="/images/edit-main.png" mode="aspectFill" class="icon" />
                   </block>
-                  <block wx:else="">
-                    <image src="/images/add.png" mode="aspectFill" class="icon p-20" />
-                  </block>
+                  <text wx:else class="text-secondary font-sm mr-20">未设置</text>
                 </view>
-              </view>
-              <view class="flex flex-row-between p-10" bindtap="showIsPurchase" data-item="{{sons}}"
-                data-index="{{goodsIndex}}" data-level="2" hover-class="hover">
-                <text class="text-secondary font-md">大单位:</text>
-                <view class="flex-row">
-
+                <view class="flex-row-wrap align-center pt-10" wx:if="{{(sons.nxDgCartonUnit && sons.nxDgCartonUnit !== '' && sons.nxDgCartonUnit !== 'null' && (sons.nxDgItemsPerCarton > 0 || sons.nxDgWillPriceTwoWeight > 0)) || (sons.nxDgWillPriceTwoStandard && sons.nxDgWillPriceTwoStandard !== '' && sons.nxDgWillPriceTwoStandard !== 'null')}}">
+                  <text class="text-secondary font-md mr-10">外包装售价</text>
                   <block wx:if="{{sons.nxDgWillPriceTwo !== null && sons.nxDgWillPriceTwo !== ''}}">
-                    <text class="mr-20 font-md">{{sons.nxDgWillPriceTwo}}元/{{sons.nxDgWillPriceTwoStandard}}</text>
-                    <image src="/images/edit-main.png" mode="aspectFill" class="icon" />
+                    <text class="mr-20 font-md">{{sons.nxDgWillPriceTwo}}元/{{sons.nxDgWillPriceTwoStandard || sons.nxDgCartonUnit}}</text>
                   </block>
-                  <block wx:else="">
-                    <image src="/images/add.png" mode="aspectFill" class="icon p-20" />
-                  </block>
+                  <text wx:else class="text-secondary font-sm mr-20">未设置</text>
                 </view>
-
               </view>
-
-            </block>
+              <image src="/images/edit-main.png" mode="aspectFill" class="icon" />
+            </view>
 
 
           </view>
@@ -378,16 +330,7 @@
   </view>
 </view>
 
-<shelf-goods-price-modal show="{{showShelfPriceModal}}" item="{{shelfPriceModalItem}}" windowWidth="{{windowWidth}}"
-  bindcancel="onShelfPriceModalCancel" bindconfirm="onShelfPriceModalConfirm" />
-
-<goodsWillPirce show="{{showIsPurchase}}" bindconfirm="confirm" level="{{level}}" bindcancle="cancleIsPurchase"
-  item="{{item}}" consultItem="{{consultItem}}" binddelPrice="delPrice" windowHeight="{{windowHeight}}"
+<goodsWillPirce show="{{showIsPurchase}}" bindconfirm="confirm" bindcancle="cancleIsPurchase"
+  item="{{item}}" consultItem="{{consultItem}}" windowHeight="{{windowHeight}}"
   windowWidth="{{windowWidth}}" />
 
-<!-- 
-<goodsWillPirce show="{{showIsPurchase}}"   bindconfirm="confirm" level="{{level}}" bindcancle="cancleIsPurchase"  item="{{item}}" consultItem="{{consultItem}}"  windowHeight="{{windowHeight}}" windowWidth="{{windowWidth}}"  /> -->
-
-<!-- <isPurchaseSingle show="{{showIsPurchase}}" bindtoDeletePurchaseGoods="toDeletePurchaseGoods" bindtoEditPurchaseGoods="toEditPurchaseGoods" bindconfirm="confirm" bindcancle="cancleIsPurchase" bindfinish="finishnxPurGoods" item="{{item}}" consultItem="{{consultItem}}" maskHeight="{{maskHeight > windowHeight ? maskHeight : windowHeight}}" scrollViewTop="{{scrollViewTop}}" windowHeight="{{windowHeight}}" windowWidth="{{windowWidth}}" /> -->
-<!-- 
-<editBuyingPrice show="{{showBuyingPrice}}" level="{{level}}" bindconfirm="confirm" bindcancle="cancleIsPurchase" item="{{item}}" /> -->

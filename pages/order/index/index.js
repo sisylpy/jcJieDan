@@ -280,7 +280,7 @@ Page({
           const taskArr = Array.isArray(res.result.data.taskArr) ? res.result.data.taskArr : [];
           this.setData({
             taskArr,
-            nxBillCount: res.result.data.nxBillCount,
+            unSettleTotal: res.result.data.unSettleTotal,
             unDoTotal: res.result.data.unDoTotal,
             linshiTotal: res.result.data.linshiTotal,
           });
@@ -329,7 +329,7 @@ Page({
         console.log('[index] deps.gbDisArrApp 数量:', (deps.gbDisArrApp || []).length, deps.gbDisArrApp);
         console.log('[index] taskArr 数量:', taskArr.length, taskArr);
         console.log('[index] returnList:', res.result.data.returnList);
-        console.log('[index] offerArr:', res.result.data.offerArr);
+        console.log('[index] requestArr:', res.result.data.requestArr);
         console.log('[index] unDoTotal:', res.result.data.unDoTotal);
         const customerGroups = platformDisplay.buildCustomerGroups(
           [],
@@ -358,14 +358,13 @@ Page({
           platformCustomers: platformCustomers,
           platformUnDoTotal: platformUnDoTotal,
           gbDisArrApp: res.result.data.deps.gbDisArrApp,
-          unPayCount: res.result.data.unPayCount,
+          unSettleTotal: res.result.data.unSettleTotal,
           disInfo: res.result.data.disInfo,
           returnList: res.result.data.returnList,
           taskArr,
-          nxBillCount: res.result.data.nxBillCount,
           unDoTotal: res.result.data.unDoTotal,
           linshiTotal: res.result.data.linshiTotal,
-          offerArr: res.result.data.offerArr,
+          requestArr: res.result.data.requestArr,
         })
         
   
@@ -527,10 +526,9 @@ Page({
     })
   },
 
-  toUnSettleBill(){
-    console.log("nndkdkdkdkd" , this.data.disId)
+  toUnSettleBills(){
     wx.navigateTo({
-      url:'/subPackage/pages/offerNx/nxBillBusiness/nxBillBusiness?disId=' + this.data.disId,
+      url:'/subPackage/pages/bill/unSettleBills/unSettleBills?disId=' + this.data.disId,
     })
   },
   /**
@@ -664,7 +662,7 @@ Page({
 
   toUnPay() {
     wx.navigateTo({
-      url: '../../../subPackage/pages/customer/unPayBills/unPayBills',
+      url: '../../../subPackage/pages/bill/unSettleBills/unSettleBills?disId=' + this.data.disId,
     })
   },
 
@@ -710,14 +708,6 @@ Page({
       url: '/subPackage-order/pages/order/orderPageColl/orderPageColl?collDisId=' + 
         e.currentTarget.dataset.id + '&nxDisId=' + this.data.disId + '&name=' + e.currentTarget.dataset.name,
     })
-  },
-
-
-  toRetailGoods(){
-    wx.navigateTo({
-      url: '/subPackage-order/pages/order/retailGoodsList/retailGoodsList',
-    })
-
   },
 
   

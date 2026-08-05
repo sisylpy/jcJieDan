@@ -1,0 +1,19 @@
+<view class="flex flex-column" style="height:100vh;">
+
+  <back-navbar title="未结账单" avatar="/images/back-gray.png" bindnavbuttontap="toBack" />
+
+  <view class="tab-bar" style="margin-top: {{navBarHeight}}rpx;">
+    <view class="tab-item {{currentTab == 0 ? 'active' : ''}}" bindtap="switchTab" data-index="0">未结现金</view>
+    <view class="tab-item {{currentTab == 1 ? 'active' : ''}}" bindtap="switchTab" data-index="1">协作商家</view>
+  </view>
+
+  <swiper class="unsettle-swiper" current="{{currentTab}}" bindchange="onSwiperChange" style="height:{{swiperHeight}}rpx;">
+    <swiper-item>
+      <unpayBills disId="{{disId}}" active="{{currentTab == 0}}" />
+    </swiper-item>
+    <swiper-item>
+      <nxBillBusiness disId="{{disId}}" active="{{currentTab == 1}}" />
+    </swiper-item>
+  </swiper>
+
+</view>

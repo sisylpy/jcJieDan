@@ -6,9 +6,10 @@ let itemWidth = 0;
 
 import {
   disGoodsUpdate,
+  disUpdateBuyingPrice,
   disGetGoodsDetail,
   disGetGoodsTierPriceList,
-  disSaveOrUpdateGoodsTierPrice,
+  disSaveGoodsTierPrices,
   disDeleteGoodsTierPrice,
   disUpdateGoodsTierPriceStatus
 
@@ -17,15 +18,17 @@ import {
 Page({
 
  onShow(){
-  if(this.data.update){
+  // if(this.data.update){
     this._getGoodsDetail();
-  }
+  // }
  },
 
   /**
    * 页面的初始数据
    */
   data: {
+    activeTab: 0,
+    navPlaceholderHeight: 0,
     items: [{
       name: '-1',
       value: '出库'
@@ -129,6 +132,39 @@ Page({
     }
   },
 
+  /**
+   * 导航栏组件上报的真实高度（rpx，含状态栏）。用它作为 Tab 栏定位与占位基准，
+   * 避免页面侧计算的 navBarHeight 与导航栏实际渲染高度不一致导致的“标签下方大段空白”。
+   */
+  onNavHeight: function (e) {
+    const height = e.detail && e.detail.height;
+    if (height) {
+      this.setData({
+        navBarHeight: height,
+        navPlaceholderHeight: height + 104
+      });
+    }
+  },
+
+  /**
+   * 兜底：实测 Tab 栏底部坐标作为占位高度，确保任何情况下内容都不会被固定头部遮挡或留下大段空白。
+   */
+  onReady: function () {
+    this.measureHeader();
+  },
+
+  measureHeader: function () {
+    const app = getApp();
+    const rpxR = app.globalData.rpxR || (750 / app.globalData.windowWidth);
+    wx.createSelectorQuery().in(this).select('.tab-bar').boundingClientRect((rect) => {
+      if (rect && rect.bottom) {
+        // rect.bottom 为 px，转成 rpx
+        const placeholderRpx = Math.ceil(rect.bottom * rpxR);
+        this.setData({ navPlaceholderHeight: placeholderRpx });
+      }
+    }).exec();
+  },
+
   _getGoodsDetail() {
     load.showLoading("获取商品信息")
     disGetGoodsDetail(this.data.goods.nxDistributerGoodsId).then(res => {
@@ -193,70 +229,7 @@ Page({
   },
 
 
-  radioChange(e) {
-    console.log(e.detail.value);
-    var gradeData = "goods.nxDgBuyingPriceIsGrade"
-    this.setData({
-      [gradeData]: e.detail.value,
-    })
-    this._ifCanSave();
-  },
 
-  getBuyingPrice(e) {
-    var gradeData = "goods.nxDgBuyingPriceIsGrade";
-    var priceData = "goods.nxDgBuyingPrice";
-    var priceUpdateData = "goods.nxDgBuyingPriceUpdate";
-    var priceOneData = "goods.nxDgBuyingPriceOne";
-    var priceOneUpdateData = "goods.nxDgBuyingPriceOneUpdate";
-    var priceTwoData = "goods.nxDgBuyingPriceTwo";
-    var priceTwoUpdateData = "goods.nxDgBuyingPriceTwoUpdate";
-    var priceThreeData = "goods.nxDgBuyingPriceThree";
-    var priceThreeUpdateData = "goods.nxDgBuyingPriceThreeUpdate";
-
-    var type = e.currentTarget.dataset.type;
-    if (type == 0) {
-      this.setData({
-        [gradeData]: 0,
-        [priceData]: e.detail.value,
-        [priceUpdateData]: this.data.upTime,
-        [priceOneData]: null,
-        [priceTwoData]: null,
-        [priceThreeData]: null,
-        [priceOneUpdateData]: null,
-        [priceTwoUpdateData]: null,
-        [priceThreeUpdateData]: null,
-
-      })
-    }
-    if (type == 1) {
-      this.setData({
-        [gradeData]: 1,
-        [priceData]: null,
-        [priceUpdateData]: null,
-        [priceOneData]: e.detail.value,
-        [priceOneUpdateData]: this.data.upTime,
-      })
-    }
-    if (type == 2) {
-      this.setData({
-        [gradeData]: 1,
-        [priceData]: null,
-        [priceTwoData]: e.detail.value,
-        [priceTwoUpdateData]: this.data.upTime,
-      })
-    }
-    if (type == 3) {
-      this.setData({
-        [gradeData]: 1,
-        [priceData]: null,
-        [priceThreeData]: e.detail.value,
-        [priceThreeUpdateData]: this.data.upTime,
-
-      })
-    }
-    this._ifCanSave();
-
-  },
 
 
   toGreatGrandGoods() {
@@ -268,8 +241,9 @@ Page({
 
   _ifCanSave() {
     console.log("_ifCanSave")
-    if (this.data.goods.nxDgBuyingPriceIsGrade == 0) {
-      if (this.data.goods.nxDgGoodsName.length > 0 && this.data.goods.nxDgGoodsStandardname.length > 0 && this.data.goods.nxDgDfgGoodsFatherId > 0 && this.data.goods.nxDgBuyingPrice > 0) {
+    var isGrade = (Number(this.data.goods.nxDgBuyingPriceTwo) > 0) ? 1 : 0;
+    if (isGrade == 0) {
+      if (this.data.goods.nxDgGoodsName.length > 0 && this.data.goods.nxDgGoodsStandardname.length > 0 && this.data.goods.nxDgDfgGoodsFatherId > 0 && this.data.goods.nxDgBuyingPriceOne > 0) {
         this.setData({
           canSave: true
         })
@@ -279,10 +253,9 @@ Page({
         })
       }
     }
-    if (this.data.goods.nxDgBuyingPriceIsGrade == 1) {
-      console.log("nxDgBuyingPriceIsGrade==111")
+    if (isGrade == 1) {
       if (this.data.goods.nxDgGoodsName.length > 0 && this.data.goods.nxDgGoodsStandardname.length > 0 && this.data.goods.nxDgDfgGoodsFatherId > 0 && this.data.goods.nxDgBuyingPriceOne > 0 &&
-        this.data.goods.nxDgBuyingPriceTwo > 0 && this.data.goods.nxDgBuyingPriceThree > 0) {
+        this.data.goods.nxDgBuyingPriceTwo > 0) {
         this.setData({
           canSave: true
         })
@@ -346,8 +319,10 @@ Page({
     }
     if (e.currentTarget.dataset.type == 9) {
       var cartonUnit = "goods.nxDgCartonUnit";
+      // 大包装单位名与外箱名称保持一致，修改外箱名称时同步赋值
       this.setData({
-        [cartonUnit]: eValue
+        [cartonUnit]: eValue,
+        "goods.nxDgWillPriceTwoStandard": eValue
       })
     }
     if (e.currentTarget.dataset.type == 10) {
@@ -363,27 +338,37 @@ Page({
     if (e.currentTarget.dataset.type == 13) {
       this.setData({ "goods.nxDgNetWeightJin": eValue === '' || eValue === undefined ? null : eValue })
     }
-    if (e.currentTarget.dataset.type == 14) {
-      this.setData({ "goods.nxDgGrossWeightPricePerJin": eValue === '' || eValue === undefined ? null : eValue })
-    }
-    if (e.currentTarget.dataset.type == 15) {
-      this.setData({ "goods.nxDgNetWeightPricePerJin": eValue === '' || eValue === undefined ? null : eValue })
-    }
+   
     if (e.currentTarget.dataset.type == 16) {
       this.setData({ "goods.nxDgOuterGrossWeightJin": eValue === '' || eValue === undefined ? null : eValue })
     }
     if (e.currentTarget.dataset.type == 17) {
       this.setData({ "goods.nxDgOuterNetWeightJin": eValue === '' || eValue === undefined ? null : eValue })
     }
-    if (e.currentTarget.dataset.type == 18) {
-      this.setData({ "goods.nxDgOuterGrossWeightPricePerJin": eValue === '' || eValue === undefined ? null : eValue })
+    if (e.currentTarget.dataset.type == 20) {
+      this.setData({ "goods.nxDgWillPriceOne": eValue === '' || eValue === undefined ? null : eValue })
     }
-    if (e.currentTarget.dataset.type == 19) {
-      this.setData({ "goods.nxDgOuterNetWeightPricePerJin": eValue === '' || eValue === undefined ? null : eValue })
+    if (e.currentTarget.dataset.type == 21) {
+      this.setData({ "goods.nxDgWillPriceTwo": eValue === '' || eValue === undefined ? null : eValue })
+    }
+    if (e.currentTarget.dataset.type == 22) {
+      this.setData({ "goods.nxDgBuyingPriceOne": eValue === '' || eValue === undefined ? null : eValue })
+    }
+    if (e.currentTarget.dataset.type == 23) {
+      this.setData({ "goods.nxDgBuyingPriceTwo": eValue === '' || eValue === undefined ? null : eValue })
     }
 
     this._ifCanSave();
 
+  },
+
+
+  // 切换 Tab
+  onTabTap(e) {
+    var tab = e.currentTarget.dataset.tab;
+    this.setData({
+      activeTab: Number(tab)
+    });
   },
 
 
@@ -452,7 +437,7 @@ Page({
 
   //   }
   //   if (e.currentTarget.dataset.type == 5) {
-  //     var price4 = "goods.nxDgBuyingPrice";
+  //     var price4 = "goods.nxDgBuyingPriceOne";
   //     if (e.detail.value.length > 0) {
   //       this.setData({
   //         [price4]: e.detail.value,
@@ -681,10 +666,16 @@ Page({
       })
     };
 
-    disSaveOrUpdateGoodsTierPrice(payload).then(function (res) {
+    var that = this;
+    disSaveGoodsTierPrices(payload).then(function (res) {
       if (res.result.code != 0) {
         wx.showToast({ title: (res.result.msg || '阶梯价保存失败'), icon: 'none' });
+        return;
       }
+      var data = res.result.data || {};
+      var newRuleId = data.saleRule ? data.saleRule.id : that.data.tierRuleId;
+      that.setData({ tierRuleId: newRuleId });
+      wx.showToast({ title: '保存成功', icon: 'none' });
     }).catch(function () {
       wx.showToast({ title: '阶梯价保存失败，请检查网络', icon: 'none' });
     });
@@ -692,7 +683,13 @@ Page({
 
   updateDisGoods(e) {
     load.showLoading("保存商品")
-    disGoodsUpdate(this.data.goods).then(res => {
+    var goods = this.data.goods;
+    var activeTab = this.data.activeTab;
+    // Tab0（商品详细）走 disGoodsUpdate；Tab1（修改价格）走 disUpdateBuyingPrice，
+    // 后者会级联重算未结算订单/采购单的单价、成本、利润。
+    // 一档/二档规格名由后台 disGoodsUpdate 自动赋值（一档=基本规格名，二档=外箱/大包装名称）。
+    var savePromise = activeTab === 1 ? disUpdateBuyingPrice(goods) : disGoodsUpdate(goods);
+    savePromise.then(res => {
       if (res.result.code == 0) {
         load.hideLoading();
 
@@ -701,9 +698,6 @@ Page({
 
         // 设置刷新标识，通知商品列表页面刷新
         wx.setStorageSync('goodsNeedRefresh', true);
-
-        // 商品保存成功后，再保存阶梯价（失败仅 toast，不影响商品保存结果）
-        this._saveTierPrice();
 
         wx.navigateBack({
           delta: 1,

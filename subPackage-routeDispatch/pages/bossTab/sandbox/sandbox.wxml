@@ -9,6 +9,17 @@
   </view>
 
   <scroll-view scroll-y="{{pageScrollEnabled}}" class="page-scroll" wx:if="{{!loading && pageViewModel}}" refresher-enabled="{{true}}" refresher-triggered="{{refresherTriggered}}" bindrefresherrefresh="onScrollRefresh">
+    <view class="desktop-dispatch-login-row">
+      <view class="desktop-dispatch-login-button" bindtap="onDesktopDispatchLoginTap">
+        <text class="desktop-dispatch-login-icon">▣</text>
+        <view>
+          <text class="desktop-dispatch-login-title">电脑调度登录</text>
+          <text class="desktop-dispatch-login-subtitle">扫描 Electron 二维码并授权</text>
+        </view>
+        <text class="desktop-dispatch-login-arrow">扫码 ›</text>
+      </view>
+    </view>
+
     <view class="map-overview-card" wx:if="{{pageViewModel.mapOverview}}">
       <view class="map-topbar map-topbar-inline" wx:if="{{pageViewModel.mapOverview.hasMap && pageViewModel.mapOverview.summary}}">
         <view class="map-summary-pill">

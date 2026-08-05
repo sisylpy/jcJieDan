@@ -227,8 +227,8 @@ Page({
       url: apiUrl.server,
       orderListScrollMaxHeightRpx: orderListScrollMaxHeightRpx,
       taskId: options.taskId,
-      depId: options.depId,
-      depFatherId: options.depFatherId,
+      depId: null,
+      depFatherId: null,
       depName: options.depName
       });
     // 获取用户信息
@@ -315,44 +315,9 @@ Page({
    
   },
 
-  // onReady: function () {
-  //   const that = this;
-  //   setTimeout(function () { that._logLayoutHeights(); }, 1500);
-  // },
-
-  // _logLayoutHeights: function () {
-  //   const sys = wx.getSystemInfoSync();
-  //   const winH = sys.windowHeight || 0;
-  //   const safeBottom = sys.safeArea ? (sys.windowHeight - sys.safeArea.bottom) : 0;
-  //   const query = this.createSelectorQuery();
-  //   query.select('.ocr-order-page').boundingClientRect();
-  //   query.select('.ocr-order-content').boundingClientRect();
-  //   query.select('.reading-mode-container').boundingClientRect();
-  //   query.select('#order-list-scroll-view-reading').boundingClientRect();
-  //   query.exec((res) => {
-  //     const names = ['page(浅红)', 'content(浅绿)', 'reading-container(浅蓝)', 'scroll-view(浅黄)'];
-  //     (res || []).forEach((r, i) => {
-  //       if (r) {
-  //         const gap = (i === 0 && winH) ? (winH - r.height) : null;
-  //         console.log('[ocrOrder 布局调试] ' + names[i] + ' height=' + r.height + 'px bottom=' + r.bottom + 'px' + (gap != null ? ' 与窗口差=' + gap + 'px' : ''));
-  //       } else {
-  //         console.log('[ocrOrder 布局调试] ' + names[i] + ' 未找到');
-  //       }
-  //     });
-  //   });
-  // },
-
   onShow: function () {
    
-    // 如果从添加临时商品页面返回，需要更新订单
-    console.log('[onShow] 检查 findGoods:', this.data.findGoods);
-    console.log('[onShow] orderArrIndex:', this.data.orderArrIndex);
-    console.log('[onShow] goodsId:', this.data.goodsId);
-    console.log('[onShow] name:', this.data.name);
-    console.log('[onShow] selectedGoodsName:', this.data.selectedGoodsName);
-    
     if (this.data.findGoods) {
-      console.log('[onShow] 进入 findGoods 分支，准备更新订单');
       // onHide 会清空 isTTSReading 等，需从 storage 恢复朗读状态判断（添加临时商品前已保存）
       var savedTTSStateForFindGoods = wx.getStorageSync('ocrOrderTTSState');
       if (savedTTSStateForFindGoods && savedTTSStateForFindGoods.isTTSReading) {
@@ -391,7 +356,6 @@ Page({
       }
       // 确保 orderArrIndex 有效
       if (this.data.orderArrIndex < 0) {
-        console.log('[onShow] orderArrIndex 仍然无效，清除 findGoods');
         this.setData({
           findGoods: false
         });
@@ -399,18 +363,13 @@ Page({
       }
       // 保存订单索引和朗读状态，用于后续朗读
       const orderIndex = this.data.orderArrIndex;
-      console.log('[onShow] 准备更新订单，索引:', orderIndex);
       // 检查是否在朗读模式（包括因为订单状态-2而停止的情况）
       var wasReading = this.data.isTTSReading || this.data.isTTSPlaying;
       var wasPaused = this.data.stoppedIndex >= 0 && !this.data.isTTSPlaying && this.data.isTTSReading;
       var wasStoppedByStatusMinus2 = this.data.isStoppedByStatusMinus2; // 是否因为订单状态-2而停止
-      console.log('[onShow] wasReading:', wasReading, 'wasPaused:', wasPaused, 'wasStoppedByStatusMinus2:', wasStoppedByStatusMinus2);
-      // 调用 _choiceGoods 保存订单，传入回调函数处理朗读
-      console.log('[onShow] 调用 _choiceGoods，传入回调函数');
       // 如果之前在朗读模式（包括因为订单状态-2而停止），先清除保存的朗读状态，避免后面的逻辑冲突
       if (wasReading || wasPaused || wasStoppedByStatusMinus2) {
         wx.removeStorageSync('ocrOrderTTSState');
-        console.log('[onShow] 清除保存的朗读状态，避免冲突');
       }
       // 创建回调函数
       const onSuccessCallback = () => {
@@ -423,19 +382,14 @@ Page({
           // 检查更新后的订单状态是否还是-2
           const updatedOrder = this.data.orderArr[orderIndex];
           const isStillStatusMinus2 = updatedOrder && updatedOrder.nxDoStatus == -2;
-          console.log('[onShow] 更新后的订单状态:', updatedOrder?.nxDoStatus, 'isStillStatusMinus2:', isStillStatusMinus2);
-          console.log('[onShow] 更新后的订单:', updatedOrder);
-          
           if (!isStillStatusMinus2) {
             // 如果订单状态不再是-2，清除停止标记并继续朗读
-            console.log('[onShow] 订单状态不再是-2，清除停止标记');
             this.setData({
               isStoppedByStatusMinus2: false,
               stoppedIndex: -1,
               stoppedOrderRef: null
             });
             const startIndex = Math.max(0, orderIndex); // 从当前订单开始朗读
-            console.log('[onShow] 订单状态已更新，开始朗读，从索引:', startIndex);
             this.readOrderListFromIndex(startIndex);
           } else {
             
@@ -576,6 +530,9 @@ Page({
       that.setData({
         orderArr: orderArr,
         task: task,
+        depId: task.nxOcrTaskDepartmentId,
+        depFatherId: task.nxOcrTaskDepartmentFatherId,
+        depName: task.nxOcrTaskDepartmentName,
         totalOrders: totalOrders,
         currentPage: 1,
         totalPages: totalPages,

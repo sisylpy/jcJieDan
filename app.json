@@ -44,7 +44,7 @@
       "pages/customer/cashPage/cashPage",
       "pages/customer/addCustomer/addCustomer",
       "pages/customer/editCustomer/editCustomer",
-      "pages/customer/unPayBills/unPayBills",
+      "pages/bill/unSettleBills/unSettleBills",
       "pages/customer/unPayBillsGb/unPayBillsGb",
       "pages/customer/invitePage/invitePage",
       "pages/customer/invitePageCash/invitePageCash",
@@ -158,7 +158,6 @@
     "root": "subPackage-order/",
     "name": "order",
     "pages": [
-      "pages/order/ocrPaste/ocrPaste",
       "pages/order/ocrOrder/ocrOrder",
       "pages/order/ocrUpload/ocrUpload",
       "pages/order/orderPrint/orderPrint",
@@ -179,7 +178,6 @@
       "pages/order/pSearchPrinter/pSearchPrinter",
       "pages/order/linshiOrderPage/linshiOrderPage",
       "pages/order/resGoodsList/resGoodsList",
-      "pages/order/retailGoodsList/retailGoodsList",
       "pages/order/resGoodsListTask/resGoodsListTask"
     ]
     }, {

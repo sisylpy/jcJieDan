@@ -1,6 +1,17 @@
+/* 让页面随内容增高，超出一屏时可以正常向上滚动，避免底部固定按钮遮挡输入框 */
+page {
+  height: auto;
+  min-height: 100%;
+  padding-bottom: 180rpx;
+  box-sizing: border-box;
+}
+
 /* 名称输入区域 */
 .name-field {
-  padding: 24rpx 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 24rpx 20rpx;
   border-bottom: 1px solid #f0f0f0;
 }
 
@@ -10,21 +21,24 @@
 
 .name-label {
   display: block;
+  flex: 0 0 180rpx;
   font-size: 30rpx;
   color: #333;
   font-weight: 500;
-  margin-bottom: 16rpx;
+  padding-right: 20rpx;
 }
 
 .name-input {
-  width: 95%;
+  flex: 1 1 auto;
+  width: auto;
+  float: none;
   height: 80rpx;
   padding: 0 20rpx;
   font-size: 30rpx;
   border: 1px solid #e5e5e5;
   border-radius: 12rpx;
-  background: #fafafa;
-  margin-bottom: 12rpx;
+  background: #ffffff;
+  margin-bottom: 0;
 }
 
 .name-input:focus {
@@ -33,6 +47,9 @@
 }
 
 .name-hint {
+  flex-basis: 100%;
+  margin-left: 200rpx;
+  margin-top: 12rpx;
   font-size: 24rpx;
   color: #999;
   line-height: 1.5;
@@ -41,7 +58,12 @@
 .depments{
   margin-left: 10rpx;
   margin-right: 10rpx;
-  padding-bottom: 200rpx;
+  padding: 20rpx;
+  padding-bottom: 40rpx;
+  background-color: #f6fdfd;
+  border-radius: 12rpx;
+  /* 包含浮动的部门输入框，避免背景高度塌陷 */
+  overflow: hidden;
 }
 .selcet_content{
   display: flex;
@@ -78,6 +100,9 @@
   border-radius: 10rpx;
   background-color: #fff;
   font-size: 38rpx;
+  /* 摒弃全局 input 的 float:left，避免父容器高度塌陷、背景包不住输入框 */
+  display: block;
+  float: none;
 }
 .numInput.is-active{
   border: 1px solid #147062;
@@ -97,7 +122,9 @@
 
 .result.is-active {
   display: block;
-  background-color: #e5f8f6;
+  background-color: #fff;
+  border-radius: 10rpx;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.12);
 }
 
 .result-row {

@@ -1440,8 +1440,8 @@ Page({
     var week = dateUtils.getArriveWhatDay(0);
     var depDisGoodsId = -1;
     var price = "";
-    if (this.data.itemDis.nxDgWillPrice !== null) {
-      price = this.data.itemDis.nxDgWillPrice;
+    if (this.data.itemDis.nxDgWillPriceOne !== null) {
+      price = this.data.itemDis.nxDgWillPriceOne;
     } else {
       price = 0;
     }
@@ -1452,7 +1452,7 @@ Page({
     var profitSubtotal = 0;
     var profitScale = 0;
 
-    var costPrice = this.data.itemDis.nxDgBuyingPrice;
+    var costPrice = this.data.itemDis.nxDgBuyingPriceOne;
 
     //是否给weight赋值
     if (e.detail.applyStandardName == this.data.itemDis.nxDgGoodsStandardname) {
@@ -1489,7 +1489,7 @@ Page({
       nxDoArriveOnlyDate: arriveOnlyDate,
       nxDoArriveWhatDay: week,
       nxDoCostPriceUpdate: this.data.itemDis.nxDgBuyingPriceUpdate,
-      nxDoCostPrice: this.data.itemDis.nxDgBuyingPrice,
+      nxDoCostPrice: this.data.itemDis.nxDgBuyingPriceOne,
       nxDoPurchaseGoodsId: -1,
       nxDoCostSubtotal: costSubtotal,
       nxDoProfitSubtotal: profitSubtotal,
@@ -1499,7 +1499,7 @@ Page({
       nxDoGoodsType: this.data.itemDis.nxDgPurchaseAuto,
       nxDoPurchaseUserId: this.data.beforeId,
       nxDoPrintStandard: e.detail.applyStandardName,
-      nxDoExpectPrice: this.data.itemDis.nxDgWillPrice,
+      nxDoExpectPrice: this.data.itemDis.nxDgWillPriceOne,
        nxDoGoodsName: this.data.itemDis.nxDgGoodsName,
       nxDoOcrTaskId: this.data.taskId
     };

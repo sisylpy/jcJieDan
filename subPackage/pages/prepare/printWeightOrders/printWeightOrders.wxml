@@ -39,9 +39,9 @@
             <view class="circle_default mr-10" wx:else=""></view> -->
 
             <!-- 协作订单：显示 [协作商名称]fatherDepartmentOrderCode（不含空格、不含 nxDepartmentOrderCode） -->
-            <block wx:if="{{order.nxDoCollaborativeNxDisId !== undefined && order.nxDoCollaborativeNxDisId !== -1}}">
+            <block wx:if="{{order.nxDoRequestDisId !== undefined && order.nxDoRequestDisId !== -1}}">
               <view class="flex-row ">
-                <text class="mr-10">[{{order.nxDoCollaborativeDistributerName}}]{{order.fatherDepartmentOrderCode || ''}}</text>
+                <text class="mr-10">[{{order.nxDoRequestDistributerName}}]{{order.fatherDepartmentOrderCode || ''}}</text>
               </view>
             </block>
             <!-- 使用精简字段（扁平化） -->

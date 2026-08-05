@@ -3,10 +3,7 @@
   "onReachBottomDistance": 50,
   "usingComponents": {
     "back-navbar": "/components/back-navbar/back-navbar",
-    "isPurchase": "/components/isPurchase/isPurchase",
-    "isPurchaseSingle": "/components/isPurchaseSingle/isPurchaseSingle",
-    "isPurchasePT": "/components/isPurchasePT/isPurchase",
-    "editBuyingPrice": "/components/editBuyingPrice/editBuyingPrice"
+    "goodsWillPirce": "/components/goodsWillPirce/goodsWillPirce"
 
   }
 }

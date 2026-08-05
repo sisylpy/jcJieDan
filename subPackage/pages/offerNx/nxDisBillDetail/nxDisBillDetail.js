@@ -45,7 +45,7 @@ Page({
       windowHeight: globalData.windowHeight * globalData.rpxR,
       navBarHeight: globalData.navBarHeight  * globalData.rpxR,
       billId: options.billId,
-      collNxDisId: options.collNxDisId,
+      requestDisId: options.requestDisId,
       total: options.total,
       url: apiUrl.server,
     })
@@ -74,7 +74,7 @@ Page({
    
     var data = {
       billId: this.data.billId,
-      collNxDisId: this.data.collNxDisId,
+      requestDisId: this.data.requestDisId,
     }
     getNxDisBillDetail(data).then(res =>{
       console.log(res)

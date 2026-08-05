@@ -137,6 +137,8 @@ Page({
       depName: depInfo.nxDepartmentAttrName,
       depArr: [],
     })
+
+   
   },
 
   /** 零售多子部门：子部门列表以 phoneGetToFillRetailOrders 返回的 depArr 为准，不用 depInfo.nxDepartmentEntities */
@@ -192,9 +194,8 @@ Page({
       }
       this.setData({ taskArr });
       this._checkAndStartTaskStatusTimer(taskArr);
-      if (taskArr.length === 0) {
-        this._initData();
-      }
+     
+      this._initData();
     });
   },
 
@@ -2499,6 +2500,10 @@ Page({
    */
   getTaskOrder: function(e) {
     var item = e.currentTarget.dataset.item;
+    if (item.nxOcrTaskStatus == 0) {
+      wx.showToast({ title: '订单解析中，请稍等', icon: 'none' });
+      return;
+    }
     wx.navigateTo({
       url: '/subPackage-order/pages/order/ocrOrder/ocrOrder?taskId=' + item.nxOcrTaskId
       + '&depFatherId=' + this.data.depFatherId + '&depId=' + this.data.depId + '&depName='

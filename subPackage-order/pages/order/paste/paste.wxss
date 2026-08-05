@@ -1,4 +1,9 @@
 
+.page{
+  background-color: #fff;
+}
+
+
 .table{
   border: 1px solid rgb(201, 201, 201);
   border-radius: 10rpx;
@@ -37,5 +42,139 @@
 .input-wrap-error .input {
   border: 2rpx solid #0078ff !important;
   background-color: rgba(0, 120, 255, 0.25) !important;
+}
+
+/* ============ 右侧操作按钮组（图标在上、文字在下） ============ */
+.paste-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  align-self: flex-start;       /* 强制靠父级 flex-row 顶部 */
+  padding: 20rpx 14rpx;
+  background-color: #ffffff;
+  border-radius: 24rpx;
+  box-shadow: 0 2rpx 16rpx rgba(0, 0, 0, 0.04);
+  flex-shrink: 0;
+}
+
+/* 按钮内部改为竖排：图标在上、文字在下，去掉外圆描边 */
+.paste-action {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: 24rpx;
+  margin-bottom: 20rpx;
+  line-height: normal;
+  font-size: 26rpx;
+  font-weight: 500;
+  box-sizing: border-box;
+  padding: 0 4rpx;
+  background-color: #f5f8f7;
+  border: none;
+  color: #147062;
+}
+
+.paste-action-icon {
+  width: 56rpx;
+  height: 56rpx;
+  margin-bottom: 8rpx;
+  display: block;
+}
+
+.paste-action-text {
+  font-size: 24rpx;
+  line-height: 1.2;
+  color: inherit;
+  white-space: nowrap;
+}
+
+/* 录音中的红色态 */
+.paste-action.recording {
+  background-color: #fdecee;
+  color: #d6171a;
+}
+.paste-action.recording .paste-action-text {
+  color: #d6171a;
+}
+
+/* 禁用态：灰色不可点击 */
+.paste-action.paste-action--disabled {
+  background-color: #f2f3f3 !important;
+  color: #c0c4c3 !important;
+  box-shadow: none !important;
+}
+.paste-action.paste-action--disabled .paste-action-text {
+  color: #c0c4c3 !important;
+}
+.paste-action.paste-action--disabled .paste-action-icon {
+  opacity: 0.35;
+}
+
+/* 粘贴按钮：浅蓝高亮 */
+.paste-action.paste-action--highlight {
+  background-color: #eaf3ff;
+  color: #2b51e9;
+}
+.paste-action.paste-action--highlight .paste-action-text {
+  color: #2b51e9;
+}
+
+/* 「图片」按钮的强调样式：紫色高亮（参考设计图） */
+.paste-action.picture-action--highlight {
+  background-color: #f3eefe;
+  color: #7a4ee0;
+}
+.paste-action.picture-action--highlight .picture-action-text {
+  color: #7a4ee0;
+}
+
+/* 「图片」与「AI识别」之间的细分隔线（参考设计图） */
+.paste-action-divider {
+  width: 50rpx;
+  height: 1rpx;
+  background-color: #e6e8eb;
+  margin: 4rpx 0 20rpx 0;
+}
+
+/* ============ 输入框下方的小贴士卡片 ============ */
+.paste-tip {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin: 20rpx 24rpx 24rpx 24rpx;
+  padding: 24rpx 28rpx;
+  background-color: #f7faf9;
+  border-radius: 20rpx;
+}
+
+.paste-tip-image {
+  width: 160rpx;
+  height: 160rpx;
+  flex-shrink: 0;
+  margin-right: 24rpx;
+}
+
+.paste-tip-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.paste-tip-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #147062;
+  margin-bottom: 10rpx;
+}
+
+.paste-tip-desc {
+  font-size: 26rpx;
+  color: #5a6a68;
+  line-height: 1.6;
 }
 

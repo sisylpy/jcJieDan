@@ -66,8 +66,8 @@
 
                 <view class="flex-row with-tb-padding" bindtap="showIsPurchase" data-item="{{sons}}" data-index="{{goodsIndex}}" data-level="1" hover-class="hover"  >
                   <text class="text-secondary m-10">售价:</text>
-                  <block wx:if="{{sons.nxDgWillPrice !== '0.1'}}">
-                    <text>{{sons.nxDgWillPrice}}元/{{sons.nxDgGoodsStandardname}}</text>
+                  <block wx:if="{{sons.nxDgWillPriceOne !== '0.1'}}">
+                    <text>{{sons.nxDgWillPriceOne}}元/{{sons.nxDgGoodsStandardname}}</text>
                   </block>
                   <block wx:else="">
                     <image src="/images/add.png" mode="aspectFill" class="icon" />
@@ -100,4 +100,4 @@
 
 
 
-<editBuyingPrice show="{{showBuyingPrice}}" level="{{level}}" bindtoDeletePurchaseGoods="toDeletePurchaseGoods" bindtoEditPurchaseGoods="toEditPurchaseGoods" bindconfirm="confirm" bindcancle="cancleIsPurchase" bindfinish="finishnxPurGoods" item="{{item}}" consultItem="{{consultItem}}" maskHeight="{{maskHeight > windowHeight ? maskHeight : windowHeight}}" scrollViewTop="{{scrollViewTop}}" windowHeight="{{windowHeight}}" windowWidth="{{windowWidth}}" level="{{level}}" profit="{{profit}}" willPrice="{{willPrice}}" buyingPrice="{{buyingPrice}}" weight="{{weight}}" />
+<goodsWillPirce show="{{showBuyingPrice}}" item="{{item}}" consultItem="{{consultItem}}" windowHeight="{{windowHeight}}" windowWidth="{{windowWidth}}" bindconfirm="confirm" bindcancle="cancleIsPurchase" />

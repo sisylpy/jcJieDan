@@ -54,10 +54,6 @@ Page({
     refresherTriggered: false,
     // tabbar 高度
     tabBarHeight: 120,
-    // 货架价格弹窗
-    showShelfPriceModal: false,
-    shelfPriceModalItem: null,
-    shelfPriceModalGoodsIndex: -1,
     // 搜索相关
     searchStr: '',
     allGoodsList: [],
@@ -327,82 +323,16 @@ Page({
   
   showIsPurchase(e) {
     var item = e.currentTarget.dataset.item;
-    // this.getTabBar().setData({
-    //   showTabBar: false
-    // })
-    var profit = "";
-      var willPrice = "";
-      var buyingPrice = "";
-      var weight = "";
-      if (e.currentTarget.dataset.level == 1) {
-        profit = item.nxDgPriceProfitOne;
-        willPrice = item.nxDgWillPriceOne;
-        buyingPrice = item.nxDgBuyingPriceOne;
-        weight = item.nxDgWillPriceOneWeight;
-      }
-      if (e.currentTarget.dataset.level == 2) {
-        profit = item.nxDgPriceProfitTwo;
-        willPrice = item.nxDgWillPriceTwo;
-        buyingPrice = item.nxDgBuyingPriceTwo;
-        weight = item.nxDgWillPriceTwoWeight;
-      }
-      // if (e.currentTarget.dataset.level == 3) {
-      //   profit = item.nxDgPriceProfitThree;
-      //   willPrice = item.nxDgWillPriceThree;
-      //   buyingPrice = item.nxDgBuyingPriceThree;
-      //   weight = item.nxDgWillPriceThreeWeight;
-      // }
-  
-      this.setData({
-        goodsIndex: e.currentTarget.dataset.index,
-        showIsPurchase: true,
-        item: item,
-        level: e.currentTarget.dataset.level,
-        profit: profit,
-        willPrice: willPrice,
-        buyingPrice: buyingPrice,
-        weight: weight
-      })
+    // 统一弹窗：同时显示基本单位与外包装两档
+    this.setData({
+      goodsIndex: e.currentTarget.dataset.index,
+      showIsPurchase: true,
+      item: item
+    })
   
   },
   
-  
-  delPrice(e){
-  
-    var item = e.detail.item;
-    console.log(item);
-    if(this.data.level == "1"){
-      item.nxDgBuyingPriceOne = null;
-      item.nxDgBuyingPrice = "0.1";
-      item.nxDgWillPriceOne = null;
-      item.nxDgWillPriceOneAboutPrice = null;
-  
-    }else if(this.data.level == "2"){
-      console.log("lev2222222")
-      
-      item.nxDgBuyingPriceTwo = null;
-      item.nxDgWillPriceTwo = null;
-      item.nxDgWillPriceTwoAboutPrice = null;
-      item.nxDgWillPriceTwoStandard = null;
-      item.nxDgWillPriceTwoWeight = null;
-    }
-    
-    disUpdateBuyingPrice(item)
-      .then(res => {
-        if (res.result.code == 0) {
-          // this.getTabBar().setData({
-          //   showTabBar: true
-          // })
-          var data = "goodsList[" + this.data.goodsIndex + "]";
-            this.setData({
-              [data]: item,
-              item: item,
-            })
-        }
-      })
-  
-  },
-  
+
     /**
      * 修改售价接口
      */
@@ -423,6 +353,8 @@ Page({
           }
         })
     },
+
+  cancleIsPurchase() {},
 
 
 
@@ -564,71 +496,6 @@ Page({
 
 
 
-
-  /**
-   * 货架型专业批发商（businessTypeId==3）：弹窗编辑 nxDgWillPriceOne / nxDgWillPriceTwo
-   */
-  openShelfGoodsPriceModal(e) {
-    const typeId = Number(this.data.disInfo && this.data.disInfo.nxDistributerBusinessTypeId);
-    if (!this.data.disInfo || typeId !== 3) {
-      return;
-    }
-    const goodsIndex = Number(e.currentTarget.dataset.index);
-    const list = this.data.goodsList || [];
-    const item = list[goodsIndex];
-    if (!item) {
-      return;
-    }
-    let entity;
-    try {
-      entity = JSON.parse(JSON.stringify(item));
-    } catch (err) {
-      entity = Object.assign({}, item);
-    }
-    this.setData({
-      showShelfPriceModal: true,
-      shelfPriceModalItem: entity,
-      shelfPriceModalGoodsIndex: goodsIndex,
-    });
-  },
-
-  onShelfPriceModalCancel() {
-    this.setData({
-      showShelfPriceModal: false,
-      shelfPriceModalItem: null,
-      shelfPriceModalGoodsIndex: -1,
-    });
-  },
-
-  onShelfPriceModalConfirm(e) {
-    const updated = e.detail && e.detail.item;
-    const idx = this.data.shelfPriceModalGoodsIndex;
-    if (!updated || idx < 0) {
-      this.onShelfPriceModalCancel();
-      return;
-    }
-    load.showLoading('保存价格');
-    disUpdateBuyingPrice(updated)
-      .then(res => {
-        load.hideLoading();
-        if (res.result.code === 0) {
-          const path = `goodsList[${idx}]`;
-          this.setData({
-            [path]: updated,
-            showShelfPriceModal: false,
-            shelfPriceModalItem: null,
-            shelfPriceModalGoodsIndex: -1,
-          });
-          wx.showToast({ title: '已保存', icon: 'success' });
-        } else {
-          wx.showToast({ title: res.result.msg || '保存失败', icon: 'none' });
-        }
-      })
-      .catch(() => {
-        load.hideLoading();
-        wx.showToast({ title: '保存失败', icon: 'none' });
-      });
-  },
 
   toBack() {
     wx.navigateBack({

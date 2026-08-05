@@ -171,7 +171,7 @@ Page({
     console.log("ee",e);
     wx.setStorageSync('collItem', e.currentTarget.dataset.item);
     const item = e.currentTarget.dataset.item;
-    const url = '../nxDisBills/nxDisBills?collNxDisId=' + item.nxDistributerId
+    const url = '../nxDisBills/nxDisBills?requestDisId=' + item.nxDistributerId
       + '&value=' + e.currentTarget.dataset.value + '&type=' + e.currentTarget.dataset.type
       + '&startDate=' + (this.data.startDate || '') + '&stopDate=' + (this.data.stopDate || '') + '&dateType=' + (this.data.dateType || 'month')
       + '&hanzi=' + encodeURIComponent(this.data.hanzi || '');

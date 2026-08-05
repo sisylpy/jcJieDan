@@ -103,10 +103,10 @@ class LabelPrinter {
     let customerName = '';
     
     // 协作订单：优先使用 [协作商名称] + fatherDepartmentOrderCode（不含 nxDepartmentOrderCode）
-    const collabId = order.nxDoCollaborativeNxDisId;
+    const collabId = order.nxDoRequestDisId;
     const isCollaborative = collabId !== undefined && collabId !== null && collabId !== -1 && String(collabId) !== '-1';
     if (isCollaborative) {
-      customerName = '[' + (order.nxDoCollaborativeDistributerName || '') + ']';
+      customerName = '[' + (order.nxDoRequestDistributerName || '') + ']';
       if (order.fatherDepartmentOrderCode) {
         customerName += order.fatherDepartmentOrderCode;
       }

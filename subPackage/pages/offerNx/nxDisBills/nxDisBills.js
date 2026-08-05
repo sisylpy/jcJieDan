@@ -71,7 +71,7 @@ Page({
       navBarHeight: globalData.navBarHeight * globalData.rpxR,
       url: apiUrl.server,
       type: options.type,
-      collNxDisId: options.collNxDisId,
+      requestDisId: options.requestDisId,
       value: options.value,
       
     })
@@ -149,10 +149,10 @@ Page({
     load.showLoading("获取账单");
     const data = {
       type: this.data.type,
-      orderDisId: searchType === 'offer' ? this.data.collNxDisId : this.data.disId,
+      orderDisId: searchType === 'offer' ? this.data.requestDisId : this.data.disId,
       startDate: this.data.startDate,
       stopDate: this.data.stopDate,
-      offerDisId: searchType === 'offer' ? this.data.disId : this.data.collNxDisId
+      offerDisId: searchType === 'offer' ? this.data.disId : this.data.requestDisId
     };
     disGetNxDistributerBillsWithStatus(data).then(res => {
       if (res.result.code == 0) {
@@ -184,7 +184,7 @@ Page({
     wx.setStorageSync('batchItem', nxDisBill);
     wx.navigateTo({
       url: '../nxDisBillDetail/nxDisBillDetail?billId=' + e.currentTarget.dataset.id
-       +'&collNxDisId=' + nxDisBill.nxDbdOrderDisId + '&total=' + e.currentTarget.dataset.value,
+       +'&requestDisId=' + nxDisBill.nxDbdOrderDisId + '&total=' + e.currentTarget.dataset.value,
     })
   },
 

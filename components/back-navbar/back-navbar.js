@@ -50,6 +50,9 @@ Component({
         leftWidth: leftWidth,
         rightWidth: rightWidth,
       });
+
+      // 把导航栏真实总高度（rpx，含状态栏）上报给页面，供固定 Tab 栏定位与占位使用
+      this.triggerEvent('navheight', { height: navBarHeight });
     }
   },
 

@@ -1507,7 +1507,7 @@ Page({
       costPrice != null && !isSentinelPrice01(costPrice)
         ? costPrice
         : null;
-    var fallbackBuy = dis && dis.nxDgBuyingPrice;
+    var fallbackBuy = dis && dis.nxDgBuyingPriceOne;
     if (costForApi == null && fallbackBuy != null && !isSentinelPrice01(fallbackBuy)) {
       costForApi = fallbackBuy;
     }

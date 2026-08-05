@@ -1,0 +1,62 @@
+<import src='/template/billPay/billPay.wxml' />
+
+<view class="flex flex-column" style="height:100%;">
+
+  <scroll-view scroll-y="true" style="height:100%;">
+    <view class="flex-column">
+
+      <view class="flex-row-between  p-20 bg-white border-bottom" wx:for="{{accountBillArr}}">
+        <view class="flex-row-default">
+          <view class="body-view mr-20">
+            <switch type="checkbox" checked="{{item.isSelect}}" bindchange="selectBill" data-index="{{index}}" />
+          </view>
+          <text class="font-lgmr-10">{{index + 1}}.</text>
+          <view class="flex-column">
+            <view class="flex-row font-lg">
+              <text class="">{{item.nxDepartmentEntity.nxDepartmentName}}</text>
+            </view>
+            <view class="flex-row font-xs">
+              <text class="text-secondary m-10">打印:</text>
+              <text>{{item.nxDbTime}}</text>
+            </view>
+            <view class="flex-row font-sl">
+              <text class="text-secondary m-10">单号:</text>
+              <text>{{item.nxDbTradeNo}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="flex-row" bind:tap="openAccountBill" hover-class="hover" data-item="{{item}}">
+          <view class="mr-20">
+            <text class="big">{{item.nxDbTotal}}</text>
+            <text class="font-xs">元</text>
+          </view>
+          <image src="/images/arrow-right-3.png" mode="aspectFill" class="icon" />
+        </view>
+      </view>
+      <view class="flex-column-center" style="height: 100rpx;"> 没有数据了！</view>
+    </view>
+  </scroll-view>
+
+</view>
+
+<view class="overlay {{isTishi ? 'show' : ''}}">
+  <view class="popup">
+    <view class="center-content flex-column">
+      <view class="flex-column-center sentence">
+        <text class="small">客户已完成付款，结账确认以后</text>
+        <text class="font-lg">订单状态不可修改！</text>
+      </view>
+      <view class="p-20 flex-row-between big_full_padding" style="width:{{windowWidth - 200}}rpx;">
+        <view class="third-row center-content p-10 hover">
+          <text class="" bindtap="cancleSettle">取消</text>
+        </view>
+        <view class="third-row center-content p-10 btn-primary">
+          <text class="border_btn" bindtap="settleAccount">确定</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
+
+<template is="billPay" wx:if="{{active}}" data='{{selAmount:selAmount, total: total}}'></template>

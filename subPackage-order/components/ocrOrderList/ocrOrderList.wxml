@@ -43,18 +43,19 @@
             </view>
             <view class="flex-row" style="position: relative; flex: 1; min-width: 0; max-width: 100%;">
               <!-- 已保存订单：显示商品名称 -->
-              <view class="flex-row-wrap" wx:if="{{item.nxDoStatus !== -2}}"
+              <view class="goods-name-row flex-row-wrap" wx:if="{{item.nxDoStatus !== -2}}"
                 style="width: {{windowWidth / 3 + 80}}rpx;">
-                <block wx:if="{{item.nxDistributerGoodsEntity.nxDgDistributerId !== disId}}">
-                  <text class="font-xs mainColor">[{{item.nxDistributerGoodsEntity.nxDgDistributerName}}]</text>
-                </block>
-                <text>{{item.nxDoGoodsName}}<text wx:if="{{item.standardWeight !== 'null' && item.standardWeight !== ''}}" class="font-md">({{item.standardWeight}}/{{item.itemUnit}})</text><text wx:else class="font-md">({{item.itemUnit == '' ? '斤' : item.itemUnit}})</text></text>
-                <block wx:if="{{item.cartonUnit !== ''}}">
-                  <view class="flex-row">
-                    <text wx:if="{{item.itemsPerCarton !== ''}}">*{{item.itemsPerCarton}}{{item.itemUnit}}</text>
-                    <text wx:if="{{item.cartonUnit !== ''}}">{{item.cartonUnit}}</text>
-                  </view>
-                </block>
+                <text wx:if="{{item.nxDistributerGoodsEntity.nxDgDistributerId !== disId}}"
+                  class="distributer-tag font-xs mainColor">[{{item.nxDistributerGoodsEntity.nxDgDistributerName}}]</text>
+                <text class="goods-name font-md">{{item.nxDoGoodsName}}</text>
+
+                <text wx:if="{{item.standardWeight !== 'null' && item.standardWeight !== ''}}"
+                  class="goods-standard font-md">({{item.standardWeight}}/{{item.itemUnit}})</text>
+                <text wx:else class="goods-standard font-md">({{item.itemUnit}})</text>
+                <text wx:if="{{item.cartonUnit !== '' && item.itemsPerCarton !== ''}}"
+                  class="goods-carton font-md">*{{item.itemsPerCarton}}{{item.itemUnit}}</text>
+                <text wx:if="{{item.cartonUnit !== ''}}"
+                  class="goods-carton font-md">{{item.cartonUnit}}</text>
               </view>
 
               <!-- 草稿订单：可编辑商品名称（确认后搜索） -->

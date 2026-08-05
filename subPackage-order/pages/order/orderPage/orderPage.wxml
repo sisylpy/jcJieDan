@@ -6,8 +6,8 @@
 
   <view class="flex flex-end bg-white p-20 border-bottom">
     <view class="flex flex-row mr-30" bind:tap="toOpenOrder" wx:if="{{disInfo.nxDistributerAppId !== '-1'}}">
-      <view class="button-container">
-        <image src="../../../../images/robot-solid.png" class="icon"></image>
+      <view class="button-container1">
+        <image src="../../../../images/logo.jpg" class="icon1" style="width: 80rpx; height: 80rpx; border-radius: 50%;" ></image>
       </view>
       
     </view>
@@ -33,24 +33,11 @@
         <image src="../../../../images/print-4.png" class="icon"></image>
       </view>
     </view>
-    <!-- <view class="flex flex-row mr-30" bindtap="toDriver" >
-      <view class="button-container">
-        <image src="../../../../images/car.png" class="icon"></image>
-      </view>
-    </view> -->
-    <view class="flex flex-row mr-30 ml-20" bindtap="recognizeOrder" data-type="paste" data-id="-1">
-      <view class="button-container">
-
-        <image src="../../../../images/tupianshibie.png" class="icon"></image>
-        <view class="badge {{imageTaskCount > 0 ? 'show' : 'hide'}}">{{imageTaskCount}}</view>
-
-      </view>
-    </view>
-
+  
     <view class="flex flex-row mr-30" bindtap="toAddOrder" data-type="paste" data-id="-1">
-      <view class="button-container">
-        <image src="../../../../images/paste-2.png" class="icon"></image>
-        <view class="badge {{pastTaskCount > 0 ? 'show' : 'hide'}}">{{pastTaskCount}}</view>
+      <view class="button-container1">
+        <image src="../../../../images/jj.png" class="icon1"  style="width: 70rpx; height: 70rpx; border-radius: 50%;"></image>
+        <view class="badge {{pastTaskCount  || imageTaskCount > 0 ? 'show' : 'hide'}}">{{pastTaskCount  + imageTaskCount}}</view>
       </view>
     </view>
 
@@ -81,22 +68,62 @@
           </block>
           <!-- 已完成：按类型展示 -->
           <block wx:else>
-            
-            <!-- 类型3：粘贴 -->
-            <view class="task-card-body" >
-              <view class="task-thumb">
-                <text class="task-file-name">{{task.nxOcrTaskFileName}}</text>
-
-                <!-- <image src="/images/paste.png" mode="aspectFit" class="task-icon-img"></image> -->
-              </view>
+            <view class="task-card-body" wx:if="{{task.nxOcrTaskType == 1}}">
+              <image src="{{url + task.nxOcrTaskImagePath}}" mode="aspectFill" class="task-thumb"
+                data-image="{{url + task.nxOcrTaskImagePath}}" />
               <view class="task-info">
-                <!-- <text class="task-type-tag">粘贴</text> -->
-                <!-- <text class="task-file-name">{{task.nxOcrTaskFileName || '未命名'}}</text> -->
                 <text class="task-dep-name">{{task.nxOcrTaskDepartmentName}}</text>
-                <text class="task-stats">{{task.nxOcrTaskCompletedOrders}}/{{task.nxOcrTaskTotalOrders}}</text>
+                <block wx:if="{{task.nxOcrTaskPendingOrders > 0}}">
+                  <view class="flex-row">
+                    <text class="task-stats mr-10">订单:</text>
+                    <view class="text-success task-stats">{{task.nxOcrTaskCompletedOrders}}</view>
+                    <view class="task-stats"> /{{task.nxOcrTaskTotalOrders}}个</view>
+                  </view>
+                </block>
+                <block wx:else="">
+                  <view class="task-stats">订单: {{task.nxOcrTaskTotalOrders}}个</view>
+                </block>
               </view>
             </view>
-          
+            <view class="task-card-body" wx:elif="{{task.nxOcrTaskType == 2}}">
+              <view class="task-thumb">
+                <view class="task-file-name">{{task.nxOcrTaskFileName}}</view>
+              </view>
+              <view class="task-info">
+                <text class="task-dep-name">{{task.nxOcrTaskDepartmentName}}</text>
+                <block wx:if="{{task.nxOcrTaskPendingOrders > 0}}">
+                  <view class="flex-row">
+                    <text class="task-stats mr-10">订单:</text>
+                    <view class="text-success task-stats">{{task.nxOcrTaskCompletedOrders}}</view>
+                    <view class="task-stats"> /{{task.nxOcrTaskTotalOrders}}个</view>
+                  </view>
+                </block>
+                <block wx:else="">
+                  <view class="task-stats">订单: {{task.nxOcrTaskTotalOrders}}个</view>
+                </block>
+              </view>
+            </view>
+            <view class="task-card-body" wx:else>
+                <view class="flex-row">
+                <view class="task-file-icon">
+                  <image src="/images/edit-main.png" mode="aspectFit" class="task-icon-img"></image>
+                </view>
+                <text class="font-xs">{{task.nxOcrTaskFileName}}</text>
+              </view>
+                <view class="task-info">
+                  <text class="task-dep-name">{{task.nxOcrTaskDepartmentName}}</text>
+                  <block wx:if="{{task.nxOcrTaskPendingOrders > 0}}">
+                    <view class="flex-row">
+                      <text class="task-stats mr-10">订单:</text>
+                      <view class="text-success task-stats">{{task.nxOcrTaskCompletedOrders}}</view>
+                      <view class="task-stats"> /{{task.nxOcrTaskTotalOrders}}个</view>
+                    </view>
+                  </block>
+                  <block wx:else="">
+                    <view class="task-stats">订单: {{task.nxOcrTaskTotalOrders}}个</view>
+                  </block>
+                </view>
+              </view>
           </block>
         </view>
       </view>
@@ -150,19 +177,19 @@
                 <view class="flex flex-row font-sl">
                   <view class="third-row">
                     <text class="text-secondary">出货:</text>
-                    <text class="" wx:if="{{order.nxDoWeight !== null}}">{{order.nxDoWeight}}{{order.nxDoPrintStandard}}</text>
+                    <text class="" wx:if="{{order.nxDoWeight !== null}}">{{order._displayWeight}}{{order.nxDoPrintStandard}}</text>
                   </view>
 
                   <view class="third-row" bind:tap="showPrintStandardTip" data-order="{{order}}" data-index="{{applyIndex}}" style="position: relative;">
                     <text class=" text-secondary">单价:</text>
-                    <text class="{{order.nxDoPrice == '0.1'   ||  order.nxDoPrice == '' ? 'text-danger' : ''}}" wx:if="{{order.nxDoPrice !== null}}">{{order.nxDoPrice == 0.1 ||  order.nxDoPrice == ''  ?  '-' : order.nxDoPrice }}</text>
+                    <text class="{{order._unpriced ? 'text-danger' : ''}}" wx:if="{{order.nxDoPrice !== null}}">{{order._displayPrice}}</text>
                     <text>/{{order.nxDoPrintStandard}}</text>
 
                   </view>
 
                   <view class="third-row" wx:if="{{order.nxDoSubtotal !== null || order.nxDoSubtotal == '' }}">
                     <text class="text-secondary">小计:</text>
-                    <text class="{{order.nxDoPrice == '0.1' ||  order.nxDoPrice == ''  ? 'text-danger' : ''}}">{{order.nxDoPrice == 0.1 ||  order.nxDoPrice == '' ?  '-' : order.nxDoSubtotal}}</text>
+                    <text class="{{order._unpriced ? 'text-danger' : ''}}">{{order._unpriced ? '-' : order.nxDoSubtotal}}</text>
                     <text>元</text>
                   </view>
                 </view>
@@ -212,7 +239,7 @@
             <text class=" text-primary">#{{dep.depName}}</text>
             <text>¥:{{dep.depSubtotal}}元</text>
           </view>
-          <view class="flex flex-row border-bottom  p-10 {{order.nxDoPurchaseStatus == 4 ? 'bg-white' :'liziBack'}} {{order.nxDoPurchaseStatus  == 5 ? 'liziDelivery' : ''}} {{order.nxDoPurchaseStatus  == 3 ? 'liziClock' : ''}}" wx:for="{{dep.depOrders}}" wx:for-item="order" wx:key="nxDepartmentOrdersId" wx:for-index="applyIndex">
+          <view class="flex flex-row border-bottom  p-10 {{order.nxDoPurchaseStatus == 4 ? 'bg-white' :'liziBack'}} {{order.nxDoPurchaseStatus  == 5 ? 'liziDelivery' : ''}} {{order.nxDoPurchaseStatus  == 3 ? 'liziClock' : ''}} {{order.nxDoPurchaseStatus == 1 ? 'liziCollBack' : ''}}" wx:for="{{dep.depOrders}}" wx:for-item="order" wx:key="nxDepartmentOrdersId" wx:for-index="applyIndex">
             <block wx:if="{{order.nxDoStatus  >  -1}}">
               <view class="flex-row-default font-md">
                 <text class="mr-10">{{applyIndex + 1}}.</text>
@@ -259,18 +286,18 @@
                   <view class="flex flex-row font-sl">
                     <view class="third-row">
                       <text class="text-secondary">出货:</text>
-                      <text class="{{order.nxDoWeight == ''  ? 'text-danger' : ''}}" wx:if="{{order.nxDoWeight !== null}}">{{order.nxDoWeight == '' ?  '-' : order.nxDoWeight }}{{order.nxDoPrintStandard}}</text>
+                      <text class="{{order._weightDanger ? 'text-danger' : ''}}" wx:if="{{order.nxDoWeight !== null}}">{{order._displayWeight}}{{order.nxDoPrintStandard}}</text>
                     </view>
 
                     <view class="third-row" bind:tap="showPrintStandardTip" data-order="{{order}}" data-index="{{depIndex}}_{{applyIndex}}" style="position: relative;">
                       <text class=" text-secondary">单价:</text>
-                      <text class="{{order.nxDoPrice == '0.1' ||  order.nxDoPrice == ''  ? 'text-danger' : ''}}" wx:if="{{order.nxDoPrice !== null}}">{{order.nxDoPrice == 0.1  ||  order.nxDoPrice == '' ?  '-' : order.nxDoPrice }}</text>
+                      <text class="{{order._unpriced ? 'text-danger' : ''}}" wx:if="{{order.nxDoPrice !== null}}">{{order._displayPrice}}</text>
                       <text>/{{order.nxDoPrintStandard}}</text>
                     </view>
 
                     <view class="third-row" wx:if="{{order.nxDoSubtotal !== null || order.nxDoSubtotal == '' }}">
                       <text class="text-secondary">小计:</text>
-                      <text class="{{order.nxDoPrice == '0.1' ||  order.nxDoPrice == ''  ? 'text-danger' : ''}}">{{order.nxDoPrice == 0.1  ||  order.nxDoPrice == ''  ?  '-' : order.nxDoSubtotal}}</text>
+                      <text class="{{order._unpriced ? 'text-danger' : ''}}">{{order._unpriced ? '-' : order.nxDoSubtotal}}</text>
                       <text>元</text>
                     </view>
                   </view>
@@ -311,11 +338,11 @@
 
       </block>
 
-      <view wx:if="{{showCashSettle && (orderPreviewLoading || (orderPreview && orderPreview.showFeeCard))}}" class="order-fee-card-wrap">
+      <!-- <view wx:if="{{showCashSettle && (orderPreviewLoading || (orderPreview && orderPreview.showFeeCard))}}" class="order-fee-card-wrap">
         <view class="order-fee-card">
           <view wx:if="{{orderPreviewLoading}}" class="order-fee-loading">正在计算优惠与配送费...</view>
           <block wx:elif="{{orderPreview}}">
-            <view class="order-fee-row">
+            <view class="order-fee-r啊，你看一下这个ow">
               <text class="order-fee-label">商品金额</text>
               <text class="order-fee-value">¥{{orderPreview.goodsAmount}}</text>
             </view>
@@ -444,7 +471,7 @@
             </view>
           </block>
         </view>
-      </view>
+      </view> -->
 
       <view class="p-20" style="height: 200rpx;">
         <view class="p-20 text-secondary font-sl" style="text-align:center;">没有数据啦！</view>
@@ -452,7 +479,7 @@
     </scroll-view>
   </view>
 
-  <view class="flex flex-row-between" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 140rpx; border-top: 1px solid lightgray; background-color: white;">
+  <view class="flex flex-row-between" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 140rpx; border-top: 1px solid lightgray; background-color: white; padding-right: 20rpx; box-sizing: border-box;">
 
     <view class="flex flex-row">
       <view class="icon-button ml-20" hover-class="hover" bindtap="toSuyuanPage" wx:if="{{disInfo.nxDistributerType == 2}}">
@@ -486,19 +513,47 @@
 
     </view>
 
-    <view class="flex-column">
+    <block  wx:if="{{showCashSettle && orderPreview && orderPreview.estimatedPayAmount}}">
+      <view class="flex-column" bind:tap="showFeeDeatail" >
+      <view class="flex-row fee-line">
+        <view class="fee-line-left">
+          <view class="icon-fee-trigger icon-fee-trigger-placeholder ml-20 mr-10">
+            <image src="/images/add.png" mode="aspectFill" class="icon-sm" />
+          </view>
+          <text class="font-xs text-secondary mr-10">商品金额:</text>
+        </view>
+        <view class="fee-line-right">
+          <text class="font-bold" style="font-size: 34rpx;">¥{{total}}</text>
+        </view>
+      </view>
+      <view class="flex-row fee-line">
+        <view class="fee-line-left">
+          <view class="icon-fee-trigger ml-20 mr-10">
+            <image bind:tap="showFeeDeatail" src="/images/add.png" mode="aspectFill" class="icon-sm" />
+          </view>
+          <text class="font-xs text-secondary" style="font-size: 26rpx;">配送费:</text>
+        </view>
+        <view class="fee-line-right">
+          <text class="font-bold text-primary" style="font-size: 26rpx;">¥{{orderPreview.deliveryFee}}</text>
+          <!-- <text class="order-fee-estimate-tag ml-10 " wx:if="{{orderPreview.deliveryFeeEstimate}}">预估</text> -->
+        </view>
+      </view>
+    </view>
+    </block>
+
+
+    <block wx:else="">
+      <view class="flex-column">
       <view class="flex-row p-20">
         <text class="">总计:</text>
         <text class="font-bold" style="font-size: 42rpx;">{{total}}</text>
         <text>元</text>
       </view>
-      <view class="flex-row p-20 pt-0" wx:if="{{showCashSettle && orderPreview && orderPreview.estimatedPayAmount}}">
-        <text class="font-sl text-secondary">预计应付:</text>
-        <text class="font-bold text-primary" style="font-size: 34rpx;">{{orderPreview.estimatedPayAmount}}</text>
-        <text class="font-sl">元</text>
-      </view>
-      <!-- <text class="text-secondary font-xs flex-row-reverse">利润率:{{scale > 0 ? scale: '0'}}%</text> -->
     </view>
+    </block>
+    
+
+
 
   </view>
 
@@ -668,4 +723,169 @@
 
 <!-- 打印规格修改 tip 弹窗组件 -->
 <editPrintStandard wx:if="{{showPrintTip}}" show="{{true}}" order="{{currentEditOrder}}" printStandard="{{editPrintStandard}}" bind:confirm="onPrintStandardConfirm" bind:cancel="cancelEditPrintStandard" />
+
+<!-- 配送费计算详情弹窗 -->
+<view class='overlay {{showFeeDetail ? "show" : ""}}' catchtouchmove='true' catchtap="hideFeeDetail">
+  <view class='fee-detail-modal' catchtap="stopPropagation">
+    <view class="fee-detail-header">
+      <text class="fee-detail-title">配送费计算详情</text>
+      <view class="fee-detail-close" bindtap="hideFeeDetail">×</view>
+    </view>
+
+    <scroll-view scroll-y class="fee-detail-body">
+      <!-- 顶部金额汇总 -->
+      <view class="fee-detail-card">
+        <view class="fee-detail-summary-row">
+          <text class="fee-detail-summary-label">商品金额</text>
+          <text class="fee-detail-summary-value">¥{{orderPreview.goodsAmount}}</text>
+        </view>
+        <view class="fee-detail-summary-row" wx:if="{{orderPreview.showDeliveryFee}}">
+          <view class="fee-detail-summary-label-group">
+            <text class="fee-detail-summary-label">配送费</text>
+            <text class="fee-detail-summary-sub-label" wx:if="{{orderPreview.deliveryModeLabel}}">（{{orderPreview.deliveryModeLabel}}）</text>
+          </view>
+          <view class="fee-detail-summary-value-wrap">
+            <text class="fee-detail-summary-value">¥{{orderPreview.deliveryFee}}</text>
+            <text class="fee-detail-summary-estimate-tag" wx:if="{{orderPreview.deliveryFeeEstimate}}">预估</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 计费方式详情 -->
+      <view class="fee-detail-section fee-detail-billing-section">
+        <view class="fee-detail-billing-title">运费说明</view>
+        <view class="fee-detail-row">
+          <text class="fee-detail-label">计费方式</text>
+          <text class="fee-detail-value">{{orderPreview.feeModeLabel}}</text>
+        </view>
+
+        <!-- 按重量计费 -->
+        <block wx:if="{{orderPreview.feeMode === 'WEIGHT_ONLY'}}">
+          <view class="fee-detail-row" wx:if="{{orderPreview.grossWeightJin}}">
+            <text class="fee-detail-label">商品总重</text>
+            <text class="fee-detail-value">{{orderPreview.grossWeightJin}} 斤</text>
+          </view>
+          <view class="fee-detail-row" wx:if="{{orderPreview.startFeeAmount}}">
+            <text class="fee-detail-label">起步价</text>
+            <text class="fee-detail-value">¥{{orderPreview.startFeeAmount}}</text>
+          </view>
+          <view class="fee-detail-row" wx:if="{{orderPreview.baseWeightJin}}">
+            <text class="fee-detail-label">起步重量</text>
+            <text class="fee-detail-value">{{orderPreview.baseWeightJin}} 斤</text>
+          </view>
+          <view class="fee-detail-row" wx:if="{{orderPreview.pricePerJin}}">
+            <text class="fee-detail-label">超出每斤</text>
+            <text class="fee-detail-value">¥{{orderPreview.pricePerJin}}/斤</text>
+          </view>
+        </block>
+
+        <!-- 按距离计费 -->
+        <block wx:if="{{orderPreview.feeMode === 'DISTANCE_ONLY'}}">
+          <view class="fee-detail-row" wx:if="{{orderPreview.distanceKm}}">
+            <text class="fee-detail-label">配送距离</text>
+            <text class="fee-detail-value">{{orderPreview.distanceKm}} km</text>
+          </view>
+          <view class="fee-detail-row" wx:if="{{orderPreview.startFeeAmount}}">
+            <text class="fee-detail-label">起步价</text>
+            <text class="fee-detail-value">¥{{orderPreview.startFeeAmount}}</text>
+          </view>
+          <view class="fee-detail-row" wx:if="{{orderPreview.baseDistanceKm}}">
+            <text class="fee-detail-label">起步里程</text>
+            <text class="fee-detail-value">{{orderPreview.baseDistanceKm}} km 内</text>
+          </view>
+          <view class="fee-detail-row" wx:if="{{orderPreview.pricePerKm}}">
+            <text class="fee-detail-label">超出每公里</text>
+            <text class="fee-detail-value">¥{{orderPreview.pricePerKm}}/km</text>
+          </view>
+        </block>
+
+        <!-- 重量+距离计费 -->
+        <block wx:if="{{orderPreview.feeMode === 'WEIGHT_DISTANCE'}}">
+          <view class="fee-detail-row" wx:if="{{orderPreview.grossWeightJin}}">
+            <text class="fee-detail-label">商品总重</text>
+            <text class="fee-detail-value">{{orderPreview.grossWeightJin}} 斤</text>
+          </view>
+          <view class="fee-detail-row" wx:if="{{orderPreview.distanceKm}}">
+            <text class="fee-detail-label">配送距离</text>
+            <text class="fee-detail-value">{{orderPreview.distanceKm}} km</text>
+          </view>
+          <view class="fee-detail-row" wx:if="{{orderPreview.startFeeAmount}}">
+            <text class="fee-detail-label">起步价</text>
+            <text class="fee-detail-value">¥{{orderPreview.startFeeAmount}}</text>
+          </view>
+          <view class="fee-detail-row" wx:if="{{orderPreview.baseDistanceKm}}">
+            <text class="fee-detail-label">起步里程</text>
+            <text class="fee-detail-value">{{orderPreview.baseDistanceKm}} km</text>
+          </view>
+          <view class="fee-detail-row" wx:if="{{orderPreview.pricePerJinPerKm}}">
+            <text class="fee-detail-label">每斤每公里</text>
+            <text class="fee-detail-value">¥{{orderPreview.pricePerJinPerKm}}/斤/km</text>
+          </view>
+        </block>
+
+        <!-- 固定运费 -->
+        <block wx:if="{{orderPreview.feeMode === 'FIXED_AMOUNT'}}">
+          <view class="fee-detail-row" wx:if="{{orderPreview.startFeeAmount}}">
+            <text class="fee-detail-label">固定运费</text>
+            <text class="fee-detail-value">¥{{orderPreview.startFeeAmount}}</text>
+          </view>
+        </block>
+      </view>
+
+      <!-- 计算说明：仅当无下方公式卡片（WEIGHT_ONLY/DISTANCE_ONLY 会重复显示）时展示 -->
+      <view class="fee-detail-explain" wx:if="{{orderPreview.deliveryFeeFormula && orderPreview.feeMode !== 'WEIGHT_ONLY' && orderPreview.feeMode !== 'DISTANCE_ONLY'}}">
+        <view class="fee-detail-explain-title">计算说明</view>
+        <text class="fee-detail-explain-text">{{orderPreview.deliveryFeeFormula}}</text>
+      </view>
+
+      <!-- 按重量计费公式卡片 -->
+      <view class="fee-detail-formula-card" wx:if="{{orderPreview.feeMode === 'WEIGHT_ONLY'}}">
+        <view class="fee-detail-formula-item">
+          <text class="fee-detail-formula-label">商品总重</text>
+          <text class="fee-detail-formula-value">{{orderPreview.grossWeightJin}}斤</text>
+          <text class="fee-detail-formula-sub" wx:if="{{orderPreview.extraWeightJin}}">(超出{{orderPreview.extraWeightJin}}斤)</text>
+        </view>
+        <text class="fee-detail-formula-op">×</text>
+        <view class="fee-detail-formula-item">
+          <text class="fee-detail-formula-label">超出每斤</text>
+          <text class="fee-detail-formula-value">¥{{orderPreview.pricePerJin}}/斤</text>
+        </view>
+        <text class="fee-detail-formula-op">=</text>
+        <view class="fee-detail-formula-item">
+          <text class="fee-detail-formula-label">配送费</text>
+          <text class="fee-detail-formula-value fee-detail-formula-result">¥{{orderPreview.deliveryFee}}</text>
+        </view>
+      </view>
+
+      <!-- 按距离计费公式卡片 -->
+      <view class="fee-detail-formula-card" wx:if="{{orderPreview.feeMode === 'DISTANCE_ONLY'}}">
+        <view class="fee-detail-formula-item">
+          <text class="fee-detail-formula-label">超出里程</text>
+          <text class="fee-detail-formula-value">{{orderPreview.extraDistanceKm}}km</text>
+        </view>
+        <text class="fee-detail-formula-op">×</text>
+        <view class="fee-detail-formula-item">
+          <text class="fee-detail-formula-label">超出每公里</text>
+          <text class="fee-detail-formula-value">¥{{orderPreview.pricePerKm}}/km</text>
+        </view>
+        <text class="fee-detail-formula-op">=</text>
+        <view class="fee-detail-formula-item">
+          <text class="fee-detail-formula-label">配送费</text>
+          <text class="fee-detail-formula-value fee-detail-formula-result">¥{{orderPreview.deliveryFee}}</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view class="fee-detail-footer">
+      <view class="fee-detail-total-row">
+        <text class="fee-detail-total-label">预计应付</text>
+        <text class="fee-detail-total-value">¥{{orderPreview.estimatedPayAmount}}</text>
+      </view>
+      <view class="fee-detail-total-tip" wx:if="{{orderPreview.deliveryFeePending}}">暂无匹配运费规则，配送费将在送货出账后一并结算</view>
+      <view class="fee-detail-total-tip" wx:elif="{{orderPreview.deliveryFeeEstimate && orderPreview.deliveryFee != '0.00'}}">配送费为下单预估，出账时按实际规则结算</view>
+      <view class="fee-detail-btn" bindtap="hideFeeDetail">知道了</view>
+    </view>
+  </view>
+</view>
+<!-- ../配送费计算详情弹窗 -->
 

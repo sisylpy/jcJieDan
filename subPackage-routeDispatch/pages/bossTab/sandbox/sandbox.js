@@ -1,6 +1,7 @@
 var load = require('../../../../lib/load.js')
 
 import {
+  approveDesktopDispatchChallenge,
   getDispatchSandboxToday,
   overrideSandboxStopTimeWindow
 } from '../../../../lib/apiRouteDispatch.js'
@@ -97,6 +98,68 @@ Component({
     resetMapViewport(this, {
       mapOverview: mapOverview,
       padding: this.data.mapOverviewPadding
+    })
+  },
+
+  onDesktopDispatchLoginTap: function () {
+    var that = this
+    if (this.data.actionSubmitting) {
+      return
+    }
+    wx.scanCode({
+      onlyFromCamera: true,
+      scanType: ['qrCode'],
+      success: function (scanResult) {
+        var payload
+        try {
+          payload = JSON.parse(String(scanResult.result || ''))
+        } catch (e) {
+          wx.showToast({ title: '不是农心乐电脑调度二维码', icon: 'none' })
+          return
+        }
+        if (!payload
+          || payload.type !== 'NXL_DESKTOP_DISPATCH_LOGIN'
+          || payload.version !== 1
+          || !/^[0-9a-fA-F]{32}$/.test(String(payload.challengeId || ''))) {
+          wx.showToast({ title: '电脑登录二维码无效', icon: 'none' })
+          return
+        }
+        wx.showModal({
+          title: '确认电脑登录',
+          content: '是否允许“' + String(payload.deviceName || 'Electron 桌面端') + '”登录配送调度？',
+          confirmText: '允许登录',
+          success: function (modalResult) {
+            if (!modalResult.confirm) {
+              return
+            }
+            that.setData({ actionSubmitting: true })
+            load.showLoading('确认登录中')
+            approveDesktopDispatchChallenge(payload.challengeId).then(function (resp) {
+              load.hideLoading()
+              that.setData({ actionSubmitting: false })
+              if (!resp.result || Number(resp.result.code) !== 0) {
+                wx.showModal({
+                  title: '登录确认失败',
+                  content: (resp.result && resp.result.msg) || '二维码可能已过期，请在电脑端重新生成',
+                  showCancel: false
+                })
+                return
+              }
+              wx.showToast({ title: '电脑登录已授权', icon: 'success' })
+            }).catch(function () {
+              load.hideLoading()
+              that.setData({ actionSubmitting: false })
+              wx.showToast({ title: '网络异常，请重试', icon: 'none' })
+            })
+          }
+        })
+      },
+      fail: function (error) {
+        if (error && String(error.errMsg || '').indexOf('cancel') >= 0) {
+          return
+        }
+        wx.showToast({ title: '扫码失败，请重试', icon: 'none' })
+      }
     })
   },
 

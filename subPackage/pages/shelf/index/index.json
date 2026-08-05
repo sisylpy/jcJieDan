@@ -12,6 +12,6 @@
     "editShelfStockDetail": "/components/editShelfStockDetail/editShelfStockDetail",
 
     "stockDetailModal": "/components/stockDetailModalSuyuan/stockDetailModalSuyuan",
-    "shelf-goods-price-modal": "/components/shelfGoodsPriceModal/shelfGoodsPriceModal"
+    "goodsWillPirce": "/components/goodsWillPirce/goodsWillPirce"
   }
 }

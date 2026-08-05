@@ -442,7 +442,6 @@ Page({
     var request = {
       deliveryStopId: stop.deliveryStopId,
       disId: payload.disId || session.disId,
-      routeDate: payload.routeDate,
       batchCode: payload.batchCode,
       operatorUserId: payload.operatorUserId || session.operatorUserId,
       reason: '装车路线编辑移除',

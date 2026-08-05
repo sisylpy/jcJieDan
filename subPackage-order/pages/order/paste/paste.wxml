@@ -1,11 +1,11 @@
-<view class="flex flex-column">
+<view class="flex flex-column page">
 
   <back-navbar style="height: {{navBarHeight}}rpx;" title="{{depName}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
-  <view class="flex-column" >
+  <view class="flex-column flex-1" >
    
       
-    <view class="flex-column p-20" wx:if="{{orderArr.length == 0}}">
+  <view class="flex-column p-20" wx:if="{{orderArr.length == 0}}">
       <view class="flex-row p-10">
         <text>录音时长：{{duration}}秒</text>
         <text class="ml-20 text-danger ">{{isRecording ? '录音中': ''}}</text>
@@ -13,18 +13,66 @@
       <view class="flex-row">
 
         <view class="flex-column" style="flex: 1;">
-          <textarea class="mr-20 p-20 sentence {{sentence !== null ? 'is-active' : ''}}" value="{{sentence}}" style="width: {{windowWidth - 220}}rpx; height: {{windowHeight - navBarHeight - 140}}rpx; font-size: 42rpx; margin-right: 20rpx;" bindinput="onInput" maxlength="-1" />
+          <textarea class="mr-20 p-20 sentence {{sentence !== null ? 'is-active' : ''}}" value="{{sentence}}" style="width: {{windowWidth - 250}}rpx; height: {{windowHeight - navBarHeight - 460}}rpx; font-size: 42rpx; margin-right: 20rpx;" bindinput="onInput" maxlength="-1" />
         </view>
 
-        <view class="flex-column center-content flex-1 ">
+        <view class="flex-column paste-actions">
 
-          <view bindtap="{{isRecording ? 'stopRecord' : 'startRecord'}}" class="third_btn  mb-20 {{isRecording ? 'recording' : ''}}" hover-class="thirdHover" style="text-align: center; font-size: 32rpx; margin-bottom: 40rpx;"> {{isRecording ? '停止录音' : '开始录音'}}</view>
-        
-          <view bindtap="formatContent" class="third_btn mb-20" hover-class="{{sentence == null ? 'thirdHover' : ''}}">识别</view>
-          <view bindtap="aiRecogniseFirst" class="third_btn mt-10 mb-20">AI识别</view>
-          <view class="" style="border: 1px solid #c9f1eb; width: 100%;height: 1rpx; margin-bottom: 40rpx;"></view>
+          <!-- 录音：始终显示，文本态禁用 -->
+          <view bindtap="{{(sentence != null && sentence != '' && !isRecording) ? '' : (isRecording ? 'stopRecord' : 'startRecord')}}" 
+            class="third_btn paste-action {{isRecording ? 'recording' : ''}} {{sentence != null && sentence != '' && !isRecording ? 'paste-action--disabled' : ''}}">
+            <image class="paste-action-icon" src="{{isRecording ? '/images/luyin-3.png' : '/images/luyin.png'}}" mode="aspectFit" />
+            <text class="paste-action-text">{{isRecording ? '停止' : '录音'}}</text>
+          </view>
 
-          <view bindtap="clearSentence" class="third_btn mt-10">清除</view>
+          <!-- 粘贴：始终显示，文本态禁用 -->
+          <view bindtap="{{sentence != null && sentence != '' && !isRecording ? '' : 'pasteFromClipboard'}}" 
+            class="third_btn paste-action paste-action--highlight {{sentence != null && sentence != '' && !isRecording ? 'paste-action--disabled' : ''}}">
+            <image class="paste-action-icon" src="/images/-_niantie.png" mode="aspectFit" />
+            <text class="paste-action-text">粘贴</text>
+          </view>
+
+          <!-- 图片识别：始终显示，文本态禁用 -->
+          <view bindtap="{{sentence != null && sentence != '' && !isRecording ? '' : 'recognizeOrder'}}" 
+            class="third_btn paste-action picture-action--highlight {{sentence != null && sentence != '' && !isRecording ? 'paste-action--disabled' : ''}}">
+            <image class="paste-action-icon" src="/images/tupianshibie-2.png" mode="aspectFit" />
+            <text class="picture-action-text">图片</text>
+          </view>
+
+          <view class="paste-action-divider"></view>
+
+          <!-- 识别：始终显示，空态/录音中禁用 -->
+          <view bindtap="{{((sentence == null || sentence == '') || isRecording) ? '' : 'formatContent'}}" 
+            class="third_btn paste-action {{((sentence == null || sentence == '') || isRecording) ? 'paste-action--disabled' : ''}}">
+            <image class="paste-action-icon" src="/images/OCRwenzishibie.png" mode="aspectFit" />
+            <text class="paste-action-text">识别</text>
+          </view>
+
+          <!-- AI识别：始终显示，空态/录音中禁用 -->
+          <view bindtap="{{((sentence == null || sentence == '') || isRecording) ? '' : 'aiRecogniseFirst'}}" 
+            class="third_btn paste-action {{((sentence == null || sentence == '') || isRecording) ? 'paste-action--disabled' : ''}}">
+            <image class="paste-action-icon" src="/images/AIshibie.png" mode="aspectFit" />
+            <text class="paste-action-text">AI识别</text>
+          </view>
+
+          <!-- 清除：始终显示，空态/录音中禁用 -->
+          <view bindtap="{{((sentence == null || sentence == '') || isRecording) ? '' : 'clearSentence'}}" 
+            class="third_btn paste-action {{((sentence == null || sentence == '') || isRecording) ? 'paste-action--disabled' : ''}}">
+            <image class="paste-action-icon" src="/images/ashbin.png" mode="aspectFit" />
+            <text class="paste-action-text">清除</text>
+          </view>
+
+        </view>
+
+      </view>
+
+      <!-- 输入框下方的小贴士 -->
+      <view class="paste-tip">
+        <image class="paste-tip-image" src="{{url + 'uploadImage/imPurchase/300jj.png'}}"  mode="aspectFit" />
+        <view class="paste-tip-content">
+          <text class="paste-tip-title">小贴士</text>
+          <text class="paste-tip-desc">支持语音下单、文字识别、图片识别等多种方式</text>
+          <text class="paste-tip-desc">智能识别商品和数量，识别结果可编辑，确认后加入订单</text>
         </view>
       </view>
     </view>
@@ -450,3 +498,13 @@
   bind:cancel="onCorrectionModalCancel"
   bind:confirm="onCorrectionModalConfirm"
 />
+
+<!-- 图片识别：复用 ocrUpload 组件的选图+裁剪+模式选择逻辑（隐藏其顶部上传区，点击“图片”按钮由页面主动触发 chooseImages） -->
+<ocrUpload
+  id="pasteOcrUpload"
+  hide-upload="{{true}}"
+  image-list="{{ocrImageList}}"
+  bind:imageChange="onOcrImageChange"
+  bind:startOCR="onStartOCR"
+  bind:startOCRFast="onStartOCRFast"
+></ocrUpload>

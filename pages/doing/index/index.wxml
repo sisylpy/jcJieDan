@@ -299,13 +299,15 @@
                     <view class="flex-cloumn font-md" style=" width: {{windowWidth - 80}}rpx; ">
                       <view class="flex-row-default pb-10" wx:for-item="order"
                         wx:for="{{item.nxDepartmentOrdersEntities}}" wx:for-index="orderIndex"
-                        wx:key="nxDepartmentOrdersId">
+                        wx:key="nxDepartmentOrdersId"
+                        style="width: {{windowWidth - 80}}rpx; border-bottom: 1px dashed lightgray;">
 
                         <view class="flex-column">
-                          <view class="flex flex-row-between "
-                            style="width: {{windowWidth - 80}}rpx; border-bottom: 1px dashed lightgray;">
+                          <view class="flex flex-row-between ">
                             <view class="flex-row">
-                              <image src="/images/canyinfandian.png" mode="aspectFill" class="icon mr-10" />
+                              <view class="flex-row-default" >
+                              <text class="circle_default"></text>
+                            </view>
                               <view class="flex-column"
                                 wx:if="{{order.nxDepartmentEntity.fatherDepartmentEntity !== null}}">
                                 <view class='flex-row-default '>
@@ -331,36 +333,33 @@
                               </view>
                             </view>
                             <view class="flex-row">
-                              <text class="ml-20 mainColor">下单数量:</text>
-                              <text class="">{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+                              <text class="mr-10 text-secondary">下单数量:</text>
+                              <text class="mainColor">{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
                             </view>
 
                           </view>
 
                           <view class="flex-row-default">
-                            <view class="flex-row-default" style="margin-top: 24rpx;">
-                              <text class="circle_default"></text>
-                            </view>
+                            
                             <view class="flex-column">
-                              <view class="flex-row-between p-10" style="width:{{(windowWidth - 120)}}rpx;;">
-                                <text class="text-secondary">供货数量:</text>
-                                <view class="flex-row">
-                                  <text class="text-secondary">数量:</text>
-                                  <text>{{order.nxDoWeight}}{{item.nxDgGoodsStandardname}}</text>
+                              <view class="flex-row-between p-10" style="width:{{(windowWidth - 120)}}rpx;">    
+                                <view class="flex-column third-row" >
+                                  <view class="text-secondary font-xs">供货数量</view>
+                                  <view>{{order.nxDoWeight}}{{item.nxDgGoodsStandardname}}</view>
                                 </view>
+                                <view class="flex-column third-row" >
+                                  <view class="text-secondary font-xs">供货单价</view>
+                                  <view>{{order.nxDoPrice}}元/{{item.nxDgGoodsStandardname}}</view>
+                                </view>
+                                <view class="flex-column third-row">
+                                  <view class="text-secondary font-xs">小计</view>
+                                  <view>¥{{order.nxDoSubtotal}}</view>
+                                </view>
+
+
                               </view>
 
-                              <view class="flex-row-between pl-10" style="width:{{(windowWidth - 120)}}rpx; " wx:if="{{order.nxDoCostPrice > 0.1}}" >
-
-                                <view class="half-row">
-                                  <text class="text-secondary">供货单价:</text>
-                                  <text class="">{{order.nxDoCostPrice}}元</text>
-                                </view>
-                                <view class="half-row flex-row-reverse">
-                                  <text>{{order.nxDoCostSubtotal}}元</text>
-                                  <text class="text-secondary">小计:</text>
-                                </view>
-                              </view>
+                             
                              
                             </view>
                           </view>

@@ -59,7 +59,6 @@ Page({
     ],
     admin: 0,
     showOperation: false,
-    dutyDate: '',
     dutySubmitting: false,
 
   },
@@ -76,8 +75,7 @@ Page({
       navBarHeight: globalData.navBarHeight * globalData.rpxR,     
       rpxRcale: globalData.rpxR,
       url: apiUrl.server,
-      disId: options.disId,
-      dutyDate: getTodayDateStr()
+      disId: options.disId
     })
     var userInfo = wx.getStorageSync('userInfo');
     if (userInfo) {
@@ -122,8 +120,7 @@ _loadDriverDutyState(driverUserArr) {
     return
   }
   getAvailableDrivers({
-    disId: disId,
-    routeDate: this.data.dutyDate || getTodayDateStr()
+    disId: disId
   }).then(function (res) {
     if (!res.result || res.result.code !== 0) {
       return
@@ -186,7 +183,6 @@ submitDriverDuty(action, driverUserId) {
   apiFn({
     disId: this.data.disId,
     driverUserId: driverUserId,
-    dutyDate: this.data.dutyDate || getTodayDateStr(),
     operatorUserId: this.data.userId
   }).then(function (res) {
     load.hideLoading()
@@ -409,14 +405,6 @@ toOpenDriver() {
 },
 
 })
-
-function getTodayDateStr() {
-  var d = new Date()
-  var y = d.getFullYear()
-  var m = ('0' + (d.getMonth() + 1)).slice(-2)
-  var day = ('0' + d.getDate()).slice(-2)
-  return y + '-' + m + '-' + day
-}
 
 function mergeDriverDutyState(driverUserArr, driverCards) {
   var cardById = {}

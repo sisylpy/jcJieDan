@@ -81,45 +81,26 @@
           </block>
         </block>
 
-        <!-- 单价 - 业务类型3显示基本单位和大包装，一个编辑按钮 -->
-        <block wx:if="{{disInfo.nxDistributerBusinessTypeId == 3 && (showDetailMode || expandedIndex === goodsIndex)}}">
-          <view class="goods-shelf-price-row">
+        <!-- 单价：统一改价入口 -->
+        <block wx:if="{{showDetailMode || expandedIndex === goodsIndex}}">
+          <view class="flex flex-row-between p-10" bindtap="showIsPurchase" data-item="{{sons}}" data-index="{{goodsIndex}}" hover-class="hover">
             <view class="flex-column flex-1 min-w-0">
               <view class="flex-row-wrap align-center">
-                <text class="text-secondary font-sm mr-10">基本单位</text>
+                <text class="text-secondary font-md mr-10">基本单位售价</text>
                 <block wx:if="{{sons.nxDgWillPriceOne !== null && sons.nxDgWillPriceOne !== ''}}">
-                  <text class="font-md">{{sons.nxDgWillPriceOne}}元/{{sons.nxDgGoodsStandardname}}</text>
+                  <text class="mr-20 font-md">{{sons.nxDgWillPriceOne}}元/{{sons.nxDgGoodsStandardname}}</text>
                 </block>
-                <text wx:else class="text-secondary font-sm">未设置</text>
+                <text wx:else class="text-secondary font-sm mr-20">未设置</text>
               </view>
-              <view class="flex-row-wrap align-center pt-10"
-                wx:if="{{(sons.nxDgCartonUnit && sons.nxDgCartonUnit !== '' && sons.nxDgCartonUnit !== 'null' && (sons.nxDgItemsPerCarton > 0 || sons.nxDgWillPriceTwoWeight > 0)) || (sons.nxDgWillPriceTwoStandard && sons.nxDgWillPriceTwoStandard !== '' && sons.nxDgWillPriceTwoStandard !== 'null')}}">
-                <text class="text-secondary font-sm mr-10">大包装</text>
+              <view class="flex-row-wrap align-center pt-10" wx:if="{{(sons.nxDgCartonUnit && sons.nxDgCartonUnit !== '' && sons.nxDgCartonUnit !== 'null' && (sons.nxDgItemsPerCarton > 0 || sons.nxDgWillPriceTwoWeight > 0)) || (sons.nxDgWillPriceTwoStandard && sons.nxDgWillPriceTwoStandard !== '' && sons.nxDgWillPriceTwoStandard !== 'null')}}">
+                <text class="text-secondary font-md mr-10">外包装售价</text>
                 <block wx:if="{{sons.nxDgWillPriceTwo !== null && sons.nxDgWillPriceTwo !== ''}}">
-                  <text class="font-md">{{sons.nxDgWillPriceTwo}}元/{{sons.nxDgWillPriceTwoStandard || sons.nxDgCartonUnit}}</text>
+                  <text class="mr-20 font-md">{{sons.nxDgWillPriceTwo}}元/{{sons.nxDgWillPriceTwoStandard || sons.nxDgCartonUnit}}</text>
                 </block>
-                <text wx:else class="text-secondary font-sm">未设置</text>
+                <text wx:else class="text-secondary font-sm mr-20">未设置</text>
               </view>
             </view>
-            <view class="goods-shelf-price-edit-hit" catchtap="openShelfGoodsPriceModal" data-index="{{goodsIndex}}" hover-class="hover">
-              <image src="/images/edit-main.png" mode="aspectFit" class="icon-md goods-shelf-price-edit-icon" />
-            </view>
-          </view>
-        </block>
-
-        <!-- 单价 - 业务类型>5显示售价，一个编辑按钮 -->
-        <block wx:if="{{disInfo.nxDistributerBusinessTypeId > 5 && (showDetailMode || expandedIndex === goodsIndex)}}">
-          <view class="price-row" bindtap="showIsPurchase" data-item="{{sons}}" data-index="{{goodsIndex}}" data-level="1" hover-class="hover">
-            <text class="price-label font-xs">售价:</text>
-            <view class="price-value-wrap">
-              <block wx:if="{{sons.nxDgWillPriceOne !== null}}">
-                <text class="price-value font-sl">{{sons.nxDgWillPriceOne}}元/{{sons.nxDgGoodsStandardname}}</text>
-              </block>
-              <block wx:else>
-                <text class="price-value font-xs text-secondary">未设置</text>
-              </block>
-              <image src="/images/edit-main.png" mode="aspectFill" class="edit-icon" />
-            </view>
+            <image src="/images/edit-main.png" mode="aspectFill" class="icon" />
           </view>
         </block>
 
@@ -164,6 +145,6 @@
   </view>
 </view>
 
-<goodsWillPirce show="{{showIsPurchase}}" bindconfirm="confirm" level="{{level}}" bindcancle="cancleIsPurchase" item="{{item}}" consultItem="{{consultItem}}" binddelPrice="delPrice" windowHeight="{{windowHeight}}" windowWidth="{{windowWidth}}" />
+<goodsWillPirce show="{{showIsPurchase}}" bindconfirm="confirm" bindcancle="cancleIsPurchase" item="{{item}}" consultItem="{{consultItem}}" windowHeight="{{windowHeight}}" windowWidth="{{windowWidth}}" />
 
-<shelf-goods-price-modal show="{{showShelfPriceModal}}" item="{{shelfPriceModalItem}}" windowWidth="{{windowWidth}}" bindcancel="onShelfPriceModalCancel" bindconfirm="onShelfPriceModalConfirm" />
+

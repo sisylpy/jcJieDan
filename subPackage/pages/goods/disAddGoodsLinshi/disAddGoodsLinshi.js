@@ -117,8 +117,7 @@ Page({
         nxDgGoodsId: "-1",
         nxDgPullOff: 0,
         nxDgGoodsStatus: 0,
-        nxDgBuyingPriceIsGrade: 0,
-        nxDgBuyingPrice: "1",
+        nxDgBuyingPriceOne: "1",
         nxDgBuyingPriceUpdate: dateUtils.getArriveDate(0),
         nxDgDistributerId: this.data.disId,
         nxDgGoodsName: goodsName, 
@@ -164,16 +163,6 @@ Page({
   },
 
 
-  radioChange(e) {
-    console.log(e.detail.value);
-    var gradeData = "goods.nxDgBuyingPriceIsGrade"
-    this.setData({
-      [gradeData]: e.detail.value,
-      isGrade: e.detail.value
-    })
-    this._ifCanSave();
-  },
-
   // 价格策略选择（仅作字段保存，不接入计价逻辑）
   changePriceStrategy(e) {
     var index = e.detail.value;
@@ -182,61 +171,6 @@ Page({
       priceStrategyIndex: index,
       'goods.nxDgPriceStrategy': list[index].value,
     })
-  },
-
-  getBuyingPrice(e) {
-    var gradeData = "goods.nxDgBuyingPriceIsGrade";
-    var priceData = "goods.nxDgBuyingPrice";
-    var priceUpdateData = "goods.nxDgBuyingPriceUpdate";
-    var priceOneData = "goods.nxDgBuyingPriceOne";
-    var priceOneUpdateData = "goods.nxDgBuyingPriceOneUpdate";
-    var priceTwoData = "goods.nxDgBuyingPriceTwo";
-    var priceTwoUpdateData = "goods.nxDgBuyingPriceTwoUpdate";
-    var priceThreeData = "goods.nxDgBuyingPriceThree";
-    var priceThreeUpdateData = "goods.nxDgBuyingPriceThreeUpdate";
-
-    var type = e.currentTarget.dataset.type;
-    if (type == 0) {
-      this.setData({
-        [gradeData]: 0,
-        [priceData]: e.detail.value,
-        [priceUpdateData]: this.data.upTime,
-        [priceOneData]: null,
-        [priceTwoData]: null,
-        [priceThreeData]: null,
-        [priceOneUpdateData]: null,
-        [priceTwoUpdateData]: null,
-        [priceThreeUpdateData]: null,
-
-      })
-    }
-    if (type == 1) {
-      this.setData({
-        [gradeData]: 1,
-        [priceData]: null,
-        [priceUpdateData]: null,
-        [priceOneData]: e.detail.value,
-        [priceOneUpdateData]: this.data.upTime,
-      })
-    }
-    if (type == 2) {
-      this.setData({
-        [gradeData]: 1,
-        [priceData]: null,
-        [priceTwoData]: e.detail.value,
-        [priceTwoUpdateData]: this.data.upTime,
-      })
-    }
-    if (type == 3) {
-      this.setData({
-        [gradeData]: 1,
-        [priceData]: null,
-        [priceThreeData]: e.detail.value,
-        [priceThreeUpdateData]: this.data.upTime,
-      })
-    }
-    this._ifCanSave();
-
   },
 
   getDisGoodsContent(e) {
@@ -304,24 +238,14 @@ Page({
     if (e.currentTarget.dataset.type == 13) {
       this.setData({ "goods.nxDgNetWeightJin": e.detail.value })
     }
-    if (e.currentTarget.dataset.type == 14) {
-      this.setData({ "goods.nxDgGrossWeightPricePerJin": e.detail.value })
-    }
-    if (e.currentTarget.dataset.type == 15) {
-      this.setData({ "goods.nxDgNetWeightPricePerJin": e.detail.value })
-    }
+    
     if (e.currentTarget.dataset.type == 16) {
       this.setData({ "goods.nxDgOuterGrossWeightJin": e.detail.value })
     }
     if (e.currentTarget.dataset.type == 17) {
       this.setData({ "goods.nxDgOuterNetWeightJin": e.detail.value })
     }
-    if (e.currentTarget.dataset.type == 18) {
-      this.setData({ "goods.nxDgOuterGrossWeightPricePerJin": e.detail.value })
-    }
-    if (e.currentTarget.dataset.type == 19) {
-      this.setData({ "goods.nxDgOuterNetWeightPricePerJin": e.detail.value })
-    }
+  
 
     this._ifCanSave();
 

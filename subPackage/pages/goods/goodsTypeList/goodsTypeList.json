@@ -1,7 +1,6 @@
 {
   "usingComponents": {
     "back-navbar": "/components/back-navbar/back-navbar",
-    "goodsWillPirce": "/components/goodsWillPirce/goodsWillPirce",
-    "shelf-goods-price-modal": "/components/shelfGoodsPriceModal/shelfGoodsPriceModal"
+    "goodsWillPirce": "/components/goodsWillPirce/goodsWillPirce"
   }
 }

@@ -96,6 +96,7 @@ Page({
       showCashSettle: false,
       orderPreview: null,
       orderPreviewLoading: false,
+      showFeeDetail: false,
     })
   },
 
@@ -368,6 +369,7 @@ Page({
         load.hideLoading();
         console.log("printdata", newMode ? "斤转公斤" : "公斤转斤", res.result.data);
         if (res.result.code == 0) {
+          this._normalizeOrderPageData(res.result.data);
 
           this.setData({
             tradeNo: res.result.data.tradeNo,
@@ -505,6 +507,28 @@ Page({
 
   delApply() {
 
+    var applyItem = this.data.applyItem || {};
+    var dgEntity = applyItem.nxDistributerGoodsEntity || {};
+    // 协作商家商品：商品归属分销商与当前分销商不同
+    var isCollDis = dgEntity.nxDgDistributerId != null
+      && String(dgEntity.nxDgDistributerId) !== String(this.data.nxDisId);
+    // 协作商家订单且采购状态 == 1 时禁止删除
+    var isCollStatusOne = applyItem.nxDoPurchaseStatus == 1;
+    if (isCollDis && isCollStatusOne) {
+      wx.showToast({
+        title: '协作商家订单不能删除，只能修改数量',
+        icon: 'none',
+        duration: 2500
+      })
+      this.setData({
+        show: false,
+        showCash: false,
+        showOperationGoods: false,
+        showOperationLinshi: false
+      })
+      return;
+    }
+
     this.setData({
       warnContent: this.data.goodsName + "  " + this.data.applyItem.nxDoQuantity + this.data.applyItem.nxDoStandard,
       deleteShow: true,
@@ -612,7 +636,8 @@ Page({
 
   // new
   toOrder(e) {
-    if (this.data.depInfo.nxDepartmentEntities.length > 0) {
+    var subDeps = this.data.depInfo.nxDepartmentEntities || [];
+    if (subDeps.length > 0) {
       this.setData({
         showChoice: true,
         toType: "order"
@@ -669,7 +694,7 @@ Page({
 
 
   toResGoods(e) {
-    var subName = this.data.subName;
+    var subName = this.data.subName || "";
     var depName = this.data.depName;
     if (subName.length > 0) {
       depName = depName + "-" + subName;
@@ -697,7 +722,8 @@ Page({
   toAddOrder(e) {
     console.log(e.currentTarget.dataset.type)
     var type = e.currentTarget.dataset.type;
-    if (this.data.depInfo.nxDepartmentEntities.length > 0) {
+    var subDeps = this.data.depInfo.nxDepartmentEntities || [];
+    if (subDeps.length > 0) {
       this.setData({
         showChoice: true,
         openType: type,
@@ -960,6 +986,22 @@ Page({
     var id = applyItem.nxDepartmentOrdersId;
     var that = this;
 
+    var dgEntity = applyItem.nxDistributerGoodsEntity || {};
+    // 协作商家商品：商品归属分销商与当前分销商不同
+    var isCollDis = dgEntity.nxDgDistributerId != null
+      && String(dgEntity.nxDgDistributerId) !== String(this.data.nxDisId);
+    // 协作商家订单且采购状态 == 1 时禁止删除
+    var isCollStatusOne = applyItem.nxDoPurchaseStatus == 1;
+
+    if (isCollDis && isCollStatusOne) {
+      wx.showToast({
+        title: '协作商家订单不能删除，只能修改数量',
+        icon: 'none',
+        duration: 2500
+      })
+      return;
+    }
+
     load.showLoading("删除订单")
     deleteOrder(id).then(res => {
       load.hideLoading();
@@ -1171,7 +1213,7 @@ Page({
           showCash: true,
           applySubtotal: applyItem.nxDoSubtotal,
         })
-      } else if (this.data.depInfo.nxDepartmentSettleType == 1) {
+      } else {
         this.setData({
           show: true
         })
@@ -1185,7 +1227,7 @@ Page({
         editApply: true,
         applyNumber: applyItem.nxDoQuantity,
         applyRemark: applyItem.nxDoRemark,
-        priceLevel: applyItem.nxDoCostPriceLevel
+        priceLevel: applyItem.nxDoCostPriceLevel != null ? applyItem.nxDoCostPriceLevel : 1
       })
     } else {
       wx.showToast({
@@ -2311,6 +2353,10 @@ Page({
    */
   getTaskOrder: function(e) {
     var item = e.currentTarget.dataset.item;
+    if (item.nxOcrTaskStatus == 0) {
+      wx.showToast({ title: '订单解析中，请稍等', icon: 'none' });
+      return;
+    }
     wx.navigateTo({
       url: '/subPackage-order/pages/order/ocrOrder/ocrOrder?taskId=' + item.nxOcrTaskId
       + '&depFatherId=' + this.data.depFatherId + '&depId=' + this.data.depId + '&depName='  + this.data.depName,
@@ -2509,6 +2555,26 @@ Page({
     var hasCouponDiscount = Number(estimatedDiscount) > 0;
     var deliveryFeeFormula = this._buildDeliveryFeeFormula(data);
     var showDeliveryFeeDetail = !isSelfPickup && data.feeMode && data.feeMode !== 'NO_RULE';
+
+    // 按重量计费：超出重量
+    var extraWeightJin = '';
+    if (data.feeMode === 'WEIGHT_ONLY' && data.grossWeightJin != null && data.baseWeightJin != null) {
+      var grossNum = Number(data.grossWeightJin);
+      var baseNum = Number(data.baseWeightJin);
+      if (!isNaN(grossNum) && !isNaN(baseNum) && grossNum > baseNum) {
+        extraWeightJin = this._moneyText(grossNum - baseNum);
+      }
+    }
+    // 按距离计费：超出距离
+    var extraDistanceKm = '';
+    if (data.feeMode === 'DISTANCE_ONLY' && data.distanceKm != null && data.baseDistanceKm != null) {
+      var distNum = Number(data.distanceKm);
+      var baseDistNum = Number(data.baseDistanceKm);
+      if (!isNaN(distNum) && !isNaN(baseDistNum) && distNum > baseDistNum) {
+        extraDistanceKm = this._moneyText(distNum - baseDistNum);
+      }
+    }
+
     // 是否有运费：存在实际运费(>0) 或 存在有效运费规则(非 NO_RULE)
     var hasFee = !isSelfPickup && (deliveryFeeNum > 0 || (data.feeMode && data.feeMode !== 'NO_RULE'));
     // 是否有优惠券：有折扣 或 有可用/不可用券
@@ -2548,6 +2614,8 @@ Page({
       estimatedPayAmount: estimatedPayAmount,
       hasCoupons: availableCoupons.length > 0 || unavailableCoupons.length > 0,
       showFeeCard: showFeeCard,
+      extraWeightJin: extraWeightJin,
+      extraDistanceKm: extraDistanceKm,
     };
   },
 
@@ -2625,6 +2693,27 @@ Page({
         orderPreviewLoading: false,
       });
     }.bind(this));
+  },
+
+  /**
+   * 显示配送费计算详情弹窗
+   */
+  showFeeDeatail() {
+    this.setData({ showFeeDetail: true });
+  },
+
+  /**
+   * 关闭配送费计算详情弹窗
+   */
+  hideFeeDetail() {
+    this.setData({ showFeeDetail: false });
+  },
+
+  /**
+   * 阻止弹窗内容点击冒泡关闭
+   */
+  stopPropagation() {
+    // 仅用于 catchtap，不做任何处理
   },
 
 
