@@ -206,9 +206,11 @@ Page({
 
 
 toConectRestraunt() {
+  var disName = this.data.disInfo ? this.data.disInfo.nxDistributerName : '';
   wx.navigateToMiniProgram({
     appId: 'wx58ba279bc3d04c4a',
-    path: 'subPackage-jrdh/pages/fromJingjing/fromJingjing?nxDisId=' + this.data.disId,
+    path: 'subPackage-jrdh/pages/fromJingjing/fromJingjing?nxDisId=' + this.data.disId +
+      '&nxDisName=' + encodeURIComponent(disName),
     envVersion: 'trial', //release  develop  trial
   })
 },
@@ -252,6 +254,12 @@ toConectRestraunt() {
   toYifaPage(e){
     var nxDisBusiness  = e.currentTarget.dataset.item;
     wx.setStorageSync('nxDisBusiness', nxDisBusiness);
+    if (nxDisBusiness.nxDgdFromNxDepId && nxDisBusiness.nxDgdFromNxDepId > 0) {
+      wx.navigateTo({
+        url: '../customerPage/customerPage?depId=' + nxDisBusiness.nxDgdFromNxDepId,
+      })
+      return;
+    }
     wx.navigateTo({
       url: '../customerPageGb/customerPageGb?gbDisId=' + nxDisBusiness.nxDgdGbDistributerId,
     })

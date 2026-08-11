@@ -240,7 +240,7 @@ _text(){
   
   var data = {
     rawText: rawText,
-    distributorId: this.data.disId || 56
+    distributorId: this.data.disId
   }
 
   console.log("AI分析请求数据:", data);

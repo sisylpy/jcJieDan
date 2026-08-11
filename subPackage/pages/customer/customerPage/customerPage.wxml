@@ -26,8 +26,9 @@
 					<text class="font-lg">{{month.month}}月</text>
 				</view>
 
-				<view class="flex-row-between p-20 border-bottom" wx:for="{{month.arr}}" wx:for-item="item" style="width: {{windowWidth - 40}}rpx; " hover-class="hover" bindtap="openOperation" data-id="{{item.nxDepartmentBillId}}"   data-item="{{item}}"  wx:key="nxDepartmentBillId">
-					<view class="flex-column">
+					<view class="bill-list-item p-20 border-bottom" wx:for="{{month.arr}}" wx:for-item="item" style="width: {{windowWidth}}rpx; " hover-class="hover" bindtap="openOperation" data-id="{{item.nxDepartmentBillId}}"   data-item="{{item}}"  wx:key="nxDepartmentBillId">
+						<view class="bill-main-row">
+						<view class="flex-column bill-list-info">
             <view class="flex-row " wx:if="{{item.nxDbDepId !== item.nxDbDepFatherId}}">
 							<text>部门:</text>
 							<text>{{item.nxDepartmentEntity.nxDepartmentName}}</text>
@@ -44,20 +45,25 @@
           
 					</view>
 
-					<view class="flex-row with-mr-20">
-						<view class="flex-column">
-							<view class="flex-row">
-								<text class="big ">{{item.nxDbTotal}}</text>
-								<text class="font-xs">元</text>
-							</view>
-							<text wx:if="{{item.nxDbStatus == 0}}" class=" font-xs text-danger">未结账</text>
+						<view class="flex-row with-mr-20 bill-list-price">
+								<view class="flex-column">
+								<view class="flex-row">
+									<text class="big ">{{item.displayPayAmount}}</text>
+									<text class="font-xs">元</text>
+								</view>
+									<text wx:if="{{item.nxDbStatus == 0}}" class=" font-xs text-danger">未结账</text>
 							<text wx:elif="{{item.nxDbStatus == 1}}" class="font-xs text-secondary">已结账</text>
 						</view>
 						<view>
-							<image src="../../../../images/points.png" class="icon-md plr-20"></image>
+								<image src="../../../../images/points.png" class="icon-md plr-20"></image>
+							</view>
+						</view>
+						</view>
+						<view wx:if="{{item.hasCouponDiscount}}" class="bill-promotion-row">
+							<text class="bill-original-price">原价 ¥{{item.displayGoodsAmount}}</text>
+							<text class="bill-discount-text">{{item.nxDbCouponName || '优惠券'}} -¥{{item.displayCouponDiscount}}</text>
 						</view>
 					</view>
-				</view>
 			</view>
 		</view>
 	</block>
@@ -97,9 +103,9 @@
 				</view>
 
 <!-- -->
-				<view class="flex-row-between p-20 border-bottom bg-white" wx:for="{{month.arr}}" wx:for-item="item" style="width: {{windowWidth - 40}}rpx; " hover-class="hover" bindtap="openOperation" data-id="{{item.nxDepartmentBillId}}"  data-item="{{item}}" wx:key="nxDepartmentBillId">
-
-					<view class="flex-column">
+					<view class="bill-list-item p-20 border-bottom bg-white" wx:for="{{month.arr}}" wx:for-item="item" style="width: {{windowWidth}}rpx; " hover-class="hover" bindtap="openOperation" data-id="{{item.nxDepartmentBillId}}"  data-item="{{item}}" wx:key="nxDepartmentBillId">
+						<view class="bill-main-row">
+						<view class="flex-column bill-list-info">
             <view class="flex-row " wx:if="{{item.nxDbDepId !== item.nxDbDepFatherId}}">
 							<text>部门:</text>
 							<text>{{item.nxDepartmentEntity.nxDepartmentName}}</text>
@@ -116,21 +122,26 @@
           
 					</view>
 
-					<view class="flex-row with-mr-20">
-						<view class="flex-column">
-							<view class="flex-row">
-								<text class="big ">{{item.nxDbTotal}}</text>
-								<text class="font-xs">元</text>
-								<text class="text-warning" wx:if="{{item.nxDbTotal < 0}}">（退货）</text>
-							</view>
-							<text wx:if="{{item.nxDbStatus == 0}}" class=" font-xs text-danger">未结账</text>
+						<view class="flex-row with-mr-20 bill-list-price">
+							<view class="flex-column">
+								<view class="flex-row">
+									<text class="big ">{{item.displayPayAmount}}</text>
+									<text class="font-xs">元</text>
+									<text class="text-warning" wx:if="{{item.nxDbTotal < 0}}">（退货）</text>
+								</view>
+									<text wx:if="{{item.nxDbStatus == 0}}" class=" font-xs text-danger">未结账</text>
 							<!-- <text wx:elif="{{item.nxDbStatus == 1}}" class="font-xs text-secondary">已结账</text> -->
 						</view>
 						<view>
-							<image src="../../../../images/points.png" class="icon-md plr-20"></image>
+								<image src="../../../../images/points.png" class="icon-md plr-20"></image>
+							</view>
+						</view>
+						</view>
+						<view wx:if="{{item.hasCouponDiscount}}" class="bill-promotion-row">
+							<text class="bill-original-price">原价 ¥{{item.displayGoodsAmount}}</text>
+							<text class="bill-discount-text">{{item.nxDbCouponName || '优惠券'}} -¥{{item.displayCouponDiscount}}</text>
 						</view>
 					</view>
-				</view>
 			</view>
 		</view>
 	</block>

@@ -116,16 +116,22 @@ Page({
     var selectArr = this.data.selectArr;
     var temp = 0;
     for (var i = 0; i < selectArr.length; i++) {
-      var itemTotal = Number(selectArr[i].nxDbTotal);
-      console.log(selectArr[i]);
-      console.log(Number(selectArr[i].nxDbTotal));
+      var itemTotal = this._getBillPayAmount(selectArr[i]);
       temp = temp + itemTotal;
-      console.log(temp);
     }
     this.setData({
       total: temp.toFixed(1),
       selAmount: selectArr.length
     })
+  },
+
+  _getBillPayAmount(bill) {
+    var payAmount = bill.nxDbPayAmount;
+    if (payAmount === null || payAmount === undefined || payAmount === '') {
+      payAmount = bill.nxDbTotal;
+    }
+    var amount = Number(payAmount);
+    return isNaN(amount) ? 0 : amount;
   },
 
   settleBills() {

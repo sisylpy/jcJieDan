@@ -1,0 +1,6 @@
+{
+  "navigationBarTitleText": "选择商品",
+  "usingComponents": {
+    "back-navbar": "/components/back-navbar/back-navbar"
+  }
+}

@@ -33,6 +33,21 @@
                     <text class="">订:{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
                     <text class="text-danger font-sl" wx:if="{{order.nxDoRemark !== null  && order.nxDoRemark.length > 0}}">({{order.nxDoRemark}})</text>
                   </view>
+
+                  <view wx:if="{{order._hasCustomerStandards}}" class="customer-standard-line">
+                    <view wx:for="{{order._customerStandardItems}}" wx:for-item="standard"
+                      wx:key="id" class="customer-standard-item">
+                      <view class="customer-standard-item-head">
+                        <text class="customer-standard-label">{{standard.label}}</text>
+                        <view class="customer-standard-stars">
+                          <text wx:for="{{standard.importanceStars}}" wx:for-item="star"
+                            wx:key="*this" class="customer-standard-star">★</text>
+                        </view>
+                      </view>
+                      <text class="customer-standard-text">{{standard.text}}</text>
+                    </view>
+                  </view>
+
                   <!-- <block wx:if="{{order.purchaseGoodsEntity !== null && order.purchaseGoodsEntity.nxDpgBatchId !== null}}">
                     <view class="flex-row font-xs">
                       <view class="flex-row third-row">
@@ -177,4 +192,3 @@
 
 <!-- 打印规格修改 tip 弹窗组件 -->
 <editPrintStandard wx:if="{{showPrintTip}}" show="{{true}}" order="{{currentEditOrder}}" printStandard="{{editPrintStandard}}" bind:confirm="onPrintStandardConfirm" bind:cancel="cancelEditPrintStandard" />
-

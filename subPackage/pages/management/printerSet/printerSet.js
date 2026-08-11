@@ -110,9 +110,9 @@ Page({
   setPaperSize() {
     var that = this;
     wx.showActionSheet({
-      itemList: ['4*3cm（横）', '4*6cm（竖）', '5*8cm（竖）'],
+      itemList: ['4*3cm（横）', '4*6cm（竖）', '5*8cm（竖）', '5*8cm（横）'],
       success: function(res) {
-        var selectedSize = res.tapIndex + 1; // 0,1,2 转为 1,2,3
+        var selectedSize = res.tapIndex + 1;
         that.setData({
           paperSize: selectedSize
         });

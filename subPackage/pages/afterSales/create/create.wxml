@@ -1,0 +1,52 @@
+<back-navbar title="记录售后问题" avatar="/images/back-gray.png" button-text="" bindnavbuttontap="toBack"></back-navbar>
+
+<scroll-view scroll-y class="create-scroll" style="padding-top: {{navBarHeight}}rpx;">
+  <view class="create-page" wx:if="{{draft}}">
+    <view class="source-card">
+      <text class="source-customer">{{draft.customerName}}</text>
+      <text class="source-date">配送日期 {{draft.routeDate || '今天'}}</text>
+      <text class="source-order">原配送任务 #{{draft.originalShipmentTaskId}}</text>
+    </view>
+
+    <view class="form-section">
+      <view class="form-title">问题商品</view>
+      <view class="order-option {{item.selected ? 'selected' : ''}}" wx:for="{{orders}}" wx:key="historyOrderId" bindtap="toggleOrder" data-index="{{index}}">
+        <view class="check-dot">{{item.selected ? '✓' : ''}}</view>
+        <view class="order-text"><text class="order-name">{{item.goodsName}}</text><text>{{item.quantity}}{{item.standard}}</text></view>
+      </view>
+    </view>
+
+    <view class="form-section">
+      <view class="form-title">问题程度</view>
+      <view class="severity-options">
+        <view class="severity-option {{severity === item.code ? 'selected severity-' + item.code : ''}}" wx:for="{{severityOptions}}" wx:key="code" bindtap="selectSeverity" data-code="{{item.code}}">{{item.label}}</view>
+      </view>
+    </view>
+
+    <view class="form-section">
+      <view class="form-title">问题类型</view>
+      <view class="type-options">
+        <view class="type-option {{issueType === item.code ? 'selected' : ''}}" wx:for="{{issueTypeOptions}}" wx:key="code" bindtap="selectIssueType" data-code="{{item.code}}">{{item.label}}</view>
+      </view>
+    </view>
+
+    <view class="form-section">
+      <view class="form-title">问题说明</view>
+      <textarea class="description-input" maxlength="500" value="{{description}}" bindinput="onDescriptionInput" placeholder="例如：上海青太大，客户不能用。"></textarea>
+    </view>
+
+    <view class="form-section">
+      <view class="form-title-row"><text class="form-title">问题照片</text><text class="photo-count">{{photos.length}}/20</text></view>
+      <view class="photo-grid">
+        <view class="photo-item" wx:for="{{photos}}" wx:key="path">
+          <image src="{{item.path}}" mode="aspectFill" bindtap="previewPhoto" data-url="{{item.path}}"></image>
+          <view class="photo-remove" wx:if="{{item.status === 'waiting'}}" bindtap="removePhoto" data-index="{{index}}">×</view>
+          <view class="upload-mask" wx:if="{{item.status !== 'waiting' && item.status !== 'success'}}">{{item.statusText}}</view>
+        </view>
+        <view class="photo-add" bindtap="choosePhotos" wx:if="{{photos.length < 20}}"><text>＋</text><text>添加照片</text></view>
+      </view>
+    </view>
+
+    <button class="save-button" loading="{{saving}}" disabled="{{saving || loading}}" bindtap="save">创建售后</button>
+  </view>
+</scroll-view>

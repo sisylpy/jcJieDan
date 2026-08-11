@@ -50,9 +50,10 @@ Page({
     getBillApplys(data).then(res =>{
       console.log(res)
       if(res.result.code == 0){
+          var bill = res.result.data.bill;
           this.setData({
             applyArr: res.result.data.arr,
-            bill: res.result.data.bill,
+            bill: bill,
           })         
         
       }

@@ -15,7 +15,7 @@ function downloadSaveFile(obj) {
   }else{
     id = url;
   }
-  wx.downloadFile({
+  getApp().ownerDownloadFile({
     url: obj.url,
     success: function (res) {
       wx.saveFile({

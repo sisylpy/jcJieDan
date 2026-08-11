@@ -1,0 +1,35 @@
+.customer-standard-order-row {
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+.customer-standard-workline {
+  box-sizing: border-box;
+  display: flex;
+  flex: 0 0 100%;
+  align-items: flex-start;
+  width: 100%;
+  min-width: 0;
+  margin-top: 10rpx;
+  padding: 8rpx 12rpx;
+  border-left: 5rpx solid #178f83;
+  border-radius: 5rpx;
+  background: #f0f9f7;
+  font-size: 24rpx;
+  line-height: 34rpx;
+}
+
+.customer-standard-work-title {
+  flex: 0 0 100rpx;
+  color: #16796f;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.customer-standard-work-content {
+  flex: 1;
+  min-width: 0;
+  color: #c74435;
+  font-weight: 600;
+  word-break: break-all;
+}

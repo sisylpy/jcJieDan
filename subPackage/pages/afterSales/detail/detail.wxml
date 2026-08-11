@@ -1,0 +1,132 @@
+<back-navbar title="售后详情" avatar="/images/back-gray.png" button-text="" bindnavbuttontap="toBack"></back-navbar>
+
+<view class="detail-page" style="padding-top: {{navBarHeight}}rpx;">
+  <view class="loading" wx:if="{{loading}}">加载中...</view>
+  <view class="error-card" wx:elif="{{errorText}}">{{errorText}}</view>
+  <block wx:elif="{{detail}}">
+    <view class="hero-card severity-{{detail.nxDasSeverity}}">
+      <view><text class="customer-name">{{customerDisplayName}}</text><text class="hero-time">{{detail.createdText}}</text></view>
+      <text class="after-sales-no">{{detail.nxDasNo}}</text>
+      <view class="hero-status">{{detail.statusLabel}}</view>
+      <view class="hero-meta"><text>{{detail.severityLabel}}</text><text>{{detail.issueTypeLabel}}</text><text>{{detail.confirmLabel}}</text></view>
+      <view class="completed-time" wx:if="{{detail.completed}}">已完成 {{detail.completedText}}</view>
+    </view>
+
+    <view class="section-card">
+      <view class="section-title">问题商品</view>
+      <view class="issue-item" wx:for="{{items}}" wx:key="id">
+        <view class="issue-line"><text class="issue-name">{{item.goodsName}}</text><text>{{item.issueQuantity}}</text></view>
+        <text class="issue-description">{{item.description}}</text>
+      </view>
+    </view>
+
+    <view class="section-card">
+      <view class="section-title-row"><text class="section-title">问题照片</text><text class="text-action" wx:if="{{!detail.completed}}" bindtap="chooseEvidencePhotos">补传照片</text></view>
+      <view class="empty-inline" wx:if="{{evidenceImages.length === 0}}">暂无问题照片</view>
+      <view class="image-grid"><image wx:for="{{evidenceImages}}" wx:key="id" src="{{item.previewUrl}}" mode="aspectFill" bindtap="previewImage" data-url="{{item.previewUrl}}"></image></view>
+    </view>
+
+    <view class="section-card" wx:if="{{replenishments.length}}">
+      <view class="section-title">补货进度</view>
+      <view class="replenishment-card" wx:for="{{replenishments}}" wx:key="id">
+        <view class="replenishment-head"><text>{{item.statusLabel}}</text><text>{{item.driverName}}</text></view>
+        <text>{{item.goodsName}} × {{item.nxDasrQuantity}}{{item.nxDasrStandard}}</text>
+        <text class="free-tip">售后补货 · 客户不重复收费</text>
+        <view class="inline-actions" wx:if="{{item.nxDasrStatus !== 'DELIVERED' && !detail.completed}}">
+          <button bindtap="markDelivered" data-id="{{item.id}}">确认送达</button>
+        </view>
+        <view class="inline-actions" wx:if="{{item.nxDasrStatus === 'DELIVERED' && !detail.completed}}">
+          <button bindtap="chooseResultPhotos" data-id="{{item.id}}">上传客户认可照片</button>
+        </view>
+      </view>
+      <view class="image-subtitle" wx:if="{{resultImages.length}}">补货结果照片</view>
+      <view class="image-grid"><image wx:for="{{resultImages}}" wx:key="id" src="{{item.previewUrl}}" mode="aspectFill" bindtap="previewImage" data-url="{{item.previewUrl}}"></image></view>
+    </view>
+
+    <view class="section-card" wx:if="{{!detail.completed}}">
+      <view class="section-title">处理方式</view>
+      <text class="action-hint">选择本次处理方式，处理记录会保留在下方进度中</text>
+      <view class="action-entry-grid">
+        <view class="action-entry action-entry-{{item.code}}" wx:for="{{actionOptions}}" wx:key="code" bindtap="openActionByType" data-code="{{item.code}}">
+          <text class="action-entry-title">{{item.label}}</text>
+          <text class="action-entry-arrow">›</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="section-card">
+      <view class="section-title-row"><text class="section-title">处理进度</text><text class="text-action" wx:if="{{!detail.completed}}" bindtap="openActionForm">记录其他处理</text></view>
+      <view class="timeline-row"><view class="timeline-dot"></view><view><text>{{detail.createdText}} 创建售后</text></view></view>
+      <view class="timeline-row" wx:for="{{actions}}" wx:key="id">
+        <view class="timeline-dot"></view>
+        <view><text>{{item.timeText}} {{item.operatorText}} · {{item.typeLabel}}</text><text class="timeline-note" wx:if="{{item.remark}}">{{item.remark}}</text><text class="timeline-note timeline-result" wx:if="{{item.result}}">{{item.result}}</text></view>
+      </view>
+    </view>
+
+    <view class="section-card" wx:if="{{!detail.completed}}">
+      <view class="section-title">客户反馈</view>
+      <text class="customer-feedback-note" wx:if="{{detail.nxDasCustomerConfirmRemark}}">{{detail.nxDasCustomerConfirmRemark}}</text>
+      <view class="confirm-options">
+        <button class="confirm-pending" bindtap="confirmCustomer" data-status="PENDING">待确认</button>
+        <button class="confirm-accepted" bindtap="confirmCustomer" data-status="ACCEPTED">客户接受</button>
+        <button class="confirm-unsatisfied" bindtap="confirmCustomer" data-status="UNSATISFIED">仍不满意</button>
+      </view>
+      <button class="complete-button" wx:if="{{detail.nxDasStatus === 'WAIT_CONFIRM' && detail.nxDasCustomerConfirmStatus === 'ACCEPTED'}}" bindtap="completeCase">完成售后</button>
+    </view>
+
+    <view class="section-card" wx:if="{{detail.completed}}">
+      <view class="section-title-row"><text class="section-title">客户商品标准</text><text class="success-label" wx:if="{{hasWrittenBack}}">✓ 已加入</text></view>
+      <text class="standard-hint">把本次人工确认的要求和照片沉淀为这个客户的长期收货标准。</text>
+      <button class="standard-button" wx:if="{{!hasWrittenBack}}" bindtap="openWriteback">加入客户商品标准</button>
+      <button class="standard-link" wx:if="{{hasWrittenBack}}" bindtap="viewCustomerStandard">查看客户标准 ></button>
+    </view>
+
+    <view class="sheet-mask" wx:if="{{showActionForm || showReplenishmentForm || showCompensationForm || showWritebackForm}}" bindtap="closeForms"></view>
+    <view class="bottom-sheet" wx:if="{{showActionForm}}">
+      <view class="sheet-title">记录处理方式</view>
+      <view class="action-grid"><view class="action-option {{actionType === item.code ? 'selected' : ''}}" wx:for="{{actionOptions}}" wx:key="code" bindtap="selectActionType" data-code="{{item.code}}">{{item.label}}</view></view>
+      <textarea placeholder="处理备注" bindinput="onActionRemarkInput" value="{{actionRemark}}"></textarea>
+      <input placeholder="处理结果（可选）" bindinput="onActionResultInput" value="{{actionResult}}" />
+      <button class="sheet-primary" bindtap="saveAction">保存处理动作</button>
+    </view>
+
+    <view class="bottom-sheet" wx:if="{{showReplenishmentForm}}">
+      <view class="sheet-title">安排售后补货</view>
+      <view class="free-banner">售后补货 · 客户不重复收费</view>
+      <picker range="{{items}}" range-key="goodsName" value="{{replenishmentItemIndex}}" bindchange="onReplenishmentItemChange"><view class="picker-field">商品：{{items[replenishmentItemIndex].goodsName}}</view></picker>
+      <view class="quantity-row"><input type="digit" placeholder="补货数量，如 10" bindinput="onReplenishmentQuantityInput"/><input placeholder="规格，如 斤" value="{{replenishmentStandard}}" bindinput="onReplenishmentStandardInput"/></view>
+      <picker range="{{drivers}}" range-key="name" value="{{driverIndex}}" bindchange="onDriverChange"><view class="picker-field">司机：{{drivers[driverIndex].name || '请选择司机'}}</view></picker>
+      <button class="sheet-primary" bindtap="saveReplenishment">确认补货并派单</button>
+    </view>
+
+    <view class="bottom-sheet" wx:if="{{showCompensationForm}}">
+      <view class="sheet-title">发放售后补偿券</view>
+      <view class="compensation-banner">补偿券由员工代客户接收反馈后人工发放，不需要客户主动领取。</view>
+      <picker range="{{compensationCoupons}}" range-key="displayText" value="{{compensationCouponIndex}}" bindchange="onCompensationCouponChange">
+        <view class="picker-field">{{compensationCoupons[compensationCouponIndex].displayText}}</view>
+      </picker>
+      <view class="compensation-meta">
+        <text>{{compensationCoupons[compensationCouponIndex].compTypeText}}</text>
+        <text>{{compensationCoupons[compensationCouponIndex].validityText}}</text>
+      </view>
+      <textarea placeholder="补偿说明（可选）" value="{{compensationRemark}}" bindinput="onCompensationRemarkInput"></textarea>
+      <button class="sheet-primary compensation-primary" bindtap="saveCompensation">确认发放给客户</button>
+    </view>
+
+    <view class="bottom-sheet writeback-sheet" wx:if="{{showWritebackForm}}">
+      <view class="sheet-title">加入客户商品标准</view>
+      <picker range="{{items}}" range-key="goodsName" value="{{writebackItemIndex}}" bindchange="onWritebackItemChange"><view class="picker-field">商品：{{items[writebackItemIndex].goodsName}}</view></picker>
+      <picker range="{{dimensionOptions}}" range-key="label" value="{{writebackDimensionIndex}}" bindchange="onDimensionChange"><view class="picker-field">标准维度：{{dimensionOptions[writebackDimensionIndex].label}}</view></picker>
+      <input class="standard-input" placeholder="例如：小颗" value="{{writebackRequirement}}" bindinput="onWritebackRequirementInput"/>
+      <picker mode="selector" range="{{importanceOptions}}" value="{{writebackImportance - 1}}" bindchange="onImportanceChange"><view class="picker-field">重要度：{{writebackImportance}} 星</view></picker>
+      <block wx:for="{{images}}" wx:key="id">
+        <view class="writeback-image" wx:if="{{item.writebackEligible}}" bindtap="toggleWritebackImage" data-id="{{item.id}}">
+          <image src="{{item.previewUrl}}" mode="aspectFill"></image>
+          <view class="writeback-image-text"><text>{{item.stage === 'EVIDENCE' ? '原问题照片 → 禁止这样' : '补货认可照片 → 合格参考'}}</text></view>
+          <text class="check-mark">{{item.writebackSelected ? '✓' : ''}}</text>
+        </view>
+      </block>
+      <button class="sheet-primary" bindtap="saveWriteback">确认加入客户标准</button>
+    </view>
+  </block>
+</view>

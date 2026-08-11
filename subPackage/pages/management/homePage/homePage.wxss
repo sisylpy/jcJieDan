@@ -284,6 +284,24 @@
   background: #eef9f7;
 }
 
+.setting-icon-wrap.red {
+  background: #fff0ed;
+}
+
+.setting-icon-wrap.amber {
+  background: #fff2dc;
+}
+
+.setting-row.highlight.after-sales-entry {
+  background: linear-gradient(135deg, #fff6f3, #ffffff);
+  border-color: #f4d8d1;
+}
+
+.setting-row.highlight.compensation-entry {
+  background: linear-gradient(135deg, #fff8ea, #ffffff);
+  border-color: #f1dfbb;
+}
+
 .setting-icon {
   width: 42rpx;
   height: 42rpx;
@@ -390,6 +408,19 @@
   height: 150rpx;
   color: #9aa29f;
   font-size: 26rpx;
+}
+
+.logout-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 92rpx;
+  margin: 32rpx 24rpx 0;
+  border: 1rpx solid #f0c8c4;
+  border-radius: 22rpx;
+  background: #fff;
+  color: #cf3f37;
+  font-size: 30rpx;
 }
 
 .hover {

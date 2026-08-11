@@ -1,1 +1,40 @@
 @import '../../pages/bossTab/dispatchPanelShared.wxss';
+
+.boss-timeline-end-card {
+  flex-wrap: wrap;
+}
+
+.boss-timeline-return-detail {
+  flex: 0 0 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12rpx;
+  margin-bottom: 8rpx;
+}
+
+.boss-timeline-return-route {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 22rpx;
+  font-weight: 600;
+  color: #35504b;
+}
+
+.boss-timeline-return-source {
+  flex-shrink: 0;
+  padding: 2rpx 8rpx;
+  border-radius: 999rpx;
+  background: #e8f7f3;
+  color: #008c7a;
+  font-size: 18rpx;
+}
+
+.boss-timeline-return-source-estimated {
+  background: #fff7e6;
+  color: #d48806;
+}

@@ -1,0 +1,51 @@
+<back-navbar title="售后管理" avatar="/images/back-gray.png" button-text="" bindnavbuttontap="toBack"></back-navbar>
+
+<view class="after-page" style="padding-top: {{navBarHeight}}rpx;">
+  <view class="date-bar">
+    <picker mode="date" value="{{startDate}}" bindchange="onStartDateChange"><view>{{startDate}}</view></picker>
+    <text>至</text>
+    <picker mode="date" value="{{endDate}}" bindchange="onEndDateChange"><view>{{endDate}}</view></picker>
+  </view>
+
+  <view class="loading" wx:if="{{loading}}">加载中...</view>
+  <view class="error-card" wx:elif="{{errorText}}">{{errorText}}</view>
+
+  <block wx:else>
+    <view class="delivery-total-card">
+      <text class="metric-label">今日配送</text>
+      <view><text class="metric-number">{{statistics.delivered}}</text><text class="metric-unit"> 单</text></view>
+    </view>
+
+    <view class="severity-grid">
+      <view class="severity-cell normal"><text>正常</text><text class="severity-value">{{statistics.normal}}</text></view>
+      <view class="severity-cell light"><text>轻度</text><text class="severity-value">{{statistics.light}}</text></view>
+      <view class="severity-cell medium"><text>中度</text><text class="severity-value">{{statistics.medium}}</text></view>
+      <view class="severity-cell serious"><text>严重</text><text class="severity-value">{{statistics.serious}}</text></view>
+    </view>
+
+    <view class="status-line">
+      <text>待处理 {{statistics.pending}}</text>
+      <text>处理中 {{statistics.processing}}</text>
+      <text>待确认 {{statistics.waitConfirm}}</text>
+    </view>
+
+    <view class="section-head">
+      <text class="section-title">异常记录</text>
+      <text class="section-hint">从已送达送货单记录问题</text>
+    </view>
+
+    <view class="empty-card" wx:if="{{cases.length === 0}}">当前日期没有售后问题</view>
+    <view class="case-card severity-{{item.severityClass}}" wx:for="{{cases}}" wx:key="afterSalesId" bindtap="openDetail" data-id="{{item.afterSalesId}}" data-name="{{item.customerName}}">
+      <view class="case-top">
+        <text class="case-customer">{{item.customerName}}</text>
+        <text class="severity-badge">{{item.severityLabel}}</text>
+      </view>
+      <view class="case-summary">{{item.issueItemSummary}} · {{item.issueTypeLabel}}</view>
+      <view class="case-bottom">
+        <text class="case-status">{{item.statusLabel}}</text>
+        <text class="replenishment-tag" wx:if="{{item.replenishmentLabel}}">{{item.replenishmentLabel}}</text>
+        <text class="case-time">{{item.createdText}}</text>
+      </view>
+    </view>
+  </block>
+</view>

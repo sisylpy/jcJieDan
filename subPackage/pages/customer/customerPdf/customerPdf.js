@@ -195,7 +195,7 @@ testPdf() {
   const { depFatherId, startDate, stopDate } = this.data;
   wx.showLoading({ title: '生成文件中...', mask: true });
 
-  wx.downloadFile({
+  getApp().ownerDownloadFile({
     url: `${apiUrl.apiUrl}download/downloadReportExcelNx?depFatherId=${depFatherId}&startDate=${startDate}&stopDate=${stopDate}`,
     success: (res) => {
       if (res.statusCode === 200) {
@@ -245,7 +245,7 @@ testPdf() {
   
       var that = this;
       load.showLoading("下载Excel表中....")
-      wx.downloadFile({
+      getApp().ownerDownloadFile({
         url: apiUrl.apiUrl + 'download/downloadReportExcelNx?depFatherId=' + this.data.depFatherId + '&startDate=' + this.data.startDate + '&stopDate=' + this.data.stopDate, //仅为示例，并非真实的资源
         header: {},
         success(res) {
@@ -299,7 +299,7 @@ testPdf() {
   testPdf11() {
     var that = this;
     load.showLoading("下载PDF....");
-    wx.downloadFile({
+    getApp().ownerDownloadFile({
       url: apiUrl.apiUrl + 'nxdepartmentorders/downloadReportPdfNx?depFatherId=' + this.data.depFatherId + '&startDate=' + this.data.startDate + '&stopDate=' + this.data.stopDate,
       header: {},
       success(res) {
@@ -351,7 +351,7 @@ testPdf() {
   testPdf2() {
     var that = this;
     load.showLoading("下载PDF....");
-    wx.downloadFile({
+    getApp().ownerDownloadFile({
       url: apiUrl.apiUrl + 'nxdepartmentorders/downloadReportPdfNx?depFatherId=' + this.data.depFatherId + '&startDate=' + this.data.startDate + '&stopDate=' + this.data.stopDate,
       header: {},
       success(res) {
@@ -402,7 +402,7 @@ testPdf() {
    
     var that = this;
     load.showLoading("下载PDF....")
-    wx.downloadFile({
+    getApp().ownerDownloadFile({
       url: apiUrl.apiUrl + 'nxdepartmentorders/downloadReportPdfNx?depFatherId=' + this.data.depFatherId + '&startDate=' + this.data.startDate + '&stopDate=' + this.data.stopDate,
       header: {},
       success(res) {

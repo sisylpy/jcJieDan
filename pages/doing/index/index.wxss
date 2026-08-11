@@ -1,4 +1,6 @@
 
+@import "../../../customer-standard-workline.wxss";
+
 .navbar-item{
   font-size: 38rpx;
 }

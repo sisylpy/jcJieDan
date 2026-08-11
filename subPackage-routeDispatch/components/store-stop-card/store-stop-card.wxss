@@ -11,10 +11,118 @@
   line-height: 1.5;
 }
 
+.boss-stop-address {
+  display: block;
+  margin: 8rpx 20rpx 0 72rpx;
+  overflow: hidden;
+  color: #8a9793;
+  font-size: 21rpx;
+  line-height: 1.4;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.boss-stop-constraint {
+  margin: 8rpx 20rpx 0;
+  padding: 8rpx 12rpx;
+  border-radius: 8rpx;
+  background: #fff7e8;
+  color: #bd7219;
+  font-size: 21rpx;
+  line-height: 1.4;
+}
+
 .unassigned-customer-card .boss-timeline-stop-unit {
   display: block;
 }
 
 .unassigned-customer-card .boss-timeline-marker {
   display: none;
+}
+
+.boss-timeline-leg-pill-edit {
+  display: block;
+  height: auto;
+  min-height: 88rpx;
+  padding-top: 12rpx;
+  padding-bottom: 12rpx;
+}
+
+.boss-timeline-leg-route,
+.boss-timeline-leg-metric-row {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.boss-timeline-leg-route {
+  justify-content: space-between;
+  gap: 12rpx;
+  margin-bottom: 6rpx;
+}
+
+.boss-timeline-leg-route-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 22rpx;
+  font-weight: 600;
+  color: #35504b;
+}
+
+.boss-timeline-leg-source {
+  flex-shrink: 0;
+  padding: 2rpx 8rpx;
+  border-radius: 999rpx;
+  background: #e8f7f3;
+  color: #008c7a;
+  font-size: 18rpx;
+}
+
+.boss-timeline-leg-source-estimated {
+  background: #fff7e6;
+  color: #d48806;
+}
+
+.boss-timeline-leg-metric-row {
+  justify-content: flex-end;
+}
+
+.route-edit-stop-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12rpx;
+  margin: 18rpx 20rpx 0;
+  padding-top: 16rpx;
+  border-top: 1rpx solid #edf1f0;
+}
+
+.route-stop-btn {
+  min-width: 88rpx;
+  padding: 11rpx 18rpx;
+  border: 1rpx solid #cfe2dd;
+  border-radius: 12rpx;
+  background: #f5faf8;
+  color: #247566;
+  font-size: 22rpx;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.route-stop-btn-danger {
+  border-color: #f2d4d0;
+  background: #fff6f5;
+  color: #c95145;
+}
+
+.route-stop-btn-disabled {
+  opacity: 0.38;
+}
+
+.route-stop-btn-hover {
+  opacity: 0.72;
 }

@@ -176,6 +176,215 @@
   flex-shrink: 0;
 }
 
+.customer-standard-line {
+  display: flex;
+  flex-direction: column;
+  margin: 12rpx 0 8rpx;
+  padding: 14rpx 16rpx;
+  border: 1rpx solid #cfe9e4;
+  border-left: 6rpx solid #178f83;
+  border-radius: 10rpx;
+  background: #f4fbf9;
+}
+
+.customer-standard-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10rpx;
+}
+
+.customer-standard-item {
+  padding: 10rpx 14rpx;
+  border-radius: 8rpx;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.customer-standard-item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4rpx;
+}
+
+.customer-standard-label {
+  color: #52635f;
+  font-size: 23rpx;
+}
+
+.customer-standard-stars {
+  display: flex;
+  align-items: center;
+  letter-spacing: 2rpx;
+  white-space: nowrap;
+}
+
+.customer-standard-star {
+  color: #d7dddb;
+  font-size: 28rpx;
+  line-height: 32rpx;
+}
+
+.customer-standard-star-active {
+  color: #ffae19;
+  text-shadow: 0 1rpx 2rpx rgba(219, 126, 0, 0.18);
+}
+
+.customer-standard-text {
+  display: block;
+  color: #293936;
+  font-size: 27rpx;
+  font-weight: 600;
+  line-height: 38rpx;
+}
+
+.order-list-footer-spacer {
+  height: 200rpx;
+}
+
+.order-list-footer-spacer-with-fee {
+  height: 350rpx;
+}
+
+.order-bottom-fee-summary {
+  position: fixed;
+  z-index: 98;
+  left: 0;
+  right: 0;
+  bottom: 140rpx;
+  box-sizing: border-box;
+  border-top: 1rpx solid #dfe9e6;
+  background: #fff;
+  box-shadow: 0 -6rpx 20rpx rgba(30, 76, 64, 0.08);
+}
+
+.order-bottom-fee-breakdown {
+  display: flex;
+  align-items: stretch;
+  min-height: 70rpx;
+  padding: 10rpx 22rpx;
+  box-sizing: border-box;
+  background: #f7fbfa;
+}
+
+.order-bottom-fee-item {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 0;
+  padding: 0 16rpx;
+}
+
+.order-bottom-fee-column-divider {
+  width: 1rpx;
+  margin: 6rpx 4rpx;
+  background: #dbe7e3;
+}
+
+.order-bottom-fee-label {
+  flex-shrink: 0;
+  margin-right: 10rpx;
+  color: #66736f;
+  font-size: 24rpx;
+}
+
+.order-bottom-fee-value-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.order-bottom-coupon-badge {
+  max-width: 120rpx;
+  margin-right: 8rpx;
+  overflow: hidden;
+  color: #df624d;
+  font-size: 20rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.order-bottom-fee-discount {
+  flex-shrink: 0;
+  color: #ee5b48;
+  font-size: 27rpx;
+  font-weight: 700;
+}
+
+.order-bottom-fee-empty {
+  color: #9aa39f;
+  font-weight: 500;
+}
+
+.order-bottom-delivery-value {
+  color: #26332f;
+  font-size: 27rpx;
+  font-weight: 700;
+}
+
+.order-bottom-fee-detail-link {
+  flex-shrink: 0;
+  margin-left: 8rpx;
+  color: #178f83;
+  font-size: 21rpx;
+}
+
+.order-bottom-total-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 66rpx;
+  padding: 8rpx 30rpx;
+  box-sizing: border-box;
+  border-top: 1rpx solid #edf1f0;
+  color: #6a7471;
+  font-size: 25rpx;
+}
+
+.order-bottom-goods-total,
+.order-bottom-pay-total {
+  display: flex;
+  align-items: baseline;
+}
+
+.order-bottom-goods-value {
+  margin-left: 12rpx;
+  color: #202925;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.order-bottom-pay-total {
+  color: #16796f;
+  font-weight: 600;
+}
+
+.order-bottom-pay-value {
+  margin-left: 12rpx;
+  color: #168b78;
+  font-size: 34rpx;
+  font-weight: 800;
+}
+
+.order-bottom-actions {
+  position: fixed;
+  z-index: 99;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 140rpx;
+  padding-right: 20rpx;
+  border-top: 1px solid lightgray;
+  background-color: white;
+  box-sizing: border-box;
+}
+
+.order-action-buttons-wide {
+  flex: 1;
+  justify-content: space-around;
+}
+
 .order-fee-card-wrap {
   padding: 16rpx 20rpx 0;
 }
@@ -241,29 +450,6 @@
 .order-fee-sub-label {
   font-size: 22rpx;
   color: #999;
-}
-
-/* 费用明细两行：标签在左，金额整体右对齐 */
-.fee-line {
-  justify-content: space-between;
-  align-items: center;
-}
-
-.fee-line-left {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.fee-line-right {
-  display: flex;
-  align-items: baseline;
-  flex-shrink: 0;
-}
-
-.icon-fee-trigger-placeholder {
-  visibility: hidden;
-  pointer-events: none;
 }
 
 .order-fee-discount {
@@ -368,13 +554,34 @@
   padding: 12rpx 16rpx;
   background: #fafafa;
   border-radius: 12rpx;
+}
+
+.order-fee-unavailable-title {
   font-size: 24rpx;
-  color: #d4380d;
-  line-height: 1.5;
+  color: #666;
+  margin-bottom: 10rpx;
+}
+
+.order-fee-unavailable-line {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  flex-wrap: wrap;
+  margin-bottom: 8rpx;
 }
 
 .order-fee-unavailable-line + .order-fee-unavailable-line {
   margin-top: 8rpx;
+}
+
+.order-fee-unavailable-name {
+  font-size: 24rpx;
+  color: #555;
+}
+
+.order-fee-unavailable-reason {
+  font-size: 22rpx;
+  color: #999;
 }
 
 .order-fee-available {
@@ -577,16 +784,6 @@
   border-radius: 12rpx;
 }
 
-/* 配送费详情触发图标容器（橙色虚线矩形包围图片） */
-.icon-fee-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 2rpx dashed #ff7200;
-  border-radius: 6rpx;
-  padding: 6rpx;
-}
-
 /* 顶部金额汇总 */
 .fee-detail-card {
   background: #fff;
@@ -716,4 +913,65 @@
   color: #ff7200;
   line-height: 1.5;
   margin-bottom: 12rpx;
+}
+
+/* 精彩账本多批次提示：只做来源分组，不拆分配送账单 */
+.jczb-multi-batch-notice {
+  display: flex;
+  align-items: flex-start;
+  margin: 14rpx 16rpx;
+  padding: 16rpx 18rpx;
+  background: #fff7e8;
+  border: 1rpx solid #ffd79a;
+  border-radius: 12rpx;
+}
+
+.jczb-multi-batch-icon {
+  flex-shrink: 0;
+  margin-right: 12rpx;
+  padding: 4rpx 8rpx;
+  color: #fff;
+  font-size: 20rpx;
+  background: #e79822;
+  border-radius: 6rpx;
+}
+
+.jczb-multi-batch-title {
+  color: #9a5a00;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.jczb-multi-batch-text {
+  margin-top: 4rpx;
+  color: #8a6a3d;
+  font-size: 23rpx;
+  line-height: 1.5;
+}
+
+.jczb-batch-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12rpx 18rpx;
+  background: #edf8f2;
+  border-top: 1rpx solid #cdebd9;
+  border-bottom: 1rpx solid #cdebd9;
+}
+
+.jczb-batch-title {
+  margin-right: 12rpx;
+  color: #16784a;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.jczb-batch-time {
+  color: #4d8068;
+  font-size: 25rpx;
+}
+
+.jczb-batch-summary {
+  color: #3d6f58;
+  font-size: 23rpx;
 }

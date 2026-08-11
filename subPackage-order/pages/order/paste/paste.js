@@ -31,15 +31,13 @@ import {
 
 import { parseOrderFromText } from '../../../../lib/orderParser';
 import { optimizeTextWithDeepSeek } from '../../../../lib/deepSeekHelper';
+import { getAsrCredentials } from '../../../../lib/miniProgramCloud';
 
 const plugin = requirePlugin("QCloudAIVoice");
 const speechRecognizerManager = plugin.speechRecognizerManager();
 
 // 从配置文件读取腾讯云配置
 const config = require('../../../../config');
-const TENCENT_CLOUD_SECRET_ID = config.tencentCloud?.secretId || '';
-const TENCENT_CLOUD_SECRET_KEY = config.tencentCloud?.secretKey || '';
-const TENCENT_CLOUD_APP_ID = config.tencentCloud?.appId || '1308821743';
 const TENCENT_CLOUD_ENGINE_MODEL_TYPE = config.tencentCloud?.engineModelType || '16k_zh';
 const TENCENT_CLOUD_VOICE_FORMAT = config.tencentCloud?.voiceFormat || 1;
 
@@ -234,43 +232,29 @@ Page({
     }
 
     // 初始化语音识别回调
-    speechRecognizerManager.OnRecognitionStart = (res) => {
-      console.log('[录音回调] OnRecognitionStart - 开始识别', res)
+    speechRecognizerManager.OnRecognitionStart = () => {
       this.setData({
         recognitionStatus: '识别中...'
       })
-      console.log('[录音回调] OnRecognitionStart - 已设置 recognitionStatus: 识别中...')
     }
 
-    speechRecognizerManager.OnSentenceBegin = (res) => {
-      console.log('[录音回调] OnSentenceBegin - 一句话开始', res)
-    }
+    speechRecognizerManager.OnSentenceBegin = () => {}
 
     speechRecognizerManager.OnRecognitionResultChange = (res) => {
-      console.log('[录音回调] OnRecognitionResultChange - 识别变化时', res)
       if (res.result) {
-        console.log('[录音回调] OnRecognitionResultChange - 更新 sentence:', res.result.voice_text_str)
         this.setData({
           sentence: res.result.voice_text_str,
         })
       }
     }
 
-    speechRecognizerManager.OnSentenceEnd = (res) => {
-      console.log('[录音回调] OnSentenceEnd - 一句话结束', res)
-    }
+    speechRecognizerManager.OnSentenceEnd = () => {}
 
-    speechRecognizerManager.OnRecognitionComplete = async (res) => {
-      console.log('[录音回调] OnRecognitionComplete - 识别结束', res)
-      console.log('[录音回调] OnRecognitionComplete - 清除定时器')
+    speechRecognizerManager.OnRecognitionComplete = async () => {
       // 清除定时器
       if (this.data.timer) {
         clearInterval(this.data.timer);
-        console.log('[录音回调] OnRecognitionComplete - 定时器已清除，timer ID:', this.data.timer);
-      } else {
-        console.log('[录音回调] OnRecognitionComplete - 警告：定时器不存在');
       }
-      console.log('[录音回调] OnRecognitionComplete - 设置 isRecording: false, recognitionStatus: 识别完成')
       this.setData({
         recognitionStatus: '识别完成',
         isRecording: false,
@@ -280,10 +264,7 @@ Page({
       try {
         // 获取识别到的文本
         const recognizedText = this.data.sentence;
-        console.log('识别到的原始文本:', recognizedText);
-        
         if (!recognizedText || recognizedText.trim().length < 3) {
-          console.log('识别文本为空或太短，跳过解析');
           return;
         }
 
@@ -304,10 +285,8 @@ Page({
     }
 
     speechRecognizerManager.OnError = (res) => {
-      console.log('[录音回调] OnError - 识别失败', res)
       const errorCode = res && res.code;
       const errorMessage = res && res.message;
-      console.log('[录音回调] OnError - 错误码:', errorCode, '错误信息:', errorMessage)
       
       // 错误码 4008: 客户端超过15秒未发送音频数据（超时错误）
       // 这种情况通常是用户说话有停顿，不应该完全停止录音
@@ -366,29 +345,18 @@ Page({
       })
     }
 
-    speechRecognizerManager.OnRecorderStop = (res) => {
-      console.log('[录音回调] OnRecorderStop - 录音结束', res);
-      console.log('[录音回调] OnRecorderStop - 当前状态 - isRecording:', this.data.isRecording, 'timer:', this.data.timer);
-      console.log('[录音回调] OnRecorderStop - 清除定时器')
+    speechRecognizerManager.OnRecorderStop = () => {
       // 清除定时器
       if (this.data.timer) {
         clearInterval(this.data.timer);
-        console.log('[录音回调] OnRecorderStop - 定时器已清除，timer ID:', this.data.timer);
-      } else {
-        console.log('[录音回调] OnRecorderStop - 警告：定时器不存在');
       }
-      console.log('[录音回调] OnRecorderStop - 当前 sentence:', this.data.sentence)
       // 如果 isRecording 还是 true，说明是自动结束的，需要设置为 false
       const needStopRecording = this.data.isRecording;
-      if (needStopRecording) {
-        console.log('[录音回调] OnRecorderStop - 检测到 isRecording 为 true，设置为 false');
-      }
       this.setData({
         inputContent: this.data.sentence,
         timer: null,
         ...(needStopRecording ? { isRecording: false } : {}) // 只有在需要时才设置
       })
-      console.log('[录音回调] OnRecorderStop - 已更新 inputContent:', this.data.sentence, 'isRecording:', needStopRecording ? false : this.data.isRecording)
     }
 
   },
@@ -415,7 +383,7 @@ Page({
     }
   },
 
-  startRecord() {
+  async startRecord() {
     console.log('[录音] ========== 开始录音 ==========');
     const that = this
     // 先清除可能存在的旧定时器
@@ -428,14 +396,21 @@ Page({
       duration: 0,
       timer: null
     })
+    let credentials
+    try {
+      credentials = await getAsrCredentials()
+    } catch (error) {
+      wx.showToast({ title: error.message || '语音服务初始化失败', icon: 'none' })
+      return
+    }
     const params = {
-      secretkey: TENCENT_CLOUD_SECRET_KEY,
-      secretid: TENCENT_CLOUD_SECRET_ID,
-      appid: TENCENT_CLOUD_APP_ID,
+      secretkey: credentials.secretKey,
+      secretid: credentials.secretId,
+      token: credentials.token,
+      appid: credentials.appId,
       engine_model_type: TENCENT_CLOUD_ENGINE_MODEL_TYPE,
       voice_format: TENCENT_CLOUD_VOICE_FORMAT
     }
-    console.log('[录音] 2. 设置录音参数:', params);
 
     console.log('[录音] 3. 设置 isRecording: true, recognitionStatus: 准备中...');
     this.setData({
@@ -498,7 +473,6 @@ Page({
       nxNdplNxDepartmentFatherId: that.data.depFatherId,
       nxNdplNxDepartmentId: that.data.depId,
     }
-    console.log('[停止录音] 7. 录音数据:', data);
     load.showLoading("保存录音")
     console.log('[停止录音] 8. 调用 addRecord API');
     addRecord(data).then(res => {
@@ -615,8 +589,6 @@ Page({
       return;
     }
 
-    console.log('开始第一次 AI 识别，输入内容:', content);
-    
     this.setData({ 
       showDeepSeekLoading: true,
       aiRetryCount: 0 // 重置尝试次数
@@ -628,8 +600,6 @@ Page({
         temperature: 0.2,
         logPrefix: '[paste]'
       });
-      console.log('第一次 AI 识别完成，优化后内容:', optimizedText);
-
       // DeepSeek 返回空结果时跳过解析
       if (!optimizedText || optimizedText.trim() === '' || optimizedText.trim() === '[]') {
         this.setData({ showDeepSeekLoading: false });
@@ -665,8 +635,6 @@ Page({
   
   formatContent: function () {
     var content = this.data.inputContent;
-    console.log('[formatContent] 开始处理内容:', content);
-    
     if (!content || content.trim() === '') {
       console.log('[formatContent] 内容为空，跳过处理');
       this.setData({ highlightedContent: '' });
@@ -826,14 +794,12 @@ Page({
   // 注意：_formatOrderContent 方法已迁移到 lib/orderParser.js，请使用 parseOrderFromText 工具函数
   // 保留此方法仅用于向后兼容，建议使用工具函数
   _formatOrderContent: function (content) {
-    console.log('[formatOrderContent] 入参 content:', content);
     // 改为 let，后面要对 orders 重新赋值
     let orders = [];
     // 1. 按行拆分
     let lines = content.split(/\r?\n/);
   
     // 过滤无效行
-    console.log("linessss", lines);
     lines = lines.filter(line => {
       line = line.trim();
       if (!line) return false; // 跳过空行
@@ -2101,12 +2067,6 @@ Page({
 
   
   _choiceGoods() {
-    console.log("========== _choiceGoods 开始 ==========");
-    console.log("当前 orderArrIndex:", this.data.orderArrIndex);
-    console.log("当前 orderArr 长度:", this.data.orderArr ? this.data.orderArr.length : 'undefined');
-    console.log("当前 orderArr:", this.data.orderArr);
-    console.log("当前 goodsId:", this.data.goodsId);
-    
     var index = this.data.orderArrIndex;
     
     // 检查 orderArrIndex 是否有效
@@ -2143,8 +2103,6 @@ Page({
     }
     
     var order = this.data.orderArr[index];
-    console.log("获取到的订单项 order:", order);
-    
     if (!order) {
       console.error("❌ 订单项不存在，index:", index);
       wx.showToast({
@@ -2154,77 +2112,30 @@ Page({
       return;
     }
     
-    console.log("订单项详情:", {
-      nxDoGoodsName: order.nxDoGoodsName,
-      nxDoQuantity: order.nxDoQuantity,
-      nxDoStandard: order.nxDoStandard,
-      nxDoStatus: order.nxDoStatus,
-      nxDoGoodsOriginalName: order.nxDoGoodsOriginalName
-    });
-    
     var canSave = this._checkOrderItemContent(order, index);
-    console.log("检查结果 canSave:", canSave);
     
     if (canSave) {
       // 读取原始商品名称（不修改，只读取）
       // nxDoGoodsOriginalName 是解析订单后的用户录入的商品名称，不应该再改变
       const correctOriginalName = order.nxDoGoodsOriginalName || order.nxDoGoodsName || '';
-      const currentName = order.nxDoGoodsName || '';
-      
-      console.log(`[_choiceGoods] 订单 ${index} 原始名称检查（只读，不修改）:`, {
-        index: index,
-        currentName: currentName,
-        originalName: order.nxDoGoodsOriginalName,
-        willUseOriginalName: correctOriginalName,
-        orderId: order.nxDepartmentOrdersId,
-        hasOriginal: !!order.nxDoGoodsOriginalName && order.nxDoGoodsOriginalName.trim() !== ''
-      });
-      
       // 如果原始名称不存在，记录警告但不修改（应该只在创建订单时设置）
       if (!order.nxDoGoodsOriginalName || order.nxDoGoodsOriginalName.trim() === '') {
-        console.warn(`[_choiceGoods] 订单 ${index} 缺少原始商品名称，使用当前名称作为后备:`, {
-          index: index,
-          currentName: currentName,
-          orderId: order.nxDepartmentOrdersId,
-          note: '原始名称应该在创建订单时设置，这里只作为后备使用'
-        });
+        console.warn(`[_choiceGoods] 订单 ${index} 缺少原始商品名称`);
       }
       
       // 使用原始商品名称（nxDoGoodsNameOriginal）来调用接口，如果不存在则使用当前名称
-      console.log(`[_choiceGoods] 订单 ${index} 使用原始商品名称调用接口:`, correctOriginalName);
       order.nxDoGoodsName = correctOriginalName;
      
       order.nxDoDisGoodsId = this.data.goodsId;
-      console.log("设置后的订单项 order:", order);
-      console.log("准备调用 choiceGoodsForApply 接口");
-
       load.showLoading("保存订单中")
       choiceGoodsForApply(order).then(res => {
-        console.log("========== choiceGoodsForApply 接口返回 ==========");
-        console.log("接口返回 res:", res);
-        console.log("res.result:", res.result);
-        console.log("res.result.code:", res.result ? res.result.code : 'undefined');
-        console.log("res.result.data:", res.result ? res.result.data : 'undefined');
-        
         if (res.result.code == 0) {
           load.hideLoading();
-          console.log("保存订单成功，返回数据:", res.result.data);
           
           // 保留原有的 nxDoGoodsNameOriginal（不修改，只保留）
           // nxDoGoodsOriginalName 是解析订单后的用户录入的商品名称，不应该再改变
           const currentOrderBeforeUpdate = this.data.orderArr[index];
           const preservedOriginalName = currentOrderBeforeUpdate?.nxDoGoodsOriginalName || correctOriginalName || '';
-          
-          console.log(`[choiceGoodsForApply返回] 订单 ${index} 保留原始名称（不修改）:`, {
-            index: index,
-            beforeUpdateOriginalName: currentOrderBeforeUpdate?.nxDoGoodsOriginalName,
-            savedOriginalName: correctOriginalName,
-            apiReturnedOriginalName: res.result.data.nxDoGoodsOriginalName,
-            preservedOriginalName: preservedOriginalName,
-            apiReturnedName: res.result.data.nxDoGoodsName,
-            orderId: res.result.data.nxDepartmentOrdersId,
-            note: '保留原有原始名称，不修改'
-          });
           
           const updatedOrder = {
             ...res.result.data,
@@ -2233,13 +2144,6 @@ Page({
           };
           
           var data = "orderArr[" + index + "]";
-          console.log(`[choiceGoodsForApply返回] 订单 ${index} 更新后的订单对象:`, {
-            index: index,
-            nxDoGoodsName: updatedOrder.nxDoGoodsName,
-            nxDoGoodsOriginalName: updatedOrder.nxDoGoodsOriginalName,
-            orderId: updatedOrder.nxDepartmentOrdersId
-          });
-          
           this.setData({
             [data]: updatedOrder,
             saveOrder: false,
@@ -2248,14 +2152,12 @@ Page({
             nxArr: [],
             // 注意：先不重置 orderArrIndex，因为 _updateStorage 需要使用它
           })
-          console.log("订单保存成功，已更新 orderArr[" + index + "]");
           // 先更新存储（需要使用 orderArrIndex）
           this._updateStorage(updatedOrder);
           // 更新存储后再重置 orderArrIndex
           this.setData({
             orderArrIndex: -1
           })
-          console.log("已重置 orderArrIndex 为 -1");
         } else {
           console.error("❌ 保存订单失败:", res.result ? res.result.msg : '未知错误');
           load.hideLoading();
@@ -2274,7 +2176,6 @@ Page({
         })
       })
     }
-    console.log("========== _choiceGoods 结束 ==========\n");
   },
 
 
@@ -2302,7 +2203,6 @@ Page({
     var orderItem = this.data.orderItem;
     orderItem.nxDoRemark = "";
     var data = "orderArr[" + index + "]";
-    console.log("rooeo", orderItem)
     this.setData({
       [data]: orderItem,
       showOperationPaste: false
@@ -2359,12 +2259,10 @@ Page({
     
     console.log("========== delOrder 开始 ==========");
     console.log("订单索引:", index);
-    console.log("订单信息:", orderItem);
     
     // 如果订单有 nxDepartmentOrdersId，说明已经保存到服务器，需要调用接口删除
     if (orderItem.nxDepartmentOrdersId) {
       console.log("订单已保存到服务器，调用 deleteOrder 接口删除");
-      console.log("nxDepartmentOrdersId:", orderItem.nxDepartmentOrdersId);
       
       load.showLoading("删除订单中");
       var that = this;
@@ -2443,9 +2341,6 @@ Page({
 
   //根据修商品名称，搜索商品
   getSearchString(e) {
-    console.log("========== getSearchString 开始 ==========");
-    console.log("搜索输入值:", e.detail.value);
-    
     if (e.detail.value.length > 0) {
       var data = {
         disId: this.data.disId,
@@ -2455,10 +2350,8 @@ Page({
       this.setData({
         searchStr: e.detail.value,
       })
-      console.log("搜索参数:", data);
       load.showLoading("搜索商品中")
       queryDisGoodsByQuickSearchWithDepId(data).then(res => {
-        console.log("搜索结果返回:", res.result.data);
         load.hideLoading();
         if(res.result.code == 0){
             console.log("→ 设置 strArr，长度:", res.result.data.disArr.length);
@@ -2536,12 +2429,6 @@ Page({
   },
 
   downLoadGoodsNx: function (e) {
-    console.log("========== downLoadGoodsNx 开始 ==========");
-    console.log("事件对象 e:", e);
-    console.log("e.currentTarget.dataset:", e.currentTarget.dataset);
-    console.log("e.currentTarget.dataset.index:", e.currentTarget.dataset.index);
-    console.log("e.currentTarget.dataset.item:", e.currentTarget.dataset.item);
-    
     var that = this;
     var orderIndex = e.currentTarget.dataset.index;
     
@@ -2579,8 +2466,6 @@ Page({
       return;
     }
     
-    console.log("商品数据 item:", item);
-    
     this.setData({
       item: item,
       orderArrIndex: orderIndex,
@@ -2614,12 +2499,6 @@ Page({
       .then(res => {
         if (res.result.code == 0) {
           load.hideLoading();
-          console.log("========== downDisGoods 接口返回 ==========");
-          console.log("接口返回 res:", res);
-          console.log("当前 orderArrIndex:", that.data.orderArrIndex);
-          console.log("返回的商品ID:", res.result.data.nxDistributerGoodsId);
-          console.log("返回的商品名称:", res.result.data.nxDgGoodsName);
-          
           that.setData({
             goodsId: res.result.data.nxDistributerGoodsId,
             name: res.result.data.nxDgGoodsName,
@@ -2650,7 +2529,6 @@ Page({
     }
 
     queryDisGoodsByQuickSearchWithDepId(data).then(res => {
-      console.log(res)
       if(res.result.code == 0){
         console.log("→ 设置 strArr，长度:", res.result.data.disArr.length);
         this.setData({
@@ -2861,30 +2739,12 @@ Page({
         const currentOrder = this.data.orderArr[this.data.orderArrIndex];
         const preservedOriginalName = currentOrder?.nxDoGoodsOriginalName || '';
         
-        console.log(`[updateOrder返回] 订单 ${this.data.orderArrIndex} 保留原始名称（不修改）:`, {
-          index: this.data.orderArrIndex,
-          currentName: goodsName,
-          beforeUpdateOriginalName: currentOrder?.nxDoGoodsOriginalName,
-          apiReturnedOriginalName: res.result.data.nxDoGoodsOriginalName,
-          preservedOriginalName: preservedOriginalName,
-          apiReturnedName: res.result.data.nxDoGoodsName,
-          orderId: res.result.data.nxDepartmentOrdersId,
-          note: '保留原有原始名称，不修改'
-        });
-        
         const updatedOrder = {
           ...res.result.data,
           nxDoGoodsName: goodsName, // 保持当前的商品名称
           // 保留原有的 nxDoGoodsNameOriginal，不修改
           nxDoGoodsOriginalName: preservedOriginalName
         };
-        
-        console.log(`[updateOrder返回] 订单 ${this.data.orderArrIndex} 更新后的订单对象:`, {
-          index: this.data.orderArrIndex,
-          nxDoGoodsName: updatedOrder.nxDoGoodsName,
-          nxDoGoodsOriginalName: updatedOrder.nxDoGoodsOriginalName,
-          orderId: updatedOrder.nxDepartmentOrdersId
-        });
         
         var data = "orderArr[" + this.data.orderArrIndex + "]";
         this.setData({
@@ -3333,8 +3193,6 @@ Page({
       const base64 = await this._ocrImageToBase64(imageList[0].path);
       const res = await recognizeOrderAsync({
         ImageBase64: base64,
-        SecretId: config.tencentCloud?.secretId || '',
-        SecretKey: config.tencentCloud?.secretKey || '',
         Action: 'GeneralAccurateOCR',
         Version: '2018-11-19',
         depId: params.depId,

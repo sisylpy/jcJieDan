@@ -1497,6 +1497,8 @@ Component({
             const orderId = order.nxDepartmentOrdersId || orderIndex;
             const convertedOrder = {
               nxDepartmentOrdersId: order.nxDepartmentOrdersId,
+              nxDoDepDisGoodsId: order.nxDoDepDisGoodsId,
+              customerStandardText: order.customerStandardText,
               nxDoQuantity: order.nxDoQuantity,
               nxDoStandard: order.nxDoStandard,
               nxDoWeight: order.nxDoWeight,

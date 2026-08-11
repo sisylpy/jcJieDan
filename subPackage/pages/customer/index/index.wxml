@@ -225,7 +225,7 @@
       <view class="flex-row-between">
         <view class="flex-row">
           <text class="mr-20">{{index + 1}}.</text>
-          <text class='font-lg mr-20'>{{item.gbDistributerEntity.gbDistributerName}}</text>
+          <text class='font-lg mr-20'>{{item.fromNxDepartment.nxDepartmentName || item.gbDistributerEntity.gbDistributerName}}</text>
           <image wx:if="{{item.nxDgdFromNxDisId  == disId}}" src="/images/starGreen.png" mode="aspectFill" class="icon-sm ml-20" />
         </view>
         <view class="">
@@ -286,6 +286,5 @@
 
 
 </view>
-
 
 

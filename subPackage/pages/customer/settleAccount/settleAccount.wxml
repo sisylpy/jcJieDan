@@ -35,10 +35,11 @@
 				</view>
 			</view>
 
-			<view class=" with-mr-20">
-				<text class="big">{{item.nxDbTotal}}</text>
-				<text class="font-xs">元</text>
-			</view>
+				<view class="with-mr-20 settle-bill-amount">
+					<text class="big">{{item.nxDbPayAmount !== null && item.nxDbPayAmount !== '' ? item.nxDbPayAmount : item.nxDbTotal}}</text>
+					<text class="font-xs">元</text>
+					<view wx:if="{{item.nxDbCouponDiscountAmount > 0}}" class="font-xs text-danger">优惠 -{{item.nxDbCouponDiscountAmount}}元</view>
+				</view>
 		</view>
   </view>
 	</view>

@@ -14,7 +14,7 @@ var load = require('../../lib/load.js');
  */
 export const getMendianStockTypePeriod = (data) => {
   return new Promise((resolve, reject) => {
-    wx.request({
+    getApp().ownerRequest({
       url: apiUrl.apiUrl + 'nxdistributergoodsshelfstock/getMendianStockTypePeriod',
       method: 'POST',
       data: {
@@ -81,7 +81,7 @@ export const disGetDayStockByGreatId = (data) => {
     
     console.log('disGetDayStockByGreatId 请求参数:', requestData);
     
-    wx.request({
+    getApp().ownerRequest({
       url: apiUrl.apiUrl + 'nxdistributergoodsshelfstock/disGetDayStockByGreatId',
       method: 'POST',
       data: requestData,
@@ -112,7 +112,7 @@ export const disGetDayStockByGreatId = (data) => {
  */
 export const disGetDayStockBySearchDay = (data) => {
   return new Promise((resolve, reject) => {
-    wx.request({
+    getApp().ownerRequest({
       url: apiUrl.apiUrl + 'nxdistributergoodsshelfstock/disGetDayStockBySearchDay',
       method: 'POST',
       data: {

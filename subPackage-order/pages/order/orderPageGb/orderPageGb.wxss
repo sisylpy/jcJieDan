@@ -1,4 +1,19 @@
-
+.page-root {
+  height: 100vh;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+}
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.scroll-content {
+  /* flex: 1; */
+  min-height: 0;
+}
 
 .iconB {
   width: 20px;
@@ -19,4 +34,747 @@
 
 .button-text{
   font-size: 26rpx;
+}
+
+
+
+
+/* 待解析任务：横向滚动卡片 */
+.task-scroll-wrap {
+  flex-shrink: 0;
+  background: #fff;
+  border-bottom: 1rpx solid #eee;
+  padding: 16rpx 0;
+}
+.task-scroll-view {
+  white-space: nowrap;
+  width: 100%;
+}
+.task-scroll-inner {
+  display: inline-flex;
+  flex-direction: row;
+  padding: 0 20rpx;
+  gap: 20rpx;
+}
+.task-card {
+  flex-shrink: 0;
+  width: 200rpx;
+  height: 170rpx;
+  background: #f8f9fa;
+  border-radius: 12rpx;
+  overflow: hidden;
+}
+.task-card-hover {
+  background: #eef1f4;
+}
+.task-card-loading {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16rpx;
+}
+.task-loading-icon {
+  width: 36rpx;
+  height: 36rpx;
+  margin-bottom: 8rpx;
+}
+.task-dep-name {
+  font-size: 26rpx;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+.task-status-text {
+  font-size: 22rpx;
+  color: #999;
+  margin-top: 4rpx;
+}
+.task-card-body {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 12rpx;
+}
+.task-thumb {
+  width: 100%;
+  height: 80rpx;
+  border-radius: 8rpx;
+  flex-shrink: 0;
+}
+.task-file-icon {
+  width: 56rpx;
+  height: 56rpx;
+  background: #e8ecf0;
+  border-radius: 10rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-bottom: 8rpx;
+}
+.task-icon-img {
+  width: 32rpx;
+  height: 32rpx;
+}
+.task-info {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+.task-type-tag {
+  font-size: 20rpx;
+  color: #8b9dc3;
+  margin-bottom: 4rpx;
+}
+.task-file-name {
+  font-size: 32rpx;
+  color: #555;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 4rpx;
+  background-color: #FFF;
+}
+
+.task-stats {
+  font-size: 22rpx;
+  color: #262626;
+  margin-bottom: 20rpx;
+}
+
+.page-root {
+  height: 100vh;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  display: flex;
+  flex-direction: column;
+}
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.scroll-content {
+  flex: 1;
+  min-height: 0;
+}
+
+.platform-tag {
+  display: inline-block;
+  padding: 2rpx 10rpx;
+  font-size: 22rpx;
+  line-height: 32rpx;
+  color: #fff;
+  background: #187e6e;
+  border-radius: 6rpx;
+  flex-shrink: 0;
+}
+
+.order-fee-card-wrap {
+  padding: 16rpx 20rpx 0;
+}
+
+.order-fee-card {
+  background: #fff;
+  border-radius: 20rpx;
+  padding: 24rpx 28rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+}
+
+.order-fee-loading {
+  font-size: 26rpx;
+  color: #888;
+  text-align: center;
+  padding: 12rpx 0;
+}
+
+.order-fee-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 28rpx;
+  line-height: 1.6;
+  margin-bottom: 16rpx;
+}
+
+.order-fee-label {
+  color: #333;
+}
+
+.order-fee-label-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.order-fee-value {
+  color: #333;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.order-fee-value-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  flex-shrink: 0;
+}
+
+.order-fee-estimate-tag {
+  font-size: 20rpx;
+  color: #ff7200;
+  background: #fff3e6;
+  border-radius: 8rpx;
+  padding: 2rpx 10rpx;
+  line-height: 1.4;
+}
+
+.order-fee-sub-label {
+  font-size: 22rpx;
+  color: #999;
+}
+
+/* 费用明细两行：标签在左，金额整体右对齐 */
+.fee-line {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.fee-line-left {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.fee-line-right {
+  display: flex;
+  align-items: baseline;
+  flex-shrink: 0;
+}
+
+.icon-fee-trigger-placeholder {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.order-fee-discount {
+  color: #ff7200;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.order-fee-coupon-badge {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 4rpx 14rpx;
+  border-radius: 999rpx;
+  background: #fff3e6;
+  color: #ff7200;
+  font-size: 22rpx;
+  line-height: 1.4;
+  border: 1rpx solid #ffd591;
+}
+
+.order-fee-divider {
+  border-top: 2rpx dashed #e8e8e8;
+  margin: 8rpx 0 20rpx;
+}
+
+.order-fee-total-row {
+  margin-bottom: 12rpx;
+  align-items: baseline;
+}
+
+.order-fee-total-label {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #222;
+}
+
+.order-fee-total-value {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #07c160;
+}
+
+.order-fee-tip {
+  font-size: 22rpx;
+  color: #ff7200;
+  margin-top: 12rpx;
+  line-height: 1.5;
+}
+
+.order-fee-delivery-detail {
+  margin-top: 8rpx;
+  padding: 16rpx 20rpx;
+  background: #f8faf8;
+  border-radius: 12rpx;
+}
+
+.order-fee-detail-title {
+  font-size: 24rpx;
+  color: #666;
+  font-weight: 500;
+  margin-bottom: 12rpx;
+}
+
+.order-fee-detail-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  font-size: 24rpx;
+  line-height: 1.5;
+  margin-bottom: 8rpx;
+}
+
+.order-fee-detail-label {
+  color: #888;
+  flex-shrink: 0;
+  margin-right: 16rpx;
+}
+
+.order-fee-detail-value {
+  color: #555;
+  text-align: right;
+  flex: 1;
+}
+
+.order-fee-detail-address {
+  word-break: break-all;
+}
+
+.order-fee-detail-formula {
+  margin-top: 8rpx;
+  padding-top: 10rpx;
+  border-top: 1rpx dashed #e0e0e0;
+  font-size: 22rpx;
+  color: #666;
+  line-height: 1.6;
+}
+
+.order-fee-unavailable {
+  margin-top: 12rpx;
+  padding: 12rpx 16rpx;
+  background: #fafafa;
+  border-radius: 12rpx;
+  font-size: 24rpx;
+  color: #d4380d;
+  line-height: 1.5;
+}
+
+.order-fee-unavailable-line + .order-fee-unavailable-line {
+  margin-top: 8rpx;
+}
+
+.order-fee-available {
+  margin-top: 12rpx;
+  padding: 12rpx 16rpx;
+  background: #f6ffed;
+  border-radius: 12rpx;
+}
+
+.order-fee-available-title {
+  font-size: 24rpx;
+  color: #666;
+  margin-bottom: 10rpx;
+}
+
+.order-fee-available-line {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-bottom: 8rpx;
+  flex-wrap: wrap;
+}
+
+.order-fee-available-name {
+  font-size: 24rpx;
+  color: #555;
+}
+
+.pt-0 {
+  padding-top: 0 !important;
+}
+
+/* 配送费计算详情弹窗 */
+.fee-detail-modal {
+  width: 84%;
+  max-width: 640rpx;
+  max-height: 80vh;
+  background: #fff;
+  border-radius: 24rpx;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 16rpx 48rpx rgba(0, 0, 0, 0.16);
+}
+
+.fee-detail-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 84rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.fee-detail-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #222;
+}
+
+.fee-detail-close {
+  position: absolute;
+  right: 24rpx;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 56rpx;
+  height: 56rpx;
+  line-height: 52rpx;
+  text-align: center;
+  font-size: 44rpx;
+  color: #999;
+}
+
+.fee-detail-body {
+  flex: 1;
+  min-height: 0;
+  padding: 24rpx 28rpx;
+  box-sizing: border-box;
+}
+
+.fee-detail-section {
+  margin-bottom: 16rpx;
+}
+
+.fee-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 26rpx;
+  line-height: 1.6;
+  padding: 8rpx 0;
+}
+
+.fee-detail-label {
+  color: #888;
+}
+
+.fee-detail-value {
+  color: #222;
+  font-weight: 500;
+  text-align: right;
+}
+
+.fee-detail-explain {
+  background: #f6f8f6;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  margin-bottom: 16rpx;
+}
+
+.fee-detail-explain-title {
+  font-size: 24rpx;
+  font-weight: 500;
+  color: #666;
+  margin-bottom: 8rpx;
+}
+
+.fee-detail-explain-text {
+  font-size: 25rpx;
+  color: #666;
+  line-height: 1.6;
+  word-break: normal;
+  overflow-wrap: break-word;
+  white-space: normal;
+  display: block;
+}
+
+.fee-detail-formula-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fafafa;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  margin-bottom: 16rpx;
+}
+
+.fee-detail-formula-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-width: 0;
+}
+
+.fee-detail-formula-label {
+  font-size: 22rpx;
+  color: #999;
+  margin-bottom: 10rpx;
+}
+
+.fee-detail-formula-value {
+  font-size: 28rpx;
+  color: #222;
+  font-weight: 600;
+}
+
+.fee-detail-formula-sub {
+  font-size: 20rpx;
+  color: #999;
+  margin-top: 6rpx;
+}
+
+.fee-detail-formula-op {
+  font-size: 24rpx;
+  color: #bbb;
+  padding: 0 10rpx;
+  flex-shrink: 0;
+}
+
+.fee-detail-formula-result {
+  color: #07c160;
+}
+
+.fee-detail-tip {
+  font-size: 24rpx;
+  color: #999;
+  text-align: center;
+  line-height: 1.5;
+  margin-bottom: 12rpx;
+}
+
+.fee-detail-footer {
+  padding: 16rpx 28rpx 24rpx;
+  flex-shrink: 0;
+}
+
+.fee-detail-btn {
+  width: 100%;
+  height: 84rpx;
+  line-height: 84rpx;
+  background: #07c160;
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 600;
+  text-align: center;
+  border-radius: 12rpx;
+}
+
+/* 配送费详情触发图标容器（橙色虚线矩形包围图片） */
+.icon-fee-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2rpx dashed #ff7200;
+  border-radius: 6rpx;
+  padding: 6rpx;
+}
+
+/* 顶部金额汇总 */
+.fee-detail-card {
+  background: #fff;
+  border-radius: 16rpx;
+  padding: 20rpx 24rpx;
+  margin-bottom: 16rpx;
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.06);
+}
+
+.fee-detail-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 28rpx;
+  line-height: 1.6;
+  margin-bottom: 12rpx;
+}
+
+.fee-detail-summary-row:last-child {
+  margin-bottom: 0;
+}
+
+.fee-detail-summary-label {
+  color: #333;
+}
+
+.fee-detail-summary-label-group {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  flex: 1;
+  min-width: 0;
+}
+
+.fee-detail-summary-value {
+  color: #333;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.fee-detail-summary-value-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  flex-shrink: 0;
+}
+
+.fee-detail-summary-sub-label {
+  font-size: 22rpx;
+  color: #999;
+}
+
+.fee-detail-summary-estimate-tag {
+  font-size: 20rpx;
+  color: #ff7200;
+  background: #fff3e6;
+  border-radius: 8rpx;
+  padding: 2rpx 10rpx;
+  line-height: 1.4;
+}
+
+/* 计费方式详情（字体更小） */
+.fee-detail-billing-section {
+  background: #f8faf8;
+  border-radius: 12rpx;
+  padding: 16rpx 20rpx;
+  margin-bottom: 16rpx;
+}
+
+.fee-detail-billing-title {
+  font-size: 24rpx;
+  color: #666;
+  font-weight: 500;
+  margin-bottom: 8rpx;
+}
+
+.fee-detail-row {
+  font-size: 24rpx;
+  padding: 6rpx 0;
+}
+
+.fee-detail-label {
+  color: #888;
+}
+
+.fee-detail-value {
+  color: #555;
+}
+
+/* 底部总计 */
+.fee-detail-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 12rpx;
+}
+
+.fee-detail-total-label {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #222;
+}
+
+.fee-detail-total-value {
+  font-size: 40rpx;
+  font-weight: 700;
+  color: #07c160;
+}
+
+/* 公式卡片字体调小 */
+.fee-detail-formula-label {
+  font-size: 20rpx;
+}
+
+.fee-detail-formula-value {
+  font-size: 26rpx;
+}
+
+.fee-detail-formula-op {
+  font-size: 22rpx;
+}
+
+/* 底部提示 */
+.fee-detail-total-tip {
+  font-size: 22rpx;
+  color: #ff7200;
+  line-height: 1.5;
+  margin-bottom: 12rpx;
+}
+
+/* 精彩账本多批次提示：只做来源分组，不拆分配送账单 */
+.jczb-multi-batch-notice {
+  display: flex;
+  align-items: flex-start;
+  margin: 14rpx 16rpx;
+  padding: 16rpx 18rpx;
+  background: #fff7e8;
+  border: 1rpx solid #ffd79a;
+  border-radius: 12rpx;
+}
+
+.jczb-multi-batch-icon {
+  flex-shrink: 0;
+  margin-right: 12rpx;
+  padding: 4rpx 8rpx;
+  color: #fff;
+  font-size: 20rpx;
+  background: #e79822;
+  border-radius: 6rpx;
+}
+
+.jczb-multi-batch-title {
+  color: #9a5a00;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.jczb-multi-batch-text {
+  margin-top: 4rpx;
+  color: #8a6a3d;
+  font-size: 23rpx;
+  line-height: 1.5;
+}
+
+.jczb-batch-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12rpx 18rpx;
+  background: #edf8f2;
+  border-top: 1rpx solid #cdebd9;
+  border-bottom: 1rpx solid #cdebd9;
+}
+
+.jczb-batch-title {
+  margin-right: 12rpx;
+  color: #16784a;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.jczb-batch-time {
+  color: #4d8068;
+  font-size: 25rpx;
+}
+
+.jczb-batch-summary {
+  color: #3d6f58;
+  font-size: 23rpx;
 }

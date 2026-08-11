@@ -10,7 +10,7 @@
           <text class="hero-stat-num">{{list.length}}</text>
           <text class="hero-stat-label">张券</text>
         </view>
-        <button class="hero-add-btn" bindtap="toAdd" wx:if="{{!editing}}">+ 新增优惠券</button>
+        <button class="hero-add-btn" bindtap="toAdd">+ 新增优惠券</button>
       </view>
     </view>
 
@@ -29,6 +29,7 @@
             </view>
             <text class="ticket-desc">{{item.descText}}</text>
             <text class="ticket-meta">期限：{{item.validPeriodText}}</text>
+            <text class="ticket-meta">对象：{{item.audienceTypeText}}</text>
             <text class="ticket-meta">范围：{{item.scopeTypeText || '全店通用'}} ｜ 交付：{{item.applyDeliveryModeText}} ｜ 结算：{{item.applySettlementTypeText}}</text>
           </view>
         </view>
@@ -47,135 +48,11 @@
       </view>
     </view>
 
-    <view class="empty-card" wx:elif="{{!editing}}">
+    <view class="empty-card" wx:if="{{list.length === 0}}">
       <view class="empty-icon">券</view>
       <text class="empty-title">还没有优惠券</text>
       <text class="empty-sub">新增一张满减券或折扣券，客户就能在下单时领取使用。</text>
-      <button class="empty-btn" bindtap="toAdd" wx:if="{{!editing}}">新增优惠券</button>
-    </view>
-
-    <view class="edit-card" wx:if="{{editing}}">
-      <view class="section-head">
-        <view>
-          <view class="section-title">{{formData.nxDistributerCouponId ? '编辑优惠券' : '新增优惠券'}}</view>
-          <view class="section-subtitle">日期留空则按后端默认有效期生成；填写后客户领取会展示对应期限。</view>
-        </view>
-        <text class="preview-mini" bindtap="previewCurrentForm">预览</text>
-      </view>
-
-      <view class="form-row">
-        <text class="label">优惠券名称</text>
-        <input class="input" value="{{formData.nxDistributerCouponName}}" bindinput="bindName" placeholder="如 冰品满35减6"/>
-      </view>
-
-      <view class="form-row">
-        <text class="label">优惠券类型</text>
-        <picker mode="selector" range="{{typeTexts}}" value="{{typeIndex}}" bindchange="bindTypeChange">
-          <view class="picker-value">{{typeTexts[typeIndex]}}</view>
-        </picker>
-      </view>
-
-      <view class="form-grid">
-        <view class="mini-field">
-          <text class="mini-label">门槛金额</text>
-          <input class="mini-input" type="digit" value="{{formData.nxDcSubtotalPrice}}" bindinput="bindSubtotal" placeholder="39"/>
-        </view>
-        <view class="mini-field" wx:if="{{formData.nxDcType === 0}}">
-          <text class="mini-label">满减金额</text>
-          <input class="mini-input" type="digit" value="{{formData.nxDcPrice}}" bindinput="bindPrice" placeholder="5"/>
-        </view>
-        <view class="mini-field" wx:else>
-          <text class="mini-label">折扣</text>
-          <input class="mini-input" type="digit" value="{{formData.nxDcPricePercent}}" bindinput="bindPercent" placeholder="9=9折"/>
-        </view>
-      </view>
-
-      <view class="date-card">
-        <view class="date-title">领取后有效期限</view>
-        <view class="date-row">
-          <picker class="date-picker" mode="date" value="{{formData.nxDcStartDate}}" bindchange="bindStartDate">
-            <view>
-              <text class="date-label">开始日期</text>
-              <text class="date-value">{{formData.nxDcStartDate || '请选择'}}</text>
-            </view>
-          </picker>
-          <view class="date-line"></view>
-          <picker class="date-picker" mode="date" value="{{formData.nxDcStopDate}}" bindchange="bindStopDate">
-            <view>
-              <text class="date-label">截止日期</text>
-              <text class="date-value">{{formData.nxDcStopDate || '请选择'}}</text>
-            </view>
-          </picker>
-        </view>
-      </view>
-
-      <view class="form-row">
-        <text class="label">适用范围</text>
-        <picker mode="selector" range="{{scopeTypeTexts}}" value="{{scopeTypeIndex}}" bindchange="bindScopeTypeChange">
-          <view class="picker-value">{{scopeTypeTexts[scopeTypeIndex]}}</view>
-        </picker>
-      </view>
-
-      <view class="scope-panel" wx:if="{{formData.scopeType === 'CATEGORY'}}">
-        <view class="scope-title">选择分类（可多选）</view>
-        <view class="scope-list">
-          <view
-            class="scope-item {{item.selected ? 'active' : ''}}"
-            wx:for="{{scopeOptions}}"
-            wx:key="id"
-            data-id="{{item.id}}"
-            data-name="{{item.name}}"
-            bindtap="toggleScopeId"
-          >{{item.name}}</view>
-          <view wx:if="{{scopeOptions.length === 0}}" class="scope-hint">暂无分类，请先维护商品分类</view>
-        </view>
-        <view class="scope-list selected-list" wx:if="{{selectedScopeItems.length > 0}}">
-          <view class="scope-title">已选分类</view>
-          <view class="scope-item active" wx:for="{{selectedScopeItems}}" wx:key="id">{{item.name}}</view>
-        </view>
-      </view>
-
-      <view class="scope-panel" wx:if="{{formData.scopeType === 'GOODS'}}">
-        <view class="scope-title">选择商品（可多选）</view>
-        <view class="goods-search-row">
-          <input class="goods-search-input" value="{{goodsSearchStr}}" bindinput="bindGoodsSearchInput" placeholder="输入商品名搜索"/>
-          <text class="goods-search-btn" bindtap="searchGoods">搜索</text>
-        </view>
-        <view class="scope-list" wx:if="{{goodsSearchResults.length > 0}}">
-          <view
-            class="scope-item {{item.selected ? 'active' : ''}}"
-            wx:for="{{goodsSearchResults}}"
-            wx:key="id"
-            data-id="{{item.id}}"
-            data-name="{{item.name}}"
-            bindtap="toggleGoodsResult"
-          >{{item.name}}<text wx:if="{{item.standard}}" class="scope-sub">({{item.standard}})</text></view>
-        </view>
-        <view class="scope-list selected-list" wx:if="{{selectedScopeItems.length > 0}}">
-          <view class="scope-title">已选商品</view>
-          <view class="scope-item active" wx:for="{{selectedScopeItems}}" wx:key="id">{{item.name}}</view>
-        </view>
-      </view>
-
-      <view class="form-row">
-        <text class="label">适用交付方式</text>
-        <picker mode="selector" range="{{deliveryModeTexts}}" value="{{deliveryModeIndex}}" bindchange="bindDeliveryModeChange">
-          <view class="picker-value">{{deliveryModeTexts[deliveryModeIndex]}}</view>
-        </picker>
-      </view>
-
-      <view class="form-row">
-        <text class="label">适用结算方式</text>
-        <picker mode="selector" range="{{settlementTexts}}" value="{{settlementIndex}}" bindchange="bindSettlementChange">
-          <view class="picker-value">{{settlementTexts[settlementIndex]}}</view>
-        </picker>
-      </view>
-
-      <view class="edit-actions">
-        <button class="btn-cancel" bindtap="cancelEdit">取消</button>
-        <button class="btn-preview" bindtap="previewCurrentForm">预览</button>
-        <button class="btn-save" bindtap="save">保存</button>
-      </view>
+      <button class="empty-btn" bindtap="toAdd">新增优惠券</button>
     </view>
 
     <view class="scroll-safe"></view>

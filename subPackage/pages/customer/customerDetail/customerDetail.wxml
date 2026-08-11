@@ -113,8 +113,8 @@
     <view class="section-row" bindtap="showLocationTimeModal">
       <text class="row-label">配送位置</text>
       <view class="row-value">
-        <text class="{{depInfo.nxDepartmentLat || depInfo.nxDepartmentAddress || depInfo.nxDepartmentEarliestDeliveryTime ? 'text-success' : 'text-danger'}}">
-          {{depInfo.nxDepartmentLat ? '已设置位置' : '未设置位置'}}、{{depInfo.nxDepartmentAddress ? '已设置地址' : '未设置地址'}}、{{depInfo.nxDepartmentEarliestDeliveryTime ? '已设置时间' : '未设置时间'}}
+        <text class="{{depInfo.nxDepartmentLat || depInfo.nxDepartmentAddress || formattedEarliestTime ? 'text-success' : 'text-danger'}}">
+          {{depInfo.nxDepartmentLat ? '已设置位置' : '未设置位置'}}、{{depInfo.nxDepartmentAddress ? '已设置地址' : '未设置地址'}}、{{formattedEarliestTime && formattedLatestTime ? '已设置时间' : '未设置时间'}}
         </text>
         <image class="icon" src="/images/arrow-right-3.png" mode="aspectFill"></image>
       </view>
@@ -334,18 +334,18 @@
 </view>
 
 <!-- 地理位置和配送时间设置弹窗 -->
-<view class='overlay {{showLocationTimeModal ? "show" : ""}}' catchtouchmove='ture' catchtap="hideLocationTimeModal">
+<view class='overlay {{showLocationTimeModal ? "show" : ""}}' catchtouchmove="stopPropagation" catchtap="hideLocationTimeModal">
   <view class="edit-popup bg-white p-20" catchtap="stopPropagation">
     <view class="flex-column">
       <view class="font-lg-2 center-content p-20 border-bottom">配送设置</view>
       
       <!-- 设置提示 -->
       <view class="flex-row p-10" style="background-color: #f0f8ff; border-radius: 8rpx; margin: 10rpx 0;">
-        <text class="text-secondary" style="font-size: 24rpx;">请设置地理位置和配送时间范围</text>
+        <text class="text-secondary" style="font-size: 24rpx;">配送位置必填，配送时间可按需设置</text>
       </view>
       
       <!-- 当前设置状态 -->
-      <view class="flex-row p-10" style="background-color: #f8f9fa; border-radius: 8rpx; margin: 10rpx 0;" wx:if="{{depInfo.nxDepartmentEarliestDeliveryTime || depInfo.nxDepartmentLatestDeliveryTime}}">
+      <view class="flex-row p-10" style="background-color: #f8f9fa; border-radius: 8rpx; margin: 10rpx 0;" wx:if="{{formattedEarliestTime || formattedLatestTime}}">
         <text class="text-secondary" style="font-size: 24rpx;">当前设置: {{formattedEarliestTime}} - {{formattedLatestTime}}</text>
       </view>
       
@@ -354,8 +354,8 @@
         <text class="mr-10 text-secondary" style="width: 200rpx;">地理位置:</text>
         <view class="flex-column" style="flex: 1;">
           <view class="flex-row-between p-10">
-            <text class="delivery-status {{depInfo.nxDepartmentLat ? 'set' : 'unset'}}">纬度: {{depInfo.nxDepartmentLat || '未设置'}}</text>
-            <text class="delivery-status {{depInfo.nxDepartmentLng ? 'set' : 'unset'}}">经度: {{depInfo.nxDepartmentLng || '未设置'}}</text>
+            <text class="delivery-status {{selectedLatitude ? 'set' : 'unset'}}">纬度: {{selectedLatitude || '未设置'}}</text>
+            <text class="delivery-status {{selectedLongitude ? 'set' : 'unset'}}">经度: {{selectedLongitude || '未设置'}}</text>
           </view>
           <view class="flex-row p-10">
             <button class="btn-primary" bindtap="chooseLocation" style="width: 200rpx; height: 60rpx; font-size: 24rpx;">选择位置</button>
@@ -369,7 +369,7 @@
         <view class="flex-column" style="flex: 1;">
           <textarea class="delivery-address" placeholder="请输入详细地址（可选）" value="{{deliveryAddress}}" bindinput="onDeliveryAddressInput" style="width: 100%; height: 80rpx; font-size: 24rpx;"></textarea>
           <view class="flex-row p-5">
-            <text class="delivery-status {{depInfo.nxDepartmentAddress ? 'set' : 'unset'}}" style="font-size: 20rpx;">{{depInfo.nxDepartmentAddress ? '已设置地址' : '未设置地址'}}</text>
+            <text class="delivery-status {{deliveryAddress ? 'set' : 'unset'}}" style="font-size: 20rpx;">{{deliveryAddress ? '已设置地址' : '未设置地址'}}</text>
           </view>
         </view>
       </view>
@@ -379,7 +379,7 @@
         <text class="mr-10 text-secondary" style="width: 200rpx;">最早配送时间:</text>
         <picker mode="time" value="{{earliestDeliveryTime}}" bindchange="onEarliestTimeChange">
           <view class="picker-item {{earliestDeliveryTime ? 'selected' : ''}}">
-            {{earliestDeliveryTime || (depInfo.nxDepartmentEarliestDeliveryTime ? formattedEarliestTime : '请选择时间')}}
+            {{earliestDeliveryTime || '请选择时间'}}
           </view>
         </picker>
       </view>
@@ -388,7 +388,7 @@
         <text class="mr-10 text-secondary" style="width: 200rpx;">最晚配送时间:</text>
         <picker mode="time" value="{{latestDeliveryTime}}" bindchange="onLatestTimeChange">
           <view class="picker-item {{latestDeliveryTime ? 'selected' : ''}}">
-            {{latestDeliveryTime || (depInfo.nxDepartmentLatestDeliveryTime ? formattedLatestTime : '请选择时间')}}
+            {{latestDeliveryTime || '请选择时间'}}
           </view>
         </picker>
       </view>
@@ -396,14 +396,14 @@
       <!-- 卸货时间 -->
       <view class="flex-row p-20 border-bottom">
         <text class="mr-10 text-secondary" style="width: 200rpx;">卸货时间:</text>
-        <input class="input" type="number" placeholder="请输入卸货时间（分钟）" value="{{unloadDuration}}" bindinput="onUnloadDurationInput" style="width: 200rpx; text-align: right;" />
+        <input class="input" type="number" maxlength="4" placeholder="请输入卸货时间（分钟）" value="{{unloadDuration}}" bindinput="onUnloadDurationInput" style="width: 200rpx; text-align: right;" />
         <text class="ml-10 text-secondary">分钟</text>
       </view>
 
       <!-- 配送备注 -->
       <view class="flex-row p-20 border-bottom">
         <text class="mr-10 text-secondary" style="width: 200rpx;">配送备注:</text>
-        <textarea class="delivery-notes" placeholder="请输入配送备注信息（可选）" value="{{deliveryNotes}}" bindinput="onDeliveryNotesInput" style="width: 100%; height: 100rpx;"></textarea>
+        <textarea class="delivery-notes" maxlength="256" placeholder="请输入配送备注信息（可选）" value="{{deliveryNotes}}" bindinput="onDeliveryNotesInput" style="width: 100%; height: 100rpx;"></textarea>
       </view>
 
       <!-- 配送优先级 -->
@@ -425,8 +425,8 @@
 
     <view class="flex-row-between" style="padding: 30rpx 40rpx;">
       <view class="p-10 third-row center-content hover" bindtap="hideLocationTimeModal">取消</view>
-      <view class="p-10 third-row center-content {{canSave ? 'bg-success' : 'bg-gray'}}" bindtap="{{canSave ? 'updateLocationTimeInfo' : ''}}">
-        {{canSave ? '保存设置' : '请完善设置'}}
+      <view class="p-10 third-row center-content {{canSave && !savingDeliverySettings ? 'bg-success' : 'bg-gray'}}" bindtap="updateLocationTimeInfo">
+        {{savingDeliverySettings ? '保存中...' : (canSave ? '保存设置' : '请完善设置')}}
       </view>
     </view>
   </view>

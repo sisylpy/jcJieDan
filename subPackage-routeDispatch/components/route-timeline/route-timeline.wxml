@@ -22,6 +22,10 @@
     <view class="boss-timeline-end-unit" wx:elif="{{node.type === 'end'}}">
       <view class="boss-timeline-marker boss-timeline-marker-end">{{node.marker}}</view>
       <view class="boss-timeline-end-card">
+        <view class="boss-timeline-return-detail" wx:if="{{variant === 'edit' && node.legFromName && node.legToName}}">
+          <text class="boss-timeline-return-route">{{node.legFromName}} → {{node.legToName}}</text>
+          <text class="boss-timeline-return-source {{node.legEstimated ? 'boss-timeline-return-source-estimated' : ''}}" wx:if="{{node.legSourceLabel}}">{{node.legSourceLabel}}</text>
+        </view>
         <view class="boss-timeline-end-main">
           <view class="boss-timeline-end-leg" wx:if="{{node.legText}}">
             <image class="boss-timeline-leg-icon" src="/images/car.png" mode="aspectFit"></image>

@@ -15,7 +15,8 @@ const tsc = require('./GPutils/tsc.js').jpPrinter; // eslint-disable-line
 const LABEL_SIZES = {
   1: { width: 40, height: 30, name: '4*3cm' },   // 小尺寸
   2: { width: 40, height: 60, name: '4*6cm' },   // 中尺寸
-  3: { width: 50, height: 80, name: '5*8cm' }    // 大尺寸
+  3: { width: 50, height: 80, name: '5*8cm竖版' },
+  4: { width: 80, height: 50, name: '5*8cm横版', layout: 'wide-horizontal' }
 };
 
 /**
@@ -42,7 +43,7 @@ class LabelPrinter {
 
   /**
    * 初始化打印命令
-   * @param {Number} paperSizeId - 标签尺寸ID (1: 4*3cm, 2: 4*6cm, 3: 5*8cm)
+   * @param {Number} paperSizeId - 标签尺寸ID (1: 4*3横, 2: 4*6竖, 3: 5*8竖, 4: 5*8横)
    * @param {Object} options - 可选配置
    * @param {Number} options.speed - 打印速度（可选，范围通常 1-14）
    * @param {Number} options.density - 打印浓度（可选，范围通常 0-15）
@@ -193,6 +194,42 @@ class LabelPrinter {
     return '';
   }
 
+  extractOrderId(order) {
+    if (!order) return null;
+    const candidates = [
+      order.nxDepartmentOrdersId,
+      order.nxDepartmentOrderId,
+      order.orderId
+    ];
+    for (let i = 0; i < candidates.length; i++) {
+      const value = candidates[i];
+      if (value !== undefined && value !== null && String(value).trim()) {
+        return String(value).trim();
+      }
+    }
+    return null;
+  }
+
+  shortenLabelText(value, maxChars) {
+    const text = String(value || '').trim();
+    if (!maxChars || text.length <= maxChars) return text;
+    return text.substring(0, maxChars);
+  }
+
+  /** BOSS 端标签二维码与司机端清点使用同一个订单 ID。 */
+  printOrderQRCode(order) {
+    const orderId = this.extractOrderId(order);
+    if (!this.command || !this.paperSize || !orderId) return;
+
+    const isWideHorizontal = this.paperSize.layout === 'wide-horizontal';
+    const labelWidthPoints = Math.floor(this.paperSize.width * this.DPMM);
+    // 横版右侧预留更宽的安全边距，避免二维码贴近纸边或进入打印机不可打印区。
+    const qrAreaPoints = Math.floor((isWideHorizontal ? 29 : 15) * this.DPMM);
+    const qrX = Math.max(Math.floor(2 * this.DPMM), labelWidthPoints - qrAreaPoints);
+    const qrY = Math.floor((isWideHorizontal ? 5 : 2) * this.DPMM);
+    this.printQRCode(qrX, qrY, orderId, 'M', isWideHorizontal ? 6 : 4, 'A');
+  }
+
   /**
    * 打印订单列表（竖版模式）
    * @param {Array} orderArray - 订单数组
@@ -205,7 +242,7 @@ class LabelPrinter {
       return;
     }
 
-    const { goodsItem = null } = options;
+    const { goodsItem = null, printRemark = false } = options;
     const isVertical = this.paperSize.height >= 60;
     
     if (!isVertical) {
@@ -219,8 +256,9 @@ class LabelPrinter {
     
     // 计算 x 坐标（水平方向，从左到右）
     const x1 = Math.floor(PRINTER_CONFIG.MARGIN * this.DPMM); // 左边距
-    const x2 = Math.floor(labelWidthPoints * 0.4);  // 40% 位置（商品名称）
-    const x3 = Math.floor(labelWidthPoints * 0.6);  // 60% 位置（数量）
+    const x2 = Math.floor(labelWidthPoints * 0.33); // 商品名称列
+    const x3 = Math.floor(labelWidthPoints * 0.5);  // 数量列
+    const x4 = Math.floor(labelWidthPoints * 0.64); // 备注列，为二维码保留右侧空间
     
     // 计算 y 坐标（垂直方向，从底部开始）
     const verticalLineHeight = Math.floor(60 * this.DPMM); // 每行高度约 60 点（约 7.5mm）
@@ -229,17 +267,16 @@ class LabelPrinter {
     
     // 字体配置
     const fontName = PRINTER_CONFIG.FONT_NAME;
-    const goodsScale = 2; // 商品名称固定 scale = 2（不再根据长度判断）
+    const goodsScale = 1;
     const quantityScale = 2; // 数量行使用 scale = 2（保持原值）
+    const remarkScale = 1;
     const rotation = 270; // 竖版旋转 270 度
     // 根据标签尺寸设置部门名称的 scale
     let departmentScale;
     if (this.paperSize.height === 80) {
-      // 5*8cm 标签：部门名称使用更大的 scale = 5
-      departmentScale = 5;
+      departmentScale = 4;
     } else {
-      // 4*6cm 标签：部门名称 scale = 4
-      departmentScale = 4; // 固定为 4
+      departmentScale = 3;
     }
     
     console.log(`[LabelPrinter] 开始打印 ${orderArray.length} 个订单（竖版模式）`);
@@ -259,6 +296,7 @@ class LabelPrinter {
         : (order.nxDoWeight || 0);
       // 支持多种单位字段：优先使用 nxDoPrintStandard，其次使用 nxDoStandard
       const standard = order.nxDoPrintStandard || order.nxDoStandard || '';
+      const remark = order.nxDoRemark || '';
       
       // 所有内容使用相同的 y 坐标，确保在同一行
       const y = currentY;
@@ -309,6 +347,12 @@ class LabelPrinter {
         this.command.setText(x3, y, fontName, rotation, quantityScale, quantityScale, quantityText);
         console.log(`[LabelPrinter]   ✓ 数量: ${quantityText} (x=${x3}, y=${y}, scale=${quantityScale})`);
       }
+
+      if (printRemark && this.paperSize.height === 80 && remark && remark.trim()) {
+        this.command.setText(x4, y, fontName, rotation, remarkScale, remarkScale, '备注：' + remark);
+      }
+
+      this.printOrderQRCode(order);
       
       // 下一个订单的 y 坐标递减（从底部向上）
       currentY -= verticalLineHeight;
@@ -321,6 +365,81 @@ class LabelPrinter {
     }
     
     console.log(`[LabelPrinter] 订单打印命令生成完成`);
+  }
+
+  /** 5*8cm 横版（80mm * 50mm）专用布局。 */
+  printWideHorizontalOrders(orderArray, options = {}) {
+    if (!this.command) {
+      console.error('[LabelPrinter] 请先调用 init() 初始化');
+      return;
+    }
+
+    const { goodsItem = null, printRemark = true } = options;
+    const fontName = PRINTER_CONFIG.FONT_NAME;
+    const margin = Math.floor(3 * this.DPMM);
+    const labelWidthPoints = Math.floor(this.paperSize.width * this.DPMM);
+    const textRight = labelWidthPoints - Math.floor(32 * this.DPMM);
+
+    for (let i = 0; i < orderArray.length; i++) {
+      const order = orderArray[i];
+      const customerName = this.extractCustomerName(order);
+      const goodsName = this.extractGoodsName(order, goodsItem);
+      const quantity = order.nxDoQuantity !== undefined && order.nxDoQuantity !== null && order.nxDoQuantity !== ''
+        ? order.nxDoQuantity : (order.nxDoWeight || 0);
+      const standard = order.nxDoPrintStandard || order.nxDoStandard || '';
+      const remark = order.nxDoRemark || '';
+      const customerScale = customerName.length <= 4 ? 4 : (customerName.length <= 7 ? 3 : 2);
+      const goodsScale = goodsName.length <= 8 ? 2 : 1;
+      const quantityText = (quantity || 0) + (standard || '');
+
+      if (customerName) {
+        this.command.setText(
+          margin,
+          Math.floor(3 * this.DPMM),
+          fontName,
+          0,
+          customerScale,
+          customerScale,
+          this.shortenLabelText(customerName, customerScale >= 3 ? 7 : 11)
+        );
+      }
+      this.command.setBar(margin, Math.floor(17 * this.DPMM), textRight - margin, 2);
+      if (goodsName) {
+        this.command.setText(
+          margin,
+          Math.floor(20 * this.DPMM),
+          fontName,
+          0,
+          goodsScale,
+          goodsScale,
+          this.shortenLabelText(goodsName, goodsScale === 2 ? 8 : 16)
+        );
+      }
+      if (quantityText) {
+        this.command.setText(
+          margin,
+          Math.floor(29 * this.DPMM),
+          fontName,
+          0,
+          3,
+          3,
+          this.shortenLabelText(quantityText, 8)
+        );
+      }
+      if (printRemark && remark) {
+        this.command.setText(
+          margin,
+          Math.floor(41 * this.DPMM),
+          fontName,
+          0,
+          1,
+          1,
+          '备注:' + this.shortenLabelText(remark, 18)
+        );
+      }
+
+      this.printOrderQRCode(order);
+    }
   }
 
   /**
@@ -345,14 +464,13 @@ class LabelPrinter {
 
     // 字体配置
     const fontName = PRINTER_CONFIG.FONT_NAME;
-    const scale = 2; // 小标签使用适中的缩放，以便显示更多内容
+    const goodsScale = 1;
     const rotation = 0; // 横版不旋转
     
     // 计算起始位置
     const startX = Math.floor(PRINTER_CONFIG.MARGIN * this.DPMM);
-    // 小标签向下移动更多，增加顶部空间（从 2mm 增加到 4mm）
-    const startY = Math.floor(4 * this.DPMM); // 从顶部向下 4mm，而不是 2mm
-    const lineHeight = 60; // 行高（减小以便显示更多行）
+    const startY = Math.floor(2 * this.DPMM);
+    const lineHeight = 54;
     
     console.log(`[LabelPrinter] 开始打印 ${orderArray.length} 个订单（横版模式）`);
     
@@ -372,29 +490,34 @@ class LabelPrinter {
       
       // 计算当前订单的起始 y 坐标
       const orderStartY = startY + i * (lineHeight * 3); // 每个订单占3行
+      const customerScale = customerName.length <= 4 ? 2 : 1;
+      const quantityText = (quantity !== undefined && quantity !== null && quantity !== '')
+        ? (quantity + (standard || ''))
+        : (standard || '');
+      const quantityScale = quantityText.length <= 5 ? 2 : 1;
       
       // 打印客户名称（第一行）
       if (customerName && customerName.trim()) {
-        this.command.setText(startX, orderStartY, fontName, rotation, scale, scale, customerName);
+        const customerText = this.shortenLabelText(customerName, customerScale === 2 ? 4 : 8);
+        this.command.setText(startX, orderStartY, fontName, rotation, customerScale, customerScale, customerText);
         console.log(`[LabelPrinter] 订单[${i}] 客户: ${customerName} (x=${startX}, y=${orderStartY})`);
       }
       
       // 打印商品名称（第二行）
       if (goodsName && goodsName.trim()) {
         const goodsY = orderStartY + lineHeight;
-        this.command.setText(startX, goodsY, fontName, rotation, scale, scale, goodsName);
+        this.command.setText(startX, goodsY, fontName, rotation, goodsScale, goodsScale, this.shortenLabelText(goodsName, 8));
         console.log(`[LabelPrinter] 订单[${i}] 商品: ${goodsName} (x=${startX}, y=${goodsY})`);
       }
       
       // 打印数量（第三行）
       if (quantity || standard) {
         const quantityY = orderStartY + lineHeight * 2;
-        const quantityText = (quantity !== undefined && quantity !== null && quantity !== '') 
-          ? (quantity + (standard || '')) 
-          : (standard || '');
-        this.command.setText(startX, quantityY, fontName, rotation, scale, scale, quantityText);
+        this.command.setText(startX, quantityY, fontName, rotation, quantityScale, quantityScale, this.shortenLabelText(quantityText, 10));
         console.log(`[LabelPrinter] 订单[${i}] 数量: ${quantityText} (x=${startX}, y=${quantityY})`);
       }
+
+      this.printOrderQRCode(order);
       
       // 如果超出标签高度，停止打印
       const maxY = Math.floor(this.paperSize.height * this.DPMM);
@@ -414,6 +537,10 @@ class LabelPrinter {
    * @param {Object} options - 配置选项
    */
   printOrders(orderArray, options = {}) {
+    if (this.paperSize.layout === 'wide-horizontal') {
+      this.printWideHorizontalOrders(orderArray, options);
+      return;
+    }
     const isVertical = this.paperSize.height >= 60;
     
     if (isVertical) {
@@ -584,12 +711,18 @@ module.exports = {
     const { paperSizeId, speed, density, ...printOptions } = options;
     const printer = new LabelPrinter();
     printer.init(paperSizeId, { speed, density });
-    printer.printOrders(orderArray, printOptions);
-    return printer.generatePrintData();
+    const orders = Array.isArray(orderArray) ? orderArray.filter(Boolean) : [];
+    if (!orders.length) return null;
+
+    orders.forEach(function (order, index) {
+      if (index > 0) printer.reset();
+      printer.printOrders([order], printOptions);
+      printer.command.setPagePrint();
+    });
+    return printer.command.getData();
   },
   
   // 导出常量
   LABEL_SIZES: LABEL_SIZES,
   PRINTER_CONFIG: PRINTER_CONFIG
 };
-

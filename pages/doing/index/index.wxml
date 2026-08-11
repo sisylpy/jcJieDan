@@ -111,7 +111,7 @@
                   <block wx:if="{{viewMode === 'department'}}">
                     <view wx:for="{{item.nxDepartmentOrdersEntities}}" wx:for-item="order" wx:key="orderIndex"
                       wx:for-index="orderIndex"
-                      class="flex flex-row-between border-bottom bg-white {{item.isSelected ? 'bg-mainColor' : ''}}"
+                      class="flex flex-row-between customer-standard-order-row border-bottom bg-white {{item.isSelected ? 'bg-mainColor' : ''}}"
                       style="width: {{windowWidth - leftMenuWidth - 20}}rpx; padding: 20rpx;" bindtap="choiceStock"
                       data-item="{{item}}" data-goodsindex="{{goodsIndex}}">
                       <!-- 左侧：序号、选择框、商品信息、订单信息 -->
@@ -148,6 +148,10 @@
                         <text wx:if="{{order.nxDoRemark !== 'null' && order.nxDoRemark.length > 0}}"
                           class="red ml-10 font-sm">({{order.nxDoRemark}})</text>
                       </view>
+                      <view wx:if="{{order.customerStandardText}}" class="customer-standard-workline">
+                        <text class="customer-standard-work-title">客户要求</text>
+                        <text class="customer-standard-work-content">{{order.customerStandardText}}</text>
+                      </view>
                     </view>
                   </block>
 
@@ -178,7 +182,7 @@
 
                       <view class="flex-column">
 
-                        <view class="flex flex-row font-md p-10" wx:for="{{item.nxDepartmentOrdersEntities}}"
+                        <view class="flex flex-row font-md p-10 customer-standard-order-row" wx:for="{{item.nxDepartmentOrdersEntities}}"
                           wx:for-item="order" wx:key="index" wx:for-index="orderIndex" data-orderindex="{{orderIndex}}"
                           data-goodsindex="{{goodsIndex}}" bindtap="choiceOrders"
                           style="width: {{windowWidth - leftMenuWidth -10}}rpx;">
@@ -210,6 +214,10 @@
                           <text class="ml-20">{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
                           <text wx:if="{{order.nxDoRemark !== 'null' && order.nxDoRemark.length > 0}}"
                             class="red">({{order.nxDoRemark}})</text>
+                          <view wx:if="{{order.customerStandardText}}" class="customer-standard-workline">
+                            <text class="customer-standard-work-title">客户要求</text>
+                            <text class="customer-standard-work-content">{{order.customerStandardText}}</text>
+                          </view>
                         </view>
                       </view>
 

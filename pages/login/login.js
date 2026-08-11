@@ -13,6 +13,7 @@ import {
   wxworkLogin,
   wxworkRegister
 } from '../../lib/apiWxwork'
+import { describeOwnerRequestError } from '../../lib/ownerRequest'
 
 Page({
 
@@ -460,8 +461,8 @@ Page({
             wxworkLogin(disUser)
               .then(res => {
                 load.hideLoading();
-                if (res.result.code !== -1) {
-                  console.log(res.result)
+                if (res.result && res.result.code === 0
+                    && res.result.data && res.result.data.userInfo) {
                   if (res.result.data.userInfo.nxDiuAdmin == 0) {
                     //缓存用户信息
                     wx.setStorageSync('userInfo', res.result.data.userInfo);
@@ -470,10 +471,15 @@ Page({
                     wx.switchTab({
                       url: '../order/index/index',
                     })
+                  } else {
+                    wx.showToast({
+                      title: '当前账号不是老板账号',
+                      icon: 'none'
+                    })
                   }
                 } else {
                   wx.showToast({
-                    title: res.result.msg,
+                    title: (res.result && res.result.msg) || '企业微信身份未绑定老板账号',
                     icon: 'none'
                   })
                 }
@@ -481,7 +487,7 @@ Page({
               .catch((error) => {
                 load.hideLoading();
                 wx.showToast({
-                  title: '网络连接失败',
+                  title: describeOwnerRequestError(error, '企业微信登录失败'),
                   icon: 'none'
                 })
               })
@@ -505,33 +511,43 @@ Page({
         }
         disLogin(disUser)
           .then((res) => {
-            if (res.result.code !== -1) { //登陆成功
+            if (res.result && res.result.code === 0
+                && res.result.data && res.result.data.userInfo) { // 登陆成功
               if (res.result.data.userInfo.nxDiuAdmin == 0) {
                 wx.setStorageSync('userInfo', res.result.data.userInfo);
-              wx.setStorageSync('disInfo', res.result.data.disInfo)
-              wx.switchTab({
-                url: '../order/index/index',
-              })
-              }else if (res.result.data.userInfo.nxDiuAdmin == 3) {
-                wx.redirectTo({
-                  url: '../../subPackage/pages/downLoadApp/downLoadApp',
+                wx.setStorageSync('disInfo', res.result.data.disInfo)
+                wx.switchTab({
+                  url: '../order/index/index',
                 })
-
+              } else {
+                wx.showToast({
+                  title: '当前账号不是老板账号',
+                  icon: 'none'
+                })
               }
-
-            
             } else { // 登陆失败
+              wx.showToast({
+                title: (res.result && res.result.msg) || '微信身份未绑定老板账号',
+                icon: 'none'
+              })
               this._aaa();
-
             }
+          })
+          .catch((error) => {
+            load.hideLoading();
+            wx.showToast({
+              title: describeOwnerRequestError(error, '老板端登录失败'),
+              icon: 'none',
+              duration: 3500
+            })
           })
       },
       fail: (res => {
         load.hideLoading();
         wx.showToast({
-          title: res,
+          title: (res && res.errMsg) || '微信登录失败，请重新操作',
           icon: 'none',
-          duration: 10000,
+          duration: 3500,
         })
       })
     })

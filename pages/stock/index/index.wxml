@@ -15,6 +15,7 @@
           <text wx:if="{{paperSize == 1}}">小</text>
           <text wx:elif="{{paperSize == 2}}">中</text>
           <text wx:elif="{{paperSize == 3}}">大</text>
+          <text wx:elif="{{paperSize == 4}}">大横</text>
         </view>
 
         <view class=" button-container ml-20" bindtap="toMyShelf" wx:if="{{disInfo.nxDistributerBusinessTypeId  > 1}}">
@@ -117,7 +118,7 @@
 
               <!-- 部门模式：商品和订单在一行显示 -->
               <block wx:if="{{viewMode === 'department'}}">
-                <view wx:for="{{item.nxDepartmentOrdersEntities}}" wx:for-item="order" wx:key="orderIndex" wx:for-index="orderIndex" class="flex flex-row-between border-bottom bg-white {{item.isSelected ? 'bg-mainColor' : ''}}" style="width: {{windowWidth - leftMenuWidth - 20}}rpx; padding: 20rpx;" bindtap="choiceStock" data-item="{{item}}" data-goodsindex="{{goodsIndex}}">
+                <view wx:for="{{item.nxDepartmentOrdersEntities}}" wx:for-item="order" wx:key="orderIndex" wx:for-index="orderIndex" class="flex flex-row-between customer-standard-order-row border-bottom bg-white {{item.isSelected ? 'bg-mainColor' : ''}}" style="width: {{windowWidth - leftMenuWidth - 20}}rpx; padding: 20rpx;" bindtap="choiceStock" data-item="{{item}}" data-goodsindex="{{goodsIndex}}">
                   <!-- 左侧：序号、选择框、商品信息、订单信息 -->
                   <view class="flex flex-row flex-1" >
                     <!-- 序号 -->
@@ -166,6 +167,10 @@
                       <text class="mr-10">实际:{{order._displayActualPrice}}</text>
                       <text>差:{{order._displayPriceDiff}}</text>
                     </view>
+                  </view>
+                  <view wx:if="{{order.customerStandardText}}" class="customer-standard-workline">
+                    <text class="customer-standard-work-title">客户要求</text>
+                    <text class="customer-standard-work-content">{{order.customerStandardText}}</text>
                   </view>
                 </view>
               </block>
@@ -235,6 +240,10 @@
                         <text class="mr-15">期望:{{order._displayExpectPrice}}</text>
                         <text class="mr-15">实际:{{order._displayActualPrice}}</text>
                         <text>差价:{{order._displayPriceDiff}}</text>
+                      </view>
+                      <view wx:if="{{order.customerStandardText}}" class="customer-standard-workline">
+                        <text class="customer-standard-work-title">客户要求</text>
+                        <text class="customer-standard-work-content">{{order.customerStandardText}}</text>
                       </view>
                     </view>
                   </view>

@@ -12,7 +12,7 @@ var load = require('../../lib/load.js');
  */
 export const disGetGoods = (data) => {
   return new Promise((resolve, reject) => {
-    wx.request({
+    getApp().ownerRequest({
       url: apiUrl.apiUrl + 'nxdistributergoods/disGetGoods/' + data,
       method: 'GET',
       success: (res) => {
@@ -36,7 +36,7 @@ export const disGetGoods = (data) => {
  */
 export const disSaveDisGoods = (data) => {
   return new Promise((resolve, reject) => {
-    wx.request({
+    getApp().ownerRequest({
       url: apiUrl.apiUrl + 'nxdistributergoods/disSaveDisGoods',
       method: 'POST',
       data,
@@ -62,7 +62,7 @@ export const disSaveDisGoods = (data) => {
  */
 export const downDisGoods = (data) => {
   return new Promise((resolve, reject) => {
-    wx.request({
+    getApp().ownerRequest({
       url: apiUrl.apiUrl + 'nxdistributergoods/postDgnGoods',
       method: 'POST',
       data: data,
@@ -88,7 +88,7 @@ export const downDisGoods = (data) => {
  */
 export const downDisGoodsAndSaveLinshiGoods = (data) => {
   return new Promise((resolve, reject) => {
-    wx.request({
+    getApp().ownerRequest({
       url: apiUrl.apiUrl + 'nxdistributergoods/downDisGoodsAndSaveLinshiGoods',
       method: 'POST',
       data: data,
@@ -113,7 +113,7 @@ export const downDisGoodsAndSaveLinshiGoods = (data) => {
  */
 export const queryNxGoodsWithNxDisByQuickSearch = (data) => {
   return new Promise((resolve, reject) => {
-    wx.request({
+    getApp().ownerRequest({
       url: apiUrl.apiUrl + 'nxgoods/queryNxGoodsWithNxDisByQuickSearch',
       method: 'POST',
       data: {
@@ -146,7 +146,7 @@ export const queryNxGoodsWithNxDisByQuickSearch = (data) => {
  */
 export const cancleDownDisGoods = (data) => {
   return new Promise((resolve, reject) => {
-    wx.request({
+    getApp().ownerRequest({
       url: apiUrl.apiUrl + 'nxdistributergoods/canclePostDgnGoods',
       method: 'POST',
       data: {

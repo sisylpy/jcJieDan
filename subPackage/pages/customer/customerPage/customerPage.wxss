@@ -1,0 +1,43 @@
+.bill-list-item {
+  box-sizing: border-box;
+}
+
+.bill-main-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.bill-list-info {
+  flex: 1;
+  min-width: 0;
+  padding-right: 20rpx;
+}
+
+.bill-list-price {
+  flex-shrink: 0;
+}
+
+.bill-promotion-row {
+  display: flex;
+  justify-content: flex-end;
+  align-items: baseline;
+  width: 100%;
+  box-sizing: border-box;
+  padding-top: 8rpx;
+  padding-right: 74rpx;
+  font-size: 22rpx;
+  line-height: 1.5;
+  text-align: right;
+}
+
+.bill-original-price {
+  flex-shrink: 0;
+  margin-right: 18rpx;
+  color: #666;
+}
+
+.bill-discount-text {
+  color: #ff5a5f;
+}

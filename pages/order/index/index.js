@@ -9,15 +9,7 @@ import {
   getPlatformCustomersToday,
 } from '../../../lib/apiDepOrder.js'
 
-import {
-  disLogin,
-  getDepInfo
-} from '../../../lib/apiDistributer'
-
-// 新增企业微信API导入
-import {
-  wxworkLogin
-} from '../../../lib/apiWxwork'
+import { getDepInfo } from '../../../lib/apiDistributer'
 
 Page({
   data: {
@@ -49,7 +41,7 @@ Page({
 
   
 
-    this._login();
+    this._restoreOwnerSession();
 
     // 直接使用 app.js 中已经计算好的值
     this.setData({
@@ -96,147 +88,22 @@ Page({
    
   },
 
-  /**
-   * 静默登录失败时必须先清掉本地缓存的 userInfo，否则会与 inviteCode 页逻辑冲突：
-   * inviteCode 发现 userInfo 存在会 switchTab 回订单页，订单页再次登录失败又打开 inviteCode，形成死循环。
-   */
-  _clearSessionAndGoInviteCode() {
-    try {
-      wx.removeStorageSync('userInfo');
-      wx.removeStorageSync('disInfo');
-      wx.removeStorageSync('loginType');
-    } catch (e) {
-      console.warn('_clearSessionAndGoInviteCode', e);
+  _restoreOwnerSession() {
+    const app = getApp()
+    const userInfo = wx.getStorageSync('userInfo')
+    const disInfo = wx.getStorageSync('disInfo')
+    if (!app.hasUsableOwnerToken() || !userInfo || !disInfo
+        || userInfo.nxDiuAdmin !== 0 || !disInfo.nxDistributerId) {
+      app.clearOwnerLoginState()
+      wx.reLaunch({ url: '/pages/login/login' })
+      return
     }
-    wx.navigateTo({
-      url: '../../inviteCode/inviteCode',
-    });
-  },
-
-  _login() {
-    var that = this;
-    const app = getApp();
-    const globalData = app.globalData;
-
-    console.log('🔍 登录检查 - globalData.environment:', globalData.environment);
-    console.log('🔍 登录检查 - 是否为 wxwork:', globalData.environment === 'wxwork');
-
-    // 检查是否为企业微信环境
-    if (globalData.environment === 'wxwork') {
-      console.log('✅ 企业微信环境，执行企业微信登录');
-      // 企业微信登录
-      wx.showLoading({
-        title: '企业微信登录中...'
-      });
-
-      wx.qy.login({
-        suiteId: 'ww2cddb5d2d7b3ee5d',
-        success: (resQy) => {
-          if (resQy.code) {
-            var disUser = {
-              nxDiuCode: resQy.code,
-            }
-            wxworkLogin(disUser)
-              .then(res => {
-                wx.hideLoading();
-                if (res.result.code !== -1) {
-                  console.log(res.result)
-                  if (res.result.data.userInfo.nxDiuAdmin == 0) {
-                    //缓存用户信息
-                    wx.setStorageSync('userInfo', res.result.data.userInfo);
-                    wx.setStorageSync('disInfo', res.result.data.disInfo);
-                    wx.setStorageSync('loginType', 'wxwork'); // 存储登录类型
-                    that.setData({
-                      userInfo: res.result.data.userInfo,
-                      disInfo: res.result.data.disInfo,
-                      disId: res.result.data.disInfo.nxDistributerId,
-                    })
-                    return that._getTodayCustomer(res.result.data.disInfo.nxDistributerId);
-                  } else if (res.result.data.userInfo.nxDiuAdmin == 3) {
-                    wx.redirectTo({
-                      url: '../../../subPackage/pages/downLoadApp/downLoadApp',
-                    })
-                  }
-                } else {
-                  console.log("企业微信登录失败")
-                  wx.showToast({
-                    title: '企业微信登录失败，请重试',
-                    icon: 'none'
-                  })
-                  that._clearSessionAndGoInviteCode();
-                }
-              })
-              .catch((error) => {
-                wx.hideLoading();
-                wx.showToast({
-                  title: '网络连接失败',
-                  icon: 'none'
-                })
-                that._clearSessionAndGoInviteCode();
-              })
-          }
-        },
-        fail: (res) => {
-          wx.hideLoading();
-          wx.showToast({
-            title: '企业微信登录失败',
-            icon: 'none'
-          })
-          that._clearSessionAndGoInviteCode();
-        }
-      })
-    } else {
-      console.log('⚠️ 普通微信环境，执行普通微信登录');
-      // 普通微信登录
-      wx.login({
-        success(res) {
-          console.log(res);
-          if (res.code) {
-            var disUser = {
-              nxDiuCode: res.code,
-            }
-            disLogin(disUser)
-              .then(res => {
-                if (res.result.code !== -1) {
-                  console.log(res.result)
-                  if (res.result.data.userInfo.nxDiuAdmin == 0) {
-                    //缓存用户信息
-                    wx.setStorageSync('userInfo', res.result.data.userInfo);
-                    wx.setStorageSync('disInfo', res.result.data.disInfo);
-                    wx.setStorageSync('loginType', 'normal'); // 存储登录类型
-                    that.setData({
-                      userInfo: res.result.data.userInfo,
-                      disInfo: res.result.data.disInfo,
-                      disId: res.result.data.disInfo.nxDistributerId,
-                    })
-                    return that._getTodayCustomer(res.result.data.disInfo.nxDistributerId);
-                  } else if (res.result.data.userInfo.nxDiuAdmin == 3) {
-                    wx.redirectTo({
-                      url: '../../../subPackage/pages/downLoadApp/downLoadApp',
-                    })
-                  }
-
-                } else {
-                  console.log("登录失败a")
-                  that._clearSessionAndGoInviteCode();
-                }
-              })
-              .catch((err) => {
-                console.error('disLogin fail', err)
-                that._clearSessionAndGoInviteCode();
-              })
-          }
-        },
-        fail(err) {
-          console.error('wx.login fail', err)
-          wx.showToast({
-            title: '微信登录失败',
-            icon: 'none'
-          })
-        }
-      })
-    }
-    
+    this.setData({
+      userInfo,
+      disInfo,
+      disId: disInfo.nxDistributerId
+    })
+    return this._getTodayCustomer(disInfo.nxDistributerId)
   },
 
   /**
@@ -324,7 +191,6 @@ Page({
         const taskArr = Array.isArray(res.result.data.taskArr) ? res.result.data.taskArr : [];
         const deps = res.result.data.deps || {};
         console.log('[index] deps.nxDep 数量:', (deps.nxDep || []).length, deps.nxDep);
-        console.log('[index] deps.ownDep 数量:', (deps.ownDep || []).length, deps.ownDep);
         console.log('[index] deps.platformDep 数量:', (deps.platformDep || []).length, deps.platformDep);
         console.log('[index] deps.gbDisArrApp 数量:', (deps.gbDisArrApp || []).length, deps.gbDisArrApp);
         console.log('[index] taskArr 数量:', taskArr.length, taskArr);
@@ -333,8 +199,8 @@ Page({
         console.log('[index] unDoTotal:', res.result.data.unDoTotal);
         const customerGroups = platformDisplay.buildCustomerGroups(
           [],
-          deps.ownDep,
-          deps.nxDep
+          deps.nxDep,
+          []
         );
         var platformCustomers = [];
         var platformUnDoTotal = 0;
@@ -357,7 +223,7 @@ Page({
           useGroupedCustomers: customerGroups.useGrouped,
           platformCustomers: platformCustomers,
           platformUnDoTotal: platformUnDoTotal,
-          gbDisArrApp: res.result.data.deps.gbDisArrApp,
+          gbDisArrApp: deps.gbDisArrApp || [],
           unSettleTotal: res.result.data.unSettleTotal,
           disInfo: res.result.data.disInfo,
           returnList: res.result.data.returnList,
@@ -503,14 +369,6 @@ Page({
   },
 
 
-  toPurOrders(e) {
-    wx.setStorageSync('batchItem', e.currentTarget.dataset.batch);
-    wx.setStorageSync('supplierItem', e.currentTarget.dataset.supplier);
-    wx.navigateTo({
-      url: '/subPackage-order/pages/order/orderPageGb/orderPageGb?batchId=' + e.currentTarget.dataset.id,
-    })
-  },
-
   toLinshiOrderPage() {
     console.log("toLinshiOrderPage")
     wx.navigateTo({
@@ -611,7 +469,8 @@ Page({
 
   toDepOrdersGb(e) {
     console.log(e);
-    wx.setStorageSync('depItem', e.currentTarget.dataset.item);
+    var jczbBridge = e.currentTarget.dataset.bridge || 0;
+    wx.setStorageSync('depItem', jczbBridge ? e.currentTarget.dataset.nxdep : e.currentTarget.dataset.item);
     var nxDisId = this.data.disId;
     var depId = e.currentTarget.dataset.id;
     var gbDisId = e.currentTarget.dataset.gbdisid;
@@ -620,9 +479,12 @@ Page({
     var comId = e.currentTarget.dataset.comid;
     var name = e.currentTarget.dataset.name;
     var settleTimes = e.currentTarget.dataset.time;
+    var depHasSubs = e.currentTarget.dataset.depsub || 0;
     wx.navigateTo({
       url: '/subPackage-order/pages/order/orderPageGb/orderPageGb?depFatherId=' + depId +
-        '&name=' + name + '&gbDepFatherId=' + gbDepId + '&nxDisId=' + nxDisId + '&gbDisId=' + gbDisId + '&comId=' + comId + '&settleTimes=' + settleTimes + '&toDepId=' + e.currentTarget.dataset.todepid,
+        '&name=' + name + '&gbDepFatherId=' + gbDepId + '&nxDisId=' + nxDisId + '&gbDisId=' + gbDisId +
+        '&comId=' + comId + '&settleTimes=' + settleTimes + '&toDepId=' + e.currentTarget.dataset.todepid +
+        '&depHasSubs=' + depHasSubs + '&jczbBridge=' + jczbBridge,
     })
     console.log("")
   },

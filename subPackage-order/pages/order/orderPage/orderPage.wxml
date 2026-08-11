@@ -138,8 +138,24 @@
 
       <!-- 订单数据 -->
 
+      <view wx:if="{{hasMultipleJczbBatches}}" class="jczb-multi-batch-notice">
+        <view class="jczb-multi-batch-icon">账本</view>
+        <view class="flex-column">
+          <text class="jczb-multi-batch-title">本饭馆有 {{jczbBatchCount}} 次精彩账本转发</text>
+          <text class="jczb-multi-batch-text">已按转发时间分组，请逐批核对；保存后仍生成一张配送账单。</text>
+        </view>
+      </view>
+
       <block wx:if="{{depHasSubs == 0}}">
-        <view class="flex flex-row-between  border-bottom p-10 {{order.nxDoPurchaseStatus == 4 ? 'bg-white' :'liziBack'}}  {{order.nxDoPurchaseStatus == 5 ? 'liziDelivery' : ''}} {{order.nxDoPurchaseStatus == 3 ? 'liziClock' : ''}}  {{order.nxDoPurchaseStatus == 1 ? 'liziCollBack' : ''}}" wx:for="{{applyArr}}" wx:for-item="order" wx:key="nxDepartmentOrdersId" wx:for-index="applyIndex">
+        <block wx:for="{{applyArr}}" wx:for-item="order" wx:key="nxDepartmentOrdersId" wx:for-index="applyIndex">
+          <view wx:if="{{order._showJczbBatchHeader}}" class="jczb-batch-header">
+            <view class="flex-row align-center">
+              <text class="jczb-batch-title">{{order._jczbBatchTitle}}</text>
+              <text class="jczb-batch-time">{{order._jczbBatchTime}} 转发</text>
+            </view>
+            <text class="jczb-batch-summary">{{order._jczbBatchOrderCount}}个商品 · 当前小计 ¥{{order._jczbBatchSubtotal}}</text>
+          </view>
+          <view class="flex flex-row-between  border-bottom p-10 {{order.nxDoPurchaseStatus == 4 ? 'bg-white' :'liziBack'}}  {{order.nxDoPurchaseStatus == 5 ? 'liziDelivery' : ''}} {{order.nxDoPurchaseStatus == 3 ? 'liziClock' : ''}}  {{order.nxDoPurchaseStatus == 1 ? 'liziCollBack' : ''}}">
 
           <block wx:if="{{order.nxDoStatus  > -1}}">
             <view class="flex flex font-md">
@@ -171,6 +187,21 @@
 
                   <text class="">订:{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
                   <text class="text-danger font-sl" wx:if="{{order.nxDoRemark !== null  && order.nxDoRemark.length > 0}}">({{order.nxDoRemark}})</text>
+                </view>
+
+                <view wx:if="{{order._hasCustomerStandards}}" class="customer-standard-line">
+                  <view class="customer-standard-content">
+                    <view wx:for="{{order._customerStandardItems}}" wx:key="id" class="customer-standard-item">
+                      <view class="customer-standard-item-head">
+                        <text class="customer-standard-label">{{item.label}}</text>
+                        <view class="customer-standard-stars" aria-label="重要要求">
+                          <text wx:for="{{item.importanceStars}}" wx:for-item="star" wx:key="level"
+                            class="customer-standard-star customer-standard-star-active">★</text>
+                        </view>
+                      </view>
+                      <text class="customer-standard-text">{{item.text}}</text>
+                    </view>
+                  </view>
                 </view>
 
 
@@ -230,7 +261,8 @@
           </block>
 
           <!-- ../arrow -->
-        </view>
+          </view>
+        </block>
       </block>
 
       <block wx:else="">
@@ -239,7 +271,15 @@
             <text class=" text-primary">#{{dep.depName}}</text>
             <text>¥:{{dep.depSubtotal}}元</text>
           </view>
-          <view class="flex flex-row border-bottom  p-10 {{order.nxDoPurchaseStatus == 4 ? 'bg-white' :'liziBack'}} {{order.nxDoPurchaseStatus  == 5 ? 'liziDelivery' : ''}} {{order.nxDoPurchaseStatus  == 3 ? 'liziClock' : ''}} {{order.nxDoPurchaseStatus == 1 ? 'liziCollBack' : ''}}" wx:for="{{dep.depOrders}}" wx:for-item="order" wx:key="nxDepartmentOrdersId" wx:for-index="applyIndex">
+          <block wx:for="{{dep.depOrders}}" wx:for-item="order" wx:key="nxDepartmentOrdersId" wx:for-index="applyIndex">
+            <view wx:if="{{order._showJczbBatchHeader}}" class="jczb-batch-header">
+              <view class="flex-row align-center">
+                <text class="jczb-batch-title">{{order._jczbBatchTitle}}</text>
+                <text class="jczb-batch-time">{{order._jczbBatchTime}} 转发</text>
+              </view>
+              <text class="jczb-batch-summary">{{order._jczbBatchOrderCount}}个商品 · 当前小计 ¥{{order._jczbBatchSubtotal}}</text>
+            </view>
+            <view class="flex flex-row border-bottom  p-10 {{order.nxDoPurchaseStatus == 4 ? 'bg-white' :'liziBack'}} {{order.nxDoPurchaseStatus  == 5 ? 'liziDelivery' : ''}} {{order.nxDoPurchaseStatus  == 3 ? 'liziClock' : ''}} {{order.nxDoPurchaseStatus == 1 ? 'liziCollBack' : ''}}">
             <block wx:if="{{order.nxDoStatus  >  -1}}">
               <view class="flex-row-default font-md">
                 <text class="mr-10">{{applyIndex + 1}}.</text>
@@ -264,6 +304,20 @@
                   <text class="mr-20" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname !== order.nxDoPrintStandard}}">({{order.nxDoPrintStandard}})</text>  
                     <text class="">订:{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
                     <text class="text-danger font-sl" wx:if="{{order.nxDoRemark !== null  && order.nxDoRemark.length > 0}}">({{order.nxDoRemark}})</text>
+                  </view>
+                  <view wx:if="{{order._hasCustomerStandards}}" class="customer-standard-line">
+                    <view class="customer-standard-content">
+                      <view wx:for="{{order._customerStandardItems}}" wx:key="id" class="customer-standard-item">
+                        <view class="customer-standard-item-head">
+                          <text class="customer-standard-label">{{item.label}}</text>
+                          <view class="customer-standard-stars" aria-label="重要要求">
+                            <text wx:for="{{item.importanceStars}}" wx:for-item="star" wx:key="level"
+                              class="customer-standard-star customer-standard-star-active">★</text>
+                          </view>
+                        </view>
+                        <text class="customer-standard-text">{{item.text}}</text>
+                      </view>
+                    </view>
                   </view>
                   <!-- <block wx:if="{{order.purchaseGoodsEntity !== null && order.purchaseGoodsEntity.nxDpgBatchId !== null}}">
                     <view class="flex-row font-xs">
@@ -332,7 +386,8 @@
               </view>
             </block>
             <!-- ../arrow -->
-          </view>
+            </view>
+          </block>
 
         </view>
 
@@ -460,7 +515,12 @@
             <view wx:elif="{{orderPreview.deliveryFeeEstimate && orderPreview.deliveryFee != '0.00'}}" class="order-fee-tip">配送费为下单预估，出账时按实际规则结算</view>
 
             <view wx:if="{{!orderPreview.hasCouponDiscount && orderPreview.unavailableCoupons.length > 0}}" class="order-fee-unavailable">
-              <view class="order-fee-unavailable-line" wx:for="{{orderPreview.unavailableCoupons}}" wx:key="userCouponId">{{item.couponName}}：{{item.reason || '暂不可用'}}</view>
+              <view class="order-fee-unavailable-title">客户持有优惠券</view>
+              <view class="order-fee-unavailable-line" wx:for="{{orderPreview.unavailableCoupons}}" wx:key="userCouponId">
+                <view class="order-fee-coupon-badge">{{item.descText || item.couponName}}</view>
+                <text class="order-fee-unavailable-name">{{item.couponName}}</text>
+                <text class="order-fee-unavailable-reason">{{item.reason || '暂不可用'}}</text>
+              </view>
             </view>
             <view wx:if="{{orderPreview.availableCoupons.length > 0 && !orderPreview.hasCouponDiscount}}" class="order-fee-available">
               <view class="order-fee-available-title">客户可用优惠券</view>
@@ -473,15 +533,46 @@
         </view>
       </view> -->
 
-      <view class="p-20" style="height: 200rpx;">
+      <view class="p-20 order-list-footer-spacer {{showCashSettle && orderPreview && orderPreview.showFeeCard ? 'order-list-footer-spacer-with-fee' : ''}}">
         <view class="p-20 text-secondary font-sl" style="text-align:center;">没有数据啦！</view>
       </view>
     </scroll-view>
   </view>
 
-  <view class="flex flex-row-between" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 140rpx; border-top: 1px solid lightgray; background-color: white; padding-right: 20rpx; box-sizing: border-box;">
+  <view wx:if="{{showCashSettle && orderPreview && orderPreview.showFeeCard}}" class="order-bottom-fee-summary" bind:tap="showFeeDeatail">
+    <view class="order-bottom-fee-breakdown">
+      <view class="order-bottom-fee-item">
+        <text class="order-bottom-fee-label">优惠券</text>
+        <view class="order-bottom-fee-value-wrap">
+          <text wx:if="{{orderPreview.hasCouponDiscount && orderPreview.couponBadgeText}}" class="order-bottom-coupon-badge">{{orderPreview.couponBadgeText}}</text>
+          <text wx:if="{{orderPreview.hasCouponDiscount}}" class="order-bottom-fee-discount">-¥{{orderPreview.estimatedDiscount}}</text>
+          <text wx:else class="order-bottom-fee-discount order-bottom-fee-empty">无优惠</text>
+        </view>
+      </view>
+      <view class="order-bottom-fee-column-divider"></view>
+      <view class="order-bottom-fee-item">
+        <text class="order-bottom-fee-label">配送费</text>
+        <view class="order-bottom-fee-value-wrap">
+          <text class="order-bottom-delivery-value">¥{{orderPreview.deliveryFee}}</text>
+          <text class="order-bottom-fee-detail-link">明细 ›</text>
+        </view>
+      </view>
+    </view>
+    <view class="order-bottom-total-row">
+      <view class="order-bottom-goods-total">
+        <text>商品总计</text>
+        <text class="order-bottom-goods-value">¥{{orderPreview.goodsAmount}}</text>
+      </view>
+      <view class="order-bottom-pay-total">
+        <text>应付</text>
+        <text class="order-bottom-pay-value">¥{{orderPreview.estimatedPayAmount}}</text>
+      </view>
+    </view>
+  </view>
 
-    <view class="flex flex-row">
+  <view class="order-bottom-actions flex flex-row-between">
+
+    <view class="flex flex-row order-action-buttons {{showCashSettle && orderPreview && orderPreview.showFeeCard ? 'order-action-buttons-wide' : ''}}">
       <view class="icon-button ml-20" hover-class="hover" bindtap="toSuyuanPage" wx:if="{{disInfo.nxDistributerType == 2}}">
         <image src="../../../../images/icons/icon_stock_active.png" class="iconB"></image>
         <text class="button-text">溯源</text>
@@ -513,36 +604,7 @@
 
     </view>
 
-    <block  wx:if="{{showCashSettle && orderPreview && orderPreview.estimatedPayAmount}}">
-      <view class="flex-column" bind:tap="showFeeDeatail" >
-      <view class="flex-row fee-line">
-        <view class="fee-line-left">
-          <view class="icon-fee-trigger icon-fee-trigger-placeholder ml-20 mr-10">
-            <image src="/images/add.png" mode="aspectFill" class="icon-sm" />
-          </view>
-          <text class="font-xs text-secondary mr-10">商品金额:</text>
-        </view>
-        <view class="fee-line-right">
-          <text class="font-bold" style="font-size: 34rpx;">¥{{total}}</text>
-        </view>
-      </view>
-      <view class="flex-row fee-line">
-        <view class="fee-line-left">
-          <view class="icon-fee-trigger ml-20 mr-10">
-            <image bind:tap="showFeeDeatail" src="/images/add.png" mode="aspectFill" class="icon-sm" />
-          </view>
-          <text class="font-xs text-secondary" style="font-size: 26rpx;">配送费:</text>
-        </view>
-        <view class="fee-line-right">
-          <text class="font-bold text-primary" style="font-size: 26rpx;">¥{{orderPreview.deliveryFee}}</text>
-          <!-- <text class="order-fee-estimate-tag ml-10 " wx:if="{{orderPreview.deliveryFeeEstimate}}">预估</text> -->
-        </view>
-      </view>
-    </view>
-    </block>
-
-
-    <block wx:else="">
+    <block wx:if="{{!showCashSettle || !orderPreview || !orderPreview.showFeeCard}}">
       <view class="flex-column">
       <view class="flex-row p-20">
         <text class="">总计:</text>
@@ -724,11 +786,11 @@
 <!-- 打印规格修改 tip 弹窗组件 -->
 <editPrintStandard wx:if="{{showPrintTip}}" show="{{true}}" order="{{currentEditOrder}}" printStandard="{{editPrintStandard}}" bind:confirm="onPrintStandardConfirm" bind:cancel="cancelEditPrintStandard" />
 
-<!-- 配送费计算详情弹窗 -->
+<!-- 商品、优惠券和配送费统一金额明细 -->
 <view class='overlay {{showFeeDetail ? "show" : ""}}' catchtouchmove='true' catchtap="hideFeeDetail">
   <view class='fee-detail-modal' catchtap="stopPropagation">
     <view class="fee-detail-header">
-      <text class="fee-detail-title">配送费计算详情</text>
+      <text class="fee-detail-title">订单金额明细</text>
       <view class="fee-detail-close" bindtap="hideFeeDetail">×</view>
     </view>
 
@@ -738,6 +800,13 @@
         <view class="fee-detail-summary-row">
           <text class="fee-detail-summary-label">商品金额</text>
           <text class="fee-detail-summary-value">¥{{orderPreview.goodsAmount}}</text>
+        </view>
+        <view class="fee-detail-summary-row" wx:if="{{orderPreview.hasCouponDiscount}}">
+          <view class="fee-detail-summary-label-group">
+            <text class="fee-detail-summary-label">优惠券优惠</text>
+            <text class="fee-detail-summary-sub-label" wx:if="{{orderPreview.couponBadgeText}}">（{{orderPreview.couponBadgeText}}）</text>
+          </view>
+          <text class="fee-detail-summary-value text-danger">-¥{{orderPreview.estimatedDiscount}}</text>
         </view>
         <view class="fee-detail-summary-row" wx:if="{{orderPreview.showDeliveryFee}}">
           <view class="fee-detail-summary-label-group">
@@ -888,4 +957,3 @@
   </view>
 </view>
 <!-- ../配送费计算详情弹窗 -->
-

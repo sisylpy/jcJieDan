@@ -127,13 +127,17 @@ Page({
         load.hideLoading();
         console.log("printdata", res.result.data);
         if (res.result.code == 0) {
+          var page = this;
+          var orders = (res.result.data.arr || []).map(function (order) {
+            return page._decorateCustomerStandards(order);
+          });
           this.setData({
             total: res.result.data.total,
             finishCount: res.result.data.finishCount,
             totalCount: res.result.data.totalCount,
             hasPriceCount: res.result.data.hasPriceCount,
             hasWeightCount: res.result.data.hasWeightCount,
-            applyArr: res.result.data.arr,
+            applyArr: orders,
           })
         } else {
           wx.showToast({
@@ -143,6 +147,61 @@ Page({
         }
 
       })
+  },
+
+  _decorateCustomerStandards(order) {
+    if (!order) return order;
+    var relation = order.nxDepartmentDisGoodsEntity || {};
+    var dimensionLabels = {
+      SIZE: '大小',
+      COLOR: '颜色',
+      FRESHNESS: '新鲜度',
+      ROOT: '根部',
+      PACKAGING: '包装',
+      SUBSTITUTE: '替代',
+      OTHER: '其他'
+    };
+    var displayItems = (relation.nxDepartmentDisGoodsStandardItems || [])
+      .filter(function (item) {
+        return item && (!item.nxDdgsiStatus || item.nxDdgsiStatus === 'ACTIVE')
+          && String(item.nxDdgsiRequirementText || '').trim();
+      })
+      .map(function (item) {
+        var importance = Number(item.nxDdgsiImportanceLevel || 1);
+        importance = isNaN(importance) ? 1 : Math.max(1, Math.min(5, Math.round(importance)));
+        var code = item.nxDdgsiDimensionCode || 'OTHER';
+        return {
+          id: item.nxDdgsiId,
+          label: (code === 'OTHER' && item.nxDdgsiDimensionName)
+            ? item.nxDdgsiDimensionName
+            : (dimensionLabels[code] || item.nxDdgsiDimensionName || '其他'),
+          text: String(item.nxDdgsiRequirementText || '').trim(),
+          importanceStars: [1, 2, 3, 4, 5].slice(0, importance)
+        };
+      });
+
+    var knownTexts = {};
+    displayItems.forEach(function (item) { knownTexts[item.text] = true; });
+    [
+      { label: '分拣', text: relation.nxDdgPickDetail },
+      { label: '商品', text: relation.nxDdgDepGoodsDetail },
+      { label: '备注', text: relation.nxDdgOrderRemark }
+    ].forEach(function (legacy) {
+      var text = String(legacy.text || '').trim();
+      if (text && text !== 'null' && !knownTexts[text]) {
+        displayItems.push({
+          id: 'legacy-' + legacy.label,
+          label: legacy.label,
+          text: text,
+          importanceStars: [1, 2, 3]
+        });
+        knownTexts[text] = true;
+      }
+    });
+
+    order._customerStandardItems = displayItems;
+    order._hasCustomerStandards = displayItems.length > 0;
+    return order;
   },
 
   toChangeKg() {

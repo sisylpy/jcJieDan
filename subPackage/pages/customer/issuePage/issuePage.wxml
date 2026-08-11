@@ -81,6 +81,10 @@
 						</view>
 			</view>
 
+        <view class="after-sales-order-entry" wx:if="{{orders.afterSalesEntryVisible}}" bindtap="toCreateAfterSales" data-order-id="{{orders.nxDepartmentOrdersId}}">
+          <text>售后 · 记录问题</text>
+        </view>
+
        <view class="flex-row" wx:if="{{orders.nxDoReturnStatus !== null }}">
         <text class="white">{{index + 1}}.</text>
         <view class="half-row">
@@ -130,7 +134,9 @@
 					
 				</view>
 
-    
+        <view class="after-sales-order-entry" wx:if="{{orders.afterSalesEntryVisible}}" bindtap="toCreateAfterSales" data-order-id="{{orders.nxDepartmentOrdersId}}">
+          <text>售后 · 记录问题</text>
+        </view>
 
 <!--  -->
 			 </view>
@@ -138,11 +144,26 @@
 	</block>
 
 
-		<view class="flex-column p-20 weight_five font-lg" style="margin-bottom: 80rpx;">
-		  <view class="section_head flex-row-between  " style="width: {{(windowWidth - 44 ) / 2}}rpx; margin-left: {{(windowWidth - 80 ) / 2}}rpx;">
-			<text>合计:</text>
-				<text class="total ">{{bill.nxDbTotal}}元</text>
+			<view class="bill-amount-card">
+				<view class="bill-amount-row">
+					<text>商品小计</text>
+					<text class="bill-amount-value">¥{{bill.nxDbGoodsAmount || bill.nxDbTotal || '0.00'}}</text>
+				</view>
+				<view class="bill-amount-row" wx:if="{{bill.nxDbCouponDiscountAmount > 0}}">
+					<text>优惠<text class="bill-coupon-name">（{{bill.nxDbCouponName || '优惠券'}}）</text></text>
+					<text class="bill-discount-value">-¥{{bill.nxDbCouponDiscountAmount}}</text>
+				</view>
+				<view class="bill-amount-row" wx:if="{{bill.nxDbDeliveryFee > 0}}">
+					<text>配送费</text>
+					<text class="bill-amount-value">¥{{bill.nxDbDeliveryFee}}</text>
+				</view>
+				<view class="bill-pay-row">
+					<text>实付金额</text>
+					<text class="bill-pay-value">¥{{bill.nxDbPayAmount || bill.nxDbTotal || '0.00'}}</text>
+				</view>
 			</view>
+
+			<view class="flex-column p-20 weight_five font-lg" style="margin-bottom: 80rpx;">
 
       <view class="section_head flex-row-between  " style="width: {{(windowWidth - 44 ) / 2}}rpx; margin-left: {{(windowWidth - 80 ) / 2}}rpx; margin-top: 20rpx;" wx:if="{{haveReturnSubtotal > 0}}">
 			<text>退货合计:</text>

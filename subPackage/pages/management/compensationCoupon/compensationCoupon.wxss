@@ -1,0 +1,20 @@
+page { background: #f5f5f2; color: #26312f; }
+.coupon-page { padding: 22rpx 24rpx 60rpx; box-sizing: border-box; }
+.intro-card { padding: 26rpx; border-radius: 22rpx; background: linear-gradient(135deg, #315f62, #477d78); color: #fff; display: flex; align-items: center; justify-content: space-between; }
+.intro-card > view { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.intro-title { font-size: 34rpx; font-weight: 750; }
+.intro-desc { margin-top: 10rpx; padding-right: 20rpx; font-size: 23rpx; line-height: 1.5; opacity: .86; }
+.intro-card button { width: 120rpx; margin: 0; background: #fff; color: #315f62; font-size: 25rpx; }
+.filter-row { margin: 20rpx 2rpx 14rpx; display: flex; align-items: center; justify-content: space-between; font-size: 27rpx; }
+.filter-row > view { display: flex; align-items: center; color: #7d8785; font-size: 23rpx; }
+.filter-row switch { transform: scale(.72); }
+.empty { padding: 70rpx 20rpx; text-align: center; color: #9aa19f; background: #fff; border-radius: 18rpx; }
+.coupon-card { display: flex; align-items: stretch; min-height: 170rpx; margin-bottom: 16rpx; overflow: hidden; border-radius: 20rpx; background: #fff; box-shadow: 0 5rpx 16rpx rgba(43,68,62,.05); }
+.amount-side { width: 160rpx; padding: 24rpx 12rpx; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; background: #edf6f2; color: #34776d; font-size: 22rpx; }
+.amount { font-size: 42rpx; font-weight: 750; }
+.coupon-main { flex: 1; min-width: 0; padding: 24rpx 18rpx; display: flex; flex-direction: column; justify-content: center; }
+.coupon-name { font-size: 30rpx; font-weight: 700; }
+.tags { display: flex; gap: 10rpx; margin-top: 14rpx; }
+.tags text { padding: 5rpx 11rpx; border-radius: 14rpx; background: #f1f2ef; color: #697370; font-size: 21rpx; }
+.coupon-words { margin-top: 11rpx; color: #8c9492; font-size: 22rpx; }
+.coupon-action { width: 90rpx; display: flex; align-items: center; justify-content: center; border-left: 1rpx solid #edf0ed; color: #a05c3a; font-size: 24rpx; }

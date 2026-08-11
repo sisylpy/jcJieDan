@@ -1,13 +1,13 @@
 {
   "usingComponents": {
-    "myDismodal": "/components/myDismodal/myDismodal",
     "back-navbar": "/components/back-navbar/back-navbar",
-    "inputPurGoodsGb": "/components/inputPurGoodsGb/inputPurGoodsGb",
+    "myDismodal": "/components/myDismodal/myDismodal",
     "saveSubBillModal": "/components/saveSubBillModal/saveSubBillModal",
     "saveBillModal": "/components/saveBillModal/saveBillModal",
     "delWarnModal": "/components/delWarnModal/delWarnModal",
     "addOrder": "/components/addOrder/addOrder",
-    "stockOutGoods": "/components/stockOutGoods/stockOutGoods"
-
-  }
+    "stockOutGoods": "/components/stockOutGoods/stockOutGoods",
+    "myDismodalCashSingle": "/components/myDismodalCashSingle/myDismodalCashSingle",
+    "editDriver": "/components/editDriver/editDriver",
+    "editPrintStandard": "/components/editPrintStandard/editPrintStandard"  }
 }

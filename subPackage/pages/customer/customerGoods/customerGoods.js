@@ -6,8 +6,6 @@ let windowWidth = 0;
 let itemWidth = 0;
 
 import {
-  
-  updateDepGoodsSellingPrice,
   deleteDepGoods,
   getDepUsersByFatherId,
   disGetDepGoods,
@@ -33,7 +31,6 @@ Page({
     applyArr: [],
     applyHeight: "",
     depGoods: null,
-    showOperationPrice:false,
     searchKeyword: '',
     filteredDepGoodsArr: [],
     originalDepGoodsArr: [],
@@ -251,13 +248,6 @@ Page({
   },
 
 
-  hideMask(){
-    this.setData({
-      showOperationPrice: false
-    })
-  },
-
-
   deleteDepGoods(e){
     console.log(("deleteDepGoodsdeleteDepGoods"))
     deleteDepGoods(e.currentTarget.dataset.id).then(
@@ -286,62 +276,27 @@ Page({
 
 
 
-  selDepartment(e){
-    var item = e.currentTarget.dataset.depgoods;
-     var disGoods = e.currentTarget.dataset.goods;
-    this.setData({
-      depGoodsId: item.nxDepartmentDisGoodsId,
-      showOperationPrice: true,
-      disGoods: disGoods,
-      item: item,
-      sellingPrice: item.nxDdgOrderPrice,
-      orderName: item.nxDdgOrderGoodsName,
-      pickDetail: item.nxDdgPickDetail
-    })
-  },
-
-  inputSellingPrice(e){
-    console.log(e.detail.value)
-    this.setData({
-      sellingPrice: e.detail.value,
-    })
-
-  },
-
-  inputOrderName(e){
-    console.log(e.detail.value)
-    this.setData({
-      orderName: e.detail.value,
-    })
-  },
-
-  inputPickDetail(e){
-    console.log(e.detail.value)
-    this.setData({
-      pickDetail: e.detail.value,
-    })
-  },
-
-  _updateDepGoods(){
-    var data = {
-      depGoodsId: this.data.depGoodsId,
-      sellingPrice: this.data.sellingPrice,
-      pickDetail: this.data.pickDetail,
-      orderName: this.data.orderName,
-
+  toCustomerGoodsStandard(e) {
+    const data = e.currentTarget.dataset || {};
+    const departmentDisGoodsId = Number(data.id);
+    if (!departmentDisGoodsId) {
+      wx.showToast({
+        title: '缺少客户商品关系ID',
+        icon: 'none'
+      });
+      return;
     }
-    updateDepGoodsSellingPrice(data).then(res =>{
-      if(res.result.code == 0){
-        this.setData({
-          showOperationPrice: false,
-          depGoodsId: "",
-          sellingPrice: ""
-        })
-        this._getResGoodsWithOrders();
 
-      }
-    })
+    const query = [
+      'departmentDisGoodsId=' + departmentDisGoodsId,
+      'goodsName=' + encodeURIComponent(data.goodsname || data.customername || ''),
+      'customerGoodsName=' + encodeURIComponent(data.customername || ''),
+      'departmentName=' + encodeURIComponent(data.departmentname || this.data.editDepAttrName || '')
+    ].join('&');
 
+    wx.navigateTo({
+      url: '../customerGoodsStandard/customerGoodsStandard?' + query
+    });
   },
 
   // 搜索输入处理

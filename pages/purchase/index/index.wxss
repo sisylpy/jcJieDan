@@ -1,5 +1,7 @@
 
 
+@import "../../../customer-standard-workline.wxss";
+
 .navbar {
   display: flex;
   position: relative;

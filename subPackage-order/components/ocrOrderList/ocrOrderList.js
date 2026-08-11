@@ -3,15 +3,13 @@ import { parseOrderFromText } from '../../../lib/orderParser';
 import { correctOrder, deleteTaskOrder } from '../../../lib/apiDepOrder';
 import load from '../../../lib/load';
 import { optimizeTextWithDeepSeek, detectBusinessType } from '../../../lib/deepSeekHelper';
+import { getAsrCredentials } from '../../../lib/miniProgramCloud';
 
 const plugin = requirePlugin("QCloudAIVoice");
 const speechRecognizerManager = plugin.speechRecognizerManager();
 
 // 从配置文件读取腾讯云配置
 const config = require('../../../config');
-const TENCENT_CLOUD_SECRET_ID = config.tencentCloud?.secretId || '';
-const TENCENT_CLOUD_SECRET_KEY = config.tencentCloud?.secretKey || '';
-const TENCENT_CLOUD_APP_ID = config.tencentCloud?.appId || '1308821743';
 const TENCENT_CLOUD_ENGINE_MODEL_TYPE = config.tencentCloud?.engineModelType || '16k_zh';
 const TENCENT_CLOUD_VOICE_FORMAT = config.tencentCloud?.voiceFormat || 1;
 
@@ -371,7 +369,6 @@ Component({
       };
 
       speechRecognizerManager.OnRecognitionResultChange = (res) => {
-        console.log('[ocrOrderList组件] 语音识别结果变化:', res);
         if (res && res.result && res.result.voice_text_str !== undefined) {
           const liveText = res.result.voice_text_str;
           that.setData({
@@ -380,13 +377,10 @@ Component({
         }
       };
 
-      speechRecognizerManager.OnRecognitionComplete = (res) => {
-        console.log('[ocrOrderList组件] 语音识别完成:', res);
+      speechRecognizerManager.OnRecognitionComplete = () => {
         const recognizedText = that.data.recognitionText;
         const isReRecording = that._isReRecording;
         if (isReRecording) that._isReRecording = false;
-        console.log('[ocrOrderList组件] 识别到的文本:', recognizedText, 'isReRecording:', isReRecording);
-        
         that.setData({
           isRecording: false
         });
@@ -418,8 +412,7 @@ Component({
         }
       };
 
-      speechRecognizerManager.OnError = (res) => {
-        console.error('[ocrOrderList组件] 语音识别错误:', res);
+      speechRecognizerManager.OnError = () => {
         that.setData({
           isRecording: false
         });
@@ -488,7 +481,7 @@ Component({
     /**
      * 开始录音
      */
-    _startRecord: function(orderIndex, orderId) {
+    _startRecord: async function(orderIndex, orderId) {
       const that = this;
       
       // 清除可能存在的旧定时器
@@ -496,10 +489,18 @@ Component({
         clearInterval(that.data.timer);
       }
       
+      let credentials;
+      try {
+        credentials = await getAsrCredentials();
+      } catch (error) {
+        wx.showToast({ title: error.message || '语音服务初始化失败', icon: 'none' });
+        return;
+      }
       const params = {
-        secretkey: TENCENT_CLOUD_SECRET_KEY,
-        secretid: TENCENT_CLOUD_SECRET_ID,
-        appid: TENCENT_CLOUD_APP_ID,
+        secretkey: credentials.secretKey,
+        secretid: credentials.secretId,
+        token: credentials.token,
+        appid: credentials.appId,
         engine_model_type: TENCENT_CLOUD_ENGINE_MODEL_TYPE,
         voice_format: TENCENT_CLOUD_VOICE_FORMAT
       };
@@ -674,8 +675,6 @@ Component({
             nxDoRemark: updatedOrderData.nxDoRemark !== undefined ? updatedOrderData.nxDoRemark : ""
           };
           
-          console.log('[ocrOrderList组件] DeepSeek 返回的修改后订单:', updatedOrder);
-          
           // 调用接口更新订单
           that._callCorrectOrderAPI(updatedOrder);
           return;
@@ -689,8 +688,6 @@ Component({
           logPrefix: '[ocrOrderList组件]'
         });
         
-        console.log('[ocrOrderList组件] DeepSeek 优化后的文本:', optimizedText);
-        
         wx.hideLoading();
         
         // 使用优化后的文本解析订单
@@ -700,8 +697,6 @@ Component({
           disId: that.properties.disId,
           userId: that.properties.userId
         });
-        
-        console.log('[ocrOrderList组件] AI解析结果:', parseResult);
         
         if (!parseResult.orders || parseResult.orders.length === 0) {
           wx.showToast({
@@ -719,8 +714,6 @@ Component({
           nxDoStandard: firstOrder.nxDoStandard || orderItem.nxDoStandard,
           nxDoQuantity: firstOrder.nxDoQuantity || orderItem.nxDoQuantity
         };
-        
-        console.log('[ocrOrderList组件] AI解析后的订单:', updatedOrder);
         
         // 调用接口更新订单
         that._callCorrectOrderAPI(updatedOrder);
@@ -934,4 +927,3 @@ Component({
     }
   }
 })
-

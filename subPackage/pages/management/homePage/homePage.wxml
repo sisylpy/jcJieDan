@@ -105,9 +105,31 @@
     <view class="section-card">
       <view class="section-title-row">
         <view>
-          <text class="section-title">经营设置</text>
-          <text class="section-subtitle">费用、促销和店铺履约规则</text>
+          <text class="section-title">经营与服务</text>
+          <text class="section-subtitle">售后、补偿、促销和店铺履约规则</text>
         </view>
+      </view>
+
+      <view class="setting-row highlight after-sales-entry" bindtap="toAfterSales" hover-class="hover">
+        <view class="setting-icon-wrap red">
+          <image src="/images/warn-3.png" class="setting-icon"></image>
+        </view>
+        <view class="setting-main">
+          <text class="setting-title">售后问题</text>
+          <text class="setting-desc">查看异常，处理补货、客户反馈和标准回写</text>
+        </view>
+        <image src="../../../../images/arrow-right-3.png" class="arrow-icon"></image>
+      </view>
+
+      <view class="setting-row highlight compensation-entry" bindtap="toCompensationCoupon" hover-class="hover">
+        <view class="setting-icon-wrap amber">
+          <image src="/images/money-2.png" class="setting-icon"></image>
+        </view>
+        <view class="setting-main">
+          <text class="setting-title">补偿券管理</text>
+          <text class="setting-desc">独立配置售后补偿券，由员工在处理问题时发放</text>
+        </view>
+        <image src="../../../../images/arrow-right-3.png" class="arrow-icon"></image>
       </view>
 
       <view class="setting-row highlight" bindtap="toDeliveryStrategy" hover-class="hover">
@@ -126,7 +148,7 @@
           <image src="/images/money-2.png" class="setting-icon"></image>
         </view>
         <view class="setting-main">
-          <text class="setting-title">优惠券</text>
+          <text class="setting-title">普通优惠券</text>
           <text class="setting-desc">设置满减/折扣、有效期和适用范围</text>
         </view>
         <image src="../../../../images/arrow-right-3.png" class="arrow-icon"></image>
@@ -202,6 +224,8 @@
         </view>
       </view>
     </view>
+
+    <view class="logout-button" bindtap="logoutOwner" hover-class="hover">退出当前账号</view>
 
     <view class="version-footer">
       <text>版本 3.0.6</text>

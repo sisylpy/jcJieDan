@@ -10,10 +10,16 @@
       <text wx:else>{{seq}}</text>
     </view>
     <view class="boss-timeline-unit-body">
-      <view class="boss-timeline-leg-pill" wx:if="{{stop.legText && !(variant === 'delivery' && stop.stopDone)}}">
-        <image class="boss-timeline-leg-icon" src="/images/car.png" mode="aspectFit"></image>
-        <text class="boss-timeline-leg-text">{{stop.legText}}</text>
-        <text class="boss-timeline-leg-chevron" wx:if="{{variant !== 'delivery'}}">›</text>
+      <view class="boss-timeline-leg-pill {{variant === 'edit' ? 'boss-timeline-leg-pill-edit' : ''}}" wx:if="{{stop.legText && !(variant === 'delivery' && stop.stopDone)}}">
+        <view class="boss-timeline-leg-route" wx:if="{{variant === 'edit' && stop.legFromName && stop.legToName}}">
+          <text class="boss-timeline-leg-route-name">{{stop.legFromName}} → {{stop.legToName}}</text>
+          <text class="boss-timeline-leg-source {{stop.legEstimated ? 'boss-timeline-leg-source-estimated' : ''}}" wx:if="{{stop.legSourceLabel}}">{{stop.legSourceLabel}}</text>
+        </view>
+        <view class="boss-timeline-leg-metric-row">
+          <image class="boss-timeline-leg-icon" src="/images/car.png" mode="aspectFit"></image>
+          <text class="boss-timeline-leg-text">{{stop.legText}}</text>
+          <text class="boss-timeline-leg-chevron" wx:if="{{variant !== 'delivery'}}">›</text>
+        </view>
       </view>
       <view class="boss-timeline-stop-card">
         <view class="boss-stop-head" catchtap="onHeadTap">
@@ -41,7 +47,9 @@
           <text class="boss-stop-delivered-label" wx:elif="{{variant === 'delivery' && stop.statusLabel === '已送达'}}">{{stop.statusLabel}}</text>
           <text class="boss-stop-head-chevron" wx:elif="{{variant === 'edit' && stop.primaryAction}}">›</text>
         </view>
+        <text class="boss-stop-address" wx:if="{{variant === 'edit' && stop.address}}">{{stop.address}}</text>
         <view class="boss-stop-goods" wx:if="{{variant === 'edit' && stop.goodsSummary}}">{{stop.goodsSummary}}</view>
+        <view class="boss-stop-constraint" wx:if="{{variant === 'edit' && stop.constraintHint}}">{{stop.constraintHint}}</view>
         <view class="boss-stop-divider"></view>
         <view class="timeline-stop-goods boss-stop-goods" wx:if="{{variant !== 'edit' && stop.goodsSummary}}">{{stop.goodsSummary}}</view>
         <view class="boss-stop-time-grid">

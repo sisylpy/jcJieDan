@@ -170,6 +170,10 @@
                             </block>
                            
                           </view>
+                          <view wx:if="{{orders.customerStandardText}}" class="customer-standard-workline" style="width: {{windowWidth - leftMenuWidth - 40}}rpx;">
+                            <text class="customer-standard-work-title">客户要求</text>
+                            <text class="customer-standard-work-content">{{orders.customerStandardText}}</text>
+                          </view>
                         </block>
                       </view>
 
@@ -194,7 +198,7 @@
                     <block wx:for="{{item.orders}}" wx:for-item="orders" wx:for-index="orderIndex"
                       wx:key="nxDepartmentOrdersId">
                       <view
-                        class="flex flex-row-between border-bottom bg-white {{item.isSelected ? 'bg-mainColor' : ''}}"
+                        class="flex flex-row-between customer-standard-order-row border-bottom bg-white {{item.isSelected ? 'bg-mainColor' : ''}}"
                         style="width: {{windowWidth - leftMenuWidth - 40}}rpx; padding: 20rpx;" bindtap="selectItem"
                         data-index="{{goodsIndex}}" data-id="{{item.nxDistributerPurchaseGoodsId}}">
                         <!-- 左侧：删除按钮（如果有）、序号、选择框、商品信息、订单信息 -->
@@ -235,6 +239,10 @@
                           <text
                             wx:if="{{orders.nxDoRemark !== null && orders.nxDoRemark.length > 0 && orders.nxDoRemark !== 'null'}}"
                             class="red ml-10 font-sm">({{orders.nxDoRemark}})</text>
+                        </view>
+                        <view wx:if="{{orders.customerStandardText}}" class="customer-standard-workline">
+                          <text class="customer-standard-work-title">客户要求</text>
+                          <text class="customer-standard-work-content">{{orders.customerStandardText}}</text>
                         </view>
                       </view>
                     </block>

@@ -13,6 +13,7 @@ import {
 
   updateDepUserAdmin,
   updateGroupName,
+  updateDeliverySettings,
 
   // 标签相关API
   disGetLabelData,
@@ -29,11 +30,27 @@ from '../../../../lib/apiDistributer'
 
 Page({
 
-  
+  data: {
+    showLocationTimeModal: false,
+    canSave: false,
+    savingDeliverySettings: false,
+    isChoosingLocation: false,
+    priorityOptions: ['最低', '较低', '普通', '较高', '最高'],
+    priorityIndex: 2,
+    allowEarlyDelivery: true
+  },
 
   onShow() {
     const app = getApp();
     const globalData = app.globalData;
+
+    console.log('[customerDetail][delivery][onShow]', {
+      depId: this.data.depFatherId,
+      showLocationTimeModal: !!this.data.showLocationTimeModal,
+      isChoosingLocation: !!this.data.isChoosingLocation,
+      selectedLatitude: this.data.selectedLatitude || '',
+      selectedLongitude: this.data.selectedLongitude || ''
+    });
     
     this.setData({
       windowWidth: globalData.windowWidth * globalData.rpxR,
@@ -42,9 +59,13 @@ Page({
       url: apiUrl.server,
     })
 
-    // if(this.data.update){
-      this._getDepInfo();
-    // }
+    // 从地图选择器返回时 onShow 会再次触发。此时不能用服务端旧数据覆盖尚未保存的坐标。
+    if (this.data.showLocationTimeModal || this.data.isChoosingLocation) {
+      console.log('[customerDetail][delivery][onShow] skip getDepInfo: delivery form is editing');
+      return;
+    }
+
+    this._getDepInfo('onShow');
     
   },
 
@@ -87,22 +108,20 @@ Page({
         editPickName:  depInfoValue.nxDepartmentPickName,
         editRecord : depInfoValue.nxDepartmentRecordMinutes,
         // 初始化配送设置相关数据
-        earliestDeliveryTime: depInfoValue.nxDepartmentEarliestDeliveryTime || '',
-        latestDeliveryTime: depInfoValue.nxDepartmentLatestDeliveryTime || '',
-        deliveryNotes: depInfoValue.nxDepartmentDeliveryNotes || '',
+        earliestDeliveryTime: this.normalizeDeliveryTime(depInfoValue.nxDepartmentEarliestDeliveryTime),
+        latestDeliveryTime: this.normalizeDeliveryTime(depInfoValue.nxDepartmentLatestDeliveryTime),
+        deliveryNotes: depInfoValue.nxDepartmentDispatchRemark || '',
         deliveryAddress: depInfoValue.nxDepartmentAddress || '',
-        priorityIndex: depInfoValue.nxDepartmentDeliveryPriority || 2,
+        priorityIndex: this.getDeliveryPriorityIndex(depInfoValue.nxDepartmentDispatchPriorityWeight),
         allowEarlyDelivery: depInfoValue.nxDepartmentAllowEarlyDelivery !== 0,
         selectedLatitude: depInfoValue.nxDepartmentLat || '',
         selectedLongitude: depInfoValue.nxDepartmentLng || '',
         unloadDuration: depInfoValue.nxDepartmentUnloadDuration || 30, // 默认30分钟卸货时间
         // 格式化时间显示
-        formattedEarliestTime: this.formatSecondsToTime(depInfoValue.nxDepartmentEarliestDeliveryTime) || '',
-        formattedLatestTime: this.formatSecondsToTime(depInfoValue.nxDepartmentLatestDeliveryTime) || '',
+        formattedEarliestTime: this.normalizeDeliveryTime(depInfoValue.nxDepartmentEarliestDeliveryTime),
+        formattedLatestTime: this.normalizeDeliveryTime(depInfoValue.nxDepartmentLatestDeliveryTime),
       })
 
-        // 获取客户标签用于页面显示
-        this._getDepLabels();
       }
 
     var disInfo = wx.getStorageSync('disInfo');
@@ -116,6 +135,13 @@ Page({
 
    
 
+  },
+
+  onHide() {
+    console.log('[customerDetail][delivery][onHide]', {
+      showLocationTimeModal: !!this.data.showLocationTimeModal,
+      isChoosingLocation: !!this.data.isChoosingLocation
+    });
   },
 
  
@@ -300,7 +326,7 @@ Page({
       url: '../customerUsers/customerUsers',
     })
   },
-  
+
   toOpenOrder() {
     
     console.log("depId=" + this.data.depFatherId + '&disId=' + this.data.disId + '&subAmount=' + this.data.depInfo.nxDepartmentSubAmount + '&depName=' + this.data.depInfo.nxDepartmentAttrName +'&disName=' + this.data.userInfo.nxDistributerEntity.nxDistributerName + '&from=0');
@@ -520,74 +546,143 @@ Page({
   },
 
   // 配送设置相关方法
-  
+
+  normalizeDeliveryTime(value) {
+    if (value === null || value === undefined || value === '') return '';
+
+    if (typeof value === 'string' && /^\d{1,2}:\d{2}$/.test(value)) {
+      const parts = value.split(':');
+      const hours = parseInt(parts[0], 10);
+      const minutes = parseInt(parts[1], 10);
+      if (hours >= 0 && hours <= 23 && minutes >= 0 && minutes <= 59) {
+        return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+      }
+      return '';
+    }
+
+    const seconds = Number(value);
+    if (!isNaN(seconds) && seconds >= 0 && seconds < 24 * 3600) {
+      return this.formatSecondsToTime(seconds);
+    }
+    return '';
+  },
+
+  getDeliveryPriorityIndex(value) {
+    const priority = parseInt(value, 10);
+    return priority >= 1 && priority <= 5 ? priority - 1 : 2;
+  },
+
+  isValidDeliveryLocation(latitude, longitude) {
+    if (latitude === '' || latitude === null || latitude === undefined ||
+        longitude === '' || longitude === null || longitude === undefined) {
+      return false;
+    }
+    const lat = Number(latitude);
+    const lng = Number(longitude);
+    return !isNaN(lat) && !isNaN(lng) &&
+      lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+  },
+
   // 显示配送设置弹窗
   showLocationTimeModal() {
-    const depInfo = this.data.depInfo;
-    
-    // 如果有已保存的时间数据，转换为时间选择器格式
-    let earliestTime = '';
-    let latestTime = '';
-    
-    if (depInfo.nxDepartmentEarliestDeliveryTime) {
-      // 如果是数字格式（秒数），转换为时间选择器格式
-      if (typeof depInfo.nxDepartmentEarliestDeliveryTime === 'number') {
-        earliestTime = this.formatSecondsToTime(depInfo.nxDepartmentEarliestDeliveryTime);
-      } else if (typeof depInfo.nxDepartmentEarliestDeliveryTime === 'string') {
-        earliestTime = depInfo.nxDepartmentEarliestDeliveryTime;
-      }
-    }
-    
-    if (depInfo.nxDepartmentLatestDeliveryTime) {
-      // 如果是数字格式（秒数），转换为时间选择器格式
-      if (typeof depInfo.nxDepartmentLatestDeliveryTime === 'number') {
-        latestTime = this.formatSecondsToTime(depInfo.nxDepartmentLatestDeliveryTime);
-      } else if (typeof depInfo.nxDepartmentLatestDeliveryTime === 'string') {
-        latestTime = depInfo.nxDepartmentLatestDeliveryTime;
-      }
-    }
-    
+    const depInfo = this.data.depInfo || {};
+
+    console.log('[customerDetail][delivery][modal] open', {
+      depId: depInfo.nxDepartmentId,
+      latitude: depInfo.nxDepartmentLat || '',
+      longitude: depInfo.nxDepartmentLng || ''
+    });
+
     this.setData({
       showLocationTimeModal: true,
-      earliestDeliveryTime: earliestTime,
-      latestDeliveryTime: latestTime
+      selectedLatitude: depInfo.nxDepartmentLat || '',
+      selectedLongitude: depInfo.nxDepartmentLng || '',
+      deliveryAddress: depInfo.nxDepartmentAddress || '',
+      earliestDeliveryTime: this.normalizeDeliveryTime(depInfo.nxDepartmentEarliestDeliveryTime),
+      latestDeliveryTime: this.normalizeDeliveryTime(depInfo.nxDepartmentLatestDeliveryTime),
+      unloadDuration: depInfo.nxDepartmentUnloadDuration || 30,
+      deliveryNotes: depInfo.nxDepartmentDispatchRemark || '',
+      priorityIndex: this.getDeliveryPriorityIndex(depInfo.nxDepartmentDispatchPriorityWeight),
+      allowEarlyDelivery: depInfo.nxDepartmentAllowEarlyDelivery !== 0
+    }, () => {
+      this.updateSaveButtonState();
+      console.log('[customerDetail][delivery][modal] form initialized', {
+        selectedLatitude: this.data.selectedLatitude || '',
+        selectedLongitude: this.data.selectedLongitude || '',
+        canSave: !!this.data.canSave
+      });
     });
-    // 初始化保存按钮状态
-    this.updateSaveButtonState();
   },
 
   // 隐藏配送设置弹窗
   hideLocationTimeModal() {
+    console.log('[customerDetail][delivery][modal] cancel', {
+      formLatitude: this.data.selectedLatitude || '',
+      formLongitude: this.data.selectedLongitude || '',
+      savedLatitude: this.data.depInfo && this.data.depInfo.nxDepartmentLat || '',
+      savedLongitude: this.data.depInfo && this.data.depInfo.nxDepartmentLng || ''
+    });
     this.setData({
-      showLocationTimeModal: false
+      showLocationTimeModal: false,
+      isChoosingLocation: false
     });
   },
 
   // 选择地理位置
   chooseLocation() {
-    const that = this;
+    console.log('[customerDetail][delivery][chooseLocation] open map', {
+      currentLatitude: this.data.selectedLatitude || '',
+      currentLongitude: this.data.selectedLongitude || ''
+    });
+    this.setData({ isChoosingLocation: true });
+
     wx.chooseLocation({
-      success: function (res) {
-        console.log('选择位置成功', res);
-        that.setData({
-          selectedLatitude: res.latitude,
-          selectedLongitude: res.longitude,
-          'depInfo.nxDepartmentLat': res.latitude.toString(),
-          'depInfo.nxDepartmentLng': res.longitude.toString(),
-          // 自动设置地址信息
-          'depInfo.nxDepartmentAddress': res.address || res.name || '',
-          deliveryAddress: res.address || res.name || ''
+      success: (res) => {
+        console.log('[customerDetail][delivery][chooseLocation] map success', {
+          latitude: res.latitude,
+          longitude: res.longitude,
+          hasAddress: !!(res.address || res.name)
+        });
+
+        if (!this.isValidDeliveryLocation(res.latitude, res.longitude)) {
+          this.setData({ isChoosingLocation: false });
+          console.warn('[customerDetail][delivery][chooseLocation] invalid coordinate', {
+            latitude: res.latitude,
+            longitude: res.longitude
+          });
+          wx.showToast({
+            title: '位置坐标无效，请重新选择',
+            icon: 'none'
+          });
+          return;
+        }
+
+        const latitude = String(res.latitude);
+        const longitude = String(res.longitude);
+        const address = (res.address || res.name || '').trim();
+        this.setData({
+          isChoosingLocation: false,
+          selectedLatitude: latitude,
+          selectedLongitude: longitude,
+          deliveryAddress: address
+        }, () => {
+          this.updateSaveButtonState();
+          console.log('[customerDetail][delivery][chooseLocation] form updated', {
+            selectedLatitude: this.data.selectedLatitude || '',
+            selectedLongitude: this.data.selectedLongitude || '',
+            canSave: !!this.data.canSave
+          });
         });
         wx.showToast({
           title: '位置和地址设置成功',
           icon: 'success'
         });
-        // 更新保存按钮状态
-        that.updateSaveButtonState();
       },
-      fail: function (err) {
-        console.log('选择位置失败', err);
-        if (err.errMsg.indexOf('auth deny') !== -1) {
+      fail: (err) => {
+        const message = err && err.errMsg ? err.errMsg : '';
+        this.setData({ isChoosingLocation: false });
+        console.warn('[customerDetail][delivery][chooseLocation] map fail', message);
+        if (message.indexOf('auth deny') !== -1 || message.indexOf('authorize:fail') !== -1) {
           wx.showModal({
             title: '提示',
             content: '需要获取您的地理位置，请在设置中开启定位权限',
@@ -602,30 +697,23 @@ Page({
   onEarliestTimeChange(e) {
     const time = e.detail.value;
     this.setData({
-      earliestDeliveryTime: time,
-      'depInfo.nxDepartmentEarliestDeliveryTime': time
-    });
-    // 更新保存按钮状态
-    this.updateSaveButtonState();
+      earliestDeliveryTime: time
+    }, () => this.updateSaveButtonState());
   },
 
   // 最晚配送时间选择
   onLatestTimeChange(e) {
     const time = e.detail.value;
     this.setData({
-      latestDeliveryTime: time,
-      'depInfo.nxDepartmentLatestDeliveryTime': time
-    });
-    // 更新保存按钮状态
-    this.updateSaveButtonState();
+      latestDeliveryTime: time
+    }, () => this.updateSaveButtonState());
   },
 
   // 配送备注输入
   onDeliveryNotesInput(e) {
     const notes = e.detail.value;
     this.setData({
-      deliveryNotes: notes,
-      'depInfo.nxDepartmentDeliveryNotes': notes
+      deliveryNotes: notes
     });
   },
 
@@ -633,8 +721,7 @@ Page({
   onDeliveryAddressInput(e) {
     const address = e.detail.value;
     this.setData({
-      deliveryAddress: address,
-      'depInfo.nxDepartmentAddress': address
+      deliveryAddress: address
     });
   },
 
@@ -642,8 +729,7 @@ Page({
   onPriorityChange(e) {
     const index = e.detail.value;
     this.setData({
-      priorityIndex: index,
-      'depInfo.nxDepartmentDeliveryPriority': parseInt(index) + 1
+      priorityIndex: parseInt(index, 10)
     });
   },
 
@@ -651,8 +737,7 @@ Page({
   onEarlyDeliveryChange(e) {
     const allow = e.detail.value;
     this.setData({
-      allowEarlyDelivery: allow,
-      'depInfo.nxDepartmentAllowEarlyDelivery': allow ? 1 : 0
+      allowEarlyDelivery: allow
     });
   },
 
@@ -660,27 +745,140 @@ Page({
   onUnloadDurationInput(e) {
     const value = parseInt(e.detail.value) || 0;
     this.setData({
-      unloadDuration: value,
-      'depInfo.nxDepartmentUnloadDuration': value
+      unloadDuration: value
+    }, () => this.updateSaveButtonState());
+  },
+
+  // 新服务未部署时兼容旧版 updateGroupName，至少保证核心配送字段可以保存。
+  _submitDeliverySettings(payload, depInfo) {
+    if (this._useLegacyDeliverySettings) {
+      console.log('[customerDetail][delivery][save] skip unavailable primary endpoint, use legacy directly');
+      return this._submitLegacyDeliverySettings(payload, depInfo);
+    }
+
+    return updateDeliverySettings(payload).then(res => {
+      console.log('[customerDetail][delivery][save] primary endpoint result', {
+        statusCode: res && res.statusCode,
+        code: res && res.result && res.result.code
+      });
+
+      if (!res || res.statusCode !== 404) {
+        return res;
+      }
+
+      console.warn('[customerDetail][delivery][save] updateDeliverySettings is 404, fallback to updateGroupName');
+      this._useLegacyDeliverySettings = true;
+      return this._submitLegacyDeliverySettings(payload, depInfo);
     });
-    this.updateSaveButtonState();
+  },
+
+  _submitLegacyDeliverySettings(payload, depInfo) {
+    if (!depInfo.nxDepartmentName) {
+      return Promise.resolve({
+        result: { code: -1, msg: '客户名称缺失，无法使用旧接口保存' },
+        statusCode: 404,
+        legacyFallback: true
+      });
+    }
+
+    // 旧接口会计算名称拼音并访问子部门集合，因此必须提供名称和空数组；
+    // 不传新字段，避免旧服务实体无法识别造成反序列化失败。
+    const legacyPayload = {
+      nxDepartmentId: payload.nxDepartmentId,
+      nxDepartmentName: depInfo.nxDepartmentName,
+      nxDepartmentLat: payload.nxDepartmentLat,
+      nxDepartmentLng: payload.nxDepartmentLng,
+      nxDepartmentAddress: payload.nxDepartmentAddress,
+      nxDepartmentEarliestDeliveryTime: payload.nxDepartmentEarliestDeliveryTime,
+      nxDepartmentLatestDeliveryTime: payload.nxDepartmentLatestDeliveryTime,
+      nxDepartmentUnloadDuration: payload.nxDepartmentUnloadDuration,
+      nxDepartmentEntities: []
+    };
+
+    console.log('[customerDetail][delivery][save] legacy request', {
+      depId: legacyPayload.nxDepartmentId,
+      latitude: legacyPayload.nxDepartmentLat,
+      longitude: legacyPayload.nxDepartmentLng,
+      hasAddress: !!legacyPayload.nxDepartmentAddress,
+      earliestSeconds: legacyPayload.nxDepartmentEarliestDeliveryTime,
+      latestSeconds: legacyPayload.nxDepartmentLatestDeliveryTime,
+      unloadDuration: legacyPayload.nxDepartmentUnloadDuration
+    });
+
+    return updateGroupName(legacyPayload).then(legacyRes => {
+      const legacyResult = legacyRes && legacyRes.result || {};
+      console.log('[customerDetail][delivery][save] legacy response', {
+        code: legacyResult.code,
+        message: legacyResult.msg || ''
+      });
+      if (legacyResult.code != 0) {
+        return {
+          result: Object.assign({ code: -1, msg: '旧服务接口保存失败' }, legacyResult),
+          statusCode: 404,
+          legacyFallback: true
+        };
+      }
+
+      // 旧接口不返回更新后的客户数据，再查一次并核对坐标是否真正落库。
+      return getDepInfo(payload.nxDepartmentId).then(verifyRes => {
+        const verifyResult = verifyRes && verifyRes.result || {};
+        const savedDepInfo = verifyResult.data || {};
+        const coordinateMatches = String(savedDepInfo.nxDepartmentLat || '') === String(payload.nxDepartmentLat) &&
+          String(savedDepInfo.nxDepartmentLng || '') === String(payload.nxDepartmentLng);
+
+        console.log('[customerDetail][delivery][save] legacy verify', {
+          code: verifyResult.code,
+          savedLatitude: savedDepInfo.nxDepartmentLat || '',
+          savedLongitude: savedDepInfo.nxDepartmentLng || '',
+          coordinateMatches
+        });
+
+        if (verifyResult.code != 0 || !coordinateMatches) {
+          return {
+            result: { code: -1, msg: '保存后坐标校验失败，请重试' },
+            statusCode: 404,
+            legacyFallback: true
+          };
+        }
+        return {
+          result: verifyResult,
+          statusCode: 200,
+          legacyFallback: true
+        };
+      });
+    });
   },
 
   // 更新配送设置信息
   updateLocationTimeInfo() {
-    const depInfo = this.data.depInfo;
-    
-    // 验证必填项
-    if (!depInfo.nxDepartmentEarliestDeliveryTime || !depInfo.nxDepartmentLatestDeliveryTime) {
-      wx.showToast({
-        title: '请设置配送时间',
-        icon: 'none'
-      });
+    if (this.data.savingDeliverySettings) {
+      console.log('[customerDetail][delivery][save] ignored duplicate tap');
       return;
     }
-    
-    // 验证地理位置
-    if (!depInfo.nxDepartmentLat || !depInfo.nxDepartmentLng) {
+
+    const depInfo = this.data.depInfo || {};
+    const latitude = this.data.selectedLatitude;
+    const longitude = this.data.selectedLongitude;
+    const earliestTime = this.data.earliestDeliveryTime;
+    const latestTime = this.data.latestDeliveryTime;
+
+    console.log('[customerDetail][delivery][save] validate form', {
+      depId: depInfo.nxDepartmentId,
+      latitude: latitude || '',
+      longitude: longitude || '',
+      earliestTime: earliestTime || '',
+      latestTime: latestTime || '',
+      unloadDuration: this.data.unloadDuration,
+      priorityIndex: this.data.priorityIndex,
+      allowEarlyDelivery: !!this.data.allowEarlyDelivery
+    });
+
+    if (!depInfo.nxDepartmentId) {
+      wx.showToast({ title: '客户信息无效，请刷新后重试', icon: 'none' });
+      return;
+    }
+
+    if (!this.isValidDeliveryLocation(latitude, longitude)) {
       wx.showToast({
         title: '请设置地理位置',
         icon: 'none'
@@ -688,107 +886,122 @@ Page({
       return;
     }
     
-    // 验证时间设置
-    const earliest = depInfo.nxDepartmentEarliestDeliveryTime;
-    const latest = depInfo.nxDepartmentLatestDeliveryTime;
-    
-    if (earliest >= latest) {
+    const hasEarliestTime = !!earliestTime;
+    const hasLatestTime = !!latestTime;
+    if (hasEarliestTime !== hasLatestTime) {
       wx.showToast({
-        title: '最晚时间不能早于最早时间',
+        title: '请同时设置最早和最晚时间',
         icon: 'none'
       });
       return;
     }
 
-    // 显示加载提示
+    const earliestSeconds = hasEarliestTime ? this.formatTimeToSeconds(earliestTime) : null;
+    const latestSeconds = hasLatestTime ? this.formatTimeToSeconds(latestTime) : null;
+    if (hasEarliestTime && (earliestSeconds === null || latestSeconds === null)) {
+      wx.showToast({ title: '配送时间格式不正确', icon: 'none' });
+      return;
+    }
+    if (hasEarliestTime && earliestSeconds >= latestSeconds) {
+      wx.showToast({
+        title: '最晚时间必须晚于最早时间',
+        icon: 'none'
+      });
+      return;
+    }
+
+    const unloadDuration = parseInt(this.data.unloadDuration, 10);
+    if (isNaN(unloadDuration) || unloadDuration < 1 || unloadDuration > 1440) {
+      wx.showToast({
+        title: '卸货时间请输入1至1440分钟',
+        icon: 'none'
+      });
+      return;
+    }
+
+    const payload = {
+      nxDepartmentId: depInfo.nxDepartmentId,
+      nxDepartmentLat: String(latitude),
+      nxDepartmentLng: String(longitude),
+      nxDepartmentAddress: (this.data.deliveryAddress || '').trim(),
+      nxDepartmentEarliestDeliveryTime: earliestSeconds,
+      nxDepartmentLatestDeliveryTime: latestSeconds,
+      nxDepartmentUnloadDuration: unloadDuration,
+      nxDepartmentDispatchPriorityWeight: parseInt(this.data.priorityIndex, 10) + 1,
+      nxDepartmentDispatchRemark: (this.data.deliveryNotes || '').trim(),
+      nxDepartmentAllowEarlyDelivery: this.data.allowEarlyDelivery ? 1 : 0
+    };
+
+    console.log('[customerDetail][delivery][save] request', {
+      depId: payload.nxDepartmentId,
+      latitude: payload.nxDepartmentLat,
+      longitude: payload.nxDepartmentLng,
+      hasAddress: !!payload.nxDepartmentAddress,
+      earliestSeconds: payload.nxDepartmentEarliestDeliveryTime,
+      latestSeconds: payload.nxDepartmentLatestDeliveryTime,
+      unloadDuration: payload.nxDepartmentUnloadDuration,
+      priorityWeight: payload.nxDepartmentDispatchPriorityWeight,
+      allowEarlyDelivery: payload.nxDepartmentAllowEarlyDelivery
+    });
+
+    this.setData({ savingDeliverySettings: true });
     wx.showLoading({
       title: '保存中...',
       mask: true
     });
 
-    // 处理时间格式，转换为后端期望的格式
-    const processedDepInfo = { ...depInfo };
-    
-    // 添加卸货时间
-    processedDepInfo.nxDepartmentUnloadDuration = this.data.unloadDuration || 30;
-    
-    // 转换为秒数格式（推荐用于路线计算）
-    if (processedDepInfo.nxDepartmentEarliestDeliveryTime) {
-      const earliestTime = processedDepInfo.nxDepartmentEarliestDeliveryTime;
-      
-      // 检查是否是字符串格式（HH:mm）
-      if (typeof earliestTime === 'string' && earliestTime.includes(':')) {
-        const [hours, minutes] = earliestTime.split(':');
-        processedDepInfo.nxDepartmentEarliestDeliveryTime = parseInt(hours) * 3600 + parseInt(minutes) * 60;
-      }
-      // 如果已经是数字（秒数），则不需要转换
-      else if (typeof earliestTime === 'number') {
-        // 已经是秒数格式，不需要转换
-      }
-      // 其他情况，尝试转换为秒数
-      else {
-        console.warn('未知的时间格式:', earliestTime);
-      }
-    }
-    
-    if (processedDepInfo.nxDepartmentLatestDeliveryTime) {
-      const latestTime = processedDepInfo.nxDepartmentLatestDeliveryTime;
-      
-      // 检查是否是字符串格式（HH:mm）
-      if (typeof latestTime === 'string' && latestTime.includes(':')) {
-        const [hours, minutes] = latestTime.split(':');
-        processedDepInfo.nxDepartmentLatestDeliveryTime = parseInt(hours) * 3600 + parseInt(minutes) * 60;
-      }
-      // 如果已经是数字（秒数），则不需要转换
-      else if (typeof latestTime === 'number') {
-        // 已经是秒数格式，不需要转换
-      }
-      // 其他情况，尝试转换为秒数
-      else {
-        console.warn('未知的时间格式:', latestTime);
-      }
-    }
-
-    // 调试：打印发送的数据
-    console.log('发送到后端的数据:', processedDepInfo);
-    console.log('配送时间字段:', {
-      earliest: processedDepInfo.nxDepartmentEarliestDeliveryTime,
-      latest: processedDepInfo.nxDepartmentLatestDeliveryTime
-    });
-    console.log("ifo", processedDepInfo)
-    // 调用API更新信息
-    updateGroupName(processedDepInfo).then(res => {
+    this._submitDeliverySettings(payload, depInfo).then(res => {
       wx.hideLoading();
-      
-      if (res.result.code == 0) {
+
+      console.log('[customerDetail][delivery][save] response', {
+        statusCode: res && res.statusCode,
+        legacyFallback: !!(res && res.legacyFallback),
+        code: res && res.result && res.result.code,
+        message: res && res.result && res.result.msg || '',
+        savedLatitude: res && res.result && res.result.data && res.result.data.nxDepartmentLat || '',
+        savedLongitude: res && res.result && res.result.data && res.result.data.nxDepartmentLng || ''
+      });
+
+      const result = res && res.result || {};
+      if (result.code == 0) {
+        const savedDepInfo = result.data || Object.assign({}, depInfo, payload);
+        const savedEarliestTime = this.normalizeDeliveryTime(savedDepInfo.nxDepartmentEarliestDeliveryTime);
+        const savedLatestTime = this.normalizeDeliveryTime(savedDepInfo.nxDepartmentLatestDeliveryTime);
+
+        wx.setStorageSync('depInfo', savedDepInfo);
+        this.setData({
+          depInfo: savedDepInfo,
+          showLocationTimeModal: false,
+          savingDeliverySettings: false,
+          selectedLatitude: savedDepInfo.nxDepartmentLat || '',
+          selectedLongitude: savedDepInfo.nxDepartmentLng || '',
+          deliveryAddress: savedDepInfo.nxDepartmentAddress || '',
+          earliestDeliveryTime: savedEarliestTime,
+          latestDeliveryTime: savedLatestTime,
+          formattedEarliestTime: savedEarliestTime,
+          formattedLatestTime: savedLatestTime,
+          unloadDuration: savedDepInfo.nxDepartmentUnloadDuration || 30,
+          deliveryNotes: savedDepInfo.nxDepartmentDispatchRemark || '',
+          priorityIndex: this.getDeliveryPriorityIndex(savedDepInfo.nxDepartmentDispatchPriorityWeight),
+          allowEarlyDelivery: savedDepInfo.nxDepartmentAllowEarlyDelivery !== 0
+        });
         wx.showToast({
-          title: '配送设置更新成功',
+          title: res.legacyFallback ? '位置设置已保存' : '配送设置更新成功',
           icon: 'success',
           duration: 2000
         });
-        
-        // 关闭弹窗
-        this.setData({
-          showLocationTimeModal: false
-        });
-        
-        // 更新本地存储（保持原始格式）
-        wx.setStorageSync('depInfo', depInfo);
-        
-        // 刷新页面数据
-        this._getDepInfo();
-        // 更新格式化时间显示
-        this.updateFormattedTimeDisplay();
       } else {
+        this.setData({ savingDeliverySettings: false });
         wx.showToast({
-          title: res.result.msg || '更新失败',
+          title: result.msg || '更新失败',
           icon: 'none',
           duration: 2000
         });
       }
     }).catch(err => {
       wx.hideLoading();
-      console.error('更新配送设置失败', err);
+      this.setData({ savingDeliverySettings: false });
+      console.error('[customerDetail][delivery][save] request failed', err);
       wx.showToast({
         title: '网络错误，请重试',
         icon: 'none',
@@ -801,22 +1014,31 @@ Page({
   
   // 将秒数转换为可读时间格式
   formatSecondsToTime(seconds) {
-    if (!seconds) return '';
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
+    if (seconds === null || seconds === undefined || seconds === '') return '';
+    const value = Number(seconds);
+    if (isNaN(value) || value < 0 || value >= 24 * 3600) return '';
+    const hours = Math.floor(value / 3600);
+    const minutes = Math.floor((value % 3600) / 60);
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   },
 
   // 将时间格式转换为秒数
   formatTimeToSeconds(timeStr) {
     if (!timeStr) return null;
-    const [hours, minutes] = timeStr.split(':').map(Number);
+    const parts = timeStr.split(':').map(Number);
+    if (parts.length !== 2 || isNaN(parts[0]) || isNaN(parts[1]) ||
+        parts[0] < 0 || parts[0] > 23 || parts[1] < 0 || parts[1] > 59) {
+      return null;
+    }
+    const hours = parts[0];
+    const minutes = parts[1];
     return hours * 3600 + minutes * 60;
   },
 
   // 检查当前时间是否在配送时间窗口内
   isInDeliveryTimeWindow(earliestSeconds, latestSeconds, currentTimeSeconds = null) {
-    if (!earliestSeconds || !latestSeconds) return false;
+    if (earliestSeconds === null || earliestSeconds === undefined ||
+        latestSeconds === null || latestSeconds === undefined) return false;
     
     if (!currentTimeSeconds) {
       const now = new Date();
@@ -828,7 +1050,8 @@ Page({
 
   // 计算配送时间窗口大小（秒）
   getDeliveryTimeWindow(earliestSeconds, latestSeconds) {
-    if (!earliestSeconds || !latestSeconds) return 0;
+    if (earliestSeconds === null || earliestSeconds === undefined ||
+        latestSeconds === null || latestSeconds === undefined) return 0;
     return latestSeconds - earliestSeconds;
   },
 
@@ -871,7 +1094,7 @@ Page({
     const earliest = depInfo.nxDepartmentEarliestDeliveryTime;
     const latest = depInfo.nxDepartmentLatestDeliveryTime;
     
-    if (!earliest || !latest) {
+    if (earliest === null || earliest === undefined || latest === null || latest === undefined) {
       wx.showToast({
         title: '请先设置配送时间',
         icon: 'none'
@@ -897,14 +1120,26 @@ Page({
 
   // 检查配送设置是否完整
   checkDeliverySettingsComplete() {
-    const depInfo = this.data.depInfo;
-    const hasLocation = depInfo.nxDepartmentLat && depInfo.nxDepartmentLng;
-    const hasTime = depInfo.nxDepartmentEarliestDeliveryTime && depInfo.nxDepartmentLatestDeliveryTime;
-    
+    const hasLocation = this.isValidDeliveryLocation(
+      this.data.selectedLatitude,
+      this.data.selectedLongitude
+    );
+    const earliestTime = this.data.earliestDeliveryTime;
+    const latestTime = this.data.latestDeliveryTime;
+    const hasEarliestTime = !!earliestTime;
+    const hasLatestTime = !!latestTime;
+    const hasTime = hasEarliestTime && hasLatestTime;
+    const earliestSeconds = hasTime ? this.formatTimeToSeconds(earliestTime) : null;
+    const latestSeconds = hasTime ? this.formatTimeToSeconds(latestTime) : null;
+    const timeIsValid = (!hasEarliestTime && !hasLatestTime) ||
+      (hasTime && earliestSeconds !== null && latestSeconds !== null && earliestSeconds < latestSeconds);
+    const unloadDuration = parseInt(this.data.unloadDuration, 10);
+    const unloadIsValid = !isNaN(unloadDuration) && unloadDuration >= 1 && unloadDuration <= 1440;
+
     return {
       hasLocation,
       hasTime,
-      isComplete: hasLocation && hasTime
+      isComplete: hasLocation && timeIsValid && unloadIsValid
     };
   },
 
@@ -925,30 +1160,111 @@ Page({
   updateFormattedTimeDisplay() {
     const depInfo = this.data.depInfo;
     this.setData({
-      formattedEarliestTime: this.formatSecondsToTime(depInfo.nxDepartmentEarliestDeliveryTime) || '',
-      formattedLatestTime: this.formatSecondsToTime(depInfo.nxDepartmentLatestDeliveryTime) || ''
+      formattedEarliestTime: this.normalizeDeliveryTime(depInfo.nxDepartmentEarliestDeliveryTime),
+      formattedLatestTime: this.normalizeDeliveryTime(depInfo.nxDepartmentLatestDeliveryTime)
     });
   },
 
   // 获取客户信息
-  _getDepInfo() {
-    getDepInfo(this.data.depFatherId).then(res => {
+  _getDepInfo(source = 'unknown') {
+    const depId = this.data.depFatherId;
+    if (!depId) {
+      console.warn('[customerDetail][delivery][getDepInfo] skipped: missing depId', { source });
+      return Promise.resolve(null);
+    }
+
+    if (this._depInfoRequestPromise) {
+      console.log('[customerDetail][delivery][getDepInfo] reuse pending request', {
+        source,
+        depId
+      });
+      return this._depInfoRequestPromise;
+    }
+
+    const requestId = (this._depInfoRequestId || 0) + 1;
+    this._depInfoRequestId = requestId;
+    console.log('[customerDetail][delivery][getDepInfo] request start', {
+      requestId,
+      source,
+      depId
+    });
+
+    const request = getDepInfo(depId).then(res => {
       load.hideLoading();
+      console.log('[customerDetail][delivery][getDepInfo] response', {
+        requestId,
+        source,
+        code: res && res.result && res.result.code,
+        latitude: res && res.result && res.result.data && res.result.data.nxDepartmentLat || '',
+        longitude: res && res.result && res.result.data && res.result.data.nxDepartmentLng || '',
+        showLocationTimeModal: !!this.data.showLocationTimeModal,
+        isChoosingLocation: !!this.data.isChoosingLocation
+      });
+
       if (res.result.code == 0) {
+        const depInfo = res.result.data || {};
+
+        // 用户已经打开配送弹窗或正在从地图返回时，忽略这次旧响应，避免覆盖未保存表单。
+        if (this.data.showLocationTimeModal || this.data.isChoosingLocation) {
+          console.warn('[customerDetail][delivery][getDepInfo] response ignored: delivery form is editing', {
+            requestId,
+            responseLatitude: depInfo.nxDepartmentLat || '',
+            responseLongitude: depInfo.nxDepartmentLng || '',
+            formLatitude: this.data.selectedLatitude || '',
+            formLongitude: this.data.selectedLongitude || ''
+          });
+          return depInfo;
+        }
+
+        const earliestTime = this.normalizeDeliveryTime(depInfo.nxDepartmentEarliestDeliveryTime);
+        const latestTime = this.normalizeDeliveryTime(depInfo.nxDepartmentLatestDeliveryTime);
         this.setData({
-          depInfo: res.result.data,
+          depInfo: depInfo,
+          selectedLatitude: depInfo.nxDepartmentLat || '',
+          selectedLongitude: depInfo.nxDepartmentLng || '',
+          deliveryAddress: depInfo.nxDepartmentAddress || '',
+          earliestDeliveryTime: earliestTime,
+          latestDeliveryTime: latestTime,
+          formattedEarliestTime: earliestTime,
+          formattedLatestTime: latestTime,
+          unloadDuration: depInfo.nxDepartmentUnloadDuration || 30,
+          deliveryNotes: depInfo.nxDepartmentDispatchRemark || '',
+          priorityIndex: this.getDeliveryPriorityIndex(depInfo.nxDepartmentDispatchPriorityWeight),
+          allowEarlyDelivery: depInfo.nxDepartmentAllowEarlyDelivery !== 0
+        }, () => {
+          console.log('[customerDetail][delivery][getDepInfo] page data applied', {
+            requestId,
+            latitude: this.data.selectedLatitude || '',
+            longitude: this.data.selectedLongitude || ''
+          });
         });
-        // 更新格式化时间显示
-        this.updateFormattedTimeDisplay();
+        wx.setStorageSync('depInfo', depInfo);
         // 获取客户标签
-        this._getDepLabels();
+        this._getDepLabels('getDepInfo:' + source);
+        return depInfo;
       } else {
         wx.showToast({
           title: res.result.msg,
           icon: 'none'
         });
+        return null;
+      }
+    }).catch(err => {
+      console.error('[customerDetail][delivery][getDepInfo] request failed', {
+        requestId,
+        source,
+        error: err
+      });
+      return null;
+    });
+
+    this._depInfoRequestPromise = request;
+    request.then(() => {
+      if (this._depInfoRequestPromise === request) {
+        this._depInfoRequestPromise = null;
       }
     });
+    return request;
   },
 
   // ============ 标签管理相关方法 ============
@@ -956,10 +1272,20 @@ Page({
   // ============ 获取客户标签 ============
   
   // 获取客户已选标签并显示在页面上
-  _getDepLabels() {
+  _getDepLabels(source = 'unknown') {
     const { disId, depFatherId } = this.data;
+
+    console.log('[customerDetail][labels] request start', {
+      source,
+      disId,
+      depFatherId
+    });
     
     disGetLabelData({ disId, depFatherId }).then(res => {
+      console.log('[customerDetail][labels] response', {
+        source,
+        code: res && res.result && res.result.code
+      });
       if (res.result.code == 0) {
         const labelList = res.result.labelList || [];
         const selectedLabelIds = res.result.selectedLabelIds || [];
@@ -974,10 +1300,16 @@ Page({
           'depInfo.selectedLabels': selectedLabels
         });
         
-        console.log('客户标签已加载:', selectedLabels);
+        console.log('[customerDetail][labels] page data applied', {
+          source,
+          selectedCount: selectedLabels.length
+        });
       }
     }).catch(err => {
-      console.error('获取客户标签失败', err);
+      console.error('[customerDetail][labels] request failed', {
+        source,
+        error: err
+      });
     });
   },
 
@@ -1210,7 +1542,7 @@ Page({
         });
         
         // 刷新客户信息
-        this._getDepInfo();
+        this._getDepInfo('saveCustomerLabels');
       } else {
         wx.showToast({
           title: res.result.msg || '保存失败',

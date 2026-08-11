@@ -15,6 +15,7 @@ import { resolveSession } from '../_session.js'
 var timeWindowModal = require('../../../utils/timeWindowModal.js')
 
 var EDIT_PAYLOAD_STORAGE_KEY = 'routeDispatchDriverRouteEditPayload'
+var EARTH_RADIUS_METERS = 6371000
 
 function eventNodeDetail(e) {
   if (e && e.detail && (e.detail.nodeIndex != null || e.detail.index != null)) {
@@ -93,6 +94,151 @@ function computeConfirmReady(pageViewModel) {
   return !!actions.confirmEnabled
 }
 
+function matchesCustomerSearch(stop, keyword) {
+  if (!keyword) {
+    return true
+  }
+  stop = stop || {}
+  var haystack = [stop.customerName, stop.address, stop.goodsSummary, stop.constraintHint]
+    .filter(function (value) { return value != null })
+    .join(' ')
+    .toLowerCase()
+  return haystack.indexOf(keyword.toLowerCase()) >= 0
+}
+
+function coordinateOf(source) {
+  source = source || {}
+  var lat = Number(source.lat != null ? source.lat : source.depotLat)
+  var lng = Number(source.lng != null ? source.lng : source.depotLng)
+  if (!isFinite(lat) || !isFinite(lng) || (lat === 0 && lng === 0)) {
+    return null
+  }
+  return { lat: lat, lng: lng }
+}
+
+function distanceMeters(first, second) {
+  if (!first || !second) {
+    return 0
+  }
+  var latDelta = (second.lat - first.lat) * Math.PI / 180
+  var lngDelta = (second.lng - first.lng) * Math.PI / 180
+  var firstLat = first.lat * Math.PI / 180
+  var secondLat = second.lat * Math.PI / 180
+  var value = Math.sin(latDelta / 2) * Math.sin(latDelta / 2)
+    + Math.cos(firstLat) * Math.cos(secondLat)
+    * Math.sin(lngDelta / 2) * Math.sin(lngDelta / 2)
+  return EARTH_RADIUS_METERS * 2 * Math.atan2(Math.sqrt(value), Math.sqrt(1 - value))
+}
+
+function routeCoordinateDistance(depot, stops, includeReturn) {
+  var depotPoint = coordinateOf(depot)
+  if (!depotPoint) {
+    return 0
+  }
+  var total = 0
+  var previous = depotPoint
+  ;(stops || []).forEach(function (stop) {
+    var point = coordinateOf(stop)
+    if (!point) {
+      return
+    }
+    total += distanceMeters(previous, point)
+    previous = point
+  })
+  if (includeReturn && stops && stops.length) {
+    total += distanceMeters(previous, depotPoint)
+  }
+  return total
+}
+
+function uniqueStops(stops) {
+  var seen = {}
+  return (stops || []).filter(function (stop) {
+    var key = resolveStopKey(stop)
+    if (!key || seen[key]) {
+      return false
+    }
+    seen[key] = true
+    return true
+  })
+}
+
+function optimizeStopOrder(depot, stops, includeReturn) {
+  var depotPoint = coordinateOf(depot)
+  if (!depotPoint || !stops || stops.length < 2) {
+    return (stops || []).slice()
+  }
+  var remaining = stops.slice()
+  var ordered = []
+  var previous = depotPoint
+  while (remaining.length) {
+    var bestIndex = 0
+    var bestDistance = Number.MAX_SAFE_INTEGER || 9007199254740991
+    remaining.forEach(function (stop, index) {
+      var point = coordinateOf(stop)
+      var distance = point ? distanceMeters(previous, point) : bestDistance
+      if (distance < bestDistance) {
+        bestIndex = index
+        bestDistance = distance
+      }
+    })
+    var selected = remaining.splice(bestIndex, 1)[0]
+    ordered.push(selected)
+    previous = coordinateOf(selected) || previous
+  }
+  var improved = true
+  var currentDistance = routeCoordinateDistance(depot, ordered, includeReturn)
+  while (improved) {
+    improved = false
+    for (var start = 0; start < ordered.length - 1; start += 1) {
+      for (var end = start + 1; end < ordered.length; end += 1) {
+        var candidate = ordered.slice(0, start)
+          .concat(ordered.slice(start, end + 1).reverse())
+          .concat(ordered.slice(end + 1))
+        var candidateDistance = routeCoordinateDistance(depot, candidate, includeReturn)
+        if (candidateDistance + 1 < currentDistance) {
+          ordered = candidate
+          currentDistance = candidateDistance
+          improved = true
+        }
+      }
+    }
+  }
+  return ordered
+}
+
+function sameStopKeys(first, second) {
+  first = first || []
+  second = second || []
+  if (first.length !== second.length) {
+    return false
+  }
+  for (var index = 0; index < first.length; index += 1) {
+    if (first[index] !== second[index]) {
+      return false
+    }
+  }
+  return true
+}
+
+function formatPlanningDistance(meters) {
+  meters = Math.max(0, Number(meters || 0))
+  if (meters >= 1000) {
+    return (meters / 1000).toFixed(1).replace(/\.0$/, '') + ' 公里'
+  }
+  return Math.round(meters) + ' 米'
+}
+
+function formatPlanningDuration(minutes) {
+  minutes = Math.max(0, Math.round(Number(minutes || 0)))
+  var hours = Math.floor(minutes / 60)
+  var rest = minutes % 60
+  if (hours > 0) {
+    return hours + '小时' + (rest ? rest + '分' : '')
+  }
+  return rest + '分钟'
+}
+
 function resolveTimelineStopKey(node, stop) {
   if (stop && stop.stopKey) {
     return stop.stopKey
@@ -167,6 +313,9 @@ function buildEditTimeline(timeline, routeStops) {
       stopIndex: stopIndex,
       isIncomingStop: stop.isIncomingStop,
       customerName: stop.customerName || node.customerName,
+      address: stop.address || node.address,
+      goodsSummary: stop.goodsSummary || node.goodsSummary,
+      constraintHint: stop.constraintHint || node.constraintHint,
       windowRequirementLabel: node.windowRequirementLabel || stop.windowRequirementLabel,
       windowRequirementModified: node.windowRequirementModified != null
         ? node.windowRequirementModified
@@ -205,8 +354,25 @@ Page({
     stopMap: {},
     routeStops: [],
     addableStops: [],
+    filteredAddableStops: [],
+    candidatePoolCount: 0,
+    customerSearchText: '',
+    additionMode: 'SEARCH',
+    routeSequenceMode: 'PRESERVE',
+    targetRouteMinutes: '',
+    targetDistanceKm: '',
+    includeReturnDistance: true,
+    constraintPreview: null,
+    constraintFeedback: '输入上限后，系统会保留原路线客户并自动补充候选客户。',
+    constraintResult: null,
+    constraintAdjusting: false,
     editTimeline: [],
     confirmReady: false,
+    routeDirty: false,
+    hasUnsavedChanges: false,
+    autoPreviewing: false,
+    routeEstimateStatus: '路线已按当前顺序计算',
+    mapInteractionEnabled: false,
     pageScrollEnabled: true,
     mapOverviewPadding: [48, 48, 48, 48],
     removingStop: false,
@@ -278,6 +444,9 @@ Page({
         Array.isArray(pageViewModel.stopKeys) ? pageViewModel.stopKeys : null,
         routeStopsFromVm
       )
+    if (!options.keepStopKeys || !this._protectedStopKeys) {
+      this._protectedStopKeys = stopKeys.slice()
+    }
     var that = this
     this._pageTimeline = pageViewModel.timeline || []
     this.setData({
@@ -287,6 +456,14 @@ Page({
       stopMap: stopMap,
       stopKeys: stopKeys,
       confirmReady: computeConfirmReady(pageViewModel),
+      routeDirty: false,
+      hasUnsavedChanges: options.keepStopKeys ? this.data.hasUnsavedChanges : false,
+      autoPreviewing: false,
+      constraintAdjusting: false,
+      additionMode: options.constraintResult ? 'SEARCH' : this.data.additionMode,
+      constraintPreview: options.constraintResult ? null : this.data.constraintPreview,
+      constraintResult: options.constraintResult || this.data.constraintResult,
+      routeEstimateStatus: '路线已按当前门店顺序重新计算',
       loadError: '',
       pageTitle: pageViewModel.pageTitle || this.data.pageTitle
     }, function () {
@@ -315,9 +492,18 @@ Page({
     }).map(function (stopKey) {
       return stopMap[stopKey]
     })
+    var keyword = String(this.data.customerSearchText || '').trim()
+    var filteredAddableStops = addableStops.filter(function (stop) {
+      return matchesCustomerSearch(stop, keyword)
+    })
+    if (!keyword && filteredAddableStops.length > 5) {
+      filteredAddableStops = filteredAddableStops.slice(0, 5)
+    }
     this.setData({
       routeStops: routeStops,
       addableStops: addableStops,
+      filteredAddableStops: filteredAddableStops,
+      candidatePoolCount: addableStops.length,
       stopKeys: stopKeys,
       editTimeline: buildEditTimeline(this._pageTimeline || [], routeStops)
     })
@@ -345,9 +531,11 @@ Page({
     })
   },
 
-  previewPage: function () {
+  previewPage: function (options) {
+    options = options || {}
     var that = this
     if (this.data.previewing) {
+      this._previewQueued = true
       return
     }
     var payload = this.buildRequestPayload()
@@ -355,21 +543,113 @@ Page({
       wx.showToast({ title: '缺少 driverUserId', icon: 'none' })
       return
     }
-    this.setData({ previewing: true })
-    load.showLoading('重新试算')
+    if (!payload.stopKeys || !payload.stopKeys.length) {
+      this.setData({
+        confirmReady: false,
+        routeDirty: true,
+        autoPreviewing: false,
+        routeEstimateStatus: '当前路线暂无客户，请先添加客户'
+      })
+      if (!options.silent) {
+        wx.showToast({ title: '请至少添加一个客户', icon: 'none' })
+      }
+      return
+    }
+    var requestRevision = this._editRevision || 0
+    this.setData({
+      previewing: true,
+      autoPreviewing: !!options.silent,
+      routeEstimateStatus: options.silent ? '正在自动重新试算路线…' : '正在重新试算路线…'
+    })
+    if (!options.silent) {
+      load.showLoading('重新试算')
+    }
     postDriverRouteEditPreview(payload).then(function (res) {
-      load.hideLoading()
+      if (!options.silent) {
+        load.hideLoading()
+      }
+      if (requestRevision !== (that._editRevision || 0)) {
+        that.setData({ previewing: false, autoPreviewing: false, constraintAdjusting: false })
+        that.scheduleAutoPreview()
+        return
+      }
       if (!res.result || res.result.code !== 0) {
-        that.setData({ previewing: false })
-        wx.showToast({ title: (res.result && res.result.msg) || '试算失败', icon: 'none' })
+        if (options.constraintRollback) {
+          that.rollbackConstraintPreview(options.constraintRollback)
+          wx.showToast({
+            title: (res.result && res.result.msg) || '自动计算失败，已恢复原路线',
+            icon: 'none'
+          })
+          return
+        }
+        that.setData({
+          previewing: false,
+          autoPreviewing: false,
+          constraintAdjusting: false,
+          routeEstimateStatus: '试算失败，请点击重新试算'
+        })
+        if (!options.silent) {
+          wx.showToast({ title: (res.result && res.result.msg) || '试算失败', icon: 'none' })
+        }
         return
       }
       that.setData({ requestPayload: payload })
-      that.applyPageViewModel(res.result.data, { keepStopKeys: true })
+      that.applyPageViewModel(res.result.data, {
+        keepStopKeys: true,
+        constraintResult: options.constraintResult || null
+      })
+      if (options.constraintResult) {
+        wx.showToast({ title: '客户已自动调整', icon: 'success' })
+      }
     }).catch(function () {
-      load.hideLoading()
-      that.setData({ previewing: false })
+      if (!options.silent) {
+        load.hideLoading()
+      }
+      if (options.constraintRollback) {
+        that.rollbackConstraintPreview(options.constraintRollback)
+      } else {
+        that.setData({
+          previewing: false,
+          autoPreviewing: false,
+          constraintAdjusting: false,
+          routeEstimateStatus: '网络异常，路线尚未重新试算'
+        })
+      }
+    }).then(function () {
+      if (that._previewQueued) {
+        that._previewQueued = false
+        that.scheduleAutoPreview()
+      }
     })
+  },
+
+  markRouteChanged: function () {
+    this._editRevision = (this._editRevision || 0) + 1
+    this.setData({
+      routeDirty: true,
+      hasUnsavedChanges: true,
+      confirmReady: false,
+      additionMode: 'SEARCH',
+      constraintPreview: null,
+      constraintResult: null,
+      routeEstimateStatus: '路线内容已变化，等待后台重新试算'
+    })
+    this.scheduleAutoPreview()
+  },
+
+  scheduleAutoPreview: function () {
+    var that = this
+    if (this._autoPreviewTimer) {
+      clearTimeout(this._autoPreviewTimer)
+    }
+    if (!this.data.stopKeys || !this.data.stopKeys.length) {
+      this.setData({ autoPreviewing: false })
+      return
+    }
+    this._autoPreviewTimer = setTimeout(function () {
+      that._autoPreviewTimer = null
+      that.previewPage({ silent: true })
+    }, 450)
   },
 
   setLoadError: function (loadError) {
@@ -396,8 +676,11 @@ Page({
     var temp = stopKeys[index]
     stopKeys[index] = stopKeys[target]
     stopKeys[target] = temp
-    this.setData({ stopKeys: stopKeys })
-    this.rebuildLists()
+    var that = this
+    this.setData({ stopKeys: stopKeys }, function () {
+      that.rebuildLists()
+      that.markRouteChanged()
+    })
   },
 
   onRemoveStop: function (e) {
@@ -424,8 +707,11 @@ Page({
       return
     }
     stopKeys.splice(index, 1)
-    this.setData({ stopKeys: stopKeys })
-    this.rebuildLists()
+    var that = this
+    this.setData({ stopKeys: stopKeys }, function () {
+      that.rebuildLists()
+      that.markRouteChanged()
+    })
   },
 
   submitLoadingRemoveStop: function (stop) {
@@ -491,39 +777,451 @@ Page({
     if (!stopKey) {
       return
     }
+    var candidate = (this.data.stopMap || {})[stopKey]
+    if (candidate && candidate.blocked) {
+      wx.showToast({ title: candidate.blockedReason || '该客户不适合当前司机', icon: 'none' })
+      return
+    }
     var stopKeys = Array.isArray(this.data.stopKeys) ? this.data.stopKeys.slice() : []
     if (stopKeys.indexOf(stopKey) >= 0) {
       return
     }
     stopKeys.push(stopKey)
-    this.setData({ stopKeys: stopKeys })
-    this.rebuildLists()
+    var that = this
+    this.setData({
+      stopKeys: stopKeys,
+      customerSearchText: ''
+    }, function () {
+      that.rebuildLists()
+      that.markRouteChanged()
+    })
+  },
+
+  onCustomerSearchInput: function (e) {
+    var that = this
+    this.setData({
+      customerSearchText: (e && e.detail && e.detail.value) || '',
+      additionMode: 'SEARCH',
+      constraintPreview: null
+    }, function () {
+      that.rebuildLists()
+    })
+  },
+
+  onClearCustomerSearch: function () {
+    var that = this
+    this.setData({ customerSearchText: '' }, function () {
+      that.rebuildLists()
+    })
+  },
+
+  currentConstraintDefaults: function (mode) {
+    var driver = (this.data.pageViewModel && this.data.pageViewModel.driver) || {}
+    if (mode === 'TIME') {
+      var minutes = Math.round(Number(driver.totalDurationS || 0) / 60)
+      return { targetRouteMinutes: minutes > 0 ? String(minutes) : '' }
+    }
+    var distanceM = this.data.includeReturnDistance
+      ? Number(driver.totalDistanceM || 0)
+      : Number(driver.outboundDistanceM || 0)
+    return {
+      targetDistanceKm: distanceM > 0
+        ? (distanceM / 1000).toFixed(1).replace(/\.0$/, '')
+        : ''
+    }
+  },
+
+  changeAdditionMode: function (e) {
+    var requested = e && e.currentTarget && e.currentTarget.dataset
+      ? e.currentTarget.dataset.mode
+      : ''
+    if (requested !== 'TIME' && requested !== 'DISTANCE') {
+      return
+    }
+    var mode = this.data.additionMode === requested ? 'SEARCH' : requested
+    if (mode === 'SEARCH') {
+      this.setData({
+        additionMode: 'SEARCH',
+        constraintPreview: null,
+        constraintFeedback: '输入上限后，系统会保留原路线客户并自动补充候选客户。'
+      })
+      return
+    }
+    var that = this
+    this.setData(Object.assign({
+      additionMode: mode,
+      routeSequenceMode: 'PRESERVE',
+      customerSearchText: '',
+      constraintResult: null
+    }, this.currentConstraintDefaults(mode)), function () {
+      that.updateConstraintPreview()
+    })
+  },
+
+  onTargetRouteMinutesInput: function (e) {
+    var that = this
+    this.setData({ targetRouteMinutes: (e && e.detail && e.detail.value) || '' }, function () {
+      that.updateConstraintPreview()
+    })
+  },
+
+  onTargetDistanceInput: function (e) {
+    var that = this
+    this.setData({ targetDistanceKm: (e && e.detail && e.detail.value) || '' }, function () {
+      that.updateConstraintPreview()
+    })
+  },
+
+  toggleReturnDistance: function (e) {
+    var that = this
+    this.setData({ includeReturnDistance: !!(e && e.detail && e.detail.value) }, function () {
+      var defaults = that.currentConstraintDefaults('DISTANCE')
+      that.setData(defaults, function () {
+        that.updateConstraintPreview()
+      })
+    })
+  },
+
+  changeRouteSequenceMode: function (e) {
+    var mode = (e && e.detail && e.detail.value)
+      || (e && e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.mode)
+    if (mode !== 'PRESERVE' && mode !== 'OPTIMIZE') {
+      return
+    }
+    var that = this
+    this.setData({ routeSequenceMode: mode }, function () {
+      that.updateConstraintPreview()
+    })
+  },
+
+  buildConstraintPlan: function () {
+    var mode = this.data.additionMode
+    var pageViewModel = this.data.pageViewModel || {}
+    var driver = pageViewModel.driver || {}
+    var depot = pageViewModel.routePlanningContext || {}
+    var routeStops = (this.data.routeStops || []).slice()
+    var addableStops = (this.data.addableStops || []).slice()
+    var includeReturn = mode === 'TIME' ? true : !!this.data.includeReturnDistance
+    var depotPoint = coordinateOf(depot)
+    if (!depotPoint) {
+      return {
+        canApply: false,
+        message: '仓库缺少坐标，暂时不能自动计算客户。',
+        missingCoordinateCount: addableStops.length
+      }
+    }
+
+    var protectedSet = {}
+    ;(this._protectedStopKeys || []).forEach(function (key) { protectedSet[key] = true })
+    routeStops.forEach(function (stop) {
+      if (!coordinateOf(stop)) {
+        protectedSet[resolveStopKey(stop)] = true
+      }
+    })
+    var protectedStops = routeStops.filter(function (stop) {
+      return !!protectedSet[resolveStopKey(stop)]
+    })
+    if (!protectedStops.length && routeStops.length) {
+      protectedStops = [routeStops[0]]
+      protectedSet[resolveStopKey(routeStops[0])] = true
+    }
+    var currentFlexible = routeStops.filter(function (stop) {
+      return !protectedSet[resolveStopKey(stop)]
+    })
+    var eligibleExternal = addableStops.filter(function (stop) {
+      return !protectedSet[resolveStopKey(stop)] && !stop.blocked && !!coordinateOf(stop)
+    })
+    var missingCoordinateCount = addableStops.filter(function (stop) {
+      return !stop.blocked && !coordinateOf(stop)
+    }).length
+    var flexibleStops = uniqueStops(currentFlexible.concat(eligibleExternal))
+    var currentSet = {}
+    routeStops.forEach(function (stop) { currentSet[resolveStopKey(stop)] = true })
+
+    var coordinateCurrent = routeCoordinateDistance(depot, routeStops, includeReturn)
+    var actualDistance = includeReturn
+      ? Number(driver.totalDistanceM || 0)
+      : Number(driver.outboundDistanceM || 0)
+    var distanceScale = coordinateCurrent > 0 && actualDistance > 0
+      ? actualDistance / coordinateCurrent
+      : 1
+    var totalServiceMinutes = routeStops.reduce(function (sum, stop) {
+      return sum + Math.max(0, Number(stop.serviceMinutes || 0))
+    }, 0)
+    var knownServiceCount = routeStops.filter(function (stop) {
+      return Number(stop.serviceMinutes || 0) > 0
+    }).length
+    var averageServiceMinutes = knownServiceCount > 0
+      ? totalServiceMinutes / knownServiceCount
+      : 10
+    var totalDurationMinutes = Number(driver.totalDurationS || 0) / 60
+    var coordinateClosed = routeCoordinateDistance(depot, routeStops, true)
+    var travelMinutes = Math.max(0, totalDurationMinutes - totalServiceMinutes)
+    var travelMinutesPerMeter = coordinateClosed > 0 && travelMinutes > 0
+      ? travelMinutes / coordinateClosed
+      : 0
+    var durationReady = totalDurationMinutes > 0 && travelMinutesPerMeter > 0
+
+    var target = mode === 'TIME'
+      ? Number(this.data.targetRouteMinutes)
+      : Number(this.data.targetDistanceKm) * 1000
+    if (!isFinite(target) || target <= 0) {
+      return {
+        canApply: false,
+        message: mode === 'TIME' ? '请输入大于 0 的分钟数。' : '请输入大于 0 的公里数。',
+        missingCoordinateCount: missingCoordinateCount
+      }
+    }
+    if (mode === 'TIME' && !durationReady) {
+      return {
+        canApply: false,
+        message: '当前路线还没有可用的全程时间，请先点击“重新计算”。',
+        missingCoordinateCount: missingCoordinateCount
+      }
+    }
+
+    var sequenceMode = this.data.routeSequenceMode
+    var metricsOf = function (stops) {
+      var coordinateDistance = routeCoordinateDistance(depot, stops, includeReturn)
+      var serviceMinutes = stops.reduce(function (sum, stop) {
+        var value = Number(stop.serviceMinutes || 0)
+        return sum + (value > 0 ? value : averageServiceMinutes)
+      }, 0)
+      return {
+        distance: coordinateDistance * distanceScale,
+        duration: routeCoordinateDistance(depot, stops, true) * travelMinutesPerMeter + serviceMinutes
+      }
+    }
+    var fits = function (metrics) {
+      return mode === 'TIME'
+        ? metrics.duration <= target + 0.01
+        : metrics.distance <= target + 1
+    }
+    var buildPlanned = function (selectedFlexible) {
+      selectedFlexible = uniqueStops(selectedFlexible)
+      var selectedSet = {}
+      selectedFlexible.forEach(function (stop) { selectedSet[resolveStopKey(stop)] = true })
+      if (sequenceMode === 'OPTIMIZE') {
+        return optimizeStopOrder(depot, uniqueStops(protectedStops.concat(selectedFlexible)), includeReturn)
+      }
+      var retained = routeStops.filter(function (stop) {
+        var key = resolveStopKey(stop)
+        return protectedSet[key] || selectedSet[key]
+      })
+      var appended = selectedFlexible.filter(function (stop) {
+        return !currentSet[resolveStopKey(stop)]
+      })
+      return uniqueStops(retained.concat(appended))
+    }
+
+    var selectedFlexible = []
+    var plannedStops = buildPlanned([])
+    var plannedMetrics = metricsOf(plannedStops)
+    var protectedOverTarget = !fits(plannedMetrics)
+    if (!protectedOverTarget) {
+      if (sequenceMode === 'PRESERVE') {
+        currentFlexible.forEach(function (stop) {
+          var trialSelected = selectedFlexible.concat([stop])
+          var trialStops = buildPlanned(trialSelected)
+          var trialMetrics = metricsOf(trialStops)
+          if (fits(trialMetrics)) {
+            selectedFlexible = trialSelected
+            plannedStops = trialStops
+            plannedMetrics = trialMetrics
+          }
+        })
+      }
+      var selectedSet = {}
+      selectedFlexible.forEach(function (stop) { selectedSet[resolveStopKey(stop)] = true })
+      var remaining = flexibleStops.filter(function (stop) {
+        return !selectedSet[resolveStopKey(stop)]
+      })
+      while (remaining.length) {
+        var ranked = remaining.map(function (candidate) {
+          var trialStops = buildPlanned(selectedFlexible.concat([candidate]))
+          var trialMetrics = metricsOf(trialStops)
+          return {
+            candidate: candidate,
+            stops: trialStops,
+            metrics: trialMetrics,
+            delta: mode === 'TIME'
+              ? trialMetrics.duration - plannedMetrics.duration
+              : trialMetrics.distance - plannedMetrics.distance
+          }
+        }).filter(function (item) {
+          return fits(item.metrics)
+        }).sort(function (first, second) {
+          return first.delta - second.delta
+        })
+        if (!ranked.length) {
+          break
+        }
+        var best = ranked[0]
+        selectedFlexible.push(best.candidate)
+        plannedStops = best.stops
+        plannedMetrics = best.metrics
+        var bestKey = resolveStopKey(best.candidate)
+        remaining = remaining.filter(function (stop) {
+          return resolveStopKey(stop) !== bestKey
+        })
+      }
+    }
+
+    var plannedKeys = plannedStops.map(function (stop) { return resolveStopKey(stop) })
+    var currentKeys = routeStops.map(function (stop) { return resolveStopKey(stop) })
+    var plannedSet = {}
+    plannedKeys.forEach(function (key) { plannedSet[key] = true })
+    var addedCount = plannedStops.filter(function (stop) {
+      return !currentSet[resolveStopKey(stop)]
+    }).length
+    var removedCount = routeStops.filter(function (stop) {
+      return !plannedSet[resolveStopKey(stop)]
+    }).length
+    var routeChanged = !sameStopKeys(currentKeys, plannedKeys)
+    var remainingCapacity = mode === 'TIME'
+      ? formatPlanningDuration(Math.max(0, target - plannedMetrics.duration))
+      : formatPlanningDistance(Math.max(0, target - plannedMetrics.distance))
+    var message = protectedOverTarget
+      ? '原路线的 ' + protectedStops.length + ' 位客户已经超过设置上限，系统不会自动移除原路线客户。'
+      : (routeChanged
+        ? '预计保留原路线客户，新增 ' + addedCount + ' 位、移除 ' + removedCount + ' 位后续加入的客户，剩余约 ' + remainingCapacity + '。'
+        : '当前路线已经符合设置条件，没有可继续加入的客户。')
+    if (missingCoordinateCount > 0) {
+      message += ' 另有 ' + missingCoordinateCount + ' 位客户缺少坐标，未参与自动计算。'
+    }
+    return {
+      canApply: routeChanged,
+      stopKeys: plannedKeys,
+      plannedCount: plannedKeys.length,
+      addedCount: addedCount,
+      removedCount: removedCount,
+      remainingCapacityText: remainingCapacity,
+      missingCoordinateCount: missingCoordinateCount,
+      message: message
+    }
+  },
+
+  updateConstraintPreview: function () {
+    var plan = this.buildConstraintPlan()
+    this.setData({
+      constraintPreview: plan,
+      constraintFeedback: plan.message
+    })
+  },
+
+  applyConstraintPlan: function () {
+    if (this.data.constraintAdjusting || this.data.previewing) {
+      return
+    }
+    var plan = this.buildConstraintPlan()
+    if (!plan.canApply || !plan.stopKeys || !plan.stopKeys.length) {
+      wx.showToast({ title: plan.message || '当前条件无需调整', icon: 'none', duration: 2500 })
+      return
+    }
+    if (this._autoPreviewTimer) {
+      clearTimeout(this._autoPreviewTimer)
+      this._autoPreviewTimer = null
+    }
+    this._editRevision = (this._editRevision || 0) + 1
+    var result = {
+      modeLabel: this.data.additionMode === 'TIME' ? '按时间' : '按距离',
+      addedCount: plan.addedCount,
+      removedCount: plan.removedCount,
+      plannedCount: plan.plannedCount,
+      summary: plan.message
+    }
+    var that = this
+    var rollback = {
+      stopKeys: (this.data.stopKeys || []).slice(),
+      routeDirty: this.data.routeDirty,
+      confirmReady: this.data.confirmReady,
+      hasUnsavedChanges: this.data.hasUnsavedChanges,
+      routeEstimateStatus: this.data.routeEstimateStatus
+    }
+    this.setData({
+      stopKeys: plan.stopKeys.slice(),
+      routeDirty: true,
+      hasUnsavedChanges: true,
+      confirmReady: false,
+      constraintAdjusting: true,
+      routeEstimateStatus: '正在按设置条件计算客户并获取后台路线…'
+    }, function () {
+      that.rebuildLists()
+      that.previewPage({
+        silent: false,
+        constraintResult: result,
+        constraintRollback: rollback
+      })
+    })
+  },
+
+  rollbackConstraintPreview: function (rollback) {
+    rollback = rollback || {}
+    var that = this
+    this.setData({
+      stopKeys: (rollback.stopKeys || []).slice(),
+      routeDirty: !!rollback.routeDirty,
+      confirmReady: !!rollback.confirmReady,
+      hasUnsavedChanges: !!rollback.hasUnsavedChanges,
+      previewing: false,
+      autoPreviewing: false,
+      constraintAdjusting: false,
+      routeEstimateStatus: rollback.routeEstimateStatus || '自动计算失败，已恢复原路线'
+    }, function () {
+      that.rebuildLists()
+      that.updateConstraintPreview()
+    })
   },
 
   onBottomReset: function () {
     var initial = cloneJson(this.data.initialPayload)
+    if (this._autoPreviewTimer) {
+      clearTimeout(this._autoPreviewTimer)
+      this._autoPreviewTimer = null
+    }
+    this._editRevision = (this._editRevision || 0) + 1
+    this._previewQueued = false
     this.setData({
       requestPayload: initial,
       stopMap: {},
       stopKeys: [],
       editTimeline: [],
+      customerSearchText: '',
+      filteredAddableStops: [],
+      additionMode: 'SEARCH',
+      routeSequenceMode: 'PRESERVE',
+      targetRouteMinutes: '',
+      targetDistanceKm: '',
+      constraintPreview: null,
+      constraintResult: null,
+      constraintAdjusting: false,
+      routeDirty: false,
+      hasUnsavedChanges: false,
+      autoPreviewing: false,
       pageTitle: initial && initial.manualDispatch ? '调整送货顺序' : '编辑司机路线'
     })
     this._pageTimeline = []
+    this._protectedStopKeys = null
     this.loadPage()
   },
 
   onBottomPreview: function () {
-    this.previewPage()
+    this.previewPage({ silent: false })
   },
 
   onBottomConfirm: function () {
     var that = this
     var pageViewModel = this.data.pageViewModel || {}
     var actions = pageViewModel.actions || {}
+    if (this.data.additionMode !== 'SEARCH') {
+      wx.showToast({ title: '请先完成或取消时间、距离调整', icon: 'none' })
+      return
+    }
     if (!this.data.confirmReady) {
       wx.showToast({
-        title: actions.confirmDisabledReason || '当前不可确认派单',
+        title: this.data.routeDirty
+          ? '路线正在重新试算，请稍候'
+          : (actions.confirmDisabledReason || '当前不可确认派单'),
         icon: 'none'
       })
       return
@@ -582,11 +1280,25 @@ Page({
   },
 
   toBack: function () {
-    wx.navigateBack({ delta: 1 })
+    if (!this.data.hasUnsavedChanges) {
+      wx.navigateBack({ delta: 1 })
+      return
+    }
+    wx.showModal({
+      title: '退出路线编辑？',
+      content: '当前路线还有未确认的调整，退出后不会保存。',
+      confirmText: '退出',
+      cancelText: '继续编辑',
+      success: function (res) {
+        if (res.confirm) {
+          wx.navigateBack({ delta: 1 })
+        }
+      }
+    })
   },
 
   onMapTouchStart: function () {
-    if (this.data.pageScrollEnabled) {
+    if (this.data.mapInteractionEnabled && this.data.pageScrollEnabled) {
       this.setData({ pageScrollEnabled: false })
     }
   },
@@ -594,6 +1306,25 @@ Page({
   onMapTouchEnd: function () {
     if (!this.data.pageScrollEnabled) {
       this.setData({ pageScrollEnabled: true })
+    }
+  },
+
+  toggleMapInteraction: function () {
+    var enabled = !this.data.mapInteractionEnabled
+    this.setData({
+      mapInteractionEnabled: enabled,
+      pageScrollEnabled: !enabled
+    })
+  },
+
+  onRefreshRoute: function () {
+    this.previewPage({ silent: false })
+  },
+
+  onUnload: function () {
+    if (this._autoPreviewTimer) {
+      clearTimeout(this._autoPreviewTimer)
+      this._autoPreviewTimer = null
     }
   },
 

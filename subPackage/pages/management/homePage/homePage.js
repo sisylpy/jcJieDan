@@ -524,7 +524,18 @@ Page({
       url: '../distributerCoupon/distributerCoupon?disId=' + this.data.disId,
     })
   },
-    
+
+  toCompensationCoupon(){
+    wx.navigateTo({
+      url: '../compensationCoupon/compensationCoupon?disId=' + this.data.disId,
+    })
+  },
+
+  toAfterSales(){
+    wx.navigateTo({
+      url: '../../afterSales/index/index',
+    })
+  },
 
   toStock(){
     wx.navigateTo({
@@ -581,6 +592,23 @@ toCostGoodsFenxi(){
 toRetailer(){
   wx.navigateTo({
     url: '/subPackage-charts/pages/statistic/indexRetail/indexRetail?disId=' + this.data.disId,
+  })
+},
+
+logoutOwner(){
+  wx.showModal({
+    title: '退出登录',
+    content: '退出后本机登录凭证会立即失效，需要重新微信登录。',
+    confirmText: '退出',
+    confirmColor: '#d94841',
+    success: (result) => {
+      if (!result.confirm) return
+      load.showLoading('正在退出')
+      app.ownerLogout().then(() => {
+        load.hideLoading()
+        wx.reLaunch({ url: '/pages/login/login' })
+      })
+    }
   })
 },
 

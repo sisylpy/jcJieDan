@@ -36,6 +36,61 @@
   font-size: 26rpx;
 }
 
+.customer-standard-line {
+  display: flex;
+  flex-direction: column;
+  margin: 12rpx 0 8rpx;
+  padding: 14rpx 16rpx;
+  border: 1rpx solid #cfe9e4;
+  border-left: 6rpx solid #178f83;
+  border-radius: 10rpx;
+  background: #f4fbf9;
+}
+
+.customer-standard-item {
+  padding: 10rpx 14rpx;
+  border-radius: 8rpx;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.customer-standard-item + .customer-standard-item {
+  margin-top: 10rpx;
+}
+
+.customer-standard-item-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4rpx;
+}
+
+.customer-standard-label {
+  color: #52635f;
+  font-size: 23rpx;
+}
+
+.customer-standard-stars {
+  display: flex;
+  align-items: center;
+  letter-spacing: 2rpx;
+  white-space: nowrap;
+}
+
+.customer-standard-star {
+  color: #ffae19;
+  font-size: 28rpx;
+  line-height: 32rpx;
+  text-shadow: 0 1rpx 2rpx rgba(219, 126, 0, 0.18);
+}
+
+.customer-standard-text {
+  display: block;
+  color: #293936;
+  font-size: 27rpx;
+  font-weight: 600;
+  line-height: 38rpx;
+}
+
 
 
 

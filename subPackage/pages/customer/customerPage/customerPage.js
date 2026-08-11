@@ -83,12 +83,13 @@ Page({
     depFatherId : this.data.depInfo.nxDepartmentId,
    }
    load.showLoading("获取订单中")
-   sellerAndBuyerGetSalesBills(data).then(res => {
-     load.hideLoading();
+    sellerAndBuyerGetSalesBills(data).then(res => {
+      load.hideLoading();
     if(res.result.code == 0){
       var total = 0;
+      var billArr = this._normalizeBillMonths(res.result.data);
       this.setData({
-        billArr: res.result.data,
+        billArr: billArr,
         totalArr: total
       })
       var that = this;
@@ -120,12 +121,13 @@ Page({
     console.log("res", res.result.data);
     if(res.result.code == 0){
       var total = 0;
-      for(var i = 0; i < res.result.data.arr.length; i++){
-        total = total + res.result.data.arr[i].arr.length;
+      var accountBillArr = this._normalizeBillMonths(res.result.data.arr);
+      for(var i = 0; i < accountBillArr.length; i++){
+        total = total + accountBillArr[i].arr.length;
       }
       this.setData({
-        accountBillArr: res.result.data.arr,
-        totalSettle: res.result.data.total,
+        accountBillArr: accountBillArr,
+        totalSettle: this._formatMoney(res.result.data.total, '0'),
         totalArr: total
       })
       var that = this;
@@ -144,6 +146,34 @@ Page({
       })
     }
   })
+ },
+
+ _normalizeBillMonths(months){
+  var monthArr = months || [];
+  for(var i = 0; i < monthArr.length; i++){
+    var bills = monthArr[i].arr || [];
+    for(var j = 0; j < bills.length; j++){
+      var bill = bills[j];
+      var discount = Number(bill.nxDbCouponDiscountAmount || 0);
+      bill.displayGoodsAmount = this._formatMoney(bill.nxDbGoodsAmount, bill.nxDbTotal);
+      bill.displayPayAmount = this._formatMoney(bill.nxDbPayAmount, bill.nxDbTotal);
+      bill.displayCouponDiscount = isNaN(discount) ? '0.00' : discount.toFixed(2);
+      bill.hasCouponDiscount = !isNaN(discount) && discount > 0;
+    }
+  }
+  return monthArr;
+ },
+
+ _formatMoney(value, fallback){
+  var amount = value;
+  if(amount === null || amount === undefined || amount === ''){
+    amount = fallback;
+  }
+  var number = Number(amount);
+  if(isNaN(number)){
+    return '0';
+  }
+  return number.toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1');
  },
 
 

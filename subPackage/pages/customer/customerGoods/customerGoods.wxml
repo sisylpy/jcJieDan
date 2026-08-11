@@ -120,36 +120,32 @@
                 </view>
               </view>
 
-              <!-- 商品详细信息 -->
-              <view class="goods-info">
-                <view class="info-row">
-                  <view class="info-item">
-                    <text class="info-label">订货日期:</text>
-                    <text class="info-value">{{depGoods.nxDdgOrderDate}}</text>
-                  </view>
-                  <view class="info-item">
-                    <text class="info-label">订货数量:</text>
-                    <text class="info-value highlight">{{depGoods.nxDdgOrderQuantity}}{{depGoods.nxDdgOrderStandard}}</text>
-                  </view>
+              <view
+                class="standard-entry"
+                bindtap="toCustomerGoodsStandard"
+                data-id="{{depGoods.nxDepartmentDisGoodsId}}"
+                data-goodsname="{{depGoods.nxDistributerGoodsEntity.nxDgGoodsName}}"
+                data-customername="{{depGoods.nxDdgOrderGoodsName || depGoods.nxDdgDepGoodsName}}"
+                data-departmentname="{{depGoods.nxDepartmentEntity.nxDepartmentAttrName || depGoods.nxDepartmentEntity.nxDepartmentName}}"
+              >
+                <view class="standard-entry-main">
+                  <text class="standard-entry-title">客户商品标准</text>
+                  <text class="standard-entry-desc">查看文字要求、合格与禁止图片</text>
                 </view>
-
-                <view class="info-row">
-                  <view class="info-item">
-                    <text class="info-label">出货要求:</text>
-                    <text class="info-value">{{depGoods.nxDdgPickDetail == null ? "无" : depGoods.nxDdgPickDetail}}</text>
-                  </view>
-                  <view class="info-item">
-                    <text class="info-label">配送价格:</text>
-                    <text class="info-value price">¥{{depGoods.nxDdgOrderPrice}}/{{depGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
-                  </view>
-                </view>
+                <text class="standard-entry-arrow">›</text>
               </view>
 
               <!-- 操作按钮 -->
               <view class="goods-actions">
-                <view class="action-item edit-btn" bindtap="selDepartment" data-goods="{{depGoods.nxDistributerGoodsEntity}}" data-depgoods="{{depGoods}}">
-                  <image src="/images/edit.png" mode="aspectFill" class="action-icon" />
-                  <text class="action-text">编辑</text>
+                <view
+                  class="action-item standard-btn"
+                  bindtap="toCustomerGoodsStandard"
+                  data-id="{{depGoods.nxDepartmentDisGoodsId}}"
+                  data-goodsname="{{depGoods.nxDistributerGoodsEntity.nxDgGoodsName}}"
+                  data-customername="{{depGoods.nxDdgOrderGoodsName || depGoods.nxDdgDepGoodsName}}"
+                  data-departmentname="{{depGoods.nxDepartmentEntity.nxDepartmentAttrName || depGoods.nxDepartmentEntity.nxDepartmentName}}"
+                >
+                  <text class="action-text">进入客户标准</text>
                 </view>
                 <view class="action-item delete-btn" bindtap="deleteDepGoods" data-id="{{depGoods.nxDepartmentDisGoodsId}}">
                   <image src="/images/ashbin.png" mode="aspectFill" class="action-icon" />
@@ -168,51 +164,4 @@
   </view>
   </view>
  
-</view>
-
-<!-- 编辑弹窗 -->
-<view class='overlay {{showOperationPrice ? "show" : ""}}' catchtouchmove='true'>
-  <view class="edit-popup">
-    <view class="popup-header">
-      <text class="popup-title">编辑商品信息</text>
-    </view>
-    
-    <view class="popup-content">
-      <view class="goods-info-header">
-        <text class="goods-name">{{disGoods.nxDgGoodsName}}</text>
-        <text class="goods-detail" wx:if="{{disGoods.nxDgGoodsDetail != null && disGoods.nxDgGoodsDetail.length > 0}}">
-          {{disGoods.nxDgGoodsDetail}}
-        </text>
-      </view>
-
-      <view class="input-group">
-        <view class="input-item">
-          <text class="input-label">配送单价:</text>
-          <view class="input-wrapper">
-            <input  wx:if="{{showOperationPrice}}" type="digit" class="input-field" bindinput="inputSellingPrice" value="{{sellingPrice}}" placeholder="请输入价格" />
-            <text class="input-unit">元{{disGoods.nxDsStandardName}}</text>
-          </view>
-        </view>
-
-        <view class="input-item">
-          <text class="input-label">出货要求:</text>
-          <input  wx:if="{{showOperationPrice}}" type="text" class="input-field" bindinput="inputPickDetail" value="{{pickDetail}}" placeholder="请输入出货要求" />
-        </view>
-
-        <view class="input-item">
-          <text class="input-label">订货商品名称:</text>
-          <input wx:if="{{showOperationPrice}}" type="text" class="input-field" bindinput="inputOrderName" value="{{orderName}}" placeholder="请输入商品名称" />
-        </view>
-      </view>
-    </view>
-
-    <view class="popup-actions">
-      <view class="popup-btn cancel-btn" catchtap="hideMask">
-        <text class="btn-text">取消</text>
-      </view>
-      <view class="popup-btn confirm-btn" catchtap="_updateDepGoods">
-        <text class="btn-text">保存</text>
-      </view>
-    </view>
-  </view>
 </view>

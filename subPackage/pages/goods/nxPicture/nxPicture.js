@@ -177,7 +177,7 @@ Page({
     const goodsName = that.data.editItem.nxGoodsName;
 
     return new Promise((resolve, reject) => {
-      wx.uploadFile({
+      getApp().ownerUploadFile({
         url: that.data.url + 'api/nxgoods/updateFather',
         filePath: thumbnailPath,
         name: 'file',
@@ -204,7 +204,7 @@ Page({
     const goodsId = that.data.editItem.nxGoodsId;
     const goodsName = that.data.editItem.nxGoodsName;
 
-    wx.uploadFile({
+    getApp().ownerUploadFile({
       url: that.data.url + 'api/nxgoods/updateFatherBig',
       filePath: largeImagePath,
       name: 'file',

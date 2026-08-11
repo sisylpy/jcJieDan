@@ -5,7 +5,7 @@ import apiUrl from '../../../../config.js'
 import {
   updateDisUserWithFile,
   updateDisUser,
-  disLogin
+  getDisUserInfo
 } from '../../../../lib/apiDistributer'
 
 Page({
@@ -194,7 +194,7 @@ Page({
       updateDisUserWithFile(filePathList, userName, userId).then(res => {
         if(res.result == '{"code":0}'){ 
           load.hideLoading();
-           that._login();
+           that._refreshOwnerProfile();
         }else{
           wx.showToast({
             title: '修改失败',
@@ -236,43 +236,24 @@ Page({
       })
     }
   },
-  _login() {
-    var that = this;
-    // 首次登录
-    wx.login({
-      success(res) {
-        console.log(res);
-        if (res.code) {
-          var disUser = {
-            nxDiuCode: res.code,
-          }
-          disLogin(disUser)
-            .then(res => {
-              if (res.result.code !== -1) {
-                console.log(res.result)
-                //缓存用户信息
-                
-                wx.setStorageSync('userInfo', res.result.data.userInfo);
-                wx.setStorageSync('disInfo', res.result.data.disInfo);
-                let pages = getCurrentPages();
-                let prevPage = pages[pages.length - 4];
-                console.log("updateususuisdifnifididifaiiifad")
-                prevPage.setData({
-                  userInfo: res.result.data,
-                  userInfo: res.result.data.userInfo,
-                  disInfo: res.result.data.disInfo,
-                  disId: res.result.data.disInfo.nxDistributerId,
-                })      
-                // wx.navigateBack({
-                //   delta: 1,
-                // })
-              }
-              
-            })
-        }
+  _refreshOwnerProfile() {
+    const userId = this.data.userInfo.nxDistributerUserId
+    getDisUserInfo(userId).then(res => {
+      if (!res.result || res.result.code !== 0) {
+        wx.showToast({ title: '刷新用户资料失败', icon: 'none' })
+        return
       }
+      const userInfo = res.result.data
+      const disInfo = userInfo.nxDistributerEntity || wx.getStorageSync('disInfo')
+      wx.setStorageSync('userInfo', userInfo)
+      wx.setStorageSync('disInfo', disInfo)
+      const pages = getCurrentPages()
+      const prevPage = pages[pages.length - 2]
+      if (prevPage && prevPage.setData) {
+        prevPage.setData({ userInfo, disInfo, disId: disInfo.nxDistributerId })
+      }
+      wx.navigateBack({ delta: 1 })
     })
-    //login finish
   },
 
   onUnload(){

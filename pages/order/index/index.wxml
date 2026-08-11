@@ -386,56 +386,13 @@
         </block>
 
 
-        <!-- gb_department -->
-        <view class="flex-row-between mt-10 bg-white border-bottom" wx:for="{{gbDisArr}}" wx:for-item="dis"
-          wx:key="gbDistributerPurchaseBatchId" bindtap="toPurOrders" data-id="{{dis.gbDistributerPurchaseBatchId}}"
-          hover-class="hover" data-supplier="{{dis.nxJrdhSupplierEntity}}" data-batch="{{dis}}">
-          <view class="flex-column p-20 ">
-            <view class="flex-row-between " style="width: {{windowWidth - 140}}rpx;">
-              <view class="flex-row">
-                <image src="{{url + dis.nxJrdhPurEntity.gbDuWxAvartraUrl}}" mode="aspectFill" class="url" />
-                <text class="font-lg-2">{{dis.nxJrdhPurEntity.gbDuWxNickName}}</text>
-                <block wx:if="{{dis.gbDpbStatus == 1}}">
-                  <image src="/images/a-mti-chenggongshi.png" mode="aspectFill" class="icon-md" />
-                </block>
-                <block wx:elif="{{dis.gbDpbStatus == 2}}">
-                  <image src="/images/a-mti-chenggongshi.png" mode="aspectFill" class="icon-md mr-10" />
-                  <!--  -->
-                  <image src="/images/save-active.png" mode="aspectFill" class="icon-md" />
-
-                </block>
-              </view>
-            </view>
-
-            <view class="flex flex-row font-lg">
-
-              <view class="flex-row half-row">
-                <text class="mr-10 text-secondary ">商品:</text>
-                <text class="five-weight">{{dis.gbDPGEntities.length}}个</text>
-              </view>
-
-              <view class="flex-row half-row">
-                <text class="mr-10 text-secondary ">总计:</text>
-                <text class=" five-weight">{{dis.gbDpbSubtotal == null ? '0' :dis.gbDpbSubtotal }}元</text>
-              </view>
-
-            </view>
-
-          </view>
-
-          <view class="flex-column">
-            <image src="/images/arrow-right-3.png" mode="aspectFill" class="icon mr-20" />
-          </view>
-
-        </view>
-
         <!-- gb_departmentApp -->
         <view class="flex-column" wx:for="{{gbDisArrApp}}" wx:for-item="dis" wx:key="gbDepFatherId">
           <view class="flex-column p-20 liziBack">
             <view class="flex-row-between normal">
               <text>{{dis.orderDisId.gbDistributerName}}</text>
               <!-- wx:if="{{dis.dis.nxDistributerGbDistributerEntity.nxDgdGbPayMethod == 1}}" -->
-              <block>
+              <block wx:if="{{!dis.isJczbBridge}}">
                 <view bindtap="toPurGoods" data-id="{{dis.orderDisId.appSupplierDepartment.gbDepartmentId}}"
                   data-name="{{dis.orderDisId.gbDistributerName}}" data-disid="{{dis.orderDisId.gbDistributerId}}">
                   <image src="../../../images/money-3.png" mode="aspectFill" class="icon" />
@@ -446,12 +403,16 @@
           </view>
 
           <view
-            class="p-20 bg-white flex-row-between with-border-bottom-shadow {{gbDisArr.length == parentIndex + 1 ? 'is-last' : ''}}"
-            wx:for="{{dis.arr}}" wx:for-item="item" wx:key="gbDepartmentId" bindtap="toDepOrdersGb" data-id="-1"
+            class="p-20 bg-white flex-row-between with-border-bottom-shadow {{gbDisArrApp.length == parentIndex + 1 ? 'is-last' : ''}}"
+            wx:for="{{dis.arr}}" wx:for-item="item" wx:key="gbDepartmentId"
+            bindtap="toDepOrdersGb" data-id="{{dis.isJczbBridge ? item.nxDepFatherId : -1}}"
             data-item="{{item.gbDep}}" data-name="{{item.gbDep.gbDepartmentName}}"
             data-time="{{dis.orderDisId.gbDistributerSettleTimes}}" data-gbid="{{item.gbDep.gbDepartmentId}}" data-resid="-1"
             data-nxdisid="-1" data-gbdisid="{{item.gbDep.gbDepartmentDisId}}"
-            data-todepid="{{dis.orderDisId.appSupplierDepartment.gbDepartmentId}}" data-comid="-1" hover-class="hover">
+            data-todepid="{{dis.orderDisId.appSupplierDepartment.gbDepartmentId}}" data-comid="-1"
+            data-nxdepid="{{item.nxDepFatherId}}" data-depsub="{{item.depHasSubs}}" data-nxdep="{{item.nxDep}}"
+            data-bridge="{{dis.isJczbBridge ? 1 : 0}}"
+            hover-class="hover">
             <view class="flex-row-default" style="width:{{windowWidth - 80}}rpx;  ">
               <view class="flex-column">
                 <view class="flex-row">

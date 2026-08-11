@@ -65,11 +65,7 @@
 				</view>
 			</view>
 
-			<view class="p-20flex-column">
-				<view class="p-20font-lg fifty_weight" style="text-align:right;">{{bill.nxDbTotal}}元</view>
 			</view>
-
-		</view>
 		<!--  ./ hasSubs == 0 -->
 
 		<!-- hasSubs == 1 -->
@@ -108,16 +104,28 @@
 				</view>
 			</view>
 
-			<view class="p-20flex-column">
+			</view>
+			<!--  ./ hasSubs == 1 -->
 
-				<view class="p-20font-lg fifty_weight" style="text-align:right;">{{bill.nxDbTotal}}元</view>
+			<view class="bill-amount-card">
+				<view class="bill-amount-row">
+					<text>商品小计</text>
+					<text class="bill-amount-value">¥{{bill.nxDbGoodsAmount || bill.nxDbTotal || '0.00'}}</text>
+				</view>
+				<view class="bill-amount-row" wx:if="{{bill.nxDbCouponDiscountAmount > 0}}">
+					<text>优惠<text class="bill-coupon-name">（{{bill.nxDbCouponName || '优惠券'}}）</text></text>
+					<text class="bill-discount-value">-¥{{bill.nxDbCouponDiscountAmount}}</text>
+				</view>
+				<view class="bill-amount-row" wx:if="{{bill.nxDbDeliveryFee > 0}}">
+					<text>配送费</text>
+					<text class="bill-amount-value">¥{{bill.nxDbDeliveryFee}}</text>
+				</view>
+				<view class="bill-pay-row">
+					<text>实付金额</text>
+					<text class="bill-pay-value">¥{{bill.nxDbPayAmount || bill.nxDbTotal || '0.00'}}</text>
+				</view>
 			</view>
 		</view>
-		<!--  ./ hasSubs == 1 -->
-
-
-
-	</view>
 
 
   <view class="bottom_btn show " bindtap="settleAccount">
@@ -126,7 +134,5 @@
 
 
 </view>
-
-
 
 

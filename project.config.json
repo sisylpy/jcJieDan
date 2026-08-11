@@ -45,6 +45,10 @@
         "type": "folder"
       },
       {
+        "value": "scripts",
+        "type": "folder"
+      },
+      {
         "value": "cankao",
         "type": "folder"
       },

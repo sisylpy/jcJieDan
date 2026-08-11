@@ -2143,7 +2143,7 @@ Page({
         mask: true
       });
       
-      wx.downloadFile({
+      getApp().ownerDownloadFile({
         url: filePath,
         success: (res) => {
           wx.hideLoading();

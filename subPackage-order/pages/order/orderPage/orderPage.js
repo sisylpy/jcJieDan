@@ -209,11 +209,12 @@ Page({
 
   _normalizeOrderPageData(data) {
     if (!data || !data.arr) return data;
+    var page = this;
     if (this.data.depHasSubs > 0) {
       data.arr.forEach(function (dep) {
         if (dep.depOrders && dep.depOrders.length) {
           dep.depOrders = dep.depOrders.map(function (order) {
-            return platformDisplay.normalizeOrder(order);
+            return page._decorateCustomerStandards(platformDisplay.normalizeOrder(order));
           });
           var platformCount = dep.depOrders.filter(function (o) { return o.isPlatformOrder === 1; }).length;
           console.log('[platformOrder] #' + dep.depName + ' 平台行:', platformCount, '/', dep.depOrders.length);
@@ -221,12 +222,187 @@ Page({
       });
     } else {
       data.arr = data.arr.map(function (order) {
-        return platformDisplay.normalizeOrder(order);
+        return page._decorateCustomerStandards(platformDisplay.normalizeOrder(order));
       });
       var platformCount = data.arr.filter(function (o) { return o.isPlatformOrder === 1; }).length;
       console.log('[platformOrder] 平台行:', platformCount, '/', data.arr.length);
     }
+    return this._decorateJczbBatchGroups(data);
+  },
+
+  _decorateCustomerStandards(order) {
+    if (!order) return order;
+    var relation = order.nxDepartmentDisGoodsEntity || {};
+    var dimensionLabels = {
+      SIZE: '大小',
+      COLOR: '颜色',
+      FRESHNESS: '新鲜度',
+      ROOT: '根部',
+      PACKAGING: '包装',
+      SUBSTITUTE: '替代',
+      OTHER: '其他'
+    };
+    var displayItems = (relation.nxDepartmentDisGoodsStandardItems || [])
+      .filter(function (item) {
+        return item && (!item.nxDdgsiStatus || item.nxDdgsiStatus === 'ACTIVE')
+          && String(item.nxDdgsiRequirementText || '').trim();
+      })
+      .map(function (item) {
+        var importance = Number(item.nxDdgsiImportanceLevel || 1);
+        importance = isNaN(importance) ? 1 : Math.max(1, Math.min(5, Math.round(importance)));
+        var code = item.nxDdgsiDimensionCode || 'OTHER';
+        return {
+          id: item.nxDdgsiId,
+          label: (code === 'OTHER' && item.nxDdgsiDimensionName)
+            ? item.nxDdgsiDimensionName
+            : (dimensionLabels[code] || item.nxDdgsiDimensionName || '其他'),
+          text: String(item.nxDdgsiRequirementText || '').trim(),
+          importance: importance
+        };
+      });
+
+    var knownTexts = {};
+    displayItems.forEach(function (item) { knownTexts[item.text] = true; });
+    [
+      { label: '分拣', text: relation.nxDdgPickDetail },
+      { label: '商品', text: relation.nxDdgDepGoodsDetail },
+      { label: '备注', text: relation.nxDdgOrderRemark }
+    ].forEach(function (legacy) {
+      var text = String(legacy.text || '').trim();
+      if (text && text !== 'null' && !knownTexts[text]) {
+        displayItems.push({
+          id: 'legacy-' + legacy.label,
+          label: legacy.label,
+          text: text,
+          importance: 3
+        });
+        knownTexts[text] = true;
+      }
+    });
+
+    displayItems.forEach(function (item) {
+      var importance = Number(item.importance || 1);
+      importance = isNaN(importance) ? 1 : Math.max(1, Math.min(5, Math.round(importance)));
+      item.importance = importance;
+      item.importanceStars = [1, 2, 3, 4, 5].map(function (level) {
+        return { level: level };
+      });
+    });
+
+    order._customerStandardItems = displayItems;
+    order._hasCustomerStandards = displayItems.length > 0;
+    return order;
+  },
+
+  /**
+   * 精彩账本多次转发仍属于同一张配送账单，这里只按来源批次分组展示，
+   * 不拆单、不改变订单保存和结算逻辑。
+   */
+  _decorateJczbBatchGroups(data) {
+    var orderLists = [];
+    if (this.data.depHasSubs > 0) {
+      (data.arr || []).forEach(function (dep) {
+        orderLists.push(dep.depOrders || []);
+      });
+    } else {
+      orderLists.push(data.arr || []);
+    }
+
+    var groups = {};
+    var self = this;
+    orderLists.forEach(function (orders) {
+      orders.forEach(function (order, index) {
+        order._originalOrderIndex = index;
+        var gbOrderId = order.nxDoGbDepartmentOrderId;
+        if (gbOrderId === null || gbOrderId === undefined || gbOrderId === ''
+          || Number(gbOrderId) >= 0) {
+          return;
+        }
+
+        var rawTime = order.nxDoApplyFullTime || order.nxDoApplyOnlyTime || '';
+        var minuteKey = String(rawTime).substring(0, 16);
+        var groupKey = order.nxDoOrderGroupNo || ('JCZB-TIME-' + minuteKey);
+        order._jczbBatchKey = groupKey;
+
+        if (!groups[groupKey]) {
+          groups[groupKey] = {
+            key: groupKey,
+            rawTime: rawTime,
+            timeLabel: self._formatJczbForwardTime(rawTime),
+            orderCount: 0,
+            subtotal: 0
+          };
+        }
+        groups[groupKey].orderCount += 1;
+        var subtotal = Number(order.nxDoSubtotal);
+        if (!isNaN(subtotal)) {
+          groups[groupKey].subtotal += subtotal;
+        }
+      });
+    });
+
+    var groupList = Object.keys(groups).map(function (key) {
+      return groups[key];
+    });
+    groupList.sort(function (a, b) {
+      var aTime = String(a.rawTime || '');
+      var bTime = String(b.rawTime || '');
+      if (aTime !== bTime) {
+        return aTime < bTime ? -1 : 1;
+      }
+      return a.key < b.key ? -1 : (a.key > b.key ? 1 : 0);
+    });
+
+    var groupRank = {};
+    groupList.forEach(function (group, index) {
+      group.index = index + 1;
+      group.subtotalText = group.subtotal.toFixed(1);
+      groupRank[group.key] = index;
+    });
+
+    orderLists.forEach(function (orders) {
+      orders.sort(function (a, b) {
+        var aKey = a._jczbBatchKey;
+        var bKey = b._jczbBatchKey;
+        if (aKey && bKey) {
+          var rankDiff = groupRank[aKey] - groupRank[bKey];
+          return rankDiff || (a._originalOrderIndex - b._originalOrderIndex);
+        }
+        if (aKey) return -1;
+        if (bKey) return 1;
+        return a._originalOrderIndex - b._originalOrderIndex;
+      });
+
+      var previousKey = null;
+      orders.forEach(function (order) {
+        order._showJczbBatchHeader = false;
+        if (!order._jczbBatchKey) {
+          previousKey = null;
+          return;
+        }
+        var group = groups[order._jczbBatchKey];
+        order._showJczbBatchHeader = order._jczbBatchKey !== previousKey;
+        order._jczbBatchTitle = '第' + group.index + '次转发';
+        order._jczbBatchTime = group.timeLabel;
+        order._jczbBatchOrderCount = group.orderCount;
+        order._jczbBatchSubtotal = group.subtotalText;
+        previousKey = order._jczbBatchKey;
+      });
+    });
+
+    data.jczbBatchCount = groupList.length;
+    data.hasMultipleJczbBatches = groupList.length > 1;
+    console.log('[精彩账本批次] 批次数:', data.jczbBatchCount, groupList);
     return data;
+  },
+
+  _formatJczbForwardTime(value) {
+    var match = String(value || '').match(/(\d{1,2}):(\d{2})/);
+    if (!match) {
+      return '时间待同步';
+    }
+    var hour = match[1].length < 2 ? '0' + match[1] : match[1];
+    return hour + ':' + match[2];
   },
 
   _initData() {
@@ -320,6 +496,8 @@ Page({
             totalCount: res.result.data.totalCount,
             hasPriceCount: res.result.data.hasPriceCount,
             hasWeightCount: res.result.data.hasWeightCount,
+            jczbBatchCount: res.result.data.jczbBatchCount || 0,
+            hasMultipleJczbBatches: !!res.result.data.hasMultipleJczbBatches,
             isKgMode: isKgMode,
           })
           if (this.data.depHasSubs > 0) {
@@ -379,6 +557,8 @@ Page({
             totalCount: res.result.data.totalCount,
             hasPriceCount: res.result.data.hasPriceCount,
             hasWeightCount: res.result.data.hasWeightCount,
+            jczbBatchCount: res.result.data.jczbBatchCount || 0,
+            hasMultipleJczbBatches: !!res.result.data.hasMultipleJczbBatches,
           })
           if (this.data.depHasSubs > 0) {
             this.setData({
@@ -686,7 +866,9 @@ Page({
       wx.navigateTo({
         url: '../resGoodsList/resGoodsList?depFatherId=' + this.data.depFatherId +
           '&depId=' + this.data.depId + '&depName=' + depName +
-          '&gbDepFatherId=-1&depSettleType=' + this.data.depSettleType +
+          '&gbDepFatherId=' + (this.data.gbDepFatherId || -1) +
+          '&gbDisId=' + (this.data.gbDisId || -1) +
+          '&depSettleType=' + this.data.depSettleType +
           '&beforeId=-1' + '&businessTypeId=' + this.data.businessTypeId,
       })
     }
@@ -706,7 +888,9 @@ Page({
     wx.navigateTo({
       url: '../resGoodsList/resGoodsList?depFatherId=' + this.data.depFatherId +
         '&depId=' + this.data.depId + '&depName=' + depName +
-        '&gbDepFatherId=-1&depSettleType=' + this.data.depSettleType +
+        '&gbDepFatherId=' + (this.data.gbDepFatherId || -1) +
+        '&gbDisId=' + (this.data.gbDisId || -1) +
+        '&depSettleType=' + this.data.depSettleType +
         '&beforeId=' + e.currentTarget.dataset.id,
     })
   },
@@ -747,7 +931,9 @@ Page({
         wx.navigateTo({
           url: '../resGoodsList/resGoodsList?depFatherId=' + this.data.depFatherId +
             '&depId=' + this.data.depId + '&depName=' + this.data.depName +
-            '&gbDepFatherId=-1&depSettleType=' + this.data.depSettleType +
+            '&gbDepFatherId=' + (this.data.gbDepFatherId || -1) +
+            '&gbDisId=' + (this.data.gbDisId || -1) +
+            '&depSettleType=' + this.data.depSettleType +
             '&beforeId=-1' + '&businessTypeId=' + this.data.businessTypeId,
         })
       }
@@ -2364,9 +2550,6 @@ Page({
   },
 
   _resolveSelectedUserCouponId() {
-    if (!this._isCashSettle()) {
-      return null;
-    }
     var preview = this.data.orderPreview;
     if (!preview || !preview.bestCoupon) {
       return null;
@@ -2575,11 +2758,9 @@ Page({
       }
     }
 
-    // 是否有运费：存在实际运费(>0) 或 存在有效运费规则(非 NO_RULE)
-    var hasFee = !isSelfPickup && (deliveryFeeNum > 0 || (data.feeMode && data.feeMode !== 'NO_RULE'));
-    // 是否有优惠券：有折扣 或 有可用/不可用券
-    var hasCoupon = hasCouponDiscount || availableCoupons.length > 0 || unavailableCoupons.length > 0;
-    // 既无运费也无优惠券时整块不展示
+    // 底部费用栏只展示本单实际产生的配送费或优惠金额；仅有规则/券记录不改变原页面结构。
+    var hasFee = !isSelfPickup && deliveryFeeNum > 0;
+    var hasCoupon = hasCouponDiscount;
     var showFeeCard = hasFee || hasCoupon;
     return {
       goodsAmount: this._moneyText(data.goodsAmount),
@@ -2619,17 +2800,26 @@ Page({
     };
   },
 
-
   _isCashSettle() {
     var depInfo = this.data.depInfo;
     return depInfo && Number(depInfo.nxDepartmentSettleType) === 0;
   },
 
+  _isJczbOrderPage() {
+    return this.data.jczbBridge || this._collectAllOrders().some(function (order) {
+      return order && Number(order.nxDoGbDepartmentOrderId) < 0;
+    });
+  },
+
+  _canShowUnifiedSettlement() {
+    return this._isCashSettle() || this._isJczbOrderPage();
+  },
+
+
   _afterOrderDataLoaded() {
-    console.log("_afterOrderDataLoaded_afterOrderDataLoaded")
-    var showCashSettle = this._isCashSettle();
-    this.setData({ showCashSettle: showCashSettle });
-    if (!showCashSettle) {
+    var showUnifiedSettlement = this._canShowUnifiedSettlement();
+    this.setData({ showCashSettle: showUnifiedSettlement });
+    if (!showUnifiedSettlement) {
       this.setData({ orderPreview: null, orderPreviewLoading: false });
       return;
     }
@@ -2637,19 +2827,18 @@ Page({
   },
 
   _refreshOrderPreview() {
-    if (!this._isCashSettle()) {
+    if (!this._canShowUnifiedSettlement()) {
       this.setData({ orderPreview: null, orderPreviewLoading: false });
       return;
     }
-
     var unbilledOrders = this._collectUnbilledPreviewOrders();
     var distributerId = this.data.nxDisId || this.data.disId;
-    if (!unbilledOrders.length || !distributerId) {
+    if (!distributerId) {
       this.setData({ orderPreview: null, orderPreviewLoading: false });
       return;
     }
 
-    var departmentId = unbilledOrders[0].nxDoDepartmentId || this._resolvePreviewDepartmentId();
+    var departmentId = this._resolvePreviewDepartmentId();
     if (!departmentId) {
       this.setData({ orderPreview: null, orderPreviewLoading: false });
       return;
@@ -2662,23 +2851,18 @@ Page({
       .map(function (order) {
         return order.nxDepartmentOrdersId;
       });
-
-    if (!orderIds.length) {
-      this.setData({ orderPreview: null, orderPreviewLoading: false });
-      return;
-    }
-
     var payload = {
       distributerId: distributerId,
       departmentId: departmentId,
       orderIds: orderIds,
     };
-
     this.setData({ orderPreviewLoading: true });
     orderGroupPreview(payload).then(function (res) {
       if (res.result && res.result.code === 0) {
+        var responseData = res.result.data || {};
+        var processedPreview = this._processOrderPreview(responseData);
         this.setData({
-          orderPreview: this._processOrderPreview(res.result.data),
+          orderPreview: processedPreview,
           orderPreviewLoading: false,
         });
       } else {

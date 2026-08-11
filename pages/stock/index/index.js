@@ -44,7 +44,7 @@ Component({
     
     // 打印机相关
     printOk: false, // 打印机连接状态
-    paperSize: wx.getStorageSync('paperSize') || 1, // 标签尺寸：1-小，2-中，3-大
+    paperSize: wx.getStorageSync('paperSize') || 1, // 1-小横，2-中竖，3-大竖，4-大横
     refresherTriggered: false,
 },
 
@@ -318,9 +318,9 @@ Component({
     setPaperSize() {
       var that = this;
       wx.showActionSheet({
-        itemList: ['4*3cm（横）', '4*6cm（竖）', '5*8cm（竖）'],
+        itemList: ['4*3cm（横）', '4*6cm（竖）', '5*8cm（竖）', '5*8cm（横）'],
         success: function(res) {
-          var selectedSize = res.tapIndex + 1; // 0,1,2 转为 1,2,3
+          var selectedSize = res.tapIndex + 1;
           that.setData({
             paperSize: selectedSize
           });
@@ -3260,7 +3260,7 @@ Component({
         var printData = labelPrinter.quickPrint([order], {
           paperSizeId: cachedPaperSize,
           goodsItem: goodsItem,
-          printRemark: cachedPaperSize === 3 // 仅 5*8cm 标签打印备注
+          printRemark: cachedPaperSize === 3 || cachedPaperSize === 4
         });
         
         if (!printData || printData.length === 0) {

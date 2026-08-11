@@ -13,7 +13,6 @@ import {
 } from '../../../../lib/apiDistributer';
 
 import apiUrl from '../../../../config.js';
-const config = require('../../../../config.js');
 const globalData = getApp().globalData;
 Page({
   data: {
@@ -549,9 +548,6 @@ Page({
     // 调用异步接口上传图片
     return recognizeOrderAsync({
       ImageBase64: imageBase64,
-      // 传递腾讯云配置给后端（如果后端需要）
-      SecretId: config.tencentCloud?.secretId || '',
-      SecretKey: config.tencentCloud?.secretKey || '',
       Action: 'GeneralAccurateOCR', // OCR 接口名称
       Version: '2018-11-19', // OCR 接口版本
       depId: depId,

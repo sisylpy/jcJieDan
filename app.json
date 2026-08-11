@@ -27,6 +27,7 @@
       "pages/customer/jrdhGoodsStars/jrdhGoodsStars",
       "pages/customer/customerPage/customerPage",
       "pages/customer/customerGoods/customerGoods",
+      "pages/customer/customerGoodsStandard/customerGoodsStandard",
       "pages/customer/customerPdf/customerPdf",
       "pages/customer/customerGoodsPrice/customerGoodsPrice",
       "pages/customer/collNxDisGoodsPrice/collNxDisGoodsPrice",
@@ -83,6 +84,14 @@
       "pages/management/payDetail/payDetail",
       "pages/management/deliveryStrategy/deliveryStrategy",
       "pages/management/distributerCoupon/distributerCoupon",
+      "pages/management/distributerCoupon/couponEdit",
+      "pages/management/distributerCoupon/couponGoodsPicker",
+      "pages/management/compensationCoupon/compensationCoupon",
+      "pages/management/compensationCoupon/compensationCouponEdit",
+
+      "pages/afterSales/index/index",
+      "pages/afterSales/create/create",
+      "pages/afterSales/detail/detail",
 
        "pages/offerNx/offerNxDistributerList/offerNxDistributerList",
        "pages/offerNx/inviteOfferDis/inviteOfferDis",

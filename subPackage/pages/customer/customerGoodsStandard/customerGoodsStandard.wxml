@@ -1,0 +1,356 @@
+<view class="standard-page">
+  <back-navbar
+    style="height: {{navBarHeight}}rpx;"
+    title="客户商品标准"
+    avatar="/images/back-gray.png"
+    bindnavbuttontap="toBack"
+  ></back-navbar>
+
+  <view class="goods-summary">
+    <view class="goods-summary-top">
+      <text class="goods-summary-name">{{customerGoodsName || goodsName}}</text>
+      <text class="goods-summary-tag">客户专属</text>
+    </view>
+    <text class="goods-summary-customer" wx:if="{{departmentName}}">{{departmentName}}</text>
+    <text class="goods-summary-alias" wx:if="{{goodsName && customerGoodsName && customerGoodsName !== goodsName}}">配送商商品：{{goodsName}}</text>
+  </view>
+
+  <scroll-view class="page-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="page-content">
+      <view class="goods-relation-card" wx:if="{{pageMode === 'view' && !pageLoading && !pageError}}">
+        <view class="goods-relation-heading">
+          <view>
+            <text class="goods-relation-eyebrow">DELIVERY GOODS</text>
+            <text class="goods-relation-title">关联配送商商品</text>
+          </view>
+          <view class="goods-relation-change" bindtap="openGoodsRelationPicker">更换商品 ›</view>
+        </view>
+        <view class="linked-goods">
+          <image class="linked-goods-image" wx:if="{{linkedDisGoodsImage}}" src="{{linkedDisGoodsImage}}" mode="aspectFill"></image>
+          <view class="linked-goods-placeholder" wx:else>货</view>
+          <view class="linked-goods-main">
+            <view class="linked-goods-name-row">
+              <text class="linked-goods-name">{{linkedDisGoodsName || '未配置配送商商品'}}</text>
+              <text class="linked-goods-id" wx:if="{{linkedDisGoodsId}}">#{{linkedDisGoodsId}}</text>
+            </view>
+            <text class="linked-goods-meta" wx:if="{{linkedDisGoodsBrand || linkedDisGoodsStandardName}}">{{linkedDisGoodsBrand}}{{linkedDisGoodsBrand && linkedDisGoodsStandardName ? ' · ' : ''}}{{linkedDisGoodsStandardName}}</text>
+            <text class="linked-goods-detail" wx:if="{{linkedDisGoodsDetail}}">{{linkedDisGoodsDetail}}</text>
+          </view>
+        </view>
+        <text class="goods-relation-tip">客户标准、备注仍属于当前客户商品；这里只决定实际使用配送商的哪一个商品。</text>
+      </view>
+
+      <!-- 当前标准 -->
+      <block wx:if="{{pageMode === 'view'}}">
+        <view class="loading-card" wx:if="{{pageLoading}}">
+          <view class="loading-dot"></view>
+          <text>正在加载客户标准</text>
+        </view>
+
+        <view class="error-card" wx:elif="{{pageError}}">
+          <text class="error-title">暂时无法加载</text>
+          <text class="error-message">{{pageError}}</text>
+          <view class="retry-button" bindtap="retryLoad">重新加载</view>
+        </view>
+
+        <block wx:else>
+          <view class="section-title-row">
+            <view>
+              <text class="section-eyebrow">CURRENT STANDARD</text>
+              <text class="section-title">客户标准</text>
+            </view>
+            <view class="history-link" bindtap="openHistory">修改记录 ›</view>
+          </view>
+
+          <view class="empty-standard" wx:if="{{!standardHasContent}}">
+            <view class="empty-standard-icon">标</view>
+            <text class="empty-standard-title">还没有客户商品标准</text>
+            <text class="empty-standard-desc">添加文字要求和图片后，采购、分拣时能更快看懂客户偏好。</text>
+            <view class="primary-action compact" bindtap="openEdit">添加客户标准</view>
+          </view>
+
+          <block wx:else>
+            <view class="dimension-section" wx:for="{{standardGroups}}" wx:key="code" wx:for-item="group">
+              <view class="dimension-header">
+                <text class="dimension-name">{{group.name}}</text>
+                <text class="dimension-count">{{group.items.length}} 条要求</text>
+              </view>
+
+              <view
+                class="requirement-card {{item.importanceLevel === 5 ? 'critical' : ''}}"
+                wx:for="{{group.items}}"
+                wx:key="itemId"
+                wx:for-item="item"
+              >
+                <view class="requirement-top">
+                  <text class="requirement-text">{{item.requirementText}}</text>
+                  <view class="importance-badge level-{{item.importanceLevel}}">
+                    <text>{{item.stars}}</text>
+                    <text wx:if="{{item.importanceLevel === 5}}"> 关键</text>
+                  </view>
+                </view>
+
+                <view class="image-role-section" wx:for="{{item.imageSections}}" wx:key="role" wx:for-item="section">
+                  <view class="role-heading role-{{section.className}}">
+                    <view class="role-dot"></view>
+                    <text>{{section.name}}</text>
+                    <text class="role-warning" wx:if="{{section.role === 'PROHIBITED'}}">这个样子不能给客户</text>
+                  </view>
+                  <view class="standard-image-grid">
+                    <view
+                      class="standard-image-card {{section.role === 'PROHIBITED' ? 'prohibited-image' : ''}}"
+                      wx:for="{{section.images}}"
+                      wx:key="imageId"
+                      wx:for-item="image"
+                      bindtap="previewStandardImage"
+                      data-url="{{image.previewUrl}}"
+                    >
+                      <image class="standard-image" src="{{image.previewUrl}}" mode="aspectFill"></image>
+                      <text class="image-caption" wx:if="{{image.description}}">{{image.description}}</text>
+                      <text class="prohibited-corner" wx:if="{{section.role === 'PROHIBITED'}}">禁止</text>
+                    </view>
+                  </view>
+                </view>
+              </view>
+            </view>
+
+            <view class="dimension-section" wx:if="{{generalImageSections.length}}">
+              <view class="dimension-header">
+                <text class="dimension-name">整体参考</text>
+                <text class="dimension-count">未绑定具体要求</text>
+              </view>
+              <view class="requirement-card">
+                <view class="image-role-section" wx:for="{{generalImageSections}}" wx:key="role" wx:for-item="section">
+                  <view class="role-heading role-{{section.className}}">
+                    <view class="role-dot"></view>
+                    <text>{{section.name}}</text>
+                    <text class="role-warning" wx:if="{{section.role === 'PROHIBITED'}}">这个样子不能给客户</text>
+                  </view>
+                  <view class="standard-image-grid">
+                    <view
+                      class="standard-image-card {{section.role === 'PROHIBITED' ? 'prohibited-image' : ''}}"
+                      wx:for="{{section.images}}"
+                      wx:key="imageId"
+                      wx:for-item="image"
+                      bindtap="previewStandardImage"
+                      data-url="{{image.previewUrl}}"
+                    >
+                      <image class="standard-image" src="{{image.previewUrl}}" mode="aspectFill"></image>
+                      <text class="image-caption" wx:if="{{image.description}}">{{image.description}}</text>
+                      <text class="prohibited-corner" wx:if="{{section.role === 'PROHIBITED'}}">禁止</text>
+                    </view>
+                  </view>
+                </view>
+              </view>
+            </view>
+
+            <view class="view-actions">
+              <view class="primary-action" bindtap="openEdit">编辑标准</view>
+              <view class="secondary-action" bindtap="openHistory">查看修改记录</view>
+            </view>
+          </block>
+        </block>
+      </block>
+
+      <!-- 编辑标准 -->
+      <block wx:elif="{{pageMode === 'edit'}}">
+        <view class="edit-intro">
+          <text class="edit-intro-title">编辑客户标准</text>
+          <text class="edit-intro-desc">同一维度可以添加多条要求。重要度越高，在查看页越靠前。</text>
+        </view>
+
+        <view class="editor-section">
+          <view class="editor-section-header">
+            <view>
+              <text class="editor-section-title">文字要求</text>
+              <text class="editor-section-count">{{editItems.length}} 条</text>
+            </view>
+            <view class="add-text-button" bindtap="addStandardItem">＋ 新增要求</view>
+          </view>
+
+          <view class="empty-editor-tip" wx:if="{{!editItems.length}}">先添加一条文字要求，例如“大小：小颗”。</view>
+
+          <view class="item-editor-card" wx:for="{{editItems}}" wx:key="uiKey" wx:for-item="item" wx:for-index="itemIndex">
+            <view class="editor-card-top">
+              <text class="editor-card-number">要求 {{itemIndex + 1}}</text>
+              <text class="danger-link" bindtap="removeStandardItem" data-index="{{itemIndex}}">{{item.isNew ? '移除' : '失效'}}</text>
+            </view>
+            <view class="form-row two-columns">
+              <view class="form-field">
+                <text class="form-label">标准维度</text>
+                <picker range="{{dimensionOptions}}" range-key="name" value="{{item.dimensionIndex}}" bindchange="onItemDimensionChange" data-index="{{itemIndex}}">
+                  <view class="picker-field">{{dimensionOptions[item.dimensionIndex].name}} <text>⌄</text></view>
+                </picker>
+              </view>
+              <view class="form-field">
+                <text class="form-label">重要程度</text>
+                <picker range="{{importanceOptions}}" range-key="name" value="{{item.importanceIndex}}" bindchange="onItemImportanceChange" data-index="{{itemIndex}}">
+                  <view class="picker-field importance-field">{{importanceOptions[item.importanceIndex].name}} <text>⌄</text></view>
+                </picker>
+              </view>
+            </view>
+            <view class="form-field full-field">
+              <text class="form-label">简短要求</text>
+              <input
+                class="text-input"
+                maxlength="200"
+                placeholder="例如：小颗、不能有黄叶、禁止替代"
+                value="{{item.requirementText}}"
+                bindinput="onItemTextInput"
+                data-index="{{itemIndex}}"
+              />
+            </view>
+          </view>
+        </view>
+
+        <view class="editor-section image-editor-section">
+          <view class="editor-section-header image-header">
+            <view>
+              <text class="editor-section-title">标准图片</text>
+              <text class="editor-section-count">{{editImages.length}} 张</text>
+            </view>
+            <view class="add-image-button" bindtap="chooseStandardImages">＋ 添加图片</view>
+          </view>
+          <view class="upload-rule-tip">
+            <text>支持 JPG、PNG、WEBP，单张不超过10MB，本批最多添加20张。</text>
+            <text>正式图片换图：先将旧图失效，再上传新图。</text>
+          </view>
+
+          <view class="empty-editor-tip" wx:if="{{!editImages.length}}">可添加合格参考、禁止示例或普通参考图。</view>
+
+          <view class="image-editor-card" wx:for="{{editImages}}" wx:key="uiKey" wx:for-item="image" wx:for-index="imageIndex">
+            <view class="edit-image-preview-wrap" bindtap="previewEditImage" data-url="{{image.previewUrl}}">
+              <image class="edit-image-preview" src="{{image.previewUrl}}" mode="aspectFill"></image>
+              <view class="upload-cover" wx:if="{{image.uploadStatus === 'uploading'}}">
+                <text>{{image.uploadProgress}}%</text>
+                <view class="upload-track"><view class="upload-progress" style="width: {{image.uploadProgress}}%;"></view></view>
+              </view>
+              <view class="upload-failed-cover" wx:if="{{image.uploadStatus === 'failed'}}">上传失败</view>
+              <text class="saved-image-tag" wx:if="{{!image.isNew}}">正式图片</text>
+            </view>
+
+            <view class="image-editor-fields">
+              <view class="form-row two-columns">
+                <view class="form-field">
+                  <text class="form-label">图片角色</text>
+                  <picker range="{{imageRoleOptions}}" range-key="name" value="{{image.roleIndex}}" bindchange="onImageRoleChange" data-index="{{imageIndex}}">
+                    <view class="picker-field role-value-{{image.roleClass}}">{{imageRoleOptions[image.roleIndex].name}} <text>⌄</text></view>
+                  </picker>
+                </view>
+                <view class="form-field">
+                  <text class="form-label">重要程度</text>
+                  <picker range="{{importanceOptions}}" range-key="name" value="{{image.importanceIndex}}" bindchange="onImageImportanceChange" data-index="{{imageIndex}}">
+                    <view class="picker-field">{{importanceOptions[image.importanceIndex].name}} <text>⌄</text></view>
+                  </picker>
+                </view>
+              </view>
+
+              <view class="form-field full-field">
+                <text class="form-label">属于哪条要求（可不选）</text>
+                <picker range="{{imageBindOptions}}" range-key="name" value="{{image.bindIndex}}" bindchange="onImageBindChange" data-index="{{imageIndex}}">
+                  <view class="picker-field bind-picker">{{imageBindOptions[image.bindIndex].name}} <text>⌄</text></view>
+                </picker>
+              </view>
+
+              <view class="form-field full-field">
+                <text class="form-label">图片说明（可选）</text>
+                <input class="text-input" maxlength="200" placeholder="例如：叶片颜色以这张为准" value="{{image.description}}" bindinput="onImageDescriptionInput" data-index="{{imageIndex}}" />
+              </view>
+
+              <view class="image-card-actions">
+                <view class="retry-image-button" wx:if="{{image.uploadStatus === 'failed'}}" bindtap="retryStandardImage" data-key="{{image.uiKey}}">重新上传</view>
+                <view class="remove-image-button" bindtap="removeStandardImage" data-index="{{imageIndex}}">{{image.isNew ? '删除待保存图片' : '将正式图片失效'}}</view>
+              </view>
+              <text class="upload-error-text" wx:if="{{image.uploadStatus === 'failed'}}">{{image.uploadError}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="edit-bottom-spacer"></view>
+      </block>
+
+      <!-- 修改记录 -->
+      <block wx:elif="{{pageMode === 'history'}}">
+        <view class="section-title-row history-title-row">
+          <view>
+            <text class="section-eyebrow">CHANGE HISTORY</text>
+            <text class="section-title">修改记录</text>
+          </view>
+        </view>
+        <view class="loading-card" wx:if="{{historyLoading}}">正在加载修改记录</view>
+        <view class="empty-standard history-empty" wx:elif="{{!historyList.length}}">
+          <text class="empty-standard-title">还没有修改记录</text>
+        </view>
+        <view class="timeline" wx:else>
+          <view class="timeline-item" wx:for="{{historyList}}" wx:key="versionNo" wx:for-item="history">
+            <view class="timeline-axis">
+              <view class="timeline-dot"></view>
+              <view class="timeline-line"></view>
+            </view>
+            <view class="history-card">
+              <text class="history-time">{{history.timeText}}</text>
+              <text class="history-title">{{history.title}}</text>
+              <view class="history-lines">
+                <text class="history-line" wx:for="{{history.lines}}" wx:key="*this" wx:for-item="line">{{line}}</text>
+              </view>
+              <text class="history-operator">操作人：{{history.operator}}</text>
+            </view>
+          </view>
+        </view>
+        <view class="view-actions">
+          <view class="secondary-action" bindtap="toBack">返回当前标准</view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <view class="relation-picker-mask" wx:if="{{showGoodsRelationPicker}}" bindtap="closeGoodsRelationPicker"></view>
+  <view class="relation-picker" wx:if="{{showGoodsRelationPicker}}">
+    <view class="relation-picker-head">
+      <view>
+        <text class="relation-picker-title">选择配送商商品</text>
+        <text class="relation-picker-subtitle">只显示当前配送商自己的商品</text>
+      </view>
+      <text class="relation-picker-close" bindtap="closeGoodsRelationPicker">关闭</text>
+    </view>
+    <view class="relation-search-row">
+      <input
+        class="relation-search-input"
+        placeholder="输入商品名称，例如油菜"
+        value="{{relationSearchText}}"
+        bindinput="onRelationSearchInput"
+        bindconfirm="onRelationSearchConfirm"
+        confirm-type="search"
+      />
+      <view class="relation-search-button" bindtap="onRelationSearchConfirm">搜索</view>
+    </view>
+    <scroll-view class="relation-result-list" scroll-y>
+      <view class="relation-loading" wx:if="{{relationSearching}}">正在搜索配送商商品…</view>
+      <view class="relation-empty" wx:elif="{{!relationSearchResults.length}}">没有找到配送商商品，请换一个关键词</view>
+      <view
+        class="relation-result {{item.current ? 'current' : ''}}"
+        wx:for="{{relationSearchResults}}"
+        wx:key="id"
+        bindtap="selectRelationGoods"
+        data-id="{{item.id}}"
+      >
+        <image class="relation-result-image" wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill"></image>
+        <view class="relation-result-placeholder" wx:else>货</view>
+        <view class="relation-result-main">
+          <text class="relation-result-name">{{item.name}}</text>
+          <text class="relation-result-meta" wx:if="{{item.brand || item.standardName}}">{{item.brand}}{{item.brand && item.standardName ? ' · ' : ''}}{{item.standardName}}</text>
+          <text class="relation-result-detail" wx:if="{{item.detail}}">{{item.detail}}</text>
+        </view>
+        <text class="relation-current-tag" wx:if="{{item.current}}">当前关联</text>
+        <text class="relation-select-arrow" wx:else>›</text>
+      </view>
+    </scroll-view>
+  </view>
+
+  <view class="edit-footer" wx:if="{{pageMode === 'edit'}}">
+    <view class="footer-cancel" bindtap="cancelEdit">取消</view>
+    <view class="footer-save {{savingStandard || uploadingCount ? 'disabled' : ''}}" bindtap="saveStandard">
+      {{savingStandard ? '保存中…' : uploadingCount ? '图片上传中 ' + uploadingCount : '保存本次修改'}}
+    </view>
+  </view>
+</view>

@@ -1,7 +1,15 @@
 
+import { ownerRequest, ownerUploadFile, ownerDownloadFile, ownerLogout, clearOwnerLoginState, hasUsableOwnerToken } from './lib/ownerRequest.js'
+
 console.log('=== 准备注册 App ===');
 
 App({
+    ownerRequest: ownerRequest,
+    ownerUploadFile: ownerUploadFile,
+    ownerDownloadFile: ownerDownloadFile,
+    ownerLogout: ownerLogout,
+    clearOwnerLoginState: clearOwnerLoginState,
+    hasUsableOwnerToken: hasUsableOwnerToken,
     onLaunch: function(options) {
       const windowInfo = wx.getWindowInfo();
       const device = wx.getDeviceInfo();

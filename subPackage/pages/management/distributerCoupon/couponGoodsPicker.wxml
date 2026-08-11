@@ -1,0 +1,64 @@
+<view class="goods-picker-page flex flex-column">
+  <back-navbar style="height: {{navBarHeight}}rpx;" avatar="/images/back-gray.png" title="选择商品" bindnavbuttontap="toBack"></back-navbar>
+
+  <view class="picker-search-bar">
+    <input class="picker-search-input" value="{{searchStr}}" bindinput="bindSearchInput" placeholder="输入商品名称搜索" confirm-type="search" bindconfirm="search"/>
+    <view class="picker-search-btn" bindtap="search">搜索</view>
+  </view>
+
+  <scroll-view scroll-y="true" class="picker-list-scroll">
+    <view class="picker-result" wx:for="{{results}}" wx:key="id" wx:for-index="idx" data-id="{{item.id}}" data-name="{{item.name}}" bindtap="toggleResult">
+      <view class="picker-result-main">
+        <text class="picker-result-index">{{idx + 1}}</text>
+        <view class="picker-result-body">
+          <view class="picker-result-title">
+            <text class="picker-result-brand" wx:if="{{item.brand}}">{{item.brand}}</text>
+            <text class="picker-result-name">{{item.name}}</text>
+            <text class="picker-result-detail" wx:if="{{item.detail}}">{{item.detail}}</text>
+          </view>
+
+          <view class="picker-row">
+            <text class="picker-label">规格:</text>
+            <text class="picker-val" wx:if="{{item.weight}}">{{item.weight}}/{{item.standardname}}</text>
+            <text class="picker-val" wx:else>{{item.standardname}}</text>
+          </view>
+
+          <view class="picker-row">
+            <text class="picker-label">外包装:</text>
+            <block wx:if="{{item.itemsPerCarton && item.cartonUnit}}">
+              <text class="picker-val">{{item.itemsPerCarton}}{{item.standardname}}/{{item.cartonUnit}}</text>
+            </block>
+            <block wx:elif="{{item.cartonUnit}}">
+              <text class="picker-val">{{item.cartonUnit}}</text>
+            </block>
+            <text class="picker-val" wx:else>无</text>
+          </view>
+
+          <view class="picker-row">
+            <text class="picker-label">订货规格:</text>
+            <text class="picker-val picker-standard">{{item.standardname}}</text>
+          </view>
+
+          <view class="picker-row picker-price-row">
+            <text class="picker-label picker-price-label">基本单位售价</text>
+            <text class="picker-val picker-price" wx:if="{{item.price}}">{{item.price}}元/{{item.standardname}}</text>
+            <text class="picker-val picker-price-muted" wx:else>未设置</text>
+            <block wx:if="{{item.priceTwo}}">
+              <text class="picker-label picker-price-label picker-ml">外包装售价</text>
+              <text class="picker-val picker-price">{{item.priceTwo}}元/{{item.priceTwoStandard || item.cartonUnit}}</text>
+            </block>
+          </view>
+
+          <text class="picker-result-place" wx:if="{{item.place}}">产地：{{item.place}}</text>
+        </view>
+      </view>
+      <view class="picker-check {{item.selected ? 'checked' : ''}}">{{item.selected ? '✓' : ''}}</view>
+    </view>
+    <view class="picker-empty" wx:if="{{empty}}">未找到商品，换个关键词试试</view>
+  </scroll-view>
+
+  <view class="picker-footer">
+    <text class="picker-count">已选 {{selectedItems.length}} 个</text>
+    <view class="picker-done-btn" bindtap="done">完成</view>
+  </view>
+</view>

@@ -119,7 +119,7 @@ Page({
     var modal = wantOn
       ? {
           title: '开启可派',
-          content: '开启后，「' + driver.driverName + '」将参与今日派车，确认开启？',
+          content: '开启后，「' + driver.driverName + '」会持续保持可派，直到手动关闭。确认开启？',
           duty: 'on'
         }
       : {
@@ -162,9 +162,15 @@ Page({
         icon: 'success'
       })
       that.loadPage()
-    }).catch(function () {
+    }).catch(function (error) {
       load.hideLoading()
       that.setData({ submitting: false })
+      wx.showToast({
+        title: (error && error.message) || '操作失败，请检查登录状态',
+        icon: 'none',
+        duration: 3000
+      })
+      that.loadPage()
     })
   },
 

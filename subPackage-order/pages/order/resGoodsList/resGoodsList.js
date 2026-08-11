@@ -17,6 +17,7 @@ import {
   saveCash,
   saveOrderBefore,
   saveCashBefore,
+  saveJczbProxyOrder,
 } from '../../../../lib/apiDepOrder.js'
 
 import {
@@ -93,6 +94,7 @@ Page({
       depId: options.depId,
       depName: options.depName,
       gbDepFatherId: options.gbDepFatherId,
+      gbDisId: options.gbDisId,
       depSettleType: options.depSettleType,
       businessTypeId: options.businessTypeId,
       beforeId: options.beforeId,
@@ -114,6 +116,25 @@ Page({
     
     console.log('resGoodsList 设置后的 fromOcrOrder:', this.data.fromOcrOrder);
 
+  },
+
+  _isJczbProxyCustomer: function () {
+    return Number(this.data.gbDisId) > 0 && Number(this.data.gbDepFatherId) > 0;
+  },
+
+  _saveCustomerOrder: function (order, cashOrder, beforeOrder) {
+    if (!this._isJczbProxyCustomer()) {
+      if (cashOrder) {
+        return beforeOrder ? saveCashBefore(order) : saveCash(order);
+      }
+      return beforeOrder ? saveOrderBefore(order) : saveOrder(order);
+    }
+    return saveJczbProxyOrder(order, {
+      gbDisId: this.data.gbDisId,
+      gbDepId: this.data.gbDepFatherId,
+      cashOrder: cashOrder,
+      beforeOrder: beforeOrder,
+    });
   },
 
 
@@ -817,7 +838,7 @@ Page({
     console.log('准备保存订单，beforeId:', this.data.beforeId, 'fromOcrOrder:', this.data.fromOcrOrder);
     if (this.data.beforeId !== '-1') {
       console.log('使用 saveOrderBefore');
-      saveOrderBefore(dg).then(res => {
+      this._saveCustomerOrder(dg, false, true).then(res => {
         console.log('saveOrderBefore 返回:', res.result.code);
         if (res.result.code == 0) {
           // 如果是从 ocrOrder 页面跳转过来的，需要特殊处理
@@ -917,7 +938,7 @@ Page({
       })
     } else {
       console.log('使用 saveOrder');
-      saveOrder(dg).then(res => {
+      this._saveCustomerOrder(dg, false, false).then(res => {
         console.log('saveOrder 返回:', res.result.code, 'fromOcrOrder:', this.data.fromOcrOrder);
         if (res.result.code == 0) {
           // 如果是从 ocrOrder 页面跳转过来的，保存后自动返回
@@ -1574,7 +1595,7 @@ Page({
     console.log("[resGoodsList] _saveOrderCash saveCash dg", dg);
     var that = this;
     if (this.data.beforeId !== '-1') {
-      saveCashBefore(dg).then(res => {
+      this._saveCustomerOrder(dg, true, true).then(res => {
         if (res.result.code == 0) {
           var pages = getCurrentPages();
           var prevPage = pages[pages.length - 2]; //上一个页面
@@ -1595,7 +1616,7 @@ Page({
       })
 
     } else {
-      saveCash(dg).then(res => {
+      this._saveCustomerOrder(dg, true, false).then(res => {
         if (res.result.code == 0) {
           wx.showToast({
             title: '保存成功',

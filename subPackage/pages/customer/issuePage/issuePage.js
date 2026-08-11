@@ -10,6 +10,7 @@ import {
   updateOrderReturn,
   updateBillOrders,
 } from '../../../../lib/apiDepOrder'
+import { getDispatchDeliveryToday } from '../../../../lib/apiRouteDispatch'
 
 
 Page({
@@ -71,20 +72,157 @@ Page({
     getBillApplys(data).then(res =>{
       load.hideLoading();
       if(res.result.code == 0){
+          var bill = res.result.data.bill;
+          var applyArr = res.result.data.arr || [];
+          this._decorateAfterSalesOrders(bill, applyArr);
           this.setData({
-            applyArr: res.result.data.arr,
-            bill: res.result.data.bill,
+            applyArr: applyArr,
+            bill: bill,
             returnCount: res.result.data.returnNumber,
             toReturnSubtotal: res.result.data.toReturnSubtotal,
             haveReturnSubtotal: res.result.data.haveReturnSubtotal,
-          })         
-        
+          })
+          this._refreshAfterSalesContexts(bill, applyArr);
       }
 
     })
   },
-  
 
+  _decorateAfterSalesOrders(bill, applyArr) {
+    var cache = wx.getStorageSync('afterSalesDeliveryOrderContext') || {};
+    var decorate = function (order) {
+      if (!order || !order.nxDepartmentOrdersId) return;
+      var context = cache[String(order.nxDepartmentOrdersId)];
+      order.afterSalesEntryVisible = !!order.nxDoDepDisGoodsId;
+      order.afterSalesContext = context && context.delivered ? context : null;
+    };
+    ;((bill && bill.nxDepartmentOrdersEntities) || []).forEach(decorate);
+    ;(applyArr || []).forEach(function (row) {
+      if (row && Array.isArray(row.depOrders)) row.depOrders.forEach(decorate);
+      else decorate(row);
+    });
+  },
+
+  _resolveBillRouteDate(bill) {
+    bill = bill || {};
+    var candidates = [bill.nxDbDate, bill.nxDbDay, bill.nxDbTime];
+    for (var i = 0; i < candidates.length; i++) {
+      var match = String(candidates[i] || '').match(/(20\d{2})[-\/]?(\d{2})[-\/]?(\d{2})/);
+      if (match) return match[1] + '-' + match[2] + '-' + match[3];
+    }
+    var now = new Date();
+    return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  },
+
+  _cacheAfterSalesContexts(pageViewModel) {
+    if (!pageViewModel || !Array.isArray(pageViewModel.sections)) return;
+    var cache = wx.getStorageSync('afterSalesDeliveryOrderContext') || {};
+    var now = Date.now();
+    pageViewModel.sections.forEach(function (section) {
+      ;(section.cards || []).forEach(function (card) {
+        ;(card.timeline || []).forEach(function (node) {
+          var taskId = node.deliveryStopId || node.taskId;
+          var orderIds = node.liveOrderIds || [];
+          if (!taskId || !Array.isArray(orderIds)) return;
+          var status = String(node.taskStatus || node.status || '').toUpperCase();
+          var delivered = node.stopDone === true || status === 'DELIVERED' || node.statusLabel === '已送达';
+          orderIds.forEach(function (orderId) {
+            if (!orderId) return;
+            cache[String(orderId)] = {
+              deliveryStopId: taskId,
+              routeDate: pageViewModel.routeDate || '',
+              customerName: node.customerName || '',
+              driverUserId: card.driverUserId || node.driverUserId || null,
+              delivered: delivered,
+              cachedAt: now
+            };
+          });
+        });
+      });
+    });
+    wx.setStorageSync('afterSalesDeliveryOrderContext', cache);
+  },
+
+  _refreshAfterSalesContexts(bill, applyArr) {
+    if (this._afterSalesContextPromise) return this._afterSalesContextPromise;
+    this._afterSalesContextPromise = getDispatchDeliveryToday({
+      disId: this.data.disId,
+      routeDate: this._resolveBillRouteDate(bill)
+    }).then((res) => {
+      if (!res.result || res.result.code !== 0) return false;
+      this._cacheAfterSalesContexts(res.result.data && res.result.data.pageViewModel);
+      this._decorateAfterSalesOrders(bill, applyArr);
+      this.setData({ bill: bill, applyArr: applyArr });
+      return true;
+    }).catch(function () { return false; }).finally(() => { this._afterSalesContextPromise = null; });
+    return this._afterSalesContextPromise;
+  },
+
+  _allBillOrders() {
+    var all = [];
+    ;((this.data.bill && this.data.bill.nxDepartmentOrdersEntities) || []).forEach(function (item) { all.push(item); });
+    ;(this.data.applyArr || []).forEach(function (row) {
+      if (row && Array.isArray(row.depOrders)) row.depOrders.forEach(function (item) { all.push(item); });
+      else if (row && row.nxDepartmentOrdersId) all.push(row);
+    });
+    return all;
+  },
+
+  _findBillOrder(orderId) {
+    return this._allBillOrders().filter(function (item) {
+      return String(item.nxDepartmentOrdersId) === String(orderId);
+    })[0];
+  },
+
+  toCreateAfterSales(e) {
+    var orderId = e.currentTarget.dataset.orderId;
+    var selected = this._findBillOrder(orderId);
+    if (!selected || !selected.nxDoDepDisGoodsId) {
+      wx.showToast({ title: '原订单缺少客户商品关系ID', icon: 'none' });
+      return;
+    }
+    if (!selected.afterSalesContext || !selected.afterSalesContext.deliveryStopId) {
+      wx.showLoading({ title: '匹配配送任务' });
+      this._refreshAfterSalesContexts(this.data.bill, this.data.applyArr).then(() => {
+        wx.hideLoading();
+        var refreshed = this._findBillOrder(orderId);
+        if (!refreshed || !refreshed.afterSalesContext || !refreshed.afterSalesContext.deliveryStopId) {
+          wx.showToast({ title: '未找到对应的已送达配送任务', icon: 'none', duration: 2500 });
+          return;
+        }
+        this._openAfterSalesCreate(refreshed);
+      });
+      return;
+    }
+    this._openAfterSalesCreate(selected);
+  },
+
+  _openAfterSalesCreate(selected) {
+    var taskId = selected.afterSalesContext.deliveryStopId;
+    var candidates = this._allBillOrders().filter(function (item) {
+      return item && item.nxDoDepDisGoodsId && item.afterSalesContext &&
+        String(item.afterSalesContext.deliveryStopId) === String(taskId);
+    }).map(function (item) {
+      var goods = item.nxDistributerGoodsEntity || {};
+      return {
+        historyOrderId: item.nxDepartmentOrdersId,
+        departmentDisGoodsId: item.nxDoDepDisGoodsId,
+        disGoodsId: item.nxDoDisGoodsId,
+        goodsName: item.nxDoGoodsName || goods.nxDgGoodsName || '商品',
+        quantity: item.nxDoWeight || item.nxDoQuantity || '',
+        standard: item.nxDoPrintStandard || item.nxDoStandard || '',
+        selected: String(item.nxDepartmentOrdersId) === String(selected.nxDepartmentOrdersId)
+      };
+    });
+    wx.setStorageSync('afterSalesCreateDraft', {
+      originalShipmentTaskId: taskId,
+      routeDate: selected.afterSalesContext.routeDate || '',
+      customerName: selected.afterSalesContext.customerName || this.data.depName || '',
+      orders: candidates,
+      createdAt: Date.now()
+    });
+    wx.navigateTo({ url: '../../afterSales/create/create' });
+  },
 
   //  //////////////
   chooseSezi: function (e) {

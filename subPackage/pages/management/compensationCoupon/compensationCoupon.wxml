@@ -1,0 +1,30 @@
+<back-navbar title="补偿券管理" avatar="/images/back-gray.png" button-text="" bindnavbuttontap="toBack"></back-navbar>
+
+<view class="coupon-page" style="padding-top: {{navBarHeight}}rpx;">
+  <view class="intro-card">
+    <view>
+      <text class="intro-title">售后专用补偿券</text>
+      <text class="intro-desc">仅由员工在售后处理中人工发放，不参与普通优惠券领取。</text>
+    </view>
+    <button bindtap="toAdd">新增</button>
+  </view>
+
+  <view class="filter-row">
+    <text>{{showDisabled ? '已停用补偿券' : '可发放补偿券'}}</text>
+    <view><text>查看停用</text><switch checked="{{showDisabled}}" bindchange="toggleDisabled" color="#34776d"></switch></view>
+  </view>
+
+  <view class="empty" wx:if="{{!loading && list.length === 0}}">暂无{{showDisabled ? '已停用' : '可发放'}}补偿券</view>
+  <view class="coupon-card" wx:for="{{list}}" wx:key="nxDistributerCouponId">
+    <view class="amount-side">
+      <text class="amount">{{item.amountText}}</text>
+      <text>无门槛</text>
+    </view>
+    <view class="coupon-main" bindtap="toEdit" data-id="{{item.nxDistributerCouponId}}">
+      <text class="coupon-name">{{item.nxDistributerCouponName}}</text>
+      <view class="tags"><text>{{item.compTypeText}}</text><text>{{item.validityText}}</text></view>
+      <text class="coupon-words" wx:if="{{item.nxDcWords}}">{{item.nxDcWords}}</text>
+    </view>
+    <view class="coupon-action" catchtap="changeStatus" data-item="{{item}}">{{item.enabled ? '停用' : '启用'}}</view>
+  </view>
+</view>

@@ -5,6 +5,27 @@
   background-color: #dddddd;
 }
 
+.bridge-state {
+  margin: 60rpx 30rpx;
+  padding: 40rpx 30rpx;
+  text-align: center;
+  color: #666;
+  background: #fff;
+  border-radius: 16rpx;
+}
+
+.bridge-error {
+  color: #c0392b;
+}
+
+.bridge-retry {
+  width: 240rpx;
+  margin-top: 30rpx;
+  color: #fff;
+  background: #0f78b4;
+  font-size: 28rpx;
+}
+
 .save_btn{
   background-color: #0f78b4;
   color: #fff;

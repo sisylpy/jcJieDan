@@ -1,19 +1,47 @@
-<view class="page flex flex-column">
+<view class="page flex flex-column route-edit-page">
   <back-navbar style="height: {{navBarHeight}}rpx;" title="{{pageTitle}}" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
 
   <view class="page-loading-wrap" wx:if="{{loading}}">
-    <text class="text-secondary font-md">加载中...</text>
+    <text class="text-secondary font-md">正在加载路线...</text>
   </view>
 
   <view class="empty-wrap" wx:if="{{!loading && loadError}}">
     <text class="text-secondary font-md">{{loadError}}</text>
   </view>
 
-  <scroll-view scroll-y="{{pageScrollEnabled}}" class="page-scroll page-scroll-with-footer" wx:if="{{!loading && pageViewModel}}">
-    <view class="map-overview-card" wx:if="{{pageViewModel.mapOverview}}">
+  <scroll-view
+    scroll-y="{{pageScrollEnabled}}"
+    class="page-scroll page-scroll-with-footer"
+    wx:if="{{!loading && pageViewModel}}"
+  >
+    <view class="route-workbench-head" wx:if="{{pageViewModel.driver}}">
+      <view class="route-workbench-driver">
+        <image class="route-workbench-avatar" src="/images/user-group-2.png" mode="aspectFill"></image>
+        <view class="route-workbench-driver-copy">
+          <view class="route-workbench-title-row">
+            <text class="route-workbench-title">{{pageViewModel.driver.driverName}}</text>
+            <text class="route-workbench-badge">编辑中</text>
+          </view>
+          <text class="route-workbench-subtitle">拖动顺序、增减客户，后台会自动重新计算路线</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="map-overview-card route-map-card" wx:if="{{pageViewModel.mapOverview}}">
+      <view class="route-map-topbar">
+        <view class="route-map-summary-pill">
+          <text>{{routeStops.length}} 个客户</text>
+          <view class="route-map-summary-divider"></view>
+          <text>{{pageViewModel.driver.totalRoundTripDistanceText || '等待试算'}}</text>
+        </view>
+        <text class="route-map-source {{pageViewModel.driver.routeMetricEstimated ? 'is-estimated' : ''}}">
+          {{pageViewModel.driver.routeMetricSourceLabel || '后台路线距离'}}
+        </text>
+      </view>
+
       <view class="map-overview-stage" wx:if="{{pageViewModel.mapOverview.hasMap}}">
         <map
-          class="map-overview"
+          class="map-overview {{mapInteractionEnabled ? 'is-interactive' : 'is-locked'}}"
           longitude="{{pageViewModel.mapOverview.longitude}}"
           latitude="{{pageViewModel.mapOverview.latitude}}"
           scale="{{pageViewModel.mapOverview.scale}}"
@@ -26,8 +54,8 @@
           setting="{{pageViewModel.mapOverview.setting}}"
           enable-poi="{{false}}"
           enable-building="{{false}}"
-          enable-scroll="{{true}}"
-          enable-zoom="{{true}}"
+          enable-scroll="{{mapInteractionEnabled}}"
+          enable-zoom="{{mapInteractionEnabled}}"
           enable-rotate="{{false}}"
           show-location="{{false}}"
           show-compass="{{false}}"
@@ -37,78 +65,72 @@
           bindtouchcancel="onMapTouchEnd"
         ></map>
       </view>
-      <view class="map-legend map-legend-inline map-legend-compact" wx:if="{{pageViewModel.mapOverview.hasMap && pageViewModel.mapOverview.legend.length > 0}}">
-        <view class="map-legend-item" wx:for="{{pageViewModel.mapOverview.legend}}" wx:for-item="legendItem" wx:for-index="legendIndex" wx:key="legendIndex">
-          <view class="map-legend-line map-legend-line-{{legendItem.lineStyle === 'DASHED' ? 'dashed' : 'solid'}}" style="border-color: {{legendItem.color}}; background-color: {{legendItem.lineStyle === 'DASHED' ? 'transparent' : legendItem.color}};"></view>
-          <text class="map-legend-label">{{legendItem.label}}</text>
-        </view>
-      </view>
-      <view class="map-empty-hint" wx:if="{{!pageViewModel.mapOverview.hasMap && pageViewModel.mapOverview.emptyHint}}">
-        <text>{{pageViewModel.mapOverview.emptyHint}}</text>
+      <view class="map-empty-hint" wx:else>
+        <text>{{pageViewModel.mapOverview.emptyHint || '仓库或客户缺少坐标，暂时无法显示路线'}}</text>
       </view>
       <view class="map-missing-hint" wx:if="{{pageViewModel.mapOverview.missingHint}}">
         <text>{{pageViewModel.mapOverview.missingHint}}</text>
       </view>
-      <view class="map-legend" wx:if="{{!pageViewModel.mapOverview.hasMap && pageViewModel.mapOverview.legend.length > 0}}">
-        <view class="map-legend-item" wx:for="{{pageViewModel.mapOverview.legend}}" wx:for-item="legendItem" wx:for-index="legendIndex" wx:key="legendIndex">
-          <view class="map-legend-line map-legend-line-{{legendItem.lineStyle === 'DASHED' ? 'dashed' : 'solid'}}" style="border-color: {{legendItem.color}}; background-color: {{legendItem.lineStyle === 'DASHED' ? 'transparent' : legendItem.color}};"></view>
-          <text class="map-legend-label">{{legendItem.label}}</text>
+
+      <view class="route-map-footer">
+        <view class="route-map-legend">
+          <view class="route-map-legend-line"></view>
+          <text>当前配送路线</text>
+        </view>
+        <view class="route-map-actions" wx:if="{{pageViewModel.mapOverview.hasMap}}">
+          <view class="route-map-action" catchtap="onRefreshRoute">↻ 刷新路线</view>
+          <view class="route-map-action route-map-action-primary" catchtap="toggleMapInteraction">
+            {{mapInteractionEnabled ? '完成操作' : '操作地图'}}
+          </view>
         </view>
       </view>
     </view>
 
+    <view class="route-overview-card" wx:if="{{pageViewModel.driver}}">
+      <view class="route-overview-metrics">
+        <view class="route-overview-metric">
+          <text class="route-overview-label">客户</text>
+          <text class="route-overview-value route-overview-accent">{{routeStops.length}}</text>
+        </view>
+        <view class="route-overview-divider"></view>
+        <view class="route-overview-metric">
+          <text class="route-overview-label">往返距离</text>
+          <text class="route-overview-value">{{pageViewModel.driver.totalRoundTripDistanceText || '—'}}</text>
+        </view>
+        <view class="route-overview-divider"></view>
+        <view class="route-overview-metric">
+          <text class="route-overview-label">全程时间</text>
+          <text class="route-overview-value">{{pageViewModel.driver.totalRoundTripDurationText || '—'}}</text>
+        </view>
+        <view class="route-overview-divider"></view>
+        <view class="route-overview-metric">
+          <text class="route-overview-label">预计返回</text>
+          <text class="route-overview-value">{{pageViewModel.driver.plannedReturnLabel || '—'}}</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="route-estimate-card {{routeDirty ? 'is-dirty' : 'is-ready'}}">
+      <view class="route-estimate-icon">{{autoPreviewing ? '↻' : (routeDirty ? '!' : '✓')}}</view>
+      <view class="route-estimate-copy">
+        <text class="route-estimate-title">{{routeDirty ? '路线正在更新' : '路线试算已完成'}}</text>
+        <text class="route-estimate-message">{{routeEstimateStatus}}</text>
+      </view>
+      <view class="route-estimate-action" wx:if="{{routeDirty && !autoPreviewing}}" catchtap="onRefreshRoute">重试</view>
+    </view>
+
     <view class="driver-route-card bg-white route-edit-card" wx:if="{{pageViewModel.driver}}">
-      <view class="driver-route-head">
-        <image class="driver-avatar" src="/images/user-group-2.png" mode="aspectFill"></image>
-        <view class="driver-route-head-main">
-          <view class="driver-route-name-row">
-            <view class="driver-route-name-group">
-              <text class="driver-route-name">{{pageViewModel.driver.driverName}}</text>
-              <text class="driver-stop-count-badge" wx:if="{{pageViewModel.driver.customerStopCount}}">{{pageViewModel.driver.customerStopCount}} 站</text>
-            </view>
-          </view>
+      <view class="route-section-head">
+        <view>
+          <text class="route-section-title">调整配送顺序</text>
+          <text class="route-section-subtitle">每一段距离均由后台按当前门店顺序获取</text>
         </view>
+        <text class="route-section-count">{{routeStops.length}} 站</text>
       </view>
 
-      <view class="driver-summary-metrics" wx:if="{{pageViewModel.driver.customerStopCount > 0}}">
-        <view class="driver-metric-col driver-metric-col-depart">
-          <text class="driver-metric-label driver-metric-label-accent">建议出发</text>
-          <text class="driver-metric-time driver-metric-time-accent">{{pageViewModel.driver.plannedDepartLabel || '—'}}</text>
-        </view>
-        <view class="driver-metric-divider"></view>
-        <view class="driver-metric-col driver-metric-col-arrival">
-          <text class="driver-metric-label">首站预计到达</text>
-          <text class="driver-metric-time">{{pageViewModel.driver.firstStopPlannedArrivalTimeLabel || '—'}}</text>
-          <view
-            wx:if="{{pageViewModel.driver.firstStopArrivalStatusLabel}}"
-            class="driver-arrival-status-badge driver-arrival-status-{{pageViewModel.driver.firstStopArrivalStatusTone || 'ok'}}"
-          >
-            <text class="driver-arrival-status-check" wx:if="{{pageViewModel.driver.firstStopArrivalStatusTone === 'ok'}}">✓</text>
-            <text>{{pageViewModel.driver.firstStopArrivalStatusLabel}}</text>
-          </view>
-        </view>
-        <view class="driver-metric-divider"></view>
-        <view class="driver-metric-col driver-metric-col-return">
-          <text class="driver-metric-label">预计返回</text>
-          <text class="driver-metric-time">{{pageViewModel.driver.plannedReturnLabel || '—'}}</text>
-        </view>
+      <view class="route-distance-notice" wx:if="{{pageViewModel.driver.routeMetricEstimated}}">
+        当前路线包含“直线估算”路段，请留意缺少坐标或腾讯路线接口暂不可用的门店。
       </view>
-
-      <view class="driver-summary-footer" wx:if="{{pageViewModel.driver.customerStopCount > 0}}">
-        <view class="driver-summary-footer-item" wx:if="{{pageViewModel.driver.totalRoundTripDistanceText}}">
-          <image class="driver-footer-icon" src="/images/car.png" mode="aspectFit"></image>
-          <text>往返 {{pageViewModel.driver.totalRoundTripDistanceText}}</text>
-        </view>
-        <view class="driver-summary-footer-divider" wx:if="{{pageViewModel.driver.totalRoundTripDistanceText && pageViewModel.driver.totalRoundTripDurationText}}"></view>
-        <view class="driver-summary-footer-item" wx:if="{{pageViewModel.driver.totalRoundTripDurationText}}">
-          <text class="driver-footer-icon driver-footer-icon-clock">◷</text>
-          <text>全程 {{pageViewModel.driver.totalRoundTripDurationText}}</text>
-        </view>
-      </view>
-
-      <view class="route-edit-section-hint" wx:if="{{pageViewModel.manualDispatchMode}}">拖动顺序后请点击「重新试算」更新预计时间</view>
-      <view class="route-edit-section-hint" wx:elif="{{pageViewModel.removeStopMode === 'REMOTE' || pageViewModel.removeStopMode === 'RETURN_TO_SANDBOX'}}">装车中移除将立即生效</view>
-      <view class="route-edit-section-hint" wx:else>调整顺序后请点击「重新试算」更新路线</view>
 
       <route-timeline
         wx:if="{{editTimeline.length > 0}}"
@@ -122,32 +144,210 @@
         bind:removestop="onRemoveStop"
       ></route-timeline>
 
-      <view class="section-empty" wx:if="{{editTimeline.length === 0 && routeStops.length === 0}}">当前路线暂无客户</view>
+      <view class="section-empty" wx:if="{{editTimeline.length === 0 && routeStops.length === 0}}">
+        当前路线暂无客户，请从下方添加客户
+      </view>
     </view>
 
-    <view class="section-card bg-white" wx:if="{{!pageViewModel.manualDispatchMode && addableStops.length > 0}}">
-      <view class="section-title">可添加客户</view>
-      <view class="addable-stop-item" wx:for="{{addableStops}}" wx:key="stopKey">
-        <view class="addable-stop-main">
-          <view class="route-stop-name">{{item.customerName}}</view>
-          <view class="route-stop-goods" wx:if="{{item.goodsSummary}}">{{item.goodsSummary}}</view>
-          <view class="route-stop-constraint" wx:if="{{item.constraintHint}}">{{item.constraintHint}}</view>
+    <view class="customer-add-card" wx:if="{{!pageViewModel.manualDispatchMode}}">
+      <view class="customer-add-head">
+        <view>
+          <text class="customer-add-title">补充路线客户</text>
+          <text class="customer-add-subtitle">可以搜索添加，也可以让系统按时间或距离自动计算</text>
         </view>
-        <view class="route-stop-btn route-stop-btn-primary" catchtap="onAddStop" data-stop-key="{{item.stopKey}}">添加</view>
+        <text class="customer-add-count">{{candidatePoolCount}} 个候选</text>
       </view>
+
+      <view class="customer-search-box">
+        <text class="customer-search-icon">⌕</text>
+        <input
+          class="customer-search-input"
+          value="{{customerSearchText}}"
+          placeholder="搜索客户名称、地址或商品"
+          confirm-type="search"
+          bindinput="onCustomerSearchInput"
+        />
+        <text class="customer-search-clear" wx:if="{{customerSearchText}}" catchtap="onClearCustomerSearch">清除</text>
+      </view>
+
+      <view class="route-addition-switches">
+        <view
+          class="route-addition-switch {{additionMode === 'TIME' ? 'is-active' : ''}}"
+          data-mode="TIME"
+          catchtap="changeAdditionMode"
+        >
+          <text class="route-addition-switch-icon">时</text>
+          <view class="route-addition-switch-copy">
+            <text class="route-addition-switch-title">按时间补充</text>
+            <text class="route-addition-switch-help">设置全程时间上限</text>
+          </view>
+        </view>
+        <view
+          class="route-addition-switch {{additionMode === 'DISTANCE' ? 'is-active' : ''}}"
+          data-mode="DISTANCE"
+          catchtap="changeAdditionMode"
+        >
+          <text class="route-addition-switch-icon">距</text>
+          <view class="route-addition-switch-copy">
+            <text class="route-addition-switch-title">按距离补充</text>
+            <text class="route-addition-switch-help">设置路线公里上限</text>
+          </view>
+        </view>
+      </view>
+
+      <view class="constraint-editor" wx:if="{{additionMode === 'TIME' || additionMode === 'DISTANCE'}}">
+        <view class="constraint-editor-head">
+          <view>
+            <text class="constraint-editor-title">{{additionMode === 'TIME' ? '按时间自动计算客户' : '按距离自动计算客户'}}</text>
+            <text class="constraint-editor-subtitle">保留原路线客户，从候选客户中自动筛选</text>
+          </view>
+          <text class="constraint-editor-cancel" data-mode="{{additionMode}}" catchtap="changeAdditionMode">取消</text>
+        </view>
+
+        <view class="constraint-current-row">
+          <text>{{additionMode === 'TIME' ? '当前全程' : (includeReturnDistance ? '当前往返距离' : '当前去程距离')}}</text>
+          <text class="constraint-current-value">
+            {{additionMode === 'TIME'
+              ? (pageViewModel.driver.totalRoundTripDurationText || '等待试算')
+              : (includeReturnDistance
+                ? (pageViewModel.driver.totalRoundTripDistanceText || '等待试算')
+                : (pageViewModel.driver.outboundDistanceText || '等待试算'))}}
+          </text>
+        </view>
+
+        <text class="constraint-label">{{additionMode === 'TIME' ? '允许的最大全程时间' : '允许的最大路线距离'}}</text>
+        <view class="constraint-input-row">
+          <input
+            wx:if="{{additionMode === 'TIME'}}"
+            class="constraint-input"
+            type="number"
+            value="{{targetRouteMinutes}}"
+            placeholder="输入分钟数"
+            bindinput="onTargetRouteMinutesInput"
+          />
+          <input
+            wx:else
+            class="constraint-input"
+            type="digit"
+            value="{{targetDistanceKm}}"
+            placeholder="输入公里数"
+            bindinput="onTargetDistanceInput"
+          />
+          <text class="constraint-input-unit">{{additionMode === 'TIME' ? '分钟' : '公里'}}</text>
+        </view>
+
+        <view class="return-distance-row" wx:if="{{additionMode === 'DISTANCE'}}">
+          <view class="return-distance-copy">
+            <text class="return-distance-title">包含回仓距离</text>
+            <text class="return-distance-help">关闭后只按仓库到最后一站的去程计算</text>
+          </view>
+          <switch color="#07917a" checked="{{includeReturnDistance}}" bindchange="toggleReturnDistance" />
+        </view>
+
+        <view class="route-sequence-field">
+          <text class="route-sequence-title">配送顺序</text>
+          <radio-group class="route-sequence-options" bindchange="changeRouteSequenceMode">
+            <label class="route-sequence-option {{routeSequenceMode === 'PRESERVE' ? 'is-active' : ''}}">
+              <radio value="PRESERVE" checked="{{routeSequenceMode === 'PRESERVE'}}" color="#07917a" />
+              <view class="route-sequence-copy">
+                <text class="route-sequence-name">保持当前顺序</text>
+                <text class="route-sequence-help">原客户顺序不变，新增客户排在后面</text>
+              </view>
+            </label>
+            <label class="route-sequence-option {{routeSequenceMode === 'OPTIMIZE' ? 'is-active' : ''}}">
+              <radio value="OPTIMIZE" checked="{{routeSequenceMode === 'OPTIMIZE'}}" color="#07917a" />
+              <view class="route-sequence-copy">
+                <text class="route-sequence-name">智能重排路线</text>
+                <text class="route-sequence-help">按客户坐标重新组合更短的配送顺序</text>
+              </view>
+            </label>
+          </radio-group>
+        </view>
+
+        <view class="constraint-feedback {{constraintPreview && constraintPreview.canApply ? 'is-success' : 'is-warning'}}">
+          <text>{{constraintFeedback}}</text>
+        </view>
+        <view class="constraint-plan-stats" wx:if="{{constraintPreview && constraintPreview.plannedCount != null}}">
+          <view class="constraint-plan-stat">
+            <text class="constraint-plan-value">{{constraintPreview.plannedCount}}</text>
+            <text class="constraint-plan-label">预计客户</text>
+          </view>
+          <view class="constraint-plan-stat">
+            <text class="constraint-plan-value is-add">+{{constraintPreview.addedCount || 0}}</text>
+            <text class="constraint-plan-label">自动增加</text>
+          </view>
+          <view class="constraint-plan-stat">
+            <text class="constraint-plan-value">{{constraintPreview.remainingCapacityText || '—'}}</text>
+            <text class="constraint-plan-label">预计余量</text>
+          </view>
+        </view>
+        <view
+          class="constraint-apply-btn {{constraintPreview && constraintPreview.canApply && !constraintAdjusting && !previewing ? '' : 'is-disabled'}}"
+          catchtap="applyConstraintPlan"
+        >
+          {{constraintAdjusting || previewing
+            ? '正在获取后台路线…'
+            : (additionMode === 'TIME' ? '按时间自动计算客户' : '按距离自动计算客户')}}
+        </view>
+        <text class="constraint-footnote">这里只生成路线预览，点击底部“确认这条路线”后才会正式保存。</text>
+      </view>
+
+      <view class="constraint-result" wx:if="{{constraintResult}}">
+        <text class="constraint-result-mark">✓</text>
+        <view class="constraint-result-copy">
+          <text class="constraint-result-title">{{constraintResult.modeLabel}}自动计算完成</text>
+          <text class="constraint-result-text">新增 {{constraintResult.addedCount}} 位、移除 {{constraintResult.removedCount}} 位后续加入的客户，当前共 {{constraintResult.plannedCount}} 位；后台路线已重新试算。</text>
+        </view>
+      </view>
+
+      <view class="customer-candidate-list" wx:if="{{additionMode === 'SEARCH' && filteredAddableStops.length > 0}}">
+        <view class="customer-candidate-item" wx:for="{{filteredAddableStops}}" wx:key="stopKey">
+          <view class="customer-candidate-main">
+            <view class="customer-candidate-title-row">
+              <text class="customer-candidate-name">{{item.customerName}}</text>
+              <text class="customer-candidate-risk" wx:if="{{item.blockedReason || item.constraintHint}}">{{item.blockedReason || item.constraintHint}}</text>
+            </view>
+            <text class="customer-candidate-address">{{item.address || '暂无配送地址'}}</text>
+            <text class="customer-candidate-goods" wx:if="{{item.goodsSummary}}">{{item.goodsSummary}}</text>
+          </view>
+          <view class="customer-candidate-add {{item.blocked ? 'is-disabled' : ''}}" catchtap="onAddStop" data-stop-key="{{item.stopKey}}">{{item.blocked ? '不可添加' : '添加'}}</view>
+        </view>
+      </view>
+
+      <view class="customer-candidate-empty" wx:elif="{{additionMode === 'SEARCH' && customerSearchText}}">
+        没有找到匹配的待分配客户
+      </view>
+      <view class="customer-candidate-empty" wx:elif="{{additionMode === 'SEARCH' && candidatePoolCount === 0}}">
+        当前没有可以加入这条路线的客户
+      </view>
+      <text class="customer-candidate-more" wx:if="{{additionMode === 'SEARCH' && !customerSearchText && candidatePoolCount > filteredAddableStops.length}}">
+        还有 {{candidatePoolCount - filteredAddableStops.length}} 个候选，输入名称可快速查找
+      </text>
+    </view>
+
+    <view class="route-edit-help-card">
+      <text class="route-edit-help-title">编辑说明</text>
+      <text class="route-edit-help-line">• 上移、下移、添加或移除门店后会自动重新试算。</text>
+      <text class="route-edit-help-line">• 按时间或距离会先自动筛选客户，再由后台获取实际路线距离和到达时间。</text>
+      <text class="route-edit-help-line">• 地图、预计到达和店与店之间的距离都会同步刷新。</text>
+      <text class="route-edit-help-line">• 确认后只保存当前司机的这条路线。</text>
     </view>
   </scroll-view>
 
   <view class="bottom-action-bar" wx:if="{{!loading && pageViewModel}}">
     <view class="bottom-action-row">
-      <view class="bottom-btn bottom-btn-secondary" catchtap="onBottomReset">重置</view>
-      <view class="bottom-btn bottom-btn-primary {{previewing ? 'bottom-btn-locked' : ''}}" catchtap="onBottomPreview">重新试算</view>
+      <view class="bottom-btn bottom-btn-secondary" catchtap="onBottomReset">恢复原路线</view>
+      <view class="bottom-btn bottom-btn-outline {{previewing ? 'bottom-btn-locked' : ''}}" catchtap="onBottomPreview">
+        {{previewing ? '计算中…' : '重新计算'}}
+      </view>
       <view
-        class="bottom-btn {{confirmReady ? 'bottom-btn-primary' : 'bottom-btn-disabled'}}"
+        class="bottom-btn {{confirmReady && !routeDirty && additionMode === 'SEARCH' && !constraintAdjusting ? 'bottom-btn-primary' : 'bottom-btn-disabled'}}"
         catchtap="onBottomConfirm"
-      >{{pageViewModel.manualDispatchMode ? '确认排单' : '确认派单'}}</view>
+      >{{pageViewModel.manualDispatchMode ? '确认排单' : '确认这条路线'}}</view>
     </view>
-    <view class="bottom-action-hint" wx:if="{{pageViewModel.actions.confirmDisabledReason && !confirmReady}}">{{pageViewModel.actions.confirmDisabledReason}}</view>
+    <view class="bottom-action-hint" wx:if="{{additionMode !== 'SEARCH'}}">先完成或取消上方的时间、距离调整，再确认路线</view>
+    <view class="bottom-action-hint" wx:elif="{{routeDirty}}">请等待后台完成路线试算后再确认</view>
+    <view class="bottom-action-hint" wx:elif="{{pageViewModel.actions.confirmDisabledReason && !confirmReady}}">{{pageViewModel.actions.confirmDisabledReason}}</view>
     <view class="bottom-action-hint" wx:elif="{{pageViewModel.bottomHint}}">{{pageViewModel.bottomHint}}</view>
   </view>
 

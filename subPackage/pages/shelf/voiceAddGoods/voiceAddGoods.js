@@ -1,4 +1,5 @@
 import load from '../../../../lib/load';
+import { completeWithDeepSeek, getAsrCredentials } from '../../../../lib/miniProgramCloud';
 
 import {
   pasteSearchGoodsForShelf,
@@ -10,13 +11,8 @@ const speechRecognizerManager = plugin.speechRecognizerManager();
 
 // 从配置文件读取配置
 const config = require('../../../../config');
-const DEEPSEEK_API_KEY = config.deepSeek?.apiKey || '';
-const DEEPSEEK_API_URL = config.deepSeek?.apiUrl || 'https://api.deepseek.com/v1/chat/completions';
 
 // 从配置文件读取腾讯云配置
-const TENCENT_CLOUD_SECRET_ID = config.tencentCloud?.secretId || '';
-const TENCENT_CLOUD_SECRET_KEY = config.tencentCloud?.secretKey || '';
-const TENCENT_CLOUD_APP_ID = config.tencentCloud?.appId || '1308821743';
 const TENCENT_CLOUD_ENGINE_MODEL_TYPE = config.tencentCloud?.engineModelType || '16k_zh';
 const TENCENT_CLOUD_VOICE_FORMAT = config.tencentCloud?.voiceFormat || 1;
 
@@ -44,13 +40,7 @@ const DEEPSEEK_SYSTEM_PROMPT = `你是货架商品语音录入助手。用户的
 
 async function optimizeTextWithDeepSeek(text, temperature = 0.7, brandList = []) {
   try {
-    const messages = [
-      {
-        role: 'system',
-        content: DEEPSEEK_SYSTEM_PROMPT
-      }
-    ];
-
+    let systemPrompt = DEEPSEEK_SYSTEM_PROMPT;
     if (Array.isArray(brandList) && brandList.length > 0) {
       const brandPrompt = `以下是当前配送商的常见品牌词列表：${brandList.join('、')}。
 在识别品牌时，务必执行以下规则：
@@ -58,43 +48,11 @@ async function optimizeTextWithDeepSeek(text, temperature = 0.7, brandList = [])
 2. 如果存在同音、近音或常见错别字（例如“翼克”“一克”“翼客”应识别为列表中的“宜客”），必须输出列表中的标准写法。
 3. 当有多个候选时，选择距离最小（发音最接近或编辑距离最短）的品牌。
 4. 只有在确认列表中没有合适的对应项时，才保留用户原始品牌词。`;
-      console.log('[voiceAddGoods] DeepSeek brand prompt:', brandPrompt);
-      messages.push({
-        role: 'system',
-        content: brandPrompt
-      });
+      systemPrompt += `\n\n${brandPrompt}`;
     }
-
-    messages.push({ role: 'user', content: text });
-    console.log('[voiceAddGoods] DeepSeek request messages:', messages);
-
-    return new Promise((resolve, reject) => {
-      wx.request({
-        url: DEEPSEEK_API_URL,
-        method: 'POST',
-        header: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${DEEPSEEK_API_KEY}`
-        },
-        data: {
-          model: 'deepseek-chat',
-          messages,
-          temperature
-        },
-        success: (res) => {
-          if (res.statusCode === 200 && res.data && res.data.choices && res.data.choices[0]) {
-            resolve(res.data.choices[0].message.content);
-          } else {
-            reject(new Error('AI 响应格式不正确'));
-          }
-        },
-        fail: (err) => {
-          reject(new Error('AI 请求失败: ' + JSON.stringify(err)));
-        }
-      });
-    });
+    return await completeWithDeepSeek({ text, systemPrompt, temperature });
   } catch (error) {
-    console.error('DeepSeek 调用错误:', error);
+    console.error('AI 服务调用错误:', error && error.message);
     return text;
   }
 }
@@ -156,7 +114,6 @@ function parseOptimizedLines(content, originalText = '') {
   const originalSource = originalText || '';
 
   lines.forEach(line => {
-    console.log('[voiceAddGoods] 解析行原文:', line);
     // 将“品牌:”部分拆出来
     let brand = '';
     const brandMatch = line.match(/品牌[:：]\s*(.+)$/);
@@ -187,7 +144,6 @@ function parseOptimizedLines(content, originalText = '') {
 
     if (rest) {
       const tokens = rest.split(/[，,、;；\s]+/).filter(Boolean);
-      console.log('[voiceAddGoods] rest tokens:', tokens);
 
       tokens.forEach((token, idx) => {
         const cleanToken = token.trim();
@@ -273,7 +229,6 @@ function parseOptimizedLines(content, originalText = '') {
       if (numericMatch) {
         const token = numericMatch[0];
         if (!containsOriginalNumber(originalSource, token)) {
-          console.log('[voiceAddGoods] 原文不包含数量标记，清空规格重量', token, originalSource);
           standardWeight = '';
         }
       }
@@ -395,11 +350,9 @@ Page({
     };
 
     speechRecognizerManager.OnSentenceBegin = (res) => {
-      console.log('[voiceAddGoods] OnSentenceBegin', res);
     };
 
     speechRecognizerManager.OnRecognitionResultChange = (res) => {
-      console.log('[voiceAddGoods] OnRecognitionResultChange', res);
       if (res && res.result && res.result.voice_text_str !== undefined) {
         const liveText = res.result.voice_text_str;
         this.setData({
@@ -410,12 +363,9 @@ Page({
     };
 
     speechRecognizerManager.OnSentenceEnd = (res) => {
-      console.log('[voiceAddGoods] OnSentenceEnd', res);
     };
 
     speechRecognizerManager.OnRecognitionComplete = (res) => {
-      console.log('[voiceAddGoods] OnRecognitionComplete raw:', res);
-      console.log('[voiceAddGoods] OnRecognitionComplete text:', this.data.sentence);
       this.setData({
         recognitionStatus: '识别完成',
         isRecording: false
@@ -426,7 +376,6 @@ Page({
       }
 
       const recognizedText = this.data.sentence;
-      console.log('[voiceAddGoods] Recognized text before parse:', recognizedText);
       if (!recognizedText || !recognizedText.trim()) {
         return;
       }
@@ -440,7 +389,6 @@ Page({
     };
 
     speechRecognizerManager.OnError = (res) => {
-      console.log('[voiceAddGoods] OnError', res);
       const errorCode = res && res.code;
       const errorMessage = res && res.message;
       
@@ -555,11 +503,19 @@ Page({
     this._doStartRecord();
   },
 
-  _doStartRecord() {
+  async _doStartRecord() {
+    let credentials;
+    try {
+      credentials = await getAsrCredentials();
+    } catch (error) {
+      wx.showToast({ title: error.message || '语音服务初始化失败', icon: 'none' });
+      return;
+    }
     const params = {
-      secretkey: TENCENT_CLOUD_SECRET_KEY,
-      secretid: TENCENT_CLOUD_SECRET_ID,
-      appid: TENCENT_CLOUD_APP_ID,
+      secretkey: credentials.secretKey,
+      secretid: credentials.secretId,
+      token: credentials.token,
+      appid: credentials.appId,
       engine_model_type: TENCENT_CLOUD_ENGINE_MODEL_TYPE,
       voice_format: TENCENT_CLOUD_VOICE_FORMAT
     };
@@ -613,7 +569,6 @@ Page({
       return;
     }
 
-    console.log('[voiceAddGoods] Manual parse trigger text:', text);
     await this._parseVoiceGoods(text);
   },
 
@@ -621,12 +576,9 @@ Page({
     this.setData({ showDeepSeekLoading: true });
 
     try {
-      console.log('[voiceAddGoods] _parseVoiceGoods input:', text);
       const optimizedText = await optimizeTextWithDeepSeek(text, 0.7, this.data.brandPrompts);
-      console.log('[voiceAddGoods] Optimized text:', optimizedText);
       const goodsList = parseOptimizedLines(optimizedText, text)
         .filter(item => item.nxDgGoodsName && item.nxDgGoodsName.length > 0);
-      console.log('[voiceAddGoods] Parsed goodsList:', goodsList);
 
       this.setData({
         goodsList,
@@ -741,18 +693,11 @@ Page({
         sort: baseSort + index + 1,
         shelfSort: this.data.shelfSort || 0
       }));
-      console.log('[voiceAddGoods] Request payload:', {
-        shelfId: this.data.shelfId,
-        disId: this.data.disId,
-        items
-      });
-
       const addRes = await pasteSearchGoodsForShelf({
         shelfId: this.data.shelfId,
         disId: this.data.disId,
         items
       });
-      console.log('[voiceAddGoods] Response:', addRes);
       if (!addRes || !addRes.result || addRes.result.code !== 0) {
         throw new Error(addRes && addRes.result ? addRes.result.msg : '上架失败');
       }
@@ -824,4 +769,3 @@ Page({
     wx.navigateBack({ delta: 1 });
   }
 });
-
