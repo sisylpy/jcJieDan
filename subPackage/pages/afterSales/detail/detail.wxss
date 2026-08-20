@@ -1,5 +1,6 @@
 page { background: #f5f5f2; color: #273230; }
 .detail-page { padding: 22rpx 24rpx 80rpx; }
+.module-label { margin: 28rpx 4rpx 14rpx; color: #264f4a; font-size: 30rpx; font-weight: 750; }
 .loading, .error-card { padding: 70rpx; text-align: center; color: #7c8583; }
 .hero-card, .section-card { background: #fff; border-radius: 20rpx; padding: 24rpx; margin-bottom: 18rpx; }
 .hero-card { border-top: 8rpx solid #b9c7a5; }
@@ -14,8 +15,13 @@ page { background: #f5f5f2; color: #273230; }
 .completed-time { margin-top: 16rpx; color: #648076; font-size: 24rpx; }
 .section-title-row, .issue-line, .replenishment-head { display: flex; justify-content: space-between; align-items: center; }
 .section-title { font-size: 30rpx; font-weight: 700; }
+.issue-section-title { margin-top: 22rpx; padding-top: 20rpx; border-top: 1rpx solid #edf0ee; }
+.fact-row { display: flex; justify-content: space-between; gap: 30rpx; padding: 12rpx 0; color: #485451; }
+.fact-row text:first-child { color: #8a9390; }
 .text-action { color: #33736d; font-size: 25rpx; }
 .issue-item { background: #f6f7f5; padding: 18rpx; margin-top: 15rpx; border-radius: 14rpx; }
+.order-issue-summary { margin-top: 15rpx; padding: 20rpx; border-radius: 14rpx; background: #eef7f4; border: 1rpx solid #d8e9e3; }
+.order-issue-badge { display: inline-block; padding: 7rpx 14rpx; border-radius: 18rpx; background: #3f7772; color: #fff; font-size: 23rpx; font-weight: 650; }
 .issue-name { font-size: 29rpx; font-weight: 650; }
 .issue-description { display: block; color: #606b68; margin-top: 12rpx; line-height: 1.5; }
 .empty-inline { color: #9aa19f; padding: 24rpx 0 4rpx; }
@@ -25,7 +31,9 @@ page { background: #f5f5f2; color: #273230; }
 .replenishment-head text:first-child { color: #b0642a; font-weight: 700; }
 .free-tip, .free-banner { color: #9a612c; font-size: 23rpx; }
 .inline-actions { display: flex; justify-content: flex-end; }
-.inline-actions button { margin: 5rpx 0 0; background: #315f62; color: #fff; font-size: 24rpx; line-height: 2.2; }
+.inline-actions button { margin: 5rpx 0 0 10rpx; background: #315f62; color: #fff; font-size: 22rpx; line-height: 2.2; padding: 0 16rpx; }
+.inline-actions .minor-button { background: #eef1ef; color: #586360; }
+.failure-text { color: #b84b40; }
 .image-subtitle { margin-top: 20rpx; color: #6b7573; }
 .action-hint { display: block; margin-top: 10rpx; color: #89918f; font-size: 24rpx; line-height: 1.5; }
 .action-entry-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14rpx; margin-top: 20rpx; }
@@ -37,9 +45,23 @@ page { background: #f5f5f2; color: #273230; }
 .action-entry-COMPENSATION_COUPON .action-entry-title { color: #9a6b22; }
 .action-entry-arrow { color: #7e8c87; font-size: 38rpx; line-height: 1; }
 .timeline-row { display: flex; gap: 15rpx; padding-top: 20rpx; font-size: 25rpx; }
+.timeline-content { flex: 1; min-width: 0; }
 .timeline-dot { width: 16rpx; height: 16rpx; margin-top: 8rpx; border-radius: 50%; background: #4b7d77; flex: 0 0 auto; }
 .timeline-note { display: block; color: #7c8583; margin-top: 6rpx; }
 .timeline-result { color: #34776d; }
+.status-chip { margin-left: 10rpx; padding: 3rpx 10rpx; border-radius: 12rpx; background: #edf3f0; color: #3f6b64; font-size: 20rpx; }
+.proof-action { display: inline-block; margin-top: 12rpx; }
+.compact-images { grid-template-columns: repeat(4, 1fr); }
+.compact-images image { height: 120rpx; }
+.financial-row, .feedback-row { display: flex; flex-direction: column; gap: 10rpx; margin-top: 16rpx; padding: 18rpx; border-radius: 14rpx; background: #f7f8f6; }
+.money-text { color: #c6532d; font-size: 30rpx; font-weight: 750; }
+.subtle-text { color: #909895; font-size: 22rpx; }
+.announcement-title { display: block; margin-top: 16rpx; color: #345f5a; font-weight: 650; }
+.withdraw-button { width: auto; margin: 16rpx 0 0; background: #f2f2f0; color: #6a7370; font-size: 23rpx; }
+.feedback-history { margin-top: 18rpx; }
+.feedback-status { color: #2f7467; font-weight: 700; }
+.feedback-status.is-unsatisfied { color: #b4473d; }
+.final-summary { margin-top: 18rpx; padding: 18rpx; border-radius: 14rpx; background: #eef6f3; color: #315f59; line-height: 1.55; }
 .confirm-options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12rpx; margin-top: 20rpx; }
 .customer-feedback-note { display: block; margin-top: 14rpx; color: #697370; line-height: 1.5; }
 .confirm-options button { font-size: 24rpx; padding: 4rpx; }
@@ -60,6 +82,14 @@ page { background: #f5f5f2; color: #273230; }
 .bottom-sheet textarea { height: 120rpx; }
 .sheet-primary { margin-top: 22rpx; background: #315f62; color: #fff; }
 .free-banner { background: #fff2df; padding: 16rpx; border-radius: 12rpx; }
+.warning-banner { margin-top: 16rpx; padding: 16rpx; border-radius: 12rpx; background: #fff2df; color: #925e2c; font-size: 23rpx; line-height: 1.5; }
+.money-input { display: flex; align-items: center; margin-top: 16rpx; padding-left: 18rpx; border-radius: 14rpx; background: #f5f6f4; color: #bf512f; font-size: 34rpx; }
+.money-input input { margin-top: 0; }
+.audience-title { margin-top: 20rpx; color: #5d6966; font-size: 25rpx; }
+.audience-option { display: flex; align-items: center; gap: 12rpx; margin-top: 12rpx; padding: 16rpx; border: 1rpx solid #e1e6e3; border-radius: 13rpx; color: #57625f; }
+.audience-option.selected { border-color: #39766e; background: #edf6f2; color: #28665c; }
+.radio-mark { color: #347469; }
+.role-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 12rpx; }
 .compensation-banner { padding: 16rpx; border-radius: 12rpx; background: #fff3dc; color: #936125; font-size: 24rpx; line-height: 1.5; }
 .compensation-meta { display: flex; gap: 12rpx; margin-top: 14rpx; }
 .compensation-meta text { padding: 6rpx 12rpx; border-radius: 14rpx; background: #f3f2ed; color: #6e7673; font-size: 22rpx; }

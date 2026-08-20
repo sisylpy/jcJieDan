@@ -11,7 +11,12 @@ import {
   uploadDepartmentAfterSalesImage,
   getDepartmentGoodsStandardDimensions,
   getAfterSalesCompensationCoupons,
-  grantAfterSalesCompensation
+  grantAfterSalesCompensation,
+  createAfterSalesFinancialAdjustment,
+  finishAfterSalesReplenishment,
+  getAfterSalesAnnouncement,
+  publishAfterSalesAnnouncement,
+  withdrawAfterSalesAnnouncement
 } from '../../../../lib/apiDistributer'
 import { getDrivers } from '../../../../lib/apiRouteDispatch'
 
@@ -36,6 +41,17 @@ function absoluteImage(url) {
   return String(apiUrl.server || '').replace(/\/$/, '') + '/' + String(url).replace(/^\//, '')
 }
 
+function inputDateTime(offsetMinutes) {
+  var date = new Date(Date.now() + (offsetMinutes || 0) * 60000)
+  var pad = function (value) { return value < 10 ? '0' + value : String(value) }
+  return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) +
+    ' ' + pad(date.getHours()) + ':' + pad(date.getMinutes())
+}
+
+function requestKey(prefix) {
+  return prefix + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10)
+}
+
 Page({
   data: {
     navBarHeight: 0,
@@ -53,21 +69,44 @@ Page({
     processImages: [],
     resultImages: [],
     actions: [],
+    financialAdjustments: [],
+    feedbackHistory: [],
     replenishments: [],
-    severityMap: {}, issueTypeMap: {}, statusMap: {}, actionTypeMap: {}, confirmMap: {},
+    severityMap: {}, issueTypeMap: {}, statusMap: {}, actionTypeMap: {}, confirmMap: {}, actionStatusMap: {},
+    communicationChannelMap: {}, communicationResultMap: {},
     actionOptions: [],
+    allActionOptions: [],
+    communicationChannels: [], communicationResults: [], financialTypes: [], feedbackChannels: [],
+    otherStatusOptions: [{ code: 'PENDING', label: '待执行' }, { code: 'PROCESSING', label: '处理中' }, { code: 'COMPLETED', label: '已完成' }],
     drivers: [],
+    responsibleOptions: [],
     dimensionOptions: [],
     importanceOptions: ['1 普通', '2 注意', '3 重要', '4 重点', '5 关键'],
-    showActionForm: false,
-    actionType: 'COMMUNICATION', actionRemark: '', actionResult: '',
+    showActionForm: false, showFinancialForm: false, showFeedbackForm: false,
+    showDeliveryForm: false, showOutcomeForm: false, showAnnouncementForm: false,
+    actionType: 'COMMUNICATION', actionStatus: 'COMPLETED', actionRemark: '', actionResult: '',
+    actionMethodCode: 'PHONE', actionResultCode: 'AGREED', actionContactName: '',
+    actionCommitmentPlan: '', actionOccurredAt: inputDateTime(), actionExpectedAt: '',
+    otherTitle: '', otherPlan: '', otherResponsibleIndex: 0,
+    financialTypeIndex: 0, financialAmount: '', financialReason: '', financialResultNote: '', financialIdempotencyKey: '',
     showReplenishmentForm: false,
-    replenishmentItemIndex: 0, replenishmentQuantity: '', replenishmentStandard: '斤', driverIndex: 0,
+    replenishmentItemIndex: 0, replenishmentQuantity: '', replenishmentUnit: '斤', replenishmentStandard: '斤',
+    replenishmentExpectedAt: '', replenishmentNote: '', replenishmentIdempotencyKey: '', driverIndex: 0,
+    deliveryReplenishmentId: null, deliveryActualQuantity: '', deliveryResult: '',
+    outcomeReplenishmentId: null, outcomeStatus: 'FAILED', outcomeReason: '',
+    feedbackStatus: 'ACCEPTED', feedbackChannelIndex: 0, feedbackContent: '', feedbackRecordedAt: inputDateTime(),
+    completionSummary: '',
     showCompensationForm: false,
     compensationCoupons: [], compensationCouponIndex: 0, compensationRemark: '',
     showWritebackForm: false,
     writebackItemIndex: 0, writebackDimensionIndex: 0, writebackRequirement: '', writebackImportance: 5,
     selectedWritebackImageIds: [],
+    announcement: null, announcementTitle: '', announcementNote: '', announcementAudienceAll: true,
+    announcementRoleCodes: [],
+    announcementRoles: [
+      { code: 0, label: '老板' }, { code: 1, label: '录单员' },
+      { code: 2, label: '出货/库房' }, { code: 4, label: '采购员' }
+    ],
     submitting: false,
     hasWrittenBack: false
   },
@@ -117,9 +156,22 @@ Page({
           severityMap: this.toMap(data.severities), issueTypeMap: this.toMap(data.issueTypes),
           statusMap: this.toMap(data.statuses), actionTypeMap: this.toMap(data.actionTypes),
           confirmMap: this.toMap(data.confirmStatuses), actionOptions: data.actionTypes || [],
+          allActionOptions: data.actionTypes || [],
+          actionStatusMap: this.toMap(data.actionStatuses),
+          communicationChannelMap: this.toMap(data.communicationChannels),
+          communicationResultMap: this.toMap(data.communicationResults),
+          communicationChannels: data.communicationChannels || [],
+          communicationResults: data.communicationResults || [],
+          financialTypes: data.financialTypes || [],
+          feedbackChannels: data.feedbackChannels || [],
           drivers: (driverResult.code === 0 ? driverResult.data : []).map(function (driver) {
             return { id: driver.nxDistributerUserId, name: driver.nxDiuWxNickName || ('司机 #' + driver.nxDistributerUserId) }
           }),
+          responsibleOptions: [{ id: this.data.operatorUserId, name: '当前操作人' }].concat(
+            (driverResult.code === 0 ? driverResult.data : []).filter((driver) => driver.nxDistributerUserId !== this.data.operatorUserId).map(function (driver) {
+              return { id: driver.nxDistributerUserId, name: driver.nxDiuWxNickName || ('员工 #' + driver.nxDistributerUserId) }
+            })
+          ),
           dimensionOptions: (dimensionResult.code === 0 ? dimensionResult.data : []).map(function (code) {
             return { code: code, label: DIMENSION_LABELS[code] || code }
           }),
@@ -131,7 +183,7 @@ Page({
             })
           })
         })
-        return this.loadDetail()
+        return Promise.all([this.loadDetail(), this.loadAnnouncement()])
       }).catch((error) => this.setData({ loading: false, errorText: error.message || '加载失败' }))
   },
 
@@ -162,6 +214,23 @@ Page({
       .finally(function () { if (fromPullDown) wx.stopPullDownRefresh() })
   },
 
+  loadAnnouncement() {
+    return getAfterSalesAnnouncement(this.data.afterSalesId).then((res) => {
+      if (!res.result || res.result.code !== 0) return
+      var row = res.result.data || null
+      this.setData({
+        announcement: row,
+        announcementTitle: row ? row.nxDaTitle : '',
+        announcementNote: row ? (row.nxDaPublisherNote || '') : '',
+        announcementAudienceAll: row ? !!row.audienceAll : true,
+        announcementRoleCodes: row ? (row.audienceRoleCodes || []).map(Number) : [],
+        announcementRoles: this.data.announcementRoles.map(function (role) {
+          return Object.assign({}, role, { selected: !!row && (row.audienceRoleCodes || []).map(Number).indexOf(role.code) >= 0 })
+        })
+      })
+    }).catch(function () {})
+  },
+
   applyDetail(raw) {
     var driverMap = {}; this.data.drivers.forEach(function (driver) { driverMap[driver.id] = driver.name })
     var items = (raw.items || []).map(function (item) {
@@ -186,21 +255,48 @@ Page({
         writebackSelected: false
       })
     })
+    var actionRawMap = {}
+    ;(raw.actions || []).forEach(function (action) { actionRawMap[action.nxDasaId] = action })
     var actions = (raw.actions || []).map((action) => ({
-      id: action.nxDasaId, timeText: formatTime(action.nxDasaCreatedAt),
+      id: action.nxDasaId, timeText: formatTime(action.nxDasaOccurredAt || action.nxDasaCreatedAt),
       typeLabel: this.data.actionTypeMap[action.nxDasaActionType] || action.nxDasaActionType,
+      statusLabel: this.data.actionStatusMap[action.nxDasaStatus] || action.nxDasaStatus,
+      methodCode: action.nxDasaMethodCode, resultCode: action.nxDasaResultCode,
+      expectedText: formatTime(action.nxDasaExpectedAt), structuredData: action.structuredData || {},
       operatorText: '操作人 #' + action.nxDasaOperatorUserId,
-      remark: action.nxDasaRemark, result: action.nxDasaResult
+      remark: action.nxDasaRemark, result: action.nxDasaResult,
+      proofImages: images.filter(function (image) { return image.nxDasimgActionId === action.nxDasaId })
+    }))
+    var financialAdjustments = (raw.financialAdjustments || []).map(function (row) {
+      return Object.assign({}, row, {
+        amountText: '¥' + row.nxDasfaAmount,
+        typeLabel: ({ ACCOUNT_OFFSET: '账款冲减', UNBILLED_REDUCTION: '未出账减免', OFFLINE_REFUND: '线下退款' })[row.nxDasfaAdjustmentType] || row.nxDasfaAdjustmentType,
+        processedText: formatTime(row.nxDasfaProcessedAt)
+      })
+    })
+    var feedbackHistory = (raw.feedbackHistory || []).map((row) => ({
+      id: row.nxDasfId,
+      status: row.nxDasfStatus,
+      statusLabel: this.data.confirmMap[row.nxDasfStatus] || row.nxDasfStatus,
+      content: row.nxDasfContent,
+      channel: row.nxDasfChannel,
+      recordedText: formatTime(row.nxDasfRecordedAt)
     }))
     var replenishments = (raw.replenishments || []).map(function (row) {
       var linked = itemMap[row.nxDasrAfterSalesItemId]
       return Object.assign({}, row, {
         id: row.nxDasrId, goodsName: linked ? linked.goodsName : '补货商品',
         driverName: driverMap[row.nxDasrDriverUserId] || ('司机 #' + row.nxDasrDriverUserId),
-        statusLabel: row.nxDasrStatus === 'DELIVERED' ? '已送达' : '补货中'
+        actionId: row.nxDasrActionId,
+        quantityText: row.nxDasrQuantityValue || row.nxDasrQuantity,
+        unitText: row.nxDasrUnit || row.nxDasrStandard,
+        expectedText: formatTime(row.nxDasrExpectedAt),
+        statusLabel: ({ ASSIGNED: '已派单', DELIVERED: '已送达', FAILED: '已失败', CANCELLED: '已取消', CREATING: '创建中' })[row.nxDasrStatus] || row.nxDasrStatus
       })
     })
     var status = raw.nxDasStatus
+    var issueScope = raw.nxDasIssueScope || (items.length ? 'ITEM' : 'ORDER')
+    var allActionOptions = this.data.allActionOptions.length ? this.data.allActionOptions : this.data.actionOptions
     var convertedImage = images.filter(function (image) { return image.converted && image.linkedDepartmentDisGoodsId })[0]
     var writtenBackItemIndex = convertedImage
       ? items.findIndex(function (item) { return item.departmentDisGoodsId === convertedImage.linkedDepartmentDisGoodsId })
@@ -212,6 +308,9 @@ Page({
         statusLabel: this.data.statusMap[status] || status,
         severityLabel: this.data.severityMap[raw.nxDasSeverity] || raw.nxDasSeverity,
         issueTypeLabel: this.data.issueTypeMap[raw.nxDasIssueType] || raw.nxDasIssueType,
+        issueScope: issueScope,
+        orderScoped: issueScope === 'ORDER',
+        issueDescription: raw.nxDasIssueDescription || (items[0] && items[0].description) || '',
         confirmLabel: this.data.confirmMap[raw.nxDasCustomerConfirmStatus] || raw.nxDasCustomerConfirmStatus,
         createdText: formatTime(raw.nxDasCreatedAt), completedText: formatTime(raw.nxDasCompletedAt),
         completed: status === 'COMPLETED'
@@ -220,7 +319,11 @@ Page({
       evidenceImages: images.filter(function (image) { return image.stage === 'EVIDENCE' }),
       processImages: images.filter(function (image) { return image.stage === 'PROCESS' }),
       resultImages: images.filter(function (image) { return image.stage === 'REPLENISHMENT_RESULT' }),
-      actions: actions, replenishments: replenishments,
+      actions: actions, financialAdjustments: financialAdjustments,
+      feedbackHistory: feedbackHistory, replenishments: replenishments,
+      actionOptions: issueScope === 'ORDER'
+        ? allActionOptions.filter(function (item) { return item.code !== 'REPLENISHMENT' })
+        : allActionOptions,
       writebackItemIndex: writtenBackItemIndex >= 0 ? writtenBackItemIndex : 0,
       hasWrittenBack: images.some(function (image) { return image.converted }) || this.data.hasWrittenBack
     })
@@ -228,10 +331,20 @@ Page({
 
   previewImage(e) { wx.previewImage({ current: e.currentTarget.dataset.url, urls: this.data.images.map(function (item) { return item.previewUrl }) }) },
 
-  chooseEvidencePhotos() { this.chooseAndUploadPhotos('EVIDENCE', this.data.items[0] && this.data.items[0].id, null) },
-  chooseResultPhotos(e) { this.chooseAndUploadPhotos('REPLENISHMENT_RESULT', null, e.currentTarget.dataset.id) },
+  chooseEvidencePhotos() {
+    var options = ['整张售后'].concat(this.data.items.map(function (item) { return item.goodsName }))
+    wx.showActionSheet({
+      itemList: options,
+      success: (res) => {
+        var selected = res.tapIndex > 0 ? this.data.items[res.tapIndex - 1] : null
+        this.chooseAndUploadPhotos('EVIDENCE', selected && selected.id, null, null)
+      }
+    })
+  },
+  chooseResultPhotos(e) { this.chooseAndUploadPhotos('REPLENISHMENT_RESULT', null, e.currentTarget.dataset.id, e.currentTarget.dataset.actionId) },
+  chooseActionPhotos(e) { this.chooseAndUploadPhotos('PROCESS', null, null, e.currentTarget.dataset.id) },
 
-  chooseAndUploadPhotos(stage, itemId, replenishmentId) {
+  chooseAndUploadPhotos(stage, itemId, replenishmentId, actionId) {
     wx.chooseMedia({
       count: 9, mediaType: ['image'], sourceType: ['album', 'camera'],
       success: (res) => {
@@ -256,6 +369,7 @@ Page({
           afterSalesId: this.data.afterSalesId, distributerId: this.data.distributerId,
           operatorUserId: this.data.operatorUserId, stage: stage,
           afterSalesItemId: itemId, replenishmentId: replenishmentId,
+          actionId: actionId,
           filePath: file.tempFilePath,
           onProgress: function () {}
         }).then(function (upload) {
@@ -274,8 +388,8 @@ Page({
 
   openActionForm() {
     this.setData({
-      actionType: ['REPLENISHMENT', 'COMPENSATION_COUPON'].indexOf(this.data.actionType) >= 0 ? 'COMMUNICATION' : this.data.actionType,
-      showActionForm: true,
+      actionType: ['REPLENISHMENT', 'COMPENSATION_COUPON', 'REFUND_ADJUSTMENT'].indexOf(this.data.actionType) >= 0 ? 'COMMUNICATION' : this.data.actionType,
+      showActionForm: true, showFinancialForm: false,
       showReplenishmentForm: false,
       showCompensationForm: false
     })
@@ -284,7 +398,23 @@ Page({
     var type = e.currentTarget.dataset.code
     if (!type) return
     if (type === 'REPLENISHMENT') {
-      this.setData({ actionType: type, showActionForm: false, showReplenishmentForm: true, showCompensationForm: false })
+      if (!this.data.items.length) {
+        wx.showToast({ title: '整单问题不能按商品补货', icon: 'none' })
+        return
+      }
+      this.setData({
+        actionType: type, showActionForm: false, showFinancialForm: false,
+        showReplenishmentForm: true, showCompensationForm: false,
+        replenishmentExpectedAt: inputDateTime(180), replenishmentIdempotencyKey: requestKey('replenishment')
+      })
+      return
+    }
+    if (type === 'REFUND_ADJUSTMENT') {
+      this.setData({
+        actionType: type, showActionForm: false, showFinancialForm: true,
+        showReplenishmentForm: false, showCompensationForm: false,
+        financialIdempotencyKey: requestKey('financial')
+      })
       return
     }
     if (type === 'COMPENSATION_COUPON') {
@@ -300,30 +430,94 @@ Page({
       this.setData({ actionType: type, showActionForm: false, showReplenishmentForm: false, showCompensationForm: true })
       return
     }
-    this.setData({ actionType: type, showActionForm: true, showReplenishmentForm: false, showCompensationForm: false })
+    this.setData({
+      actionType: type, showActionForm: true, showFinancialForm: false,
+      showReplenishmentForm: false, showCompensationForm: false,
+      actionOccurredAt: inputDateTime()
+    })
   },
-  closeForms() { this.setData({ showActionForm: false, showReplenishmentForm: false, showCompensationForm: false, showWritebackForm: false }) },
+  closeForms() {
+    this.setData({
+      showActionForm: false, showFinancialForm: false, showReplenishmentForm: false,
+      showCompensationForm: false, showWritebackForm: false, showFeedbackForm: false,
+      showDeliveryForm: false, showOutcomeForm: false, showAnnouncementForm: false
+    })
+  },
   selectActionType(e) {
     var type = e.currentTarget.dataset.code
     if (type === 'REPLENISHMENT') {
       this.setData({ actionType: type, showActionForm: false, showReplenishmentForm: true })
-    } else if (type === 'COMPENSATION_COUPON') {
+    } else if (type === 'COMPENSATION_COUPON' || type === 'REFUND_ADJUSTMENT') {
       this.openActionByType({ currentTarget: { dataset: { code: type } } })
     } else this.setData({ actionType: type })
   },
   onActionRemarkInput(e) { this.setData({ actionRemark: e.detail.value }) },
   onActionResultInput(e) { this.setData({ actionResult: e.detail.value }) },
+  onActionContactInput(e) { this.setData({ actionContactName: e.detail.value }) },
+  onActionCommitmentInput(e) { this.setData({ actionCommitmentPlan: e.detail.value }) },
+  onActionOccurredInput(e) { this.setData({ actionOccurredAt: e.detail.value }) },
+  onActionExpectedInput(e) { this.setData({ actionExpectedAt: e.detail.value }) },
+  onCommunicationChannelChange(e) { this.setData({ actionMethodCode: this.data.communicationChannels[Number(e.detail.value)].code }) },
+  onCommunicationResultChange(e) { this.setData({ actionResultCode: this.data.communicationResults[Number(e.detail.value)].code }) },
+  onOtherTitleInput(e) { this.setData({ otherTitle: e.detail.value }) },
+  onOtherPlanInput(e) { this.setData({ otherPlan: e.detail.value }) },
+  onOtherResponsibleChange(e) { this.setData({ otherResponsibleIndex: Number(e.detail.value) }) },
+  onOtherStatusChange(e) { this.setData({ actionStatus: this.data.otherStatusOptions[Number(e.detail.value)].code }) },
 
   saveAction() {
     if (this.data.submitting || ['REPLENISHMENT', 'COMPENSATION_COUPON'].indexOf(this.data.actionType) >= 0) return
-    this.submit(addDepartmentAfterSalesAction(this.data.afterSalesId, Object.assign(this.scope(), {
-      actionType: this.data.actionType, remark: this.data.actionRemark, result: this.data.actionResult
-    })), '处理动作已记录', () => this.setData({ showActionForm: false, actionRemark: '', actionResult: '' }))
+    var data = Object.assign(this.scope(), {
+      actionType: this.data.actionType,
+      status: this.data.actionType === 'OTHER' ? this.data.actionStatus : 'COMPLETED',
+      occurredAt: this.data.actionOccurredAt,
+      expectedAt: this.data.actionExpectedAt || null,
+      remark: this.data.actionRemark,
+      result: this.data.actionResult
+    })
+    if (this.data.actionType === 'COMMUNICATION') {
+      Object.assign(data, {
+        methodCode: this.data.actionMethodCode, resultCode: this.data.actionResultCode,
+        contactName: this.data.actionContactName, commitmentPlan: this.data.actionCommitmentPlan
+      })
+    } else if (this.data.actionType === 'OTHER') {
+      var responsible = this.data.responsibleOptions[this.data.otherResponsibleIndex]
+      Object.assign(data, {
+        treatmentTitle: this.data.otherTitle, treatmentPlan: this.data.otherPlan,
+        responsibleUserId: responsible && responsible.id,
+        methodCode: 'OTHER', resultCode: this.data.actionStatus
+      })
+    }
+    this.submit(addDepartmentAfterSalesAction(this.data.afterSalesId, data), '处理动作已记录', () => this.setData({
+      showActionForm: false, actionRemark: '', actionResult: '', actionContactName: '',
+      actionCommitmentPlan: '', otherTitle: '', otherPlan: '', actionExpectedAt: ''
+    }))
+  },
+
+  onFinancialTypeChange(e) { this.setData({ financialTypeIndex: Number(e.detail.value) }) },
+  onFinancialAmountInput(e) { this.setData({ financialAmount: e.detail.value }) },
+  onFinancialReasonInput(e) { this.setData({ financialReason: e.detail.value }) },
+  onFinancialResultInput(e) { this.setData({ financialResultNote: e.detail.value }) },
+  saveFinancialAdjustment() {
+    if (this.data.submitting) return
+    var type = this.data.financialTypes[this.data.financialTypeIndex]
+    if (!type || !this.data.financialAmount.trim() || !this.data.financialReason.trim() || !this.data.financialResultNote.trim()) {
+      wx.showToast({ title: '请完整填写方式、金额、原因和结果', icon: 'none' }); return
+    }
+    this.submit(createAfterSalesFinancialAdjustment(this.data.afterSalesId, Object.assign(this.scope(), {
+      adjustmentType: type.code, amount: this.data.financialAmount.trim(), currency: 'CNY',
+      reason: this.data.financialReason.trim(), resultNote: this.data.financialResultNote.trim(),
+      idempotencyKey: this.data.financialIdempotencyKey
+    })), '财务处理已记录', () => this.setData({
+      showFinancialForm: false, financialAmount: '', financialReason: '', financialResultNote: ''
+    }))
   },
 
   onReplenishmentItemChange(e) { this.setData({ replenishmentItemIndex: Number(e.detail.value) }) },
   onReplenishmentQuantityInput(e) { this.setData({ replenishmentQuantity: e.detail.value }) },
+  onReplenishmentUnitInput(e) { this.setData({ replenishmentUnit: e.detail.value }) },
   onReplenishmentStandardInput(e) { this.setData({ replenishmentStandard: e.detail.value }) },
+  onReplenishmentExpectedInput(e) { this.setData({ replenishmentExpectedAt: e.detail.value }) },
+  onReplenishmentNoteInput(e) { this.setData({ replenishmentNote: e.detail.value }) },
   onDriverChange(e) { this.setData({ driverIndex: Number(e.detail.value) }) },
 
   onCompensationCouponChange(e) { this.setData({ compensationCouponIndex: Number(e.detail.value) }) },
@@ -333,6 +527,7 @@ Page({
     if (this.data.submitting) return
     var coupon = this.data.compensationCoupons[this.data.compensationCouponIndex]
     if (!coupon) { wx.showToast({ title: '请选择补偿券', icon: 'none' }); return }
+    if (!this.data.compensationRemark.trim()) { wx.showToast({ title: '请填写补偿原因', icon: 'none' }); return }
     wx.showModal({
       title: '确认发放补偿券',
       content: '将“' + coupon.nxDistributerCouponName + '”发放给当前客户？发放后会进入客户可用券。',
@@ -356,42 +551,129 @@ Page({
     if (this.data.submitting) return
     var item = this.data.items[this.data.replenishmentItemIndex]
     var driver = this.data.drivers[this.data.driverIndex]
-    if (!item || !this.data.replenishmentQuantity.trim() || !this.data.replenishmentStandard.trim() || !driver) {
-      wx.showToast({ title: '请完整填写商品、数量、规格和司机', icon: 'none' }); return
+    if (!item || !this.data.replenishmentQuantity.trim() || !this.data.replenishmentUnit.trim() ||
+      !this.data.replenishmentStandard.trim() || !this.data.replenishmentExpectedAt.trim() ||
+      !this.data.replenishmentNote.trim() || !driver) {
+      wx.showToast({ title: '请完整填写补货信息', icon: 'none' }); return
     }
     this.submit(createAfterSalesReplenishment(this.data.afterSalesId, Object.assign(this.scope(), {
       afterSalesItemId: item.id, quantity: this.data.replenishmentQuantity.trim(),
-      standard: this.data.replenishmentStandard.trim(), driverUserId: driver.id
-    })), '补货已安排', () => this.setData({ showReplenishmentForm: false, replenishmentQuantity: '' }))
+      quantityValue: this.data.replenishmentQuantity.trim(), unit: this.data.replenishmentUnit.trim(),
+      standard: this.data.replenishmentStandard.trim(), driverUserId: driver.id,
+      expectedAt: this.data.replenishmentExpectedAt.trim(), handlingNote: this.data.replenishmentNote.trim(),
+      idempotencyKey: this.data.replenishmentIdempotencyKey
+    })), '补货已安排', () => this.setData({
+      showReplenishmentForm: false, replenishmentQuantity: '', replenishmentNote: ''
+    }))
   },
 
   markDelivered(e) {
-    var id = e.currentTarget.dataset.id
-    wx.showModal({ title: '确认补货送达', content: '确认司机已经将本次售后补货送达客户？', success: (res) => {
-      if (!res.confirm) return
-      if (this.data.submitting) return
-      this.submit(deliverAfterSalesReplenishment(id, Object.assign(this.scope(), { deliveryResult: '售后补货已送达' })), '已送达')
-    } })
+    var row = this.data.replenishments.filter(function (item) { return item.id === Number(e.currentTarget.dataset.id) })[0]
+    this.setData({
+      showDeliveryForm: true, deliveryReplenishmentId: row && row.id,
+      deliveryActualQuantity: row ? String(row.quantityText || '') : '', deliveryResult: ''
+    })
+  },
+
+  onDeliveryActualInput(e) { this.setData({ deliveryActualQuantity: e.detail.value }) },
+  onDeliveryResultInput(e) { this.setData({ deliveryResult: e.detail.value }) },
+  saveDelivery() {
+    if (!this.data.deliveryActualQuantity.trim() || !this.data.deliveryResult.trim()) {
+      wx.showToast({ title: '请填写实际送达数量和结果', icon: 'none' }); return
+    }
+    this.submit(deliverAfterSalesReplenishment(this.data.deliveryReplenishmentId, Object.assign(this.scope(), {
+      actualQuantityValue: this.data.deliveryActualQuantity.trim(), deliveryResult: this.data.deliveryResult.trim()
+    })), '已确认送达', () => this.setData({ showDeliveryForm: false }))
+  },
+  openOutcomeForm(e) {
+    this.setData({ showOutcomeForm: true, outcomeReplenishmentId: Number(e.currentTarget.dataset.id), outcomeStatus: e.currentTarget.dataset.status, outcomeReason: '' })
+  },
+  onOutcomeReasonInput(e) { this.setData({ outcomeReason: e.detail.value }) },
+  saveOutcome() {
+    if (!this.data.outcomeReason.trim()) { wx.showToast({ title: '请填写原因', icon: 'none' }); return }
+    this.submit(finishAfterSalesReplenishment(this.data.outcomeReplenishmentId, Object.assign(this.scope(), {
+      status: this.data.outcomeStatus, reason: this.data.outcomeReason.trim()
+    })), this.data.outcomeStatus === 'FAILED' ? '已记录补货失败' : '已取消补货', () => this.setData({ showOutcomeForm: false }))
   },
 
   confirmCustomer(e) {
     var status = e.currentTarget.dataset.status
     if (status === 'PENDING') { wx.showToast({ title: '当前保持待确认，无需提交', icon: 'none' }); return }
-    var label = status === 'ACCEPTED' ? '客户接受' : '仍不满意'
-    wx.showModal({ title: '记录客户反馈', content: '确认记录为“' + label + '”？', editable: true, placeholderText: '可填写电话或微信反馈', success: (res) => {
-      if (!res.confirm) return
-      if (this.data.submitting) return
-      this.submit(confirmDepartmentAfterSales(this.data.afterSalesId, Object.assign(this.scope(), {
-        confirmStatus: status, remark: res.content || ''
-      })), '客户反馈已记录')
-    } })
+    this.setData({ showFeedbackForm: true, feedbackStatus: status, feedbackContent: '', feedbackRecordedAt: inputDateTime() })
+  },
+
+  onFeedbackChannelChange(e) { this.setData({ feedbackChannelIndex: Number(e.detail.value) }) },
+  onFeedbackContentInput(e) { this.setData({ feedbackContent: e.detail.value }) },
+  onFeedbackRecordedInput(e) { this.setData({ feedbackRecordedAt: e.detail.value }) },
+  saveFeedback() {
+    var channel = this.data.feedbackChannels[this.data.feedbackChannelIndex]
+    if (!channel || !this.data.feedbackContent.trim() || !this.data.feedbackRecordedAt.trim()) {
+      wx.showToast({ title: '请填写反馈渠道、内容和时间', icon: 'none' }); return
+    }
+    this.submit(confirmDepartmentAfterSales(this.data.afterSalesId, Object.assign(this.scope(), {
+      confirmStatus: this.data.feedbackStatus, remark: this.data.feedbackContent.trim(),
+      feedbackContent: this.data.feedbackContent.trim(), feedbackChannel: channel.code,
+      recordedAt: this.data.feedbackRecordedAt.trim()
+    })), '客户反馈已记录', () => this.setData({ showFeedbackForm: false }))
   },
 
   completeCase() {
-    wx.showModal({ title: '完成售后', content: '客户已接受，确认完成本次售后？', success: (res) => {
+    wx.showModal({ title: '完成售后', content: '客户已接受，请填写最终解决摘要。', editable: true, placeholderText: '例：已线下退款并取得客户认可', success: (res) => {
       if (!res.confirm) return
       if (this.data.submitting) return
-      this.submit(completeDepartmentAfterSales(this.data.afterSalesId, Object.assign(this.scope(), { result: '客户接受，售后完成' })), '售后已完成')
+      if (!(res.content || '').trim()) { wx.showToast({ title: '最终解决摘要不能为空', icon: 'none' }); return }
+      this.submit(completeDepartmentAfterSales(this.data.afterSalesId, Object.assign(this.scope(), {
+        result: (res.content || '').trim(), finalResolutionSummary: (res.content || '').trim()
+      })), '售后已完成')
+    } })
+  },
+
+  openAnnouncementForm() {
+    var detail = this.data.detail || {}
+    this.setData({
+      showAnnouncementForm: true,
+      announcementTitle: this.data.announcementTitle || (this.data.customerDisplayName + '反馈：' + detail.issueTypeLabel),
+      announcementAudienceAll: this.data.announcement ? !!this.data.announcement.audienceAll : true
+    })
+  },
+  onAnnouncementTitleInput(e) { this.setData({ announcementTitle: e.detail.value }) },
+  onAnnouncementNoteInput(e) { this.setData({ announcementNote: e.detail.value }) },
+  selectAnnouncementAll() {
+    this.setData({
+      announcementAudienceAll: true, announcementRoleCodes: [],
+      announcementRoles: this.data.announcementRoles.map(function (role) { return Object.assign({}, role, { selected: false }) })
+    })
+  },
+  toggleAnnouncementRole(e) {
+    var code = Number(e.currentTarget.dataset.code)
+    var selected = this.data.announcementRoleCodes.slice()
+    var index = selected.indexOf(code)
+    if (index >= 0) selected.splice(index, 1); else selected.push(code)
+    this.setData({
+      announcementAudienceAll: false, announcementRoleCodes: selected,
+      announcementRoles: this.data.announcementRoles.map(function (role) {
+        return Object.assign({}, role, { selected: selected.indexOf(role.code) >= 0 })
+      })
+    })
+  },
+  saveAnnouncement() {
+    if (!this.data.announcementTitle.trim()) { wx.showToast({ title: '请填写公告标题', icon: 'none' }); return }
+    if (!this.data.announcementAudienceAll && !this.data.announcementRoleCodes.length) {
+      wx.showToast({ title: '请选择公告受众', icon: 'none' }); return
+    }
+    this.submit(publishAfterSalesAnnouncement(this.data.afterSalesId, {
+      title: this.data.announcementTitle.trim(), publisherNote: this.data.announcementNote.trim(),
+      audienceAll: this.data.announcementAudienceAll,
+      roleCodes: this.data.announcementAudienceAll ? [] : this.data.announcementRoleCodes
+    }), '公告已发布', () => {
+      this.setData({ showAnnouncementForm: false })
+      this.loadAnnouncement()
+    })
+  },
+  withdrawAnnouncement() {
+    wx.showModal({ title: '撤回公告', content: '撤回后公司员工将不再看到这条公告，是否继续？', success: (res) => {
+      if (!res.confirm) return
+      this.submit(withdrawAfterSalesAnnouncement(this.data.afterSalesId), '公告已撤回', () => this.loadAnnouncement())
     } })
   },
 

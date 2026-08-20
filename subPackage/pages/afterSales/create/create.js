@@ -15,8 +15,12 @@ Page({
     issueTypeOptions: [],
     severity: 'MEDIUM',
     issueType: 'QUALITY',
+    issueScopeMode: 'ITEM',
+    issueScope: 'ITEM',
     description: '',
     photos: [],
+    photoTargetOptions: [{ label: '整张售后', departmentDisGoodsId: null }],
+    photoTargetIndex: 0,
     saving: false,
     loading: true
   },
@@ -26,7 +30,7 @@ Page({
     var user = wx.getStorageSync('userInfo') || {}
     var dis = user.nxDistributerEntity || {}
     var draft = wx.getStorageSync('afterSalesCreateDraft')
-    if (!draft || !draft.originalShipmentTaskId || !Array.isArray(draft.orders) || !draft.orders.length) {
+    if (!draft || !Array.isArray(draft.orders) || !draft.orders.length) {
       wx.showToast({ title: '缺少原配送订单信息', icon: 'none' })
       setTimeout(function () { wx.navigateBack({ delta: 1 }) }, 1200)
       return
@@ -36,15 +40,22 @@ Page({
       distributerId: dis.nxDistributerId,
       operatorUserId: user.nxDistributerUserId,
       draft: draft,
-      orders: draft.orders
+      orders: draft.orders,
+      photoTargetOptions: this.buildPhotoTargets(draft.orders),
+      photoTargetIndex: this.buildPhotoTargets(draft.orders).length === 2 ? 1 : 0
     })
     getAfterSalesDictionaries().then((res) => {
       if (!res.result || res.result.code !== 0) throw new Error((res.result && res.result.msg) || '字典加载失败')
       var data = res.result.data || {}
+      var issueTypeOptions = data.issueTypes || []
+      var currentType = issueTypeOptions.filter((item) => item.code === this.data.issueType)[0] || {}
+      var scopeMode = currentType.scopeMode || 'ITEM'
       this.setData({
         loading: false,
         severityOptions: data.severities || [],
-        issueTypeOptions: data.issueTypes || []
+        issueTypeOptions: issueTypeOptions,
+        issueScopeMode: scopeMode,
+        issueScope: scopeMode === 'ORDER' ? 'ORDER' : 'ITEM'
       })
     }).catch((error) => {
       this.setData({ loading: false })
@@ -55,11 +66,34 @@ Page({
   toggleOrder(e) {
     var index = Number(e.currentTarget.dataset.index)
     var key = 'orders[' + index + '].selected'
-    this.setData({ [key]: !this.data.orders[index].selected })
+    this.setData({ [key]: !this.data.orders[index].selected }, () => {
+      var targets = this.buildPhotoTargets(this.data.orders)
+      this.setData({ photoTargetOptions: targets, photoTargetIndex: targets.length === 2 ? 1 : 0 })
+    })
   },
 
+  buildPhotoTargets(orders) {
+    var targets = [{ label: '整张售后', departmentDisGoodsId: null }]
+    ;(orders || []).filter(function (item) { return item.selected }).forEach(function (item) {
+      targets.push({ label: item.goodsName || '问题商品', departmentDisGoodsId: item.departmentDisGoodsId })
+    })
+    return targets
+  },
+
+  onPhotoTargetChange(e) { this.setData({ photoTargetIndex: Number(e.detail.value) }) },
+
   selectSeverity(e) { this.setData({ severity: e.currentTarget.dataset.code }) },
-  selectIssueType(e) { this.setData({ issueType: e.currentTarget.dataset.code }) },
+  selectIssueType(e) {
+    var code = e.currentTarget.dataset.code
+    var option = this.data.issueTypeOptions.filter(function (item) { return item.code === code })[0] || {}
+    var scopeMode = option.scopeMode || 'ITEM'
+    this.setData({
+      issueType: code,
+      issueScopeMode: scopeMode,
+      issueScope: scopeMode === 'ORDER' || scopeMode === 'FLEXIBLE' ? 'ORDER' : 'ITEM'
+    })
+  },
+  selectIssueScope(e) { this.setData({ issueScope: e.currentTarget.dataset.scope }) },
   onDescriptionInput(e) { this.setData({ description: e.detail.value }) },
 
   choosePhotos() {
@@ -76,6 +110,7 @@ Page({
       success: (res) => {
         var tooLarge = 0
         var unsupported = 0
+        var target = this.data.photoTargetOptions[this.data.photoTargetIndex] || this.data.photoTargetOptions[0]
         var additions = (res.tempFiles || []).filter(function (file) {
           var path = String(file.tempFilePath || '').toLowerCase()
           var extension = (path.match(/\.([a-z0-9]+)(?:\?|$)/) || [])[1]
@@ -83,7 +118,10 @@ Page({
           if (extension && ['jpg', 'jpeg', 'png', 'webp'].indexOf(extension) < 0) { unsupported += 1; return false }
           return true
         }).map(function (file) {
-          return { path: file.tempFilePath, progress: 0, status: 'waiting', statusText: '待上传' }
+          return {
+            path: file.tempFilePath, progress: 0, status: 'waiting', statusText: '待上传',
+            targetLabel: target.label, departmentDisGoodsId: target.departmentDisGoodsId
+          }
         })
         if (tooLarge || unsupported) {
           var messages = []
@@ -112,7 +150,7 @@ Page({
   save() {
     if (this.data.saving) return
     var selected = this.data.orders.filter(function (item) { return item.selected })
-    if (!selected.length) {
+    if (this.data.issueScope === 'ITEM' && !selected.length) {
       wx.showToast({ title: '请选择问题商品', icon: 'none' })
       return
     }
@@ -120,21 +158,33 @@ Page({
       wx.showToast({ title: '请填写问题说明', icon: 'none' })
       return
     }
-    var first = selected[0]
+    var anchorId = this.data.draft.anchorHistoryOrderId
+    var anchor = this.data.orders.filter(function (item) {
+      return String(item.historyOrderId) === String(anchorId)
+    })[0] || selected[0] || this.data.orders[0]
+    if (!anchor || !anchor.historyOrderId) {
+      wx.showToast({ title: '缺少原订单信息', icon: 'none' })
+      return
+    }
+    var itemScoped = this.data.issueScope === 'ITEM'
     var request = {
       distributerId: this.data.distributerId,
       operatorUserId: this.data.operatorUserId,
-      originalShipmentTaskId: this.data.draft.originalShipmentTaskId,
-      originalHistoryOrderId: first.historyOrderId,
+      originalHistoryOrderId: anchor.historyOrderId,
       severity: this.data.severity,
       issueType: this.data.issueType,
-      items: selected.map((item) => ({
+      issueScope: this.data.issueScope,
+      issueDescription: this.data.description.trim(),
+      items: itemScoped ? selected.map((item) => ({
         originalHistoryOrderId: item.historyOrderId,
         departmentDisGoodsId: item.departmentDisGoodsId,
         issueQuantity: item.quantity ? item.quantity + (item.standard || '') : '',
         issueTag: this.data.issueType,
         issueDescription: this.data.description.trim()
-      }))
+      })) : []
+    }
+    if (this.data.draft.originalShipmentTaskId) {
+      request.originalShipmentTaskId = this.data.draft.originalShipmentTaskId
     }
     this.setData({ saving: true })
     wx.showLoading({ title: '创建售后' })
@@ -142,10 +192,9 @@ Page({
       if (!res.result || res.result.code !== 0) throw new Error((res.result && res.result.msg) || '创建售后失败')
       var detail = res.result.data || {}
       var afterSalesId = detail.nxDasId
-      var afterSalesItemId = detail.items && detail.items[0] && detail.items[0].nxDasiId
       if (!afterSalesId) throw new Error('后台未返回售后单ID')
       if (!this.data.photos.length) return { afterSalesId: afterSalesId, failed: 0 }
-      return this.uploadPhotos(afterSalesId, afterSalesItemId).then(function (failed) {
+      return this.uploadPhotos(afterSalesId, detail.items || []).then(function (failed) {
         return { afterSalesId: afterSalesId, failed: failed }
       })
     }).then((result) => {
@@ -167,7 +216,11 @@ Page({
     })
   },
 
-  uploadPhotos(afterSalesId, afterSalesItemId) {
+  uploadPhotos(afterSalesId, afterSalesItems) {
+    var itemIdByGoods = {}
+    ;(afterSalesItems || []).forEach(function (item) {
+      itemIdByGoods[String(item.nxDasiDepartmentDisGoodsId)] = item.nxDasiId
+    })
     var jobs = this.data.photos.map((photo, index) => {
       var statusKey = 'photos[' + index + '].status'
       var textKey = 'photos[' + index + '].statusText'
@@ -176,7 +229,7 @@ Page({
         afterSalesId: afterSalesId,
         distributerId: this.data.distributerId,
         operatorUserId: this.data.operatorUserId,
-        afterSalesItemId: afterSalesItemId,
+        afterSalesItemId: photo.departmentDisGoodsId ? itemIdByGoods[String(photo.departmentDisGoodsId)] : null,
         stage: 'EVIDENCE',
         description: this.data.description.trim(),
         filePath: photo.path,
