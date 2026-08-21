@@ -92,8 +92,9 @@ Page({
     const app = getApp()
     const userInfo = wx.getStorageSync('userInfo')
     const disInfo = wx.getStorageSync('disInfo')
+    const role = Number(userInfo && userInfo.nxDiuAdmin)
     if (!app.hasUsableOwnerToken() || !userInfo || !disInfo
-        || userInfo.nxDiuAdmin !== 0 || !disInfo.nxDistributerId) {
+        || (role !== 0 && role !== 1) || !disInfo.nxDistributerId) {
       app.clearOwnerLoginState()
       wx.reLaunch({ url: '/pages/login/login' })
       return
@@ -245,9 +246,8 @@ Page({
         }
         wx.setStorageSync('disInfo', res.result.data.disInfo);
         if (res.result.data.disInfo.nxDistributerBuyQuantity < 1) {
-
-          console.log("aaa")
-          if (this.data.disInfo.sysCityMarketEntity.sysCmSelfPrintEnabled == 0) {
+          const marketInfo = this.data.disInfo && this.data.disInfo.sysCityMarketEntity;
+          if (!marketInfo || marketInfo.sysCmSelfPrintEnabled == 0) {
             wx.navigateTo({
               url: '/subPackage/pages/management/payPage/payPage?type=0',
             })

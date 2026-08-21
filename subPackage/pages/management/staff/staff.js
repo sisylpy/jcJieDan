@@ -10,7 +10,9 @@ import {
   deleteWeightUser,
   deleteJrdhUser,
   getDisUserInfo,
-  updateDisUserAdmin
+  updateDisUserAdmin,
+  updateSalesDefaultClerk,
+  createStaffInvite
 } from '../../../../lib/apiDistributer'
 
 
@@ -29,6 +31,11 @@ Page({
 
 
   onShow: function () {
+
+    if (this.data.refreshStaffOnShow) {
+      this.setData({ refreshStaffOnShow: false })
+      this._initData()
+    }
 
     if(this.data.toSharePurchase){
       this.setData({
@@ -51,12 +58,6 @@ Page({
    * 页面的初始数据
    */
   data: {
-    items: [
-      { name: '0', value: '管理员', checked: 'true'},
-      { name: '1', value: '拣货员',},
-      { name: '2', value: '采购员' },
-      { name: '5', value: '司机' },
-    ],
     admin: 0,
     showOperation: false,
     dutySubmitting: false,
@@ -97,12 +98,40 @@ Page({
   getDisUsers(this.data.disId).then(res =>{
     if(res.result.code == 0){
       var drivers = res.result.data.driver || []
+      var combinedStaff = []
+        .concat(res.result.data.admins || [])
+        .concat(res.result.data.clerks || [])
+        .concat(res.result.data.sales || [])
+      var clerks = res.result.data.clerks || []
+      var defaultClerkOptions = [{
+        nxDistributerUserId: null,
+        nxDiuWxNickName: '每次新增客户时选择'
+      }].concat(clerks)
+      var staffUsers = combinedStaff.map(function (user) {
+        var isSales = user.nxDiuAdmin == 3
+        var availableRoleNames = isSales ? ['业务员'] : ['老板', '录单员']
+        var availableRoleValues = isSales ? [3] : [0, 1]
+        var roleIndex = availableRoleValues.indexOf(user.nxDiuAdmin)
+        var defaultClerkIndex = isSales ? defaultClerkOptions.findIndex(function (clerk) {
+          return clerk.nxDistributerUserId == user.nxDiuDefaultClerkUserId
+        }) : 0
+        return Object.assign({}, user, {
+          roleIndex: roleIndex < 0 ? 1 : roleIndex,
+          roleLabel: roleIndex < 0 ? '其他' : availableRoleNames[roleIndex],
+          availableRoleNames: availableRoleNames,
+          availableRoleValues: availableRoleValues,
+          roleLocked: isSales,
+          defaultClerkOptions: defaultClerkOptions,
+          defaultClerkIndex: defaultClerkIndex < 0 ? 0 : defaultClerkIndex
+        })
+      })
       that.setData({
-        zeroUserArr: res.result.data.zero,
+        zeroUserArr: staffUsers,
         oneUserArr: res.result.data.one,
         driverUserArr: drivers,
         editUser: false
       })
+      that._prepareClerkInvite()
       that._loadDriverDutyState(drivers)
     }else{
       wx.showToast({
@@ -111,6 +140,23 @@ Page({
       })
     }
   })
+},
+
+changeSalesDefaultClerk(e) {
+  var salesUser = e.currentTarget.dataset.item
+  var index = Number(e.detail.value)
+  var option = salesUser.defaultClerkOptions[index]
+  updateSalesDefaultClerk(
+    salesUser.nxDistributerUserId,
+    option ? option.nxDistributerUserId : null
+  ).then(res => {
+    if (res.result && res.result.code == 0) {
+      wx.showToast({ title: '默认录单员已保存', icon: 'success' })
+      this._initData()
+    } else {
+      wx.showToast({ title: (res.result && res.result.msg) || '保存失败', icon: 'none' })
+    }
+  }).catch(() => wx.showToast({ title: '保存失败，请检查网络', icon: 'none' }))
 },
 
 _loadDriverDutyState(driverUserArr) {
@@ -215,23 +261,43 @@ submitDriverDuty(action, driverUserId) {
    * @param {*} options 
    */
   onShareAppMessage: function (options) {
-    console.log( options);
+    var inviteCode = this.data.clerkInviteCode || ''
+    var disName = (this.data.disInfo && this.data.disInfo.nxDistributerName) || ''
+    var path = '/subPackage/pages/inviteAdmin/inviteAdmin?inviteCode=' + encodeURIComponent(inviteCode)
+      + '&disName=' + encodeURIComponent(disName)
+    setTimeout(() => {
+      this.setData({ clerkInviteCode: null })
+      this._prepareClerkInvite()
+    }, 1000)
     return {
-      title: "注册管理员", // 默认是小程序的名称(可以写slogan等)
-      path: '/subPackage/pages/inviteAdmin/inviteAdmin?disId=' + this.data.userInfo.nxDiuDistributerId + '&admin=' + options.target.dataset.admin + '&disName=' + this.data.disInfo.nxDistributerName,
+      title: "邀请你注册录单员",
+      path: path,
       imageUrl: '',
     }
   },
 
+_prepareClerkInvite() {
+  if (this.data.clerkInviteLoading || this.data.clerkInviteCode) return
+  this.setData({ clerkInviteLoading: true })
+  createStaffInvite(1).then(res => {
+    var invite = res.result && res.result.data
+    this.setData({
+      clerkInviteLoading: false,
+      clerkInviteCode: invite && invite.inviteCode
+    })
+  }).catch(() => {
+    this.setData({ clerkInviteLoading: false })
+  })
+},
 
-changeAdmin(e){
-  var item  = e.currentTarget.dataset.item;
-  if(item.nxDiuAdmin == 1){
-    item.nxDiuAdmin = 0;
-  }else{
-    item.nxDiuAdmin = 1;
+changeUserRole(e){
+  var index = Number(e.detail.value)
+  var original = e.currentTarget.dataset.item
+  var item = {
+    nxDistributerUserId: original.nxDistributerUserId,
+    nxDiuDistributerId: original.nxDiuDistributerId,
+    nxDiuAdmin: original.availableRoleValues[index]
   }
-
   updateDisUserAdmin(item).then(res =>{
     if(res.result.code == 0){
       this._initData();
@@ -241,6 +307,34 @@ changeAdmin(e){
         icon: 'none'
       })
     }
+  })
+},
+
+toOpenSalesInvite() {
+  if (this.data.salesInviteLoading) return
+  this.setData({ salesInviteLoading: true })
+  createStaffInvite(3).then(res => {
+    this.setData({ salesInviteLoading: false })
+    if (!res.result || res.result.code != 0 || !res.result.data) {
+      wx.showToast({ title: (res.result && res.result.msg) || '邀请创建失败', icon: 'none' })
+      return
+    }
+    var inviteCode = res.result.data.inviteCode
+    var disName = (this.data.disInfo && this.data.disInfo.nxDistributerName) || ''
+    var path = '/pages/salesRegister/salesRegister?inviteCode=' + encodeURIComponent(inviteCode)
+      + '&disName=' + encodeURIComponent(disName)
+    this.setData({ refreshStaffOnShow: true })
+    wx.navigateToMiniProgram({
+      appId: 'wx159c5a46d80e4500',
+      path: path,
+      envVersion: 'trial',
+      fail: function () {
+        wx.showToast({ title: '无法打开业务员注册页', icon: 'none' })
+      }
+    })
+  }).catch(() => {
+    this.setData({ salesInviteLoading: false })
+    wx.showToast({ title: '邀请创建失败', icon: 'none' })
   })
 },
 
@@ -272,13 +366,14 @@ openOperationWeight(e){
     load.showLoading("删除用户")
     if(this.data.type == 'dis'){
       deleteDisUser(this.data.selectUserId).then(res => {
-        if (res.result.code !== -1) {
+        if (res.result.code == 0) {
           load.hideLoading();
           this._initData();
         } else {
           load.hideLoading();
           wx.showToast({
             title: res.result.msg,
+            icon: 'none'
           })
         }
       })
@@ -384,14 +479,14 @@ toOpenDriver() {
   var disId = this.data.disId
   var disName = (this.data.disInfo && this.data.disInfo.nxDistributerName) ? this.data.disInfo.nxDistributerName : ''
   var appId = 'wx2dccb807db0ea0d7'
-  var path = '/pages/inviteAdmin/inviteAdmin?disId=' + disId + '&disName=' + encodeURIComponent(disName)
+  var path = '/pages/inviteAdmin/inviteAdmin?tenant=nx&disId=' + disId + '&disName=' + encodeURIComponent(disName)
   var envVersion = 'trial'
 
   console.log('========== 司机邀请注册 ==========')
   console.log('[staff] appId:', appId)
   console.log('[staff] envVersion:', envVersion)
   console.log('[staff] path:', path)
-  console.log('[staff] 完整 query: disId=' + disId + '&disName=' + disName)
+  console.log('[staff] 完整 query: tenant=nx&disId=' + disId + '&disName=' + disName)
   console.log('[staff] 司机端编译模式入口（复制此行）:')
   console.log(path)
   console.log('==================================')

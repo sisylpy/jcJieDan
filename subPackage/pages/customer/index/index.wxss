@@ -53,6 +53,17 @@ page{
   height: 24rpx;
 }
 
+/* 客户状态标签（未开通） */
+.customer-status-tag {
+  margin-left: 16rpx;
+  padding: 4rpx 16rpx;
+  background: #ffeaea;
+  color: #ff4d4f;
+  font-size: 22rpx;
+  border-radius: 8rpx;
+  font-weight: 600;
+}
+
 /* 客户标签样式 */
 .customer-label-tag {
   padding: 4rpx 12rpx;

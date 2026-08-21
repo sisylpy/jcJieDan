@@ -24,6 +24,30 @@
       <text class="name-hint">协作商家或对外采购时显示，建议用代号保护隐私</text>
     </view>
 
+    <view class="name-field">
+      <text class="name-label">负责业务员</text>
+      <picker wx:if="{{salesUsers.length > 0}}" class="staff-picker" mode="selector" range="{{salesUsers}}" range-key="nxDiuWxNickName"
+        value="{{salesIndex}}" bindchange="onSalesChange">
+        <view class="staff-picker-value {{salesUserId ? 'selected' : ''}}">
+          {{salesUserId ? salesUsers[salesIndex].nxDiuWxNickName : '不选择，由当前老板负责'}}
+        </view>
+      </picker>
+      <view wx:else class="staff-picker-value selected">{{fallbackOwner.nxDiuWxNickName || '当前老板'}}（老板代管）</view>
+      <text class="name-hint">业务员为可选项，以后可在客户资料中重新分配</text>
+    </view>
+
+    <view class="name-field">
+      <text class="name-label">负责录单员</text>
+      <picker wx:if="{{clerkUsers.length > 0}}" class="staff-picker" mode="selector" range="{{clerkUsers}}" range-key="nxDiuWxNickName"
+        value="{{clerkIndex}}" bindchange="onClerkChange">
+        <view class="staff-picker-value {{clerkUserId ? 'selected' : ''}}">
+          {{clerkUserId ? clerkUsers[clerkIndex].nxDiuWxNickName : '不选择，由当前老板负责'}}
+        </view>
+      </picker>
+      <view wx:else class="staff-picker-value selected">{{fallbackOwner.nxDiuWxNickName || '老板'}}（暂无录单员，由老板代管）</view>
+      <text class="name-hint">录单员为可选项，以后可在客户资料中重新分配</text>
+    </view>
+
 
     <view class="flex-row p-20 font-lg">
       <view class='mr-10 text-secondary'>付款方式:</view>

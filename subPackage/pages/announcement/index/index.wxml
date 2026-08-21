@@ -1,0 +1,64 @@
+<back-navbar title="公司公告牌" avatar="/images/back-gray.png" button-text="" bindnavbuttontap="toBack"></back-navbar>
+
+<view class="announcement-page" style="padding-top: {{navBarHeight}}rpx;">
+  <view class="search-row">
+    <view class="search-box">
+      <text class="search-icon">⌕</text>
+      <input
+        class="search-input"
+        value="{{searchText}}"
+        placeholder="搜索公告标题、内容"
+        confirm-type="search"
+        bindinput="onSearchInput"
+      />
+      <text class="clear-button" wx:if="{{searchText}}" bindtap="clearSearch">×</text>
+    </view>
+  </view>
+
+  <view class="tab-row">
+    <view
+      class="tab-item {{activeTab === item.code ? 'active' : ''}}"
+      wx:for="{{tabs}}"
+      wx:key="code"
+      data-code="{{item.code}}"
+      bindtap="onTabTap"
+    >{{item.label}}</view>
+  </view>
+
+  <view class="loading-card" wx:if="{{loading}}">正在加载公告...</view>
+  <view class="error-card" wx:elif="{{errorText}}">
+    <text>{{errorText}}</text>
+    <button class="retry-button" bindtap="retry">重新加载</button>
+  </view>
+
+  <block wx:else>
+    <view class="empty-card" wx:if="{{announcements.length === 0}}">
+      <view class="empty-icon">告</view>
+      <text class="empty-title">{{searchText ? '没有匹配的公告' : '暂无可见公告'}}</text>
+      <text class="empty-desc">{{searchText ? '换个关键词试试' : '在售后详情发布后，符合受众的员工会在这里看到'}}</text>
+    </view>
+
+    <view
+      class="announcement-card"
+      wx:for="{{announcements}}"
+      wx:key="announcementId"
+      data-item="{{item}}"
+      bindtap="openDetail"
+      hover-class="card-hover"
+    >
+      <view class="card-top">
+        <text class="source-tag {{item.sourceClass}}">{{item.sourceLabel}}</text>
+        <text class="status-text {{item.statusClass}}">{{item.statusLabel}}</text>
+      </view>
+      <text class="card-title">{{item.title}}</text>
+      <text class="card-summary">{{item.summary}}</text>
+      <view class="card-footer">
+        <text class="publisher">○ {{item.publisherLabel}}</text>
+        <text class="published-time">◷ {{item.publishedText}}</text>
+        <text class="card-arrow">›</text>
+      </view>
+    </view>
+
+    <view class="total-text" wx:if="{{announcements.length}}">共 {{announcements.length}} 条公告</view>
+  </block>
+</view>

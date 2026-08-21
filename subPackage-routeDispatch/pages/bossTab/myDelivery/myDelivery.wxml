@@ -42,8 +42,6 @@
           longitude="{{pageViewModel.mapOverview.longitude}}"
           latitude="{{pageViewModel.mapOverview.latitude}}"
           scale="{{pageViewModel.mapOverview.scale}}"
-          subkey="{{pageViewModel.mapOverview.subkey}}"
-          layer-style="{{pageViewModel.mapOverview.layerStyle}}"
           include-points="{{pageViewModel.mapOverview.includePoints}}"
           padding="{{mapOverviewPadding}}"
           markers="{{pageViewModel.mapOverview.markers}}"

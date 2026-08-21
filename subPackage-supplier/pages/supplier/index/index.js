@@ -16,38 +16,15 @@ Page({
    */
   data: {
     buyer: false,
-    seller: false
+    seller: false,
+    supplierArr: []
   },
 
   onShow(){
-
-    var myDate = wx.getStorageSync('myDate');
-    if(myDate){
-      // 如果是自定义日期，传递具体的开始和结束日期
-      var dateRange;
-      if (myDate.name === 'custom') {
-        dateRange = dateUtils.getDateRange(myDate.name, myDate.startDate, myDate.stopDate);
-      } else {
-        dateRange = dateUtils.getDateRange(myDate.name);
-      }
-    
-      this.setData({
-        startDate: dateRange.startDate,
-        stopDate: dateRange.stopDate,
-        dateType: myDate.dateType,
-        hanzi: myDate.hanzi || dateRange.name,
-      })
-    }else{
-      this.setData({
-        dateType: 'month',
-        startDate: dateUtils.getFirstDateInMonth(),
-        stopDate: dateUtils.getArriveDate(0),
-        hanzi:  "本月",
-      })
+    if (this.data.startDate && this.data.disId) {
+      this.setData({ update: false });
+      this._initData();
     }
-
-
-    this._initData()
   },
 
   /**
@@ -66,30 +43,13 @@ Page({
       url: apiUrl.server,
     })
 
- var myDate = wx.getStorageSync('myDate');
-    if(myDate){
-      // 如果是自定义日期，传递具体的开始和结束日期
-      var dateRange;
-      if (myDate.name === 'custom') {
-        dateRange = dateUtils.getDateRange(myDate.name, myDate.startDate, myDate.stopDate);
-      } else {
-        dateRange = dateUtils.getDateRange(myDate.name);
-      }
-    
-      this.setData({
-        startDate: dateRange.startDate,
-        stopDate: dateRange.stopDate,
-        dateType: myDate.dateType,
-        hanzi: myDate.hanzi || dateRange.name,
-      })
-    }else{
-      this.setData({
-        dateType: 'month',
-        startDate: dateUtils.getFirstDateInMonth(),
-        stopDate: dateUtils.getArriveDate(0),
-        hanzi:  "本月",
-      })
-    }
+    var todayRange = dateUtils.getDateRange('today');
+    this.setData({
+      dateType: 'day',
+      startDate: todayRange.startDate,
+      stopDate: todayRange.stopDate,
+      hanzi: "今天",
+    })
     var disInfo = wx.getStorageSync('disInfo');
     if(disInfo){
       this.setData({
@@ -113,7 +73,18 @@ Page({
         this.setData({
           supplierArr: res.result.data
         })
+      } else {
+        wx.showToast({ title: res.result.msg || '获取供货商失败', icon: 'none' })
       }
+    }).catch(() => {
+      wx.showToast({ title: '请检查网络', icon: 'none' })
+    })
+  },
+
+  toDatePageSearch(){
+    wx.navigateTo({
+      url: '/subPackage-charts/pages/sel/searchDate/searchDate?dateType=' + this.data.dateType
+        + '&startDate=' + this.data.startDate + '&stopDate=' + this.data.stopDate,
     })
   },
 

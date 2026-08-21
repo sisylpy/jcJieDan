@@ -69,13 +69,13 @@ Page({
        })
   
       }else{
-        this.setData({
-          dateType: 'month',
-          startDate: dateUtils.getFirstDateInMonth(),
-          stopDate: dateUtils.getArriveDate(0),
-          hanzi:  "本月",
-        })
-      }
+       this.setData({
+         dateType: 'lastSevenDays',
+         startDate: dateUtils.getArriveDate(-6),
+         stopDate: dateUtils.getArriveDate(0),
+         hanzi:  "近7天",
+       })
+     }
 
   
     this._getSupplierStatistics();
@@ -411,13 +411,40 @@ Page({
     };
   },
 
-  toDatePageSearch() {
+  onStartDateChange(e) {
+    const startDate = e.detail.value
+    let stopDate = this.data.stopDate
+    if (startDate > stopDate) {
+      stopDate = startDate
+    }
     this.setData({
-      update: true,
+      startDate,
+      stopDate,
+      dateType: 'custom',
+      hanzi: '自定义',
+    }, () => {
+      this._getSupplierStatistics()
     })
-    wx.navigateTo({
-      url: '../../sel/searchDate/searchDate?startDate=' + this.data.startDate + '&stopDate=' + this.data.stopDate + '&dateType=' + this.data.dateType,
+  },
+
+  onEndDateChange(e) {
+    const stopDate = e.detail.value
+    let startDate = this.data.startDate
+    if (stopDate < startDate) {
+      startDate = stopDate
+    }
+    this.setData({
+      startDate,
+      stopDate,
+      dateType: 'custom',
+      hanzi: '自定义',
+    }, () => {
+      this._getSupplierStatistics()
     })
+  },
+
+  toDatePageSearch() {
+    // 已改为页面内原生日期选择器，不再跳转日期选择页
   },
 
   showSearch() {

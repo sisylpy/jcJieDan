@@ -74,7 +74,9 @@ Component({
   },
 
   methods: {
-  scheduleLoad: function (forceRefresh) {
+    noop: function () {},
+
+    scheduleLoad: function (forceRefresh) {
     if (forceRefresh) {
       this._pendingForceLoad = true
     }
@@ -139,10 +141,11 @@ Component({
     var fromPullDown = !!forceRefresh && !fromRefresher
     var force = !!forceRefresh
     var loadKey = this.properties.loadKey
+    if (this._inflightLoadKey !== null && this._inflightLoadKey !== undefined) {
+      this.finishSilentRefresh(fromPullDown, fromRefresher)
+      return
+    }
     if (!force) {
-      if (this._inflightLoadKey === loadKey) {
-        return
-      }
       if (this._loadedKey === loadKey && this.data.pageViewModel && !this.data.loadError) {
         return
       }

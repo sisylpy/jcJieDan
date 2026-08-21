@@ -1,34 +1,30 @@
-<!-- 根容器：flex 列布局，占满整页 -->
-<view class="flex flex-column page-bg ocr-order-page">
+<!-- OCR 订单复核 V2：业务事件与原版保持一致，只调整信息层级和操作说明 -->
+<view class="flex flex-column page-bg ocr-order-page ocr-order-v2">
   <back-navbar style="height: {{navBarHeight}}rpx;" title="{{depName}}" avatar="/images/back-gray.png"
     bindnavbuttontap="toBack"></back-navbar>
 
-  <!-- 内容区：flex:1 填满剩余空间 -->
   <view class="flex flex-column ocr-order-content" style="flex: 1; min-height: 0;">
-
-    <!-- 朗读模式/检查模式：上下布局（图片/文字 + 订单）；resizing 时禁用高度过渡，避免松手后继续动画 -->
-    <view wx:if="{{isTTSReading || isCheckMode}}" class="flex flex-column reading-mode-container {{isResizing ? 'resizing' : ''}}" style="flex: 1; min-height: 0;">
-      <!-- 上半部分：图片显示区域（高度由 topHeightPercent 控制，可拖动下方 resize-bar 调整） -->
-      <view class="image-preview-container"
-        style="border-bottom: 2px solid #ddd; position: relative; flex-shrink: 0; height: {{imagePreviewHeight}}px; overflow: hidden;"
+    <!-- 原图/原文对照和朗读检查模式 -->
+    <view wx:if="{{isTTSReading || isCheckMode}}"
+      class="flex flex-column reading-mode-container v2-reading-mode {{isResizing ? 'resizing' : ''}}"
+      style="flex: 1; min-height: 0;">
+      <view class="image-preview-container v2-source-preview"
+        style="position: relative; flex-shrink: 0; height: {{imagePreviewHeight}}px; overflow: hidden;"
         wx:if="{{task.nxOcrTaskType == 1}}">
         <ocrImagePreview wx:if="{{task.nxOcrTaskImagePath}}" image-path="{{url + task.nxOcrTaskImagePath}}"
           image-index="{{0}}" total-orders="{{task.nxOcrTaskTotalOrders || 0}}"
           completed-orders="{{task.nxOcrTaskCompletedOrders || 0}}"
-          pending-orders="{{task.nxOcrTaskPendingOrders || 0}}"
-          show-stats-mask="{{false}}"
+          pending-orders="{{task.nxOcrTaskPendingOrders || 0}}" show-stats-mask="{{false}}"
           initial-transform="{{imageTransformCache && imageTransformCache.transform}}"
           bind:transformChange="onImageTransformChange"
           style="position: absolute; top: 0; left: 0; z-index: 1001; width: 100%; height: 100%; box-sizing: border-box;">
         </ocrImagePreview>
       </view>
 
-      <!-- 上半部分：文字内容显示区域（与图片区一致，使用 imagePreviewHeight 随拖动变化） -->
-      <view class="text-content-container" style="height: {{imagePreviewHeight}}px; flex-shrink: 0; overflow: hidden; "
+      <view class="text-content-container v2-source-preview"
+        style="height: {{imagePreviewHeight}}px; flex-shrink: 0; overflow: hidden;"
         wx:if="{{task.nxOcrTaskType == 3}}">
-
-        <scroll-view scroll-y="true" class="text-content-scroll"
-          style="height: {{imagePreviewHeight }}px;">
+        <scroll-view scroll-y="true" class="text-content-scroll" style="height: {{imagePreviewHeight}}px;">
           <view class="text-content-wrapper">
             <rich-text wx:if="{{highlightedText}}" class="text-content" nodes="{{highlightedText}}"></rich-text>
             <text wx:else class="text-content">{{task.nxOcrTaskOcrText || '暂无文字内容'}}</text>
@@ -36,21 +32,29 @@
         </scroll-view>
       </view>
 
-      <!-- resize-bar：可拖动调整上下比例，展示订单统计（复用 image-stats-mask 内容） -->
-      <view class="resize-bar"
-        bindtouchstart="onResizeTouchStart"
-        catchtouchmove="onResizeTouchMove"
-        bindtouchend="onResizeTouchEnd"
+      <view class="resize-bar v2-resize-bar" bindtouchstart="onResizeTouchStart"
+        catchtouchmove="onResizeTouchMove" bindtouchend="onResizeTouchEnd"
         bindtouchcancel="onResizeTouchEnd">
-        <view class="resize-bar-stats">
-          <text class="resize-bar-item">订单: {{task && task.nxOcrTaskTotalOrders || 0}}个</text>
-          <text class="resize-bar-item">成功: {{task && task.nxOcrTaskCompletedOrders || 0}}个</text>
-          <text class="resize-bar-item">未成功: {{task && task.nxOcrTaskPendingOrders || 0}}个</text>
+        <view class="v2-resize-summary">
+          <text class="v2-source-label">{{task.nxOcrTaskType == 1 ? '原图对照' : '订单原文'}}</text>
+          <view class="resize-bar-stats">
+            <text class="resize-bar-item">共 {{task && task.nxOcrTaskTotalOrders || 0}}</text>
+            <text class="resize-bar-item v2-success-text">已确认 {{task && task.nxOcrTaskCompletedOrders || 0}}</text>
+            <text class="resize-bar-item v2-pending-text">待确认 {{task && task.nxOcrTaskPendingOrders || 0}}</text>
+          </view>
         </view>
-        <text class="resize-bar-hint">⇅ 拖动调整</text>
+        <text class="resize-bar-hint">上下拖动</text>
       </view>
 
-      <!-- 下半部分：订单列表；仅在显示推荐商品或搜索商品时停止滚动 -->
+      <view class="v2-reading-guide">
+        <view class="v2-guide-title-row">
+          <text class="v2-guide-title">逐条核对订单</text>
+          <text class="v2-guide-state" wx:if="{{isTTSLoading}}">正在准备朗读</text>
+          <text class="v2-guide-state is-playing" wx:elif="{{isTTSPlaying}}">正在朗读第 {{currentTTSIndex + 1}} 条</text>
+          <text class="v2-guide-state" wx:else>可编辑，也可开启朗读检查</text>
+        </view>
+      </view>
+
       <scroll-view scroll-y="{{!scrollLockedForGoods}}"
         class="order-list-scroll-view order-list-scroll-view-reading flex-1 {{scrollLockedForGoods ? 'order-list-expanded' : ''}} {{recognitionModalOpen ? 'order-list-recognition-modal-open' : ''}}"
         id="order-list-scroll-view-reading" style="min-height: 0;" scroll-top="{{scrollTop}}"
@@ -58,212 +62,177 @@
         <ocrOrderList list="{{orderArr}}" active-index="{{currentTTSIndex}}"
           is-reading-mode="{{isTTSReading && !isCheckMode}}" is-playing="{{isTTSPlaying}}"
           stopped-index="{{stoppedIndex}}" order-arr-index="{{orderArrIndex}}"
-          recently-modified-order-index="{{recentlyModifiedOrderIndex}}" 
-          str-arr="{{strArr}}" 
-          nx-arr="{{nxArr}}"
-          window-width="{{windowWidth}}" 
-          scroll-into-view-id="{{scrollIntoViewId}}" 
-          dep-id="{{depId}}"
-          dep-father-id="{{depFatherId}}" 
-          dis-id="{{disId}}" user-id="{{userId}}" 
-          bind:edit="onOrderEdit"
-          bind:editName="onOrderEditName" bind:focus="onOrderFocus" bind:showGoods="onOrderShowGoods"
-          bind:closeGoods="onOrderCloseGoods" bind:saveOrder="onOrderSaveOrder"
-          bind:downloadGoods="onOrderDownloadGoods" bind:showOperation="onOrderShowOperation"
+          recently-modified-order-index="{{recentlyModifiedOrderIndex}}" str-arr="{{strArr}}" nx-arr="{{nxArr}}"
+          window-width="{{windowWidth}}" scroll-into-view-id="{{scrollIntoViewId}}" dep-id="{{depId}}"
+          dep-father-id="{{depFatherId}}" dis-id="{{disId}}" user-id="{{userId}}"
+          bind:edit="onOrderEdit" bind:editName="onOrderEditName" bind:focus="onOrderFocus"
+          bind:showGoods="onOrderShowGoods" bind:closeGoods="onOrderCloseGoods"
+          bind:saveOrder="onOrderSaveOrder" bind:downloadGoods="onOrderDownloadGoods"
+          bind:showOperation="onOrderShowOperation" bind:scrollToItem="onScrollToItem"
+          bind:confirmSearch="confirmSearchGoods" bind:orderUpdated="onOrderUpdated"
+          bind:orderDeleted="onOrderDeleted" bind:addOrderBefore="onAddOrderBefore"
+          bind:addDisAlias="onOrderAddDisAlias"
+          bind:recognitionModalChange="onRecognitionModalChange"></ocrOrderList>
 
-          bind:scrollToItem="onScrollToItem" bind:confirmSearch="confirmSearchGoods" 
-
-          bind:orderUpdated="onOrderUpdated"
-          bind:orderDeleted="onOrderDeleted"           bind:addOrderBefore="onAddOrderBefore"
-          bind:addDisAlias="onOrderAddDisAlias" bind:recognitionModalChange="onRecognitionModalChange"></ocrOrderList>
-
-        <!-- 没有更多数据；输入框聚焦时加大底部留白 -->
-        <view 
-          class="flex-column-center text-secondary font-xs" style="height: {{isOrderInputFocused ? 600 : 100}}rpx;">没有更多订单了</view>
-
-        <!-- 没有订单 -->
-        <view wx:if="{{orderArr.length === 0}}" class="flex-column-center text-secondary font-xs"
-          style="height: 200rpx;">没有订单了</view>
+        <view class="v2-list-end flex-column-center text-secondary font-xs"
+          style="height: {{isOrderInputFocused ? 600 : 100}}rpx;">已显示全部订单</view>
+        <view wx:if="{{orderArr.length === 0}}" class="v2-empty flex-column-center">
+          <text class="v2-empty-title">暂无订单</text>
+          <text class="v2-empty-tip">返回后可重新上传订单内容</text>
+        </view>
       </scroll-view>
-
     </view>
 
-    <!-- 非朗读模式：flex 填满剩余空间，消除底部空白 -->
-    <view wx:else class="flex flex-column" style="flex: 1; min-height: 0; background-color: #f5f5f5; ">
-      <view class="flex-row-between p-20">
-        <view class="flex-row">
-           <block wx:if="{{task.nxOcrTaskPendingOrders > 0}}">
-           <text class="mr-10">订单:</text>
-           <view class="text-success" >{{task.nxOcrTaskCompletedOrders}}</view>
-            <view class="font-md"> /{{task.nxOcrTaskTotalOrders}}</view>
-           </block>
-           <block wx:else=""> 
-            <view class="font-md">订单: {{task.nxOcrTaskTotalOrders}}</view>
-           </block>
-           
+    <!-- 普通复核模式 -->
+    <view wx:else class="flex flex-column v2-normal-mode" style="flex: 1; min-height: 0;">
+      <view class="v2-overview-card">
+        <view class="v2-overview-main">
+          <view class="v2-eyebrow-row">
+            <view class="v2-status-dot"></view>
+            <text class="v2-eyebrow">识别结果</text>
           </view>
-
-          <view class="flex-row">
-
-            <view class="button-container mr-20" bind:tap="reuploadOrders" hover-class="hover">
-          <image src="/images/ashbin.png" mode="aspectFill" class="icon" />
+          <view class="v2-count-row">
+            <text class="v2-count-current">{{task && task.nxOcrTaskCompletedOrders || 0}}</text>
+            <text class="v2-count-total"> / {{task && task.nxOcrTaskTotalOrders || 0}} 条已确认</text>
+          </view>
+          <text wx:if="{{task && task.nxOcrTaskPendingOrders > 0}}" class="v2-pending-tip">
+            还有 {{task.nxOcrTaskPendingOrders}} 条需要确认商品
+          </text>
+          <text wx:else class="v2-complete-tip">识别内容已全部确认</text>
         </view>
-       
-        <!-- <view class="button-container mr-20 ml-20" bind:tap="finishTask" wx:if="{{task.nxOcrTaskStatus == 2}}">
-          <image src="/images/correct.png" mode="aspectFill" class="icon" />
-        </view> -->
 
-          <view class="flex-row">
-            <view class="button-container mr-20 ml-20" bind:tap="onMenuOpenCheck"  hover-class="hover">
-            <image src="/images/Focus-Auto.png" mode="aspectFill" class="icon" />
-            </view>
+        <view class="v2-overview-actions">
+          <view class="v2-action-button v2-action-danger" bind:tap="reuploadOrders" hover-class="v2-action-hover">
+            <image src="/images/ashbin.png" mode="aspectFit" class="v2-action-icon" />
+            <text>重新上传</text>
           </view>
-
-         
-       
+          <view class="v2-action-button v2-action-primary" bind:tap="onMenuOpenCheck" hover-class="v2-action-hover">
+            <image src="/images/Focus-Auto.png" mode="aspectFit" class="v2-action-icon" />
+            <text>对照检查</text>
           </view>
-        
+        </view>
       </view>
 
-     
+      <view class="v2-list-header">
+        <view class="v2-list-title-row">
+          <text class="v2-list-title">订单明细</text>
+          <text class="v2-list-tip">未确认内容可直接填写，更多操作点 ···</text>
+        </view>
+        <view class="v2-column-guide">
+          <text class="v2-column-index">序号</text>
+          <text class="v2-column-goods">商品</text>
+          <text class="v2-column-number">数量</text>
+          <text class="v2-column-unit">单位</text>
+          <text class="v2-column-more">更多</text>
+        </view>
+      </view>
 
-      <scroll-view scroll-y="true" class="order-list-scroll-view flex-1" id="order-list-scroll-view-normal"
-        style="min-height: 0; padding-bottom: {{(isTTSReading || isCheckMode) ? '160rpx' : '0'}};"
+      <scroll-view scroll-y="true" class="order-list-scroll-view flex-1 v2-order-scroll"
+        id="order-list-scroll-view-normal" style="min-height: 0;"
         scroll-top="{{scrollTop}}" scroll-into-view="{{scrollIntoViewId}}" scroll-with-animation="true">
         <ocrOrderList list="{{orderArr}}" active-index="{{currentTTSIndex}}"
           is-reading-mode="{{isTTSReading && !isCheckMode}}" is-playing="{{isTTSPlaying}}"
           stopped-index="{{stoppedIndex}}" order-arr-index="{{orderArrIndex}}"
-          recently-modified-order-index="{{recentlyModifiedOrderIndex}}" 
-          str-arr="{{strArr}}" 
-          nx-arr="{{nxArr}}"
-          window-width="{{windowWidth}}" 
-          scroll-into-view-id="{{scrollIntoViewId}}" 
-          dep-id="{{depId}}"
-          dep-father-id="{{depFatherId}}" 
-          dis-id="{{disId}}" user-id="{{userId}}" 
-          bind:edit="onOrderEdit"
-          bind:editName="onOrderEditName" bind:focus="onOrderFocus" bind:showGoods="onOrderShowGoods"
-          bind:closeGoods="onOrderCloseGoods" bind:saveOrder="onOrderSaveOrder"
-          bind:downloadGoods="onOrderDownloadGoods" bind:showOperation="onOrderShowOperation"
-          bind:scrollToItem="onScrollToItem" bind:confirmSearch="confirmSearchGoods" 
-          bind:orderUpdated="onOrderUpdated"
-          bind:orderDeleted="onOrderDeleted"           
-          bind:addOrderBefore="onAddOrderBefore"
-          bind:addDisAlias="onOrderAddDisAlias" bind:recognitionModalChange="onRecognitionModalChange"></ocrOrderList>
+          recently-modified-order-index="{{recentlyModifiedOrderIndex}}" str-arr="{{strArr}}" nx-arr="{{nxArr}}"
+          window-width="{{windowWidth}}" scroll-into-view-id="{{scrollIntoViewId}}" dep-id="{{depId}}"
+          dep-father-id="{{depFatherId}}" dis-id="{{disId}}" user-id="{{userId}}"
+          bind:edit="onOrderEdit" bind:editName="onOrderEditName" bind:focus="onOrderFocus"
+          bind:showGoods="onOrderShowGoods" bind:closeGoods="onOrderCloseGoods"
+          bind:saveOrder="onOrderSaveOrder" bind:downloadGoods="onOrderDownloadGoods"
+          bind:showOperation="onOrderShowOperation" bind:scrollToItem="onScrollToItem"
+          bind:confirmSearch="confirmSearchGoods" bind:orderUpdated="onOrderUpdated"
+          bind:orderDeleted="onOrderDeleted" bind:addOrderBefore="onAddOrderBefore"
+          bind:addDisAlias="onOrderAddDisAlias"
+          bind:recognitionModalChange="onRecognitionModalChange"></ocrOrderList>
 
-        <!-- 非朗读模式且还有后续页时：显示加载中 -->
-        <view wx:if="{{!(isTTSReading || isCheckMode) && currentPage < totalPages && isLoadingRemainingPages}}"
+        <view wx:if="{{currentPage < totalPages && isLoadingRemainingPages}}"
           class="flex-column-center text-secondary font-xs order-list-loading-more">
           <view class="order-list-loading-spinner"></view>
-          <text class="order-list-loading-text">加载更多订单中...</text>
+          <text class="order-list-loading-text">正在加载剩余订单</text>
         </view>
-        <!-- 没有更多数据；输入框聚焦时加大底部留白 -->
         <view wx:if="{{currentPage >= totalPages && orderArr.length > 0}}"
-          class="flex-column-center text-center text-secondary font-xs" style="height: {{isOrderInputFocused ? 600 : 200}}rpx;">没有更多订单了！</view>
+          class="v2-list-end flex-column-center text-center text-secondary font-xs"
+          style="height: {{isOrderInputFocused ? 600 : 150}}rpx;">已显示全部订单</view>
+        <view wx:if="{{orderArr.length === 0}}" class="v2-empty flex-column-center">
+          <text class="v2-empty-title">暂无订单</text>
+          <text class="v2-empty-tip">返回后可重新上传订单内容</text>
+        </view>
       </scroll-view>
     </view>
-
   </view>
 
-  <!-- 固定在底部的 TTS 播放器（朗读/检查模式下显示，操作菜单打开时隐藏） -->
-  <!-- TTS 播放器控制区 - 固定在右下角 -->
-  <view class="player-menu-container" wx:if="{{!showOperationPaste}}">
-
-
-    <view wx:if="{{isCheckMode && !isTTSPlaying && !isTTSLoading && stoppedIndex < 0}}" class="player-expand-btn"
-      bindtap="onMenuStartReading">
-      <image src="/images/laba.png" class="expand-icon" mode="aspectFit"></image>
+  <!-- 朗读控制：仍使用原有开始、暂停、继续事件 -->
+  <view class="player-menu-container v2-player-menu" wx:if="{{!showOperationPaste}}">
+    <view wx:if="{{isCheckMode && !isTTSPlaying && !isTTSLoading && stoppedIndex < 0}}"
+      class="player-expand-btn v2-read-button" bindtap="onMenuStartReading">
+      <image src="/images/laba.png" class="v2-read-icon" mode="aspectFit"></image>
+      <text>朗读检查</text>
     </view>
-
-
-
-    <!-- 朗读中的控制按钮（开始朗读后：3个按钮） -->
-    <view wx:if="{{isTTSPlaying || isTTSLoading || stoppedIndex >= 0}}" class="player-menu-reading">
-      <!-- 停止按钮 -->
-      <view wx:if="{{isTTSPlaying || isTTSLoading}}" class="player-menu-item" bindtap="pauseReading">
+    <view wx:if="{{isTTSPlaying || isTTSLoading || stoppedIndex >= 0}}" class="player-menu-reading v2-reading-controls">
+      <view wx:if="{{isTTSPlaying || isTTSLoading}}" class="player-menu-item v2-player-item" bindtap="pauseReading">
         <view class="control-icon stop-icon">⏸</view>
-        <text class="menu-text">停止</text>
+        <text class="menu-text">暂停朗读</text>
       </view>
-
-      <!-- 继续朗读、全屏、关闭：仅在非 -2 状态停止时显示（-2 状态修改订单后会自动继续朗读） -->
-      <view wx:if="{{stoppedIndex >= 0 && !isTTSPlaying && !isTTSLoading && !isStoppedByStatusMinus2}}" class="player-menu-item"
-        bindtap="continueReading">
+      <view wx:if="{{stoppedIndex >= 0 && !isTTSPlaying && !isTTSLoading && !isStoppedByStatusMinus2}}"
+        class="player-menu-item v2-player-item" bindtap="continueReading">
         <view class="control-icon replay-icon">↻</view>
         <text class="menu-text">继续朗读</text>
       </view>
     </view>
   </view>
-
-
-
 </view>
 
-<!-- pasteOperation 操作菜单 -->
+<!-- 单条订单操作菜单：操作项及显示条件与原版一致 -->
 <view class='overlay {{showOperationPaste ? "show" : "hide"}}' catchtouchmove='ture' catchtap="hideMask">
-  <view class="nnn bg-white  font-lg">
-    <view class="center-content border-bottom">
-      <text class="p-30">{{orderItem && orderItem.nxDoGoodsName ? orderItem.nxDoGoodsName : ''}}</text>
+  <view class="nnn bg-white font-lg v2-operation-sheet">
+    <view class="v2-sheet-handle"></view>
+    <view class="v2-sheet-header border-bottom">
+      <text class="v2-sheet-caption">订单操作</text>
+      <text class="v2-sheet-title">{{orderItem && orderItem.nxDoGoodsName ? orderItem.nxDoGoodsName : ''}}</text>
     </view>
-    <view class="flex-column">
-      <!-- 已保存订单显示修改订单，草稿订单显示删除订单 -->
+    <view class="flex-column v2-sheet-list">
       <block wx:if="{{orderItem && orderItem.nxDoStatus == 0}}">
-        <view class="flex-row p-30 border-bottom" catchtap="editOrderItem" hover-class="hover">
-        <image src="/images/edit.png" class="icon mr-20"></image>
-        <text class="">修改订单</text>
-      </view>
-      <view class="flex-row p-30 border-bottom" catchtap="revertOrder" hover-class="hover">
-        <image src="/images/Focus-Auto-2.png" class="icon mr-20"></image>
-        <text class="">重新识别</text>
-      </view>
+        <view class="flex-row v2-sheet-item border-bottom" catchtap="editOrderItem" hover-class="hover">
+          <image src="/images/edit.png" class="icon v2-sheet-icon"></image><text>修改订单</text>
+        </view>
+        <view class="flex-row v2-sheet-item border-bottom" catchtap="revertOrder" hover-class="hover">
+          <image src="/images/Focus-Auto-2.png" class="icon v2-sheet-icon"></image><text>重新识别</text>
+        </view>
       </block>
-      
-
       <block wx:if="{{orderItem.nxDoStatus == -2}}">
-        <view class="flex-row p-30 border-bottom" catchtap="delOrder" hover-class="hover" >
-        <image src="/images/edit.png" class="icon mr-20"></image>
-        <text class="">删除订单</text>
-      </view>
-      <view class="flex-row p-30 border-bottom" catchtap="addRemark" hover-class="hover"
-        wx:if="{{orderItem && (!orderItem.nxDoRemark || orderItem.nxDoRemark.length == 0)}}">
-        <image src="/images/edit.png" class="icon mr-20"></image>
-        <text class="">添加备注</text>
-      </view>
-      <view class="flex-row p-30 border-bottom" catchtap="clearRemark" hover-class="hover"
-        wx:if="{{orderItem && orderItem.nxDoRemark && orderItem.nxDoRemark.length > 0}}">
-        <image src="/images/edit.png" class="icon mr-20"></image>
-        <text class="">清除备注</text>
-      </view>
+        <view class="flex-row v2-sheet-item border-bottom" catchtap="delOrder" hover-class="hover">
+          <image src="/images/edit.png" class="icon v2-sheet-icon"></image><text>删除订单</text>
+        </view>
+        <view class="flex-row v2-sheet-item border-bottom" catchtap="addRemark" hover-class="hover"
+          wx:if="{{orderItem && (!orderItem.nxDoRemark || orderItem.nxDoRemark.length == 0)}}">
+          <image src="/images/edit.png" class="icon v2-sheet-icon"></image><text>添加备注</text>
+        </view>
+        <view class="flex-row v2-sheet-item border-bottom" catchtap="clearRemark" hover-class="hover"
+          wx:if="{{orderItem && orderItem.nxDoRemark && orderItem.nxDoRemark.length > 0}}">
+          <image src="/images/edit.png" class="icon v2-sheet-icon"></image><text>清除备注</text>
+        </view>
       </block>
-     
-
-      <!-- nxDoGoodsOriginalName -->
-      <view class="flex-row p-30 " catchtap="addNewPasteOrderBefore" hover-class="hover">
-        <image src="/images/add.png" class="icon mr-20"></image>
-        <text class="">(在之前)添加新订单</text>
+      <view class="flex-row v2-sheet-item" catchtap="addNewPasteOrderBefore" hover-class="hover">
+        <image src="/images/add.png" class="icon v2-sheet-icon"></image><text>在这条之前添加新订单</text>
       </view>
-      <view class="flex-row p-30" catchtap="addDisAlias" hover-class="hover"
+      <view class="flex-row v2-sheet-item" catchtap="addDisAlias" hover-class="hover"
         wx:if="{{orderItem && orderItem.nxDoStatus == -2}}">
-        <image src="/images/add-bold-2.png" class="icon mr-20"></image>
-        <text class="">保存新配送商品</text>
+        <image src="/images/add-bold-2.png" class="icon v2-sheet-icon"></image><text>保存新配送商品</text>
       </view>
-      <view class="flex-row p-30" catchtap="startReadingFromHere" hover-class="hover">
-        <image src="/images/record.png" class="icon mr-20"></image>
-        <text class="">从这里开始朗读</text>
+      <view class="flex-row v2-sheet-item" catchtap="startReadingFromHere" hover-class="hover">
+        <image src="/images/record.png" class="icon v2-sheet-icon"></image><text>从这里开始朗读</text>
       </view>
     </view>
-
-    <view style="height: 20rpx;"></view>
+    <view class="v2-sheet-safe"></view>
   </view>
 </view>
-<!-- ../pasteOperation -->
 
-<!-- 编辑订单弹窗 -->
 <addOrder visible="{{show}}" bindconfirm="confirm" bindcancle="cancle" binddelApply="delApply"
   binddelStandard="delStandard" applyStandardName="{{applyStandardName}}" bindconfirmStandard="confirmStandard"
   applyNumber="{{applyNumber}}" applyRemark="{{applyRemark}}" editApply="{{editApply}}"
   bindchangeStandard="changeStandard" applyGoodsName="{{applyGoodsName}}" applyGoodsId="{{applyGoodsId}}"
   item="{{itemDis}}" windowWidth="{{windowWidth}}" newStandardName="{{newStandardName}}" />
 
-<!-- 警告弹窗 -->
-<delWarnModal wx:if="{{showPopupWarn}}" type="{{popupType}}" warnContent="{{warnContent}}" bind:closeWarn="closeWarn"
-  bind:confirmWarn="confirmWarn" />
+<delWarnModal wx:if="{{showPopupWarn}}" type="{{popupType}}" warnContent="{{warnContent}}"
+  bind:closeWarn="closeWarn" bind:confirmWarn="confirmWarn" />
+

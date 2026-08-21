@@ -1,7 +1,7 @@
 var load = require('../../../../lib/load.js')
 var app = getApp()
 
-import { getAvailableDrivers, driverCheckIn, driverCheckOut } from '../../../../lib/apiRouteDispatch.js'
+import { getAvailableDrivers, driverCheckIn, driverCheckOut, updateDriverEmploymentType } from '../../../../lib/apiRouteDispatch.js'
 import { resolveSession } from '../_session.js'
 
 function applyPageData(page, data) {
@@ -171,6 +171,49 @@ Page({
         duration: 3000
       })
       that.loadPage()
+    })
+  },
+
+  onEmploymentTypeTap: function (e) {
+    var index = e.currentTarget.dataset.index
+    var employmentType = e.currentTarget.dataset.type
+    var driver = (this.data.pageData && this.data.pageData.driverCards || [])[index]
+    if (!driver || !driver.driverUserId || this.data.submitting
+        || driver.employmentType === employmentType) return
+    var that = this
+    wx.showModal({
+      title: employmentType === 'PART_TIME' ? '设为兼职司机' : '设为专职司机',
+      content: employmentType === 'PART_TIME'
+        ? '兼职司机送完最后一个客户后结束，不计算返回仓库。'
+        : '专职司机送完后返回仓库，路线会计算返程。',
+      success: function (res) {
+        if (res.confirm) that.submitEmploymentType(driver, employmentType)
+      }
+    })
+  },
+
+  submitEmploymentType: function (driver, employmentType) {
+    var that = this
+    this.setData({ submitting: true })
+    load.showLoading('保存中')
+    updateDriverEmploymentType({
+      disId: this.data.disId,
+      operatorUserId: this.data.operatorUserId,
+      driverUserId: driver.driverUserId,
+      employmentType: employmentType
+    }).then(function (res) {
+      load.hideLoading()
+      that.setData({ submitting: false })
+      if (!res.result || res.result.code !== 0) {
+        wx.showToast({ title: res.result && res.result.msg || '保存失败', icon: 'none' })
+        return
+      }
+      wx.showToast({ title: '司机类型已更新', icon: 'success' })
+      that.loadPage()
+    }).catch(function (error) {
+      load.hideLoading()
+      that.setData({ submitting: false })
+      wx.showToast({ title: error && error.message || '保存失败', icon: 'none' })
     })
   },
 

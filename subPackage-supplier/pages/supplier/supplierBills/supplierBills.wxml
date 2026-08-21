@@ -65,7 +65,7 @@
   <!-- 订单列表容器 -->
   <view class="supplier-bills-container" wx:if="{{billArr.length > 0}}">
     
-    <view class="supplier-bill-item" wx:for="{{billArr}}" wx:for-item="item" wx:key="gbDistributerPurchaseBatchId" hover-class="supplier-bill-hover" bindtap="openBatchDetail" data-id="{{item.gbDistributerPurchaseBatchId}}" data-value="{{item.nxDpbSellSubtotal}}" data-item="{{item}}">
+    <view class="supplier-bill-item" wx:for="{{billArr}}" wx:for-item="item" wx:key="nxDistributerPurchaseBatchId" hover-class="supplier-bill-hover" bindtap="openBatchDetail" data-id="{{item.nxDistributerPurchaseBatchId}}" data-value="{{item.nxDpbSellSubtotal}}" data-item="{{item}}">
       
       <!-- 订单类型标签 -->
       <view class="bill-type-section">
@@ -91,8 +91,8 @@
             <text class="bill-amount-label">订货金额</text>
           </view>
           <view class="bill-status-section">
-            <view class="status-badge status-pending" wx:if="{{item.nxDpbStatus == 3}}">待结账</view>
-            <view class="status-badge status-settled" wx:elif="{{item.nxDpbStatus == 4}}">已结账</view>
+            <view class="status-badge status-pending" wx:if="{{item.nxDpbStatus == 2}}">待结账</view>
+            <view class="status-badge status-settled" wx:elif="{{item.nxDpbStatus == 3}}">已结账</view>
           </view>
         </view>
       </view>

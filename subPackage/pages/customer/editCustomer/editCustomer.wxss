@@ -116,3 +116,42 @@ input {
   margin-top: 10px;
   margin-left: 4rpx;
 }
+
+.responsibility-card {
+  margin-bottom: 24rpx;
+  padding: 24rpx;
+  background: #f2faf8;
+  border-radius: 14rpx;
+}
+
+.responsibility-title {
+  margin-bottom: 12rpx;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #173d36;
+}
+
+.responsibility-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 86rpx;
+  border-bottom: 1px solid #dfece8;
+}
+
+.responsibility-picker {
+  min-width: 240rpx;
+  padding: 12rpx 20rpx;
+  color: #147062;
+  text-align: right;
+}
+
+.responsibility-save {
+  width: 260rpx;
+  margin: 24rpx auto 0;
+  padding: 16rpx 20rpx;
+  color: #fff;
+  background: #147062;
+  border-radius: 36rpx;
+  text-align: center;
+}

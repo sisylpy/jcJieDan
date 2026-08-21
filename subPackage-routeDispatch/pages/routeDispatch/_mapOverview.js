@@ -315,9 +315,6 @@ export function normalizeMapOverview(mapOverview) {
   if (layerStyle != null) {
     next.layerStyle = layerStyle
   }
-  if (mapOverview.subkey) {
-    next.subkey = String(mapOverview.subkey)
-  }
   var includePoints = buildIncludePoints(markers, polylines)
   if (includePoints.length > 0) {
     next.includePoints = includePoints

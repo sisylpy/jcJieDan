@@ -27,25 +27,7 @@ Page({
    
 
     if(this.data.update){
-      var myDate = wx.getStorageSync('myDate');
-      if(myDate){
-       // 如果是自定义日期，传递具体的开始和结束日期
-       var dateRange;
-       if (myDate.name === 'custom') {
-         dateRange = dateUtils.getDateRange(myDate.name, myDate.startDate, myDate.stopDate);
-       } else {
-         dateRange = dateUtils.getDateRange(myDate.name);
-       }
-       this.setData({
-         startDate: dateRange.startDate,
-         stopDate: dateRange.stopDate,
-         dateType: myDate.dateType,
-         hanzi: myDate.hanzi || dateRange.name,
-         update: false,
-       })
-  
-      }
-      
+      this.setData({ update: false });
       this._initData();
      }
 
@@ -55,7 +37,7 @@ Page({
    * 页面的初始数据
    */
   data: {
-   
+    billArr: []
   },
 
   /**
@@ -73,36 +55,20 @@ Page({
       
     })
 
-    var myDate = wx.getStorageSync('myDate');
-    if(myDate){
-      // 如果是自定义日期，传递具体的开始和结束日期
-      var dateRange;
-      if (myDate.name === 'custom') {
-        dateRange = dateUtils.getDateRange(myDate.name, myDate.startDate, myDate.stopDate);
-      } else {
-        dateRange = dateUtils.getDateRange(myDate.name);
-      }
-      
-    
-      this.setData({
-        startDate: dateRange.startDate,
-        stopDate: dateRange.stopDate,
-        dateType: myDate.dateType,
-        hanzi: myDate.hanzi || dateRange.name,
-      })
-    }else{
-      this.setData({
-        dateType: 'month',
-        startDate: dateUtils.getFirstDateInMonth(),
-        stopDate: dateUtils.getArriveDate(0),
-        hanzi:  "本月",
-      })
-    }
+    var todayRange = dateUtils.getDateRange('today');
+    this.setData({
+      dateType: 'day',
+      startDate: todayRange.startDate,
+      stopDate: todayRange.stopDate,
+      hanzi: "今天",
+    })
     var userInfoValue = wx.getStorageSync('userInfo');
     if (userInfoValue) {
       this.setData({
         userInfo: userInfoValue,
-        disId: userInfoValue.nxDiuDistributerId,
+        disId: userInfoValue.nxDistributerEntity
+          ? userInfoValue.nxDistributerEntity.nxDistributerId
+          : userInfoValue.nxDiuDistributerId,
       })
     }
     this._initData();
@@ -131,9 +97,12 @@ Page({
           icon: 'none'
         })
         this.setData({
-          applyArr: []
+          billArr: []
         })
       }
+    }).catch(() => {
+      load.hideLoading();
+      wx.showToast({ title: '请检查网络', icon: 'none' });
     })
   },
 
@@ -167,7 +136,7 @@ Page({
       update: true,
     })
     wx.navigateTo({
-      url: '../../sel/date/date?dateType=' + this.data.dateType + '&startDate='
+      url: '/subPackage-charts/pages/sel/searchDate/searchDate?dateType=' + this.data.dateType + '&startDate='
        + this.data.startDate + '&stopDate=' + this.data.stopDate, 
     })
   },

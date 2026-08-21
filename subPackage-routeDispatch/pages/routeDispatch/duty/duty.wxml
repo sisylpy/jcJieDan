@@ -64,6 +64,21 @@
             </view>
             <view class="driver-duty-hint" wx:if="{{item.operationHint}}">{{item.operationHint}}</view>
           </block>
+          <view class="driver-employment-row">
+            <text class="driver-employment-label">路线终点</text>
+            <view
+              class="driver-employment-option {{item.employmentType !== 'PART_TIME' ? 'driver-employment-option-active' : ''}}"
+              data-index="{{driverIndex}}"
+              data-type="FULL_TIME"
+              bindtap="onEmploymentTypeTap"
+            >专职·回仓</view>
+            <view
+              class="driver-employment-option {{item.employmentType === 'PART_TIME' ? 'driver-employment-option-active' : ''}}"
+              data-index="{{driverIndex}}"
+              data-type="PART_TIME"
+              bindtap="onEmploymentTypeTap"
+            >兼职·末站结束</view>
+          </view>
         </view>
       </view>
 

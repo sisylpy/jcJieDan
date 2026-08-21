@@ -1,26 +1,50 @@
 <back-navbar title="{{isEdit ? '编辑补偿券' : '新增补偿券'}}" avatar="/images/back-gray.png" button-text="" bindnavbuttontap="toBack"></back-navbar>
 
 <view class="edit-page" style="padding-top: {{navBarHeight}}rpx;">
-  <view class="notice">补偿券只在售后处理中由员工人工发放，客户不能主动领取。</view>
+  <view class="notice">
+    <view class="notice-icon">!</view>
+    <text>补偿券只在售后处理中由员工人工发放，客户不能主动领取。</text>
+  </view>
 
   <view class="form-card">
-    <text class="field-title">补偿券名称</text>
-    <input value="{{form.name}}" placeholder="例如：品质问题补偿10元" maxlength="30" bindinput="inputName" />
+    <view class="field-group">
+      <text class="field-title">补偿券名称</text>
+      <input class="text-input" value="{{form.name}}" placeholder="例如：品质问题补偿10元" placeholder-class="input-placeholder" maxlength="30" cursor-spacing="24" bindinput="inputName" />
+    </view>
 
-    <text class="field-title">补偿金额</text>
-    <view class="amount-input"><text>¥</text><input type="digit" value="{{form.amount}}" placeholder="10" bindinput="inputAmount" /></view>
-    <text class="field-help">无门槛代金券，最终优惠不超过订单可优惠金额。</text>
+    <view class="field-group">
+      <text class="field-title">补偿金额</text>
+      <view class="amount-input">
+        <text class="amount-symbol">¥</text>
+        <input class="amount-value-input" type="digit" value="{{form.amount}}" placeholder="10" placeholder-class="input-placeholder" cursor-spacing="24" bindinput="inputAmount" />
+        <text class="amount-unit">元</text>
+      </view>
+      <text class="field-help">无门槛代金券，最终优惠不超过订单可优惠金额。</text>
+    </view>
 
-    <text class="field-title">补偿类型</text>
-    <picker range="{{compTypes}}" range-key="label" value="{{compTypeIndex}}" bindchange="changeCompType">
-      <view class="picker-field">{{compTypes[compTypeIndex].label}}<text>›</text></view>
-    </picker>
+    <view class="field-group">
+      <text class="field-title">补偿类型</text>
+      <picker range="{{compTypes}}" range-key="label" value="{{compTypeIndex}}" bindchange="changeCompType">
+        <view class="picker-field">
+          <text class="picker-value">{{compTypes[compTypeIndex].label}}</text>
+          <text class="picker-arrow">›</text>
+        </view>
+      </picker>
+    </view>
 
-    <text class="field-title">发放后有效天数</text>
-    <view class="days-input"><input type="number" value="{{form.validDays}}" bindinput="inputDays"/><text>天</text></view>
+    <view class="field-group">
+      <text class="field-title">发放后有效天数</text>
+      <view class="days-input">
+        <input class="days-value-input" type="number" value="{{form.validDays}}" cursor-spacing="24" bindinput="inputDays"/>
+        <text class="days-unit">天</text>
+      </view>
+    </view>
 
-    <text class="field-title">使用说明</text>
-    <textarea value="{{form.words}}" maxlength="100" placeholder="可填写补偿原因或使用说明" bindinput="inputWords"></textarea>
+    <view class="field-group">
+      <text class="field-title">使用说明</text>
+      <textarea class="words-input" value="{{form.words}}" maxlength="100" placeholder="可填写补偿原因或使用说明" placeholder-class="input-placeholder" cursor-spacing="24" bindinput="inputWords"></textarea>
+      <text class="word-count">{{form.words.length || 0}}/100</text>
+    </view>
   </view>
 
   <button class="save-button" loading="{{saving}}" disabled="{{saving}}" bindtap="save">保存补偿券</button>

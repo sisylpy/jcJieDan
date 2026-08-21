@@ -6,7 +6,9 @@ import {
   saveOneCustomerDesk,
   changeMultiDeps,
   delSubDep,
-  getDepInfo
+  getDepInfo,
+  getDisUsers,
+  updateCustomerResponsibility
 } from '../../../../lib/apiDistributer'
 
 
@@ -46,8 +48,82 @@ Page({
      
         editDepItem: deepCopy,
       })
+      this._loadResponsibleUsers(depInfo);
     }
 
+  },
+
+  _loadResponsibleUsers(depInfo) {
+    getDisUsers(depInfo.nxDepartmentDisId).then(res => {
+      if (!res.result || res.result.code != 0) return;
+      var salesUsers = res.result.data.sales || [];
+      var clerkUsers = res.result.data.clerks || [];
+      var admins = res.result.data.admins || [];
+      var cachedOwner = wx.getStorageSync('userInfo') || {};
+      var currentOwner = admins.find(item =>
+        item.nxDistributerUserId == cachedOwner.nxDistributerUserId) || admins[0] || cachedOwner;
+      var salesIndex = salesUsers.findIndex(item => item.nxDistributerUserId == depInfo.nxDepartmentSalesUserId);
+      var clerkIndex = clerkUsers.findIndex(item => item.nxDistributerUserId == depInfo.nxDepartmentClerkUserId);
+      var salesOwner = admins.find(item =>
+        item.nxDistributerUserId == depInfo.nxDepartmentSalesUserId) || null;
+      var clerkOwner = admins.find(item =>
+        item.nxDistributerUserId == depInfo.nxDepartmentClerkUserId) || null;
+      this.setData({
+        salesUsers: salesUsers,
+        clerkUsers: clerkUsers,
+        salesIndex: salesIndex,
+        clerkIndex: clerkIndex,
+        salesUserId: depInfo.nxDepartmentSalesUserId || (currentOwner && currentOwner.nxDistributerUserId),
+        clerkUserId: depInfo.nxDepartmentClerkUserId || (currentOwner && currentOwner.nxDistributerUserId),
+        salesUserName: salesIndex >= 0 ? salesUsers[salesIndex].nxDiuWxNickName
+          : ((salesOwner || currentOwner).nxDiuWxNickName || '当前老板'),
+        clerkUserName: clerkIndex >= 0 ? clerkUsers[clerkIndex].nxDiuWxNickName
+          : ((clerkOwner || currentOwner).nxDiuWxNickName || '当前老板'),
+        salesOwnerManaged: salesIndex < 0,
+        clerkOwnerManaged: clerkIndex < 0,
+        fallbackOwner: currentOwner
+      });
+    });
+  },
+
+  onSalesChange(e) {
+    var index = Number(e.detail.value);
+    this.setData({
+      salesIndex: index,
+      salesUserId: this.data.salesUsers[index].nxDistributerUserId,
+      salesUserName: this.data.salesUsers[index].nxDiuWxNickName,
+      salesOwnerManaged: false
+    });
+  },
+
+  onClerkChange(e) {
+    var index = Number(e.detail.value);
+    this.setData({
+      clerkIndex: index,
+      clerkUserId: this.data.clerkUsers[index].nxDistributerUserId,
+      clerkUserName: this.data.clerkUsers[index].nxDiuWxNickName,
+      clerkOwnerManaged: false
+    });
+  },
+
+  saveResponsibility() {
+    load.showLoading('保存负责人');
+    updateCustomerResponsibility(this.data.depInfo.nxDepartmentId, {
+      salesUserId: this.data.salesUserId,
+      clerkUserId: this.data.clerkUserId,
+      expectedVersion: this.data.depInfo.nxDepartmentStaffVersion || 0
+    }).then(res => {
+      load.hideLoading();
+      if (res.result && res.result.code == 0) {
+        wx.showToast({ title: '负责人已更新', icon: 'success' });
+        this._getDepInfo();
+      } else {
+        wx.showToast({ title: (res.result && res.result.msg) || '保存失败', icon: 'none' });
+      }
+    }).catch(() => {
+      load.hideLoading();
+      wx.showToast({ title: '保存失败，请检查网络', icon: 'none' });
+    });
   },
 
 
@@ -143,6 +219,7 @@ Page({
           depName: "",
           hasSubs: res.result.data.nxDepartmentEntities.length,
         })
+        this._loadResponsibleUsers(res.result.data);
         var pages = getCurrentPages();
         var prevPage = pages[pages.length - 2]; //上一个页面
         //直接调用上一个页面的setData()方法，把数据存到上一个页面中去

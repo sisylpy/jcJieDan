@@ -1,6 +1,6 @@
 <view class="deepseek-loading-mask" wx:if="{{show}}">
   <view class="deepseek-loading-container">
-    <image class="deepseek-logo-spin" src="/images/CE.svg" mode="aspectFit" />
-    <view class="loading-text">订单内容处理中…</view>
+    <view class="deepseek-logo-spin">DS</view>
+    <view class="loading-text">DeepSeek 正在识别订单…</view>
   </view>
-</view> 
+</view>

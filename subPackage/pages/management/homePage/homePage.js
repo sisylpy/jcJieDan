@@ -173,21 +173,14 @@ Page({
 
 
   toPayPageList(e){
-    if(this.data.disInfo.sysCityMarketEntity.sysCmSelfPrintEnabled == 0){
-      wx.navigateTo({
-        url: '../payList/payList?type=' + e.currentTarget.dataset.type,
-      })
-    }else{
-      wx.navigateTo({
-        url: '../payList/payList?type=' + e.currentTarget.dataset.type,
-      })
-    }
- 
+    wx.navigateTo({
+      url: '../payList/payList?type=' + e.currentTarget.dataset.type,
+    })
   },
 
   toPayPage(e){
-    console.log("aaa")
-    if(this.data.disInfo.sysCityMarketEntity.sysCmSelfPrintEnabled == 0){
+    const marketInfo = this.data.disInfo && this.data.disInfo.sysCityMarketEntity;
+    if(!marketInfo || marketInfo.sysCmSelfPrintEnabled == 0){
       wx.navigateTo({
         url: '../payPage/payPage?type=' + e.currentTarget.dataset.type,
       })
@@ -533,7 +526,13 @@ Page({
 
   toAfterSales(){
     wx.navigateTo({
-      url: '../../afterSales/index/index',
+      url: '/subPackage-charts/pages/afterSales/index/index',
+    })
+  },
+
+  toAnnouncementBoard(){
+    wx.navigateTo({
+      url: '../../announcement/index/index',
     })
   },
 

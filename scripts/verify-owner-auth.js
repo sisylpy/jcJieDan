@@ -55,6 +55,13 @@ if (orderHomeSource.includes('wx.login(') || orderHomeSource.includes('wx.qy.log
   failures.push('pages/order/index/index.js: 已登录页面必须复用 Owner Token，不得反复微信登录')
 }
 
+const loginSource = fs.readFileSync(path.join(root, 'pages/login/login.js'), 'utf8')
+const onLoadSource = loginSource.slice(loginSource.indexOf('onLoad:'), loginSource.indexOf('_checkPrivacyAuth()'))
+if (!onLoadSource.includes('this._login()') || onLoadSource.includes('verifiedInviteCode')
+    || !loginSource.includes('_requireInviteForRegistration()')) {
+  failures.push('pages/login/login.js: 现有老板必须先换取 Owner Token，邀请码只能拦截新用户注册')
+}
+
 if (failures.length) {
   console.error(failures.join('\n'))
   process.exit(1)

@@ -177,14 +177,14 @@
   <view class='popup'>
   <!-- 文字 -->
       <view class='flex-row-between p-30'>
-        <text> 请选所在位置</text>
+        <text>请选择所在市场</text>
         <view bindtap="closeMarket">
           <image src="../../images/del.png" class="icon"></image>
         </view>
       </view>
       <view class='flex-row'>
         <radio-group class="radio-group" bindchange="radioChangeMarket" >
-          <label class="radio" wx:for="{{itemsMarket}}" wx:key="value">
+          <label class="radio" wx:for="{{itemsMarket}}" wx:key="sysCityMarketId">
             <radio value="{{index}}" data-name="{{item.sysCmMarketName}}" checked="{{item.sysCityMarketId == marketId}}" />{{item.sysCmMarketName}}
           </label>
         </radio-group>

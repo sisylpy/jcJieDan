@@ -19,6 +19,10 @@ Component({
     cardId: {
       type: String,
       value: ''
+    },
+    showPlanningLock: {
+      type: Boolean,
+      value: false
     }
   },
 

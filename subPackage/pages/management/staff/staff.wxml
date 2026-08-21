@@ -6,10 +6,11 @@
 
     <!-- zero -->
     <view class="flex-row-between p-20">
-      <text>京采接单用户</text>
+      <text>老板、录单员和业务员</text>
       <view class="flex-row  text-center">
         <!-- <image src="../../../../images/adduser.png" class="icon mr-20"></image> -->
-        <button class=""  open-type="share"  data-admin="0">邀请小程序用户注册</button>
+        <button class="" open-type="share" disabled="{{!clerkInviteCode}}">邀请录单员</button>
+        <view class="mainBack_new_btn ml-20" bind:tap="toOpenSalesInvite">邀请业务员</view>
       </view>
     </view>
     
@@ -27,9 +28,19 @@
             <text class="font-md">{{item.nxDiuWxPhone}}</text>
           </view>
           
-          <view class="flex-row">
-            <text class="mr-20">管理员:</text>
-            <switch checked="{{item.nxDiuAdmin == 0 ? 'true' :''}}" bindchange="changeAdmin" data-item="{{item}}" />
+          <view class="flex-row role-row">
+            <text class="mr-20">角色:</text>
+            <picker mode="selector" range="{{item.availableRoleNames}}" value="{{item.roleIndex}}" disabled="{{item.roleLocked}}"
+              bindchange="changeUserRole" data-item="{{item}}">
+              <view class="role-picker {{item.roleLocked ? 'locked' : ''}}">{{item.roleLabel}}{{item.roleLocked ? '' : ' ▾'}}</view>
+            </picker>
+          </view>
+          <view class="flex-row role-row" wx:if="{{item.nxDiuAdmin == 3}}">
+            <text class="mr-20">默认录单员:</text>
+            <picker mode="selector" range="{{item.defaultClerkOptions}}" range-key="nxDiuWxNickName"
+              value="{{item.defaultClerkIndex}}" bindchange="changeSalesDefaultClerk" data-item="{{item}}">
+              <view class="role-picker">{{item.defaultClerkOptions[item.defaultClerkIndex].nxDiuWxNickName}} ▾</view>
+            </picker>
           </view>
         </view>
 

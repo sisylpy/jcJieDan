@@ -1,3196 +1,822 @@
 import load from '../../../../lib/load';
-import apiUrl from '../../../../config.js'
+import apiUrl from '../../../../config.js';
 
 import {
   pasteSearchGoods,
-  choiceGoodsForApply,
-  updateOrder,
-  deleteOrder,
   addRecord,
-  correctOrders,
-  deleteBatchOrders,
-  depGetTaskList,
   recognizeOrderAsync,
   recognizeOrderFast,
 } from '../../../../lib/apiDepOrder';
 
-import { resolveNxDoCostPriceLevel } from '../../../../lib/retailPriceLevel';
-
-import {
-  disSaveStandard,
-  queryDisGoodsByQuickSearchWithDepId,
-  disDeleteStandard,
-  getBrandForPrompts,
-  saveRetailDepartment,
-} from '../../../../lib/apiDistributer';
-
-import {
-  downDisGoods,
-  disGetGoods,
-} from '../../../lib/apiibook';
-
-import { parseOrderFromText } from '../../../../lib/orderParser';
+import { getBrandForPrompts, saveRetailDepartment } from '../../../../lib/apiDistributer';
+import { parseOrderFromTextV2 } from '../../../../lib/orderParserV2';
 import { optimizeTextWithDeepSeek } from '../../../../lib/deepSeekHelper';
 import { getAsrCredentials } from '../../../../lib/miniProgramCloud';
 
-const plugin = requirePlugin("QCloudAIVoice");
+const plugin = requirePlugin('QCloudAIVoice');
 const speechRecognizerManager = plugin.speechRecognizerManager();
-
-// 从配置文件读取腾讯云配置
 const config = require('../../../../config');
 const TENCENT_CLOUD_ENGINE_MODEL_TYPE = config.tencentCloud?.engineModelType || '16k_zh';
 const TENCENT_CLOUD_VOICE_FORMAT = config.tencentCloud?.voiceFormat || 1;
+const INPUT_MIN_HEIGHT = 600;
+const INPUT_MAX_HEIGHT = 920;
+const INPUT_LINE_HEIGHT = 48;
+const INPUT_CHARS_PER_LINE = 21;
 
+/**
+ * textarea 的 auto-height 会把短内容也压缩，所以按文本估算视觉行数：
+ * 短内容保持现有高度，超过后逐步增长，达到上限后由输入框内部滚动。
+ */
+function estimateInputAreaHeight(content) {
+  const text = String(content || '');
+  if (!text) return INPUT_MIN_HEIGHT;
+  const visualLineCount = text.split('\n').reduce((count, line) => {
+    let width = 0;
+    for (const char of line) {
+      width += /[\x00-\xff]/.test(char) ? 0.55 : 1;
+    }
+    return count + Math.max(1, Math.ceil(width / INPUT_CHARS_PER_LINE));
+  }, 0);
+  const requiredHeight = visualLineCount * INPUT_LINE_HEIGHT + 28;
+  if (requiredHeight <= INPUT_MIN_HEIGHT) return INPUT_MIN_HEIGHT;
+  return Math.min(INPUT_MAX_HEIGHT, Math.ceil(requiredHeight / 24) * 24);
+}
+
+function safeDecode(value) {
+  if (value == null) return '';
+  try {
+    return decodeURIComponent(value);
+  } catch (error) {
+    return String(value);
+  }
+}
 
 Page({
-
-  onShow() {
-    if (this.data.addOrder) {
-      var orderItem = this.data.orderItem;
-      var orderArrIndex = this.data.orderArrIndex;
-      var orderArr = this.data.orderArr;
-      orderArr.splice(orderArrIndex, 0, orderItem);
-      this.setData({
-        orderArr: orderArr
-      })
-      // 更新未保存订单状态
-      this._updateHasUnsavedOrders(orderArr);
-     
-
-    }
-
-    if (this.data.findGoods) {
-      this._choiceGoods();
-    }
-
-    // this._initTask();
-
-  },
-
-
-
   data: {
     orderArr: [],
-    ocrImageList: [], // 图片识别：复用 ocrUpload 组件的已选图片列表
-    show: false,
-    showOperation: false,
-    findGoods: false,
-    addOrder: false,
-    todayCount: null,
-    goodsName: null,
-    count: 0,
+    inputContent: '',
+    inputAreaHeight: INPUT_MIN_HEIGHT,
+    inputFocused: false,
+    sourceText: '',
+    originSentence: '',
+    showInputPanel: true,
+    isRecording: false,
+    recognitionStatus: '',
     duration: 0,
     timer: null,
-    sentence: "",
-    inputContent: "",
-    originSentence: "",
-    userId: null,
-    bottomHeight: 180,
+    saving: false,
     showDeepSeekLoading: false,
-    isAiOptimizing: false, // AI 正在优化标记
-    aiRetryCount: 0,
-    hasAiRecognized: false,
-    temperature: 0.2, // 默认温度调整为 0.2
-    strArr: [],
-    nxArr: [],
-    orderArrIndex: -1,
-    searchStr: "",
-    brandPrompts: [], // 品牌提示列表
-    hasUnsavedOrders: false, // 是否有未保存的订单（用于控制保存按钮显示）
-    hasCache: false, // 是否有当前部门的缓存数据（用于控制清除缓存按钮显示）
-    scrollIntoViewId: '', // 滚动到指定订单项（验证失败时定位）
-    invalidOrderIndex: -1, // 校验失败的订单索引
-    invalidOrderField: '', // 校验失败的字段：name/quantity/standard
-    highlightedContent: '', // 不合格内容红色标注的 HTML（用于 rich-text 展示）
-    // 不合格文字前后提示图片路径（用于标记修改位置）
-    pasteImageBefore: '/images/warn-3.png',
-    pasteImageAfter: '/images/warn-3.png'
-
+    isAiOptimizing: false,
+    aiEnhanced: false,
+    brandPrompts: [],
+    departmentOptions: [],
+    corrections: [],
+    departmentSegments: [],
+    unresolvedSegments: [],
+    parseSummary: {
+      totalCount: 0,
+      validCount: 0,
+      reviewCount: 0,
+      correctionCount: 0,
+      departmentCount: 0,
+      headerCount: 0
+    },
+    showCorrectionDetails: false,
+    invalidOrderIndex: -1,
+    invalidOrderField: '',
+    scrollIntoViewId: '',
+    ocrImageList: [],
+    ocrSubmitting: false,
+    ocrResetKey: 0,
+    inputPlaceholder: '直接粘贴清单，例如：\n凉菜\n湘君府小米泡辣1件\n佳汀香油1捅',
+    exampleText: '凉菜\n湘君府小米泡辣1件\n王守义十三香1板\n佳汀香油1捅'
   },
 
+  onLoad(options) {
+    const globalData = getApp().globalData || {};
+    const depInfo = wx.getStorageSync('depItem') || {};
+    const depId = options.depId || depInfo.nxDepartmentId || '';
+    const depFatherId = options.depFatherId || depInfo.nxDepartmentFatherId || depId;
+    const depName = safeDecode(options.depName || options.name || depInfo.nxDepartmentAttrName || '餐厅订货');
+    const departmentOptions = this._buildDepartmentOptions(depInfo, {
+      depId,
+      depFatherId,
+      depName
+    });
+    const userInfo = wx.getStorageSync('userInfo') || {};
+    const isRetail = options.isRetail === '1';
+    const disId = isRetail && userInfo.nxDistributerEntity
+      ? (userInfo.nxDistributerEntity.nxDistributerId || userInfo.nxDiuDistributerId)
+      : userInfo.nxDiuDistributerId;
 
-  onLoad: function (options) {
-    const globalData = getApp().globalData;
-    const windowWidth = globalData.windowWidth * globalData.rpxR;
-    
-    // 计算商品名称、数量、规格的宽度
-    const goodsNameWidth = Math.floor(windowWidth * 11 / 20); // 55%
-    const quantityWidth = Math.floor(windowWidth * 3 / 20); // 15%
-    const standardWidth = Math.floor(windowWidth * 3 / 20); // 15%
-    const containerWidth = windowWidth - 120;
-    
     this.setData({
-      windowWidth: windowWidth,
-      windowHeight: globalData.windowHeight * globalData.rpxR,
-      navBarHeight: globalData.navBarHeight * globalData.rpxR,
+      windowWidth: (globalData.windowWidth || 375) * (globalData.rpxR || 2),
+      windowHeight: (globalData.windowHeight || 667) * (globalData.rpxR || 2),
+      navBarHeight: (globalData.navBarHeight || 44) * (globalData.rpxR || 2),
       url: apiUrl.server,
-      goodsNameWidth: goodsNameWidth,
-      quantityWidth: quantityWidth,
-      standardWidth: standardWidth,
-      containerWidth: containerWidth,
-      depFatherId: options.depFatherId,
-      depId: options.depId,
-      depName: options.depName,
+      depInfo,
+      depId,
+      depFatherId,
+      depName,
+      depSettleType: options.depSettleType,
+      departmentOptions,
+      userInfo,
+      userId: userInfo.nxDistributerUserId || -1,
+      disId,
+      isRetail
+    });
 
-      // 重置 AI 识别相关状态
-      aiRetryCount: 0,
-      hasAiRecognized: false,
-      showDeepSeekLoading: false,
-      originSentence: "",
-    })
-
-   
-    var userInfo = wx.getStorageSync('userInfo');
-    if (userInfo) {
-      const isRetail = options.isRetail == '1';
-      // 零售页优先使用经销商实体 id
-      var disIdVal = isRetail
-        ? (userInfo.nxDistributerEntity && userInfo.nxDistributerEntity.nxDistributerId != null
-            ? userInfo.nxDistributerEntity.nxDistributerId
-            : userInfo.nxDiuDistributerId)
-        : userInfo.nxDiuDistributerId;
-
-      this.setData({
-        userInfo: userInfo,
-        userId: userInfo.nxDistributerUserId,
-        disId: disIdVal,
-        disInfo: userInfo.nxDistributerEntity,
-      })
-
-      // 零售入口：通过 saveRetailDepartment 获取/创建零售部门
-      if (isRetail) {
-        saveRetailDepartment(disIdVal).then(res => {
-          if (res.result.code == 0) {
-            this.setData({
-              depId: res.result.data.nxDepartmentId,
-              depFatherId: res.result.data.nxDepartmentFatherId,
-              depName: res.result.data.nxDepartmentName || '零售订货',
-            })
-          }
-        })
-      }
+    if (isRetail && disId) {
+      saveRetailDepartment(disId).then(res => {
+        if (!res || !res.result || res.result.code !== 0 || !res.result.data) return;
+        const retailDepartment = res.result.data;
+        const retailDepId = retailDepartment.nxDepartmentId;
+        const retailFatherId = retailDepartment.nxDepartmentFatherId || retailDepId;
+        const retailName = retailDepartment.nxDepartmentName || '零售订货';
+        this.setData({
+          depId: retailDepId,
+          depFatherId: retailFatherId,
+          depName: retailName,
+          departmentOptions: [{ id: retailDepId, fatherId: retailFatherId, name: retailName }]
+        });
+      }).catch(error => console.warn('[pasteV2] 零售部门初始化失败:', error));
     }
 
-    var depInfo = wx.getStorageSync('depItem');
-    if (depInfo) {
-      this.setData({
-        depInfo: depInfo,
-      })
-    }
-   
-   
-    // 加载品牌提示数据
+    this._bindSpeechCallbacks();
     this._loadBrandPrompts();
-
-    // 检查隐私设置并处理隐私弹窗逻辑（仅在支持的环境中）
-    try {
-      if (wx.getPrivacySetting && typeof wx.getPrivacySetting === 'function') {
-        wx.getPrivacySetting({
-          success: res => {
-            console.log("getPrivacySetting", res);
-            if (res.needAuthorization) {
-              // 需要弹出隐私协议
-              wx.showModal({
-                title: '隐私协议',
-                content: '为了提供更好的服务，我们需要收集您的某些信息。请仔细阅读并同意我们的隐私协议。',
-                showCancel: false,
-                success: function (result) {
-                  if (result.confirm) {
-                    // 用户同意隐私协议，尝试调用需要授权的API
-                    wx.authorize({
-                      scope: 'scope.record', // 替换为你需要授权的API范围
-                      success: function () {
-                        // 授权成功，可以调用相关API了
-                        console.log('授权成功');
-                        // 调用相关API的代码...
-                      },
-                      fail: function () {
-                        // 授权失败，处理错误
-                        console.log('授权失败');
-                      }
-                    });
-                  }
-                }
-              });
-            } else {
-              // 用户已经授权，可以直接调用相关API
-              console.log('已经授权');
-              // 调用相关API的代码...
-            }
-          },
-          fail: err => {
-            console.log('getPrivacySetting fail', err);
-            // 如果API调用失败，继续执行后续逻辑
-          }
-        });
-      } else {
-        console.log('wx.getPrivacySetting API not available in current environment');
-      }
-    } catch (err) {
-      console.log('wx.getPrivacySetting error caught:', err);
-      // API不可用，继续执行后续逻辑
-    }
-
-    // 初始化语音识别回调
-    speechRecognizerManager.OnRecognitionStart = () => {
-      this.setData({
-        recognitionStatus: '识别中...'
-      })
-    }
-
-    speechRecognizerManager.OnSentenceBegin = () => {}
-
-    speechRecognizerManager.OnRecognitionResultChange = (res) => {
-      if (res.result) {
-        this.setData({
-          sentence: res.result.voice_text_str,
-        })
-      }
-    }
-
-    speechRecognizerManager.OnSentenceEnd = () => {}
-
-    speechRecognizerManager.OnRecognitionComplete = async () => {
-      // 清除定时器
-      if (this.data.timer) {
-        clearInterval(this.data.timer);
-      }
-      this.setData({
-        recognitionStatus: '识别完成',
-        isRecording: false,
-        timer: null
-      })
-
-      try {
-        // 获取识别到的文本
-        const recognizedText = this.data.sentence;
-        if (!recognizedText || recognizedText.trim().length < 3) {
-          return;
-        }
-
-        // 仅显示原始识别结果到输入框，不自动解析（用户可手动修改后点"识别"）
-        this.setData({
-          inputContent: recognizedText,
-          sentence: recognizedText,
-          originSentence: recognizedText // 保存原始语音文本，用于"重新粘贴"恢复
-        });
-      } catch (error) {
-        console.error('处理语音识别结果时出错:', error);
-        wx.showToast({
-          title: '文本优化失败，使用原始文本',
-          icon: 'none',
-          duration: 2000
-        });
-      }
-    }
-
-    speechRecognizerManager.OnError = (res) => {
-      const errorCode = res && res.code;
-      const errorMessage = res && res.message;
-      
-      // 错误码 4008: 客户端超过15秒未发送音频数据（超时错误）
-      // 这种情况通常是用户说话有停顿，不应该完全停止录音
-      if (errorCode === 4008) {
-        console.log('[录音回调] OnError - 识别超时（15秒无音频数据），但录音可能仍在继续');
-        // 不设置 isRecording: false，因为识别服务可能会自动重启
-        // 只更新状态提示，不显示错误提示
-        this.setData({
-          recognitionStatus: '请继续说话...'
-        });
-        console.log('[录音回调] OnError - 不停止录音，只更新状态提示');
-        return;
-      }
-      
-      // 错误码 6000: 网络连接错误（Connection refused）
-      // 可能原因：1. 未在微信公众平台配置服务器域名 2. 开发者工具未开启"不校验合法域名" 3. 网络问题
-      if (errorCode === 6000) {
-        console.log('[录音回调] OnError - 识别服务连接失败（错误码6000）');
-        console.log('[录音回调] OnError - 可能原因：1. 未配置服务器域名 2. 开发者工具设置 3. 网络问题');
-        
-        // 停止录音并提示用户
-        if (this.data.timer) {
-          clearInterval(this.data.timer);
-          console.log('[录音回调] OnError - 定时器已清除，timer ID:', this.data.timer);
-        }
-        this.setData({
-          recognitionStatus: '连接失败，请检查网络或配置',
-          isRecording: false,
-          timer: null
-        });
-        
-        // 显示错误提示
-        wx.showToast({
-          title: '连接失败，请检查网络',
-          icon: 'none',
-          duration: 2000
-        });
-        return;
-      }
-      
-      // 其他错误：正常处理，停止录音
-      console.log('[录音回调] OnError - 严重错误，停止录音')
-      console.log('[录音回调] OnError - 清除定时器')
-      // 清除定时器
-      if (this.data.timer) {
-        clearInterval(this.data.timer);
-        console.log('[录音回调] OnError - 定时器已清除，timer ID:', this.data.timer);
-      } else {
-        console.log('[录音回调] OnError - 警告：定时器不存在');
-      }
-      console.log('[录音回调] OnError - 设置 isRecording: false, recognitionStatus: 识别失败')
-      this.setData({
-        recognitionStatus: '识别失败',
-        isRecording: false,
-        timer: null
-      })
-    }
-
-    speechRecognizerManager.OnRecorderStop = () => {
-      // 清除定时器
-      if (this.data.timer) {
-        clearInterval(this.data.timer);
-      }
-      // 如果 isRecording 还是 true，说明是自动结束的，需要设置为 false
-      const needStopRecording = this.data.isRecording;
-      this.setData({
-        inputContent: this.data.sentence,
-        timer: null,
-        ...(needStopRecording ? { isRecording: false } : {}) // 只有在需要时才设置
-      })
-    }
-
   },
 
-  /**
-   * 加载品牌提示数据
-   */
+  onUnload() {
+    if (this.data.timer) clearInterval(this.data.timer);
+    if (this.data.isRecording) {
+      try {
+        speechRecognizerManager.stop();
+      } catch (error) {
+        console.warn('[pasteV2] 停止录音失败:', error);
+      }
+    }
+  },
+
+  _buildDepartmentOptions(depInfo, current) {
+    const result = [];
+    const seen = new Set();
+    const add = (department, fallbackName) => {
+      if (!department) return;
+      const id = department.nxDepartmentId != null ? department.nxDepartmentId : department.id;
+      const name = department.nxDepartmentName || department.nxDepartmentAttrName || department.name || fallbackName;
+      if (id == null || !name || seen.has(String(id))) return;
+      seen.add(String(id));
+      result.push({
+        id,
+        fatherId: department.nxDepartmentFatherId != null
+          ? department.nxDepartmentFatherId
+          : (department.fatherId != null ? department.fatherId : current.depFatherId),
+        name
+      });
+    };
+
+    (depInfo.nxDepartmentEntities || []).forEach(department => add(department));
+    add({ id: current.depId, fatherId: current.depFatherId, name: current.depName });
+    return result;
+  },
+
+  _parserOptions() {
+    return {
+      depId: this.data.depId,
+      depFatherId: this.data.depFatherId,
+      depName: this.data.depName,
+      disId: this.data.disId,
+      userId: this.data.userId,
+      departments: this.data.departmentOptions
+    };
+  },
+
   async _loadBrandPrompts() {
     try {
       const res = await getBrandForPrompts();
-      console.log('[paste] getBrandForPrompts raw:', res);
       if (res && res.result && res.result.code === 0) {
-        const brands = Array.isArray(res.result.data) ? res.result.data : [];
-        this.setData({ brandPrompts: brands });
-        console.log('[paste] 品牌提示数据加载成功，数量:', brands.length);
-      } else {
-        const msg = res && res.result && res.result.msg ? res.result.msg : '品牌数据加载失败';
-        console.warn('[paste] 品牌数据加载失败:', msg);
-        // 不显示错误提示，因为品牌提示是可选的
+        this.setData({ brandPrompts: Array.isArray(res.result.data) ? res.result.data : [] });
       }
     } catch (error) {
-      console.error('[paste] 获取品牌提示失败:', error);
-      // 不显示错误提示，因为品牌提示是可选的，不影响主要功能
+      console.warn('[pasteV2] 品牌提示加载失败，不影响本地解析:', error);
     }
   },
 
-  async startRecord() {
-    console.log('[录音] ========== 开始录音 ==========');
-    const that = this
-    // 先清除可能存在的旧定时器
-    if (that.data.timer) {
-      console.log('[录音] 0. 检测到旧定时器，先清除，timer ID:', that.data.timer);
-      clearInterval(that.data.timer);
-    }
-    console.log('[录音] 1. 初始化 duration 为 0');
+  _bindSpeechCallbacks() {
+    speechRecognizerManager.OnRecognitionStart = () => {
+      this.setData({ recognitionStatus: '正在听，请说订单…' });
+    };
+    speechRecognizerManager.OnRecognitionResultChange = res => {
+      if (res && res.result && res.result.voice_text_str) {
+        const spokenText = String(res.result.voice_text_str).trim();
+        const text = [this._recordingBaseText, spokenText].filter(Boolean).join('\n');
+        this.setData({
+          inputContent: text,
+          inputAreaHeight: estimateInputAreaHeight(text),
+          recognitionStatus: '正在识别…'
+        });
+      }
+    };
+    speechRecognizerManager.OnRecognitionComplete = () => {
+      this._finishRecordingState('语音识别完成');
+      const text = (this.data.inputContent || '').trim();
+      if (text) {
+        this.setData({ sourceText: text, originSentence: text });
+        this._parseContent(text, false);
+      }
+    };
+    speechRecognizerManager.OnRecorderStop = () => {
+      this._finishRecordingState(this.data.inputContent ? '语音识别完成' : '录音已停止');
+    };
+    speechRecognizerManager.OnError = res => {
+      if (res && res.code === 4008) {
+        this.setData({ recognitionStatus: '请继续说话…' });
+        return;
+      }
+      this._finishRecordingState('语音识别失败');
+      wx.showToast({
+        title: res && res.code === 6000 ? '语音服务连接失败' : '语音识别失败',
+        icon: 'none'
+      });
+    };
+  },
+
+  _finishRecordingState(status) {
+    if (this.data.timer) clearInterval(this.data.timer);
     this.setData({
-      duration: 0,
-      timer: null
-    })
-    let credentials
+      timer: null,
+      isRecording: false,
+      recognitionStatus: status
+    });
+  },
+
+  _ensureRecordPermission() {
+    if (!wx.authorize || typeof wx.authorize !== 'function') return Promise.resolve(true);
+    return new Promise(resolve => {
+      wx.authorize({
+        scope: 'scope.record',
+        success: () => resolve(true),
+        fail: () => {
+          if (!wx.showModal || typeof wx.showModal !== 'function') {
+            resolve(false);
+            return;
+          }
+          wx.showModal({
+            title: '需要麦克风权限',
+            content: '请在设置中允许使用麦克风后，再使用语音说单。',
+            confirmText: '去设置',
+            success: result => {
+              if (!result.confirm || !wx.openSetting) {
+                resolve(false);
+                return;
+              }
+              wx.openSetting({
+                success: setting => resolve(!!(setting.authSetting && setting.authSetting['scope.record'])),
+                fail: () => resolve(false)
+              });
+            },
+            fail: () => resolve(false)
+          });
+        }
+      });
+    });
+  },
+
+  async startRecord() {
+    if (this.data.isRecording) return;
+    const hasPermission = await this._ensureRecordPermission();
+    if (!hasPermission) return;
+    let credentials;
     try {
-      credentials = await getAsrCredentials()
+      credentials = await getAsrCredentials();
     } catch (error) {
-      wx.showToast({ title: error.message || '语音服务初始化失败', icon: 'none' })
-      return
+      wx.showToast({ title: error.message || '语音服务初始化失败', icon: 'none' });
+      return;
     }
-    const params = {
+    if (this.data.timer) clearInterval(this.data.timer);
+    this._recordingBaseText = String(this.data.inputContent || '').trim();
+    this.setData({
+      isRecording: true,
+      duration: 0,
+      recognitionStatus: '准备录音…'
+    });
+    const timer = setInterval(() => {
+      this.setData({ duration: this.data.duration + 1 });
+    }, 1000);
+    this.setData({ timer });
+    speechRecognizerManager.start({
       secretkey: credentials.secretKey,
       secretid: credentials.secretId,
       token: credentials.token,
       appid: credentials.appId,
       engine_model_type: TENCENT_CLOUD_ENGINE_MODEL_TYPE,
       voice_format: TENCENT_CLOUD_VOICE_FORMAT
-    }
-
-    console.log('[录音] 3. 设置 isRecording: true, recognitionStatus: 准备中...');
-    this.setData({
-      isRecording: true,
-      // sentence: '',
-      recognitionStatus: '准备中...',
-      duration: 0
-    })
-    console.log('[录音] 4. 当前状态 - isRecording:', this.data.isRecording, 'duration:', this.data.duration);
-
-    console.log('[录音] 5. 创建定时器，每秒递增 duration');
-    that.data.timer = setInterval(() => {
-      const currentDuration = that.data.duration + 1;
-      console.log('[录音] 定时器执行 - duration 更新为:', currentDuration);
-      that.setData({
-        duration: currentDuration
-      })
-    }, 1000)
-    console.log('[录音] 6. 定时器已创建，timer ID:', that.data.timer);
-
-    console.log('[录音] 7. 调用 speechRecognizerManager.start()');
-    speechRecognizerManager.start(params)
-    console.log('[录音] ========== 开始录音流程完成 ==========');
+    });
   },
 
   stopRecord() {
-    console.log('[停止录音] ========== 停止录音 ==========');
-    const that = this
-    console.log('[停止录音] 1. 当前状态 - isRecording:', that.data.isRecording, 'duration:', that.data.duration, 'timer:', that.data.timer);
-    
-    console.log('[停止录音] 2. 清除定时器');
-    if (that.data.timer) {
-      clearInterval(that.data.timer);
-      console.log('[停止录音] 3. 定时器已清除，timer ID:', that.data.timer);
-    } else {
-      console.log('[停止录音] 3. 警告：定时器不存在或已被清除');
-    }
-    
-    console.log('[停止录音] 4. 设置 isRecording: false, recording: false, timer: null');
-    that.setData({
-      isRecording: false,  // 修复：添加 isRecording: false，这是按钮状态的关键
-      recording: false,
-      timer: null
-    })
-    console.log('[停止录音] 5. 状态已更新 - isRecording:', that.data.isRecording, 'recording:', that.data.recording);
-   
-    // 如果时长为0，不保存录音
-    if (that.data.duration === 0) {
-      console.log('[停止录音] 6. 录音时长为0，不保存录音，直接返回');
-      console.log('[停止录音] 7. 调用 speechRecognizerManager.stop()');
+    if (!this.data.isRecording) return;
+    const duration = this.data.duration;
+    this._finishRecordingState('正在完成识别…');
+    try {
       speechRecognizerManager.stop();
-      console.log('[停止录音] ========== 停止录音流程完成（时长为0） ==========');
-      return;
+    } catch (error) {
+      console.warn('[pasteV2] 停止录音失败:', error);
     }
-   
-    console.log('[停止录音] 6. 准备保存录音，duration:', that.data.duration);
-    var data = {
-      nxNdplNxDisId: that.data.disId,
-      nxNdplPaySubtotal: that.data.duration,
-      nxNdplNxDepartmentFatherId: that.data.depFatherId,
-      nxNdplNxDepartmentId: that.data.depId,
+    if (duration > 0) {
+      addRecord({
+        nxNdplNxDisId: this.data.disId,
+        nxNdplPaySubtotal: duration,
+        nxNdplNxDepartmentFatherId: this.data.depFatherId,
+        nxNdplNxDepartmentId: this.data.depId
+      }).catch(error => console.warn('[pasteV2] 录音时长保存失败:', error));
     }
-    load.showLoading("保存录音")
-    console.log('[停止录音] 8. 调用 addRecord API');
-    addRecord(data).then(res => {
-      console.log('[停止录音] 9. addRecord API 响应:', res);
-      if (res.result.code == 0) {
-        load.hideLoading();
-        console.log('[停止录音] 10. 保存成功，重置 duration 为 0');
-        that.setData({
-          duration: 0,
-        })
-      } else {
-        console.log('[停止录音] 10. 保存失败，错误码:', res.result.code, '错误信息:', res.result.msg);
-      }
-    }).catch(err => {
-      console.error('[停止录音] 10. addRecord API 调用失败:', err);
-      load.hideLoading();
-    })
-    
-    console.log('[停止录音] 11. 调用 speechRecognizerManager.stop()');
-    speechRecognizerManager.stop();
-    console.log('[停止录音] ========== 停止录音流程完成 ==========');
   },
 
-
-  clearSentence() {
+  onInput(e) {
+    const text = e.detail.value;
+    const previousText = String(this.data.inputContent || '');
+    const addedLength = text.length - previousText.length;
+    const looksLikePaste = addedLength >= 12 || (addedLength >= 3 && text.includes('\n'));
     this.setData({
-      sentence: "",
-      inputContent: "",
-      orderArr: [],
-      orderArrFixed: [],
-      highlightedContent: "",
-      // 重置 AI 识别相关状态
-      aiRetryCount: 0,
-      hasAiRecognized: false,
-      showDeepSeekLoading: false,
-      originSentence: "",
-      hasUnsavedOrders: false, // 清空订单后，没有未保存的订单
-    })
+      inputContent: text,
+      inputAreaHeight: estimateInputAreaHeight(text),
+      sourceText: text,
+      aiEnhanced: false
+    });
+    if (looksLikePaste) this._closeKeyboard();
   },
 
-  // 粘贴剪贴板文字到输入框
+  onInputFocus() {
+    this.setData({ inputFocused: true });
+  },
+
+  onInputBlur() {
+    if (this.data.inputFocused) this.setData({ inputFocused: false });
+  },
+
+  finishInput() {
+    this._closeKeyboard();
+  },
+
+  _closeKeyboard() {
+    if (this.data.inputFocused) this.setData({ inputFocused: false });
+    if (wx.hideKeyboard && typeof wx.hideKeyboard === 'function') {
+      setTimeout(() => wx.hideKeyboard({}), 20);
+    }
+  },
+
   pasteFromClipboard() {
-    const that = this;
+    if (this.data.isRecording) return;
+    this._closeKeyboard();
     wx.getClipboardData({
-      success: (res) => {
-        const text = (res.data || '').trim();
+      success: res => {
+        const text = String(res.data || '').trim();
         if (!text) {
           wx.showToast({ title: '剪贴板为空', icon: 'none' });
           return;
         }
-        that.setData({
-          sentence: text,
-          inputContent: text,
-        });
-        wx.showToast({ title: '已粘贴', icon: 'success', duration: 1000 });
-      },
-      fail: () => {
-        wx.showToast({ title: '读取剪贴板失败', icon: 'none' });
-      }
-    });
-  },
-
- 
-  onInput(e) {
-    const text = e.detail.value;
-    // 同时更新 sentence 和 inputContent，保持同步
-    // 用户修改内容后清除红色标注，下次点击预览会重新计算
-    this.setData({
-      sentence: text,
-      inputContent: text.trim() !== '' ? text : null,
-      highlightedContent: '',
-    });
-  },
-
-  
-
-
-  againPaste() {
-    // 使用原始语音识别内容，而不是 AI 优化后的内容
-    const originalText = this.data.originSentence || this.data.sentence || this.data.inputContent;
-    
-    
-    // 重置相关状态
-    this.setData({
-      orderArr: [],
-      sentence: originalText,
-      inputContent: originalText, // 同时更新 inputContent，保持同步
-      highlightedContent: '',
-      saveCount: null, // 重置保存计数
-      pasteDepList: null, // 清空 pasteDepList
-      pasteDepId: null,
-      pasteDep: null,
-      pasteDepIndex: -1,
-      strArr: [], // 清空搜索结果
-      nxArr: [], // 清空下载商品
-      orderArrIndex: -1, // 重置订单索引
-      searchStr: "", // 清空搜索关键词
-      hasUnsavedOrders: false, // 重置未保存订单状态
-    })
-  }, 
-
-
-
-  /**
-   * 第一次 AI 识别
-   */
-  async aiRecogniseFirst() {
-    // 优先使用 inputContent，因为用户修改输入框时更新的是 inputContent
-    // 如果没有 inputContent，再使用 sentence
-    const content = this.data.inputContent || this.data.sentence;
-    
-    if (!content || content.trim() === '') {
-      wx.showToast({ title: '内容为空', icon: 'none' });
-      return;
-    }
-
-    this.setData({ 
-      showDeepSeekLoading: true,
-      aiRetryCount: 0 // 重置尝试次数
-    });
-    
-    try {
-      const optimizedText = await optimizeTextWithDeepSeek(content, {
-        brandList: this.data.brandPrompts || [],
-        temperature: 0.2,
-        logPrefix: '[paste]'
-      });
-      // DeepSeek 返回空结果时跳过解析
-      if (!optimizedText || optimizedText.trim() === '' || optimizedText.trim() === '[]') {
-        this.setData({ showDeepSeekLoading: false });
-        wx.showToast({ title: '未识别到有效内容，请重试', icon: 'none', duration: 2000 });
-        return;
-      }
-
-      this.setData({
-        inputContent: optimizedText,
-        sentence: optimizedText,
-        originSentence: content, // 保存原始内容用于再次识别
-        showDeepSeekLoading: false,
-        hasAiRecognized: true
-      });
-      
-      // 重新进行订单解析
-      this.formatContent();
-      
-      wx.showToast({ 
-        title: 'AI识别完成', 
-        icon: 'success',
-        duration: 1500
-      });
-      
-    } catch (e) {
-      console.error('第一次 AI 识别失败:', e);
-      this.setData({ showDeepSeekLoading: false });
-      wx.showToast({ title: 'AI识别失败', icon: 'none' });
-    }
-  },
-
-  
-  
-  formatContent: function () {
-    var content = this.data.inputContent;
-    if (!content || content.trim() === '') {
-      console.log('[formatContent] 内容为空，跳过处理');
-      this.setData({ highlightedContent: '' });
-      return;
-    }
-
-    // 解析前先移除可能存在的修改标记（上次插入的）
-    content = this._stripInvalidMarkers(content);
-
-    // 清空订单数组
-    this.orderArray = [];
-    
-    // 使用工具函数解析订单
-    const result = parseOrderFromText(content, {
-      depId: this.data.depId,
-      depFatherId: this.data.depFatherId,
-      disId: this.data.disId,
-      userId: this.data.userId
-    });
-    
-    if (result.orders && result.orders.length > 0) {
-      // 若存在不合格片段：在原文插入【】标记，回显到 textarea
-      if (result.invalidSegments && result.invalidSegments.length > 0) {
-        const contentForHighlight = result.contentForHighlight || content;
-        const modifiedContent = this._insertInvalidMarkersInContent(contentForHighlight, result.invalidSegments);
         this.setData({
-          orderArr: [],
-          sentence: modifiedContent,
-          inputContent: modifiedContent
-        });
-        wx.showToast({ title: '存在格式不合格项，【】标记处请修改', icon: 'none', duration: 2500 });
-        return result;
-      }
-      // 无问题，正常生成订单
-      this.setData({ 
-        orderArr: result.orders,
-        saveCount: null,
-        highlightedContent: ''
-      });
-      this._updateHasUnsavedOrders(result.orders);
-      this.setData({ formattedContent: result.formatted || '' });
+          inputContent: text,
+          inputAreaHeight: estimateInputAreaHeight(text),
+          sourceText: text,
+          originSentence: text,
+          aiEnhanced: false
+        }, () => this._parseContent(text, false));
+      },
+      fail: () => wx.showToast({ title: '读取剪贴板失败', icon: 'none' })
+    });
+  },
+
+  useExample() {
+    const text = this.data.exampleText;
+    this.setData({
+      inputContent: text,
+      inputAreaHeight: estimateInputAreaHeight(text),
+      sourceText: text,
+      originSentence: text,
+      aiEnhanced: false
+    }, () => this._parseContent(text, false));
+  },
+
+  smartParse() {
+    this._closeKeyboard();
+    const text = String(this.data.inputContent || '').trim();
+    if (!text) {
+      wx.showToast({ title: '请先粘贴或输入订单', icon: 'none' });
+      return;
+    }
+    if (!this.data.sourceText) this.setData({ sourceText: text, originSentence: text });
+    this._parseContent(text, false);
+  },
+
+  _parseContent(text, aiEnhanced) {
+    const result = parseOrderFromTextV2(text, this._parserOptions());
+    if (!result.orders.length) {
+      wx.showToast({ title: '没有找到可识别的商品', icon: 'none' });
       return result;
-    } else {
-      console.log('[formatContent] 未解析到有效订单');
-      this.setData({ highlightedContent: '' });
-      return { orders: [], formatted: '' };
     }
-  },
-
-  /** 解析前移除插入的标记（【 和 】） */
-  _stripInvalidMarkers: function (content) {
-    if (!content) return '';
-    return String(content).replace(/【/g, '').replace(/】/g, '');
-  },
-
-  /**
-   * 在原文中按不合格片段的起止位置插入纯文本标记，开始用【结束用】
-   * @param {string} content - 与解析时一致的内容（contentForHighlight）
-   * @param {Array} invalidSegments - [{ segmentText }]
-   * @returns {string} 插入【】标记后的原文
-   */
-  _insertInvalidMarkersInContent: function (content, invalidSegments) {
-    if (!content || !invalidSegments || invalidSegments.length === 0) return content;
-    let result = '';
-    let remaining = content;
-    while (true) {
-      let best = { pos: -1, seg: null };
-      for (const seg of invalidSegments) {
-        if (!seg.segmentText) continue;
-        const idx = remaining.indexOf(seg.segmentText);
-        if (idx >= 0 && (best.pos < 0 || idx < best.pos)) {
-          best = { pos: idx, seg };
-        }
-      }
-      if (best.pos < 0) break;
-      result += remaining.slice(0, best.pos);
-      result += '【' + best.seg.segmentText + '】';
-      remaining = remaining.slice(best.pos + best.seg.segmentText.length);
-    }
-    result += remaining;
+    this.setData({
+      orderArr: result.orders,
+      corrections: result.corrections || [],
+      departmentSegments: result.departmentSegments || [],
+      unresolvedSegments: result.unresolvedSegments || [],
+      parseSummary: result.summary,
+      showInputPanel: false,
+      showCorrectionDetails: (result.corrections || []).length > 0,
+      invalidOrderIndex: -1,
+      invalidOrderField: '',
+      aiEnhanced: !!aiEnhanced
+    });
     return result;
   },
 
-  /**
-   * 根据 invalidSegments 在原始内容中把不合格片段用红色标注
-   * 返回 rich-text 用的 nodes 数组（color 等内联 style 在 nodes 数组模式下不会被过滤）
-   */
-  _buildHighlightedContent: function (content, invalidSegments) {
-    if (!content || !invalidSegments || invalidSegments.length === 0) return [];
-    const imgBefore = this.data.pasteImageBefore || '';
-    const imgAfter  = this.data.pasteImageAfter  || '';
+  _buildAiPrompt() {
+    const departmentNames = (this.data.departmentOptions || []).map(item => item.name).join('、') || '未提供';
+    return `你是餐厅饭馆订货场景的高级订单解析助手。用户输入可能来自微信粘贴或语音识别，包含错别字、同音字、部门标题和不规则标点。
 
-    const nodes = [];
-    let remaining = content;
-    let matchedCount = 0;
-    while (true) {
-      let best = { pos: -1, seg: null };
-      for (const seg of invalidSegments) {
-        if (!seg.segmentText) continue;
-        const idx = remaining.indexOf(seg.segmentText);
-        if (idx >= 0 && (best.pos < 0 || idx < best.pos)) {
-          best = { pos: idx, seg };
-        }
-      }
-      if (best.pos < 0) break;
-      matchedCount++;
-      // 前段普通文本（保留换行）
-      if (best.pos > 0) {
-        nodes.push(this._plainTextToNodes(remaining.slice(0, best.pos)));
-      }
-      if (imgBefore) nodes.push({ name: 'img', attrs: { src: imgBefore, style: 'vertical-align:middle;width:36rpx;height:36rpx;margin:0 4rpx' } });
-      // 红色标注的不合格文字
-      nodes.push({ name: 'span', attrs: { style: 'color:red;font-weight:bold' }, children: [{ type: 'text', text: best.seg.segmentText }] });
-      if (imgAfter) nodes.push({ name: 'img', attrs: { src: imgAfter, style: 'vertical-align:middle;width:36rpx;height:36rpx;margin:0 4rpx' } });
-      remaining = remaining.slice(best.pos + best.seg.segmentText.length);
-    }
-    // 尾部剩余
-    if (remaining) nodes.push(this._plainTextToNodes(remaining));
+当前饭馆可用部门：${departmentNames}
 
-    if (matchedCount === 0) {
-      console.warn('[_buildHighlightedContent] 未匹配到任何片段', invalidSegments.map(s => s.segmentText));
-      return [{
-        name: 'div',
-        attrs: { style: 'white-space:pre-wrap;word-break:break-all;font-size:28rpx;line-height:1.5' },
-        children: [
-          { type: 'text', text: '以下内容格式不合格：' },
-          { name: 'span', attrs: { style: 'color:red' }, children: [{ type: 'text', text: invalidSegments.map(s => s.segmentText).join('、') }] }
-        ]
-      }];
-    }
-    return [{
-      name: 'div',
-      attrs: { style: 'white-space:pre-wrap;word-break:break-all;font-size:28rpx;line-height:1.5' },
-      children: nodes
-    }];
+处理要求：
+1. “凉菜、面点、后厨”等如果与可用部门匹配，是部门标题，不是商品；标题后的商品继承该部门，直到出现下一个部门标题。
+2. 智能修正常见计量单位错字，例如 捅/筒→桶、代/戴→袋、建→件、平→瓶、版→板。
+3. 结合餐饮语境和品牌列表纠正商品名同音字，但不要凭空增加商品。
+4. 保留用户的数量和备注。无法确定时保留原文，不要编造。
+5. 仅输出纯 JSON 数组，不要 Markdown，不要解释。
+
+JSON格式：
+[{"departmentName":"部门名称","name":"商品名称","qty":"数量","unit":"单位","remark":"备注"}]`;
   },
 
-  /**
-   * 将纯文本（含换行）转 rich-text nodes
-   * 每行用单独的 div 包，保证换行显示
-   */
-  _plainTextToNodes: function (text) {
-    if (!text) return { type: 'text', text: '' };
-    const lines = String(text).split('\n');
+  async aiEnhance() {
+    if (this.data.isAiOptimizing) return;
+    this._closeKeyboard();
+    const source = String(this.data.sourceText || this.data.inputContent || '').trim();
+    if (!source) {
+      wx.showToast({ title: '请先输入订单内容', icon: 'none' });
+      return;
+    }
+    this.setData({ showDeepSeekLoading: true, isAiOptimizing: true });
+    try {
+      const aiResponse = await optimizeTextWithDeepSeek(source, {
+        systemPrompt: this._buildAiPrompt(),
+        brandList: this.data.brandPrompts || [],
+        temperature: 0.1,
+        logPrefix: '[pasteV2]'
+      });
+      const optimizedText = typeof aiResponse === 'string' ? aiResponse.trim() : JSON.stringify(aiResponse || '');
+      if (!optimizedText || optimizedText === '[]') {
+        wx.showToast({ title: 'DeepSeek 未识别到商品', icon: 'none' });
+        return;
+      }
+      const result = this._parseContent(optimizedText, true);
+      if (result && result.orders.length) {
+        wx.showToast({ title: 'DeepSeek 识别完成', icon: 'success' });
+      } else {
+        wx.showToast({ title: 'DeepSeek 结果需要重试', icon: 'none' });
+      }
+    } catch (error) {
+      console.error('[pasteV2] AI精修失败:', error);
+      wx.showModal({
+        title: 'DeepSeek 暂时不可用',
+        content: `${error && error.message ? error.message : '请检查网络后重试'}。原订单内容已保留。`,
+        showCancel: false
+      });
+    } finally {
+      this.setData({ showDeepSeekLoading: false, isAiOptimizing: false });
+    }
+  },
+
+  editOriginal() {
+    this.setData({
+      showInputPanel: true,
+      inputAreaHeight: estimateInputAreaHeight(this.data.inputContent || this.data.sourceText)
+    });
+  },
+
+  clearAll() {
+    if (this.data.isRecording) this.stopRecord();
+    this.setData({
+      orderArr: [],
+      inputContent: '',
+      inputAreaHeight: INPUT_MIN_HEIGHT,
+      inputFocused: false,
+      sourceText: '',
+      originSentence: '',
+      showInputPanel: true,
+      corrections: [],
+      departmentSegments: [],
+      unresolvedSegments: [],
+      showCorrectionDetails: false,
+      aiEnhanced: false,
+      isAiOptimizing: false,
+      ocrSubmitting: false,
+      parseSummary: {
+        totalCount: 0,
+        validCount: 0,
+        reviewCount: 0,
+        correctionCount: 0,
+        departmentCount: 0,
+        headerCount: 0
+      }
+    });
+  },
+
+  toggleCorrectionDetails() {
+    this.setData({ showCorrectionDetails: !this.data.showCorrectionDetails });
+  },
+
+  editOrder(e) {
+    const index = Number(e.currentTarget.dataset.index);
+    const field = e.currentTarget.dataset.field;
+    const value = e.detail.value;
+    const keyMap = {
+      name: 'nxDoGoodsName',
+      quantity: 'nxDoQuantity',
+      standard: 'nxDoStandard',
+      remark: 'nxDoRemark'
+    };
+    const key = keyMap[field];
+    if (!key || !this.data.orderArr[index]) return;
+    const orderArr = this.data.orderArr.slice();
+    orderArr[index] = { ...orderArr[index], [key]: value };
+    if (field === 'remark') orderArr[index].nxDoAddRemark = !!value;
+    this._refreshOrderState(orderArr[index]);
+    this.setData({
+      orderArr,
+      invalidOrderIndex: -1,
+      invalidOrderField: ''
+    }, () => this._refreshSummary());
+  },
+
+  _refreshOrderState(order) {
+    const name = String(order.nxDoGoodsName || '').trim();
+    const quantity = Number(order.nxDoQuantity);
+    const standard = String(order.nxDoStandard || '').trim();
+    const valid = !!(name && quantity > 0 && standard && standard.length <= 4);
+    order.nxDoIsValid = valid;
+    order.v2NeedsReview = !valid;
+    order.v2Warning = valid ? '' : '请补全商品名称、数量和单位';
+    order.v2Confidence = valid ? (order.v2Confidence === 'low' ? 'medium' : order.v2Confidence) : 'low';
+  },
+
+  _refreshSummary() {
+    const orderArr = this.data.orderArr || [];
+    const reviewCount = orderArr.filter(order => order.v2NeedsReview).length;
+    const departmentCount = new Set(orderArr.map(order => String(order.nxDoDepartmentId))).size;
+    this.setData({
+      'parseSummary.totalCount': orderArr.length,
+      'parseSummary.validCount': orderArr.length - reviewCount,
+      'parseSummary.reviewCount': reviewCount,
+      'parseSummary.departmentCount': departmentCount
+    });
+  },
+
+  changeOrderDepartment(e) {
+    const orderIndex = Number(e.currentTarget.dataset.index);
+    const departmentIndex = Number(e.detail.value);
+    const department = this.data.departmentOptions[departmentIndex];
+    if (!department || !this.data.orderArr[orderIndex]) return;
+    const orderArr = this.data.orderArr.slice();
+    orderArr[orderIndex] = {
+      ...orderArr[orderIndex],
+      nxDoDepartmentId: department.id,
+      nxDoDepartmentFatherId: department.fatherId || this.data.depFatherId,
+      v2DepartmentName: department.name
+    };
+    this.setData({ orderArr }, () => this._refreshSummary());
+  },
+
+  addRemark(e) {
+    const index = Number(e.currentTarget.dataset.index);
+    if (!this.data.orderArr[index]) return;
+    const orderArr = this.data.orderArr.slice();
+    orderArr[index] = { ...orderArr[index], nxDoAddRemark: true };
+    this.setData({ orderArr });
+  },
+
+  insertOrderBefore(e) {
+    const index = Number(e.currentTarget.dataset.index);
+    const reference = this.data.orderArr[index] || {};
+    const orderArr = this.data.orderArr.slice();
+    orderArr.splice(index, 0, this._newEmptyOrder(reference));
+    this.setData({ orderArr }, () => this._refreshSummary());
+  },
+
+  appendOrder() {
+    const reference = this.data.orderArr[this.data.orderArr.length - 1] || {};
+    const orderArr = this.data.orderArr.concat(this._newEmptyOrder(reference));
+    this.setData({ orderArr }, () => this._refreshSummary());
+  },
+
+  _newEmptyOrder(reference) {
+    const department = this.data.departmentOptions.find(item =>
+      String(item.id) === String(reference.nxDoDepartmentId || this.data.depId)
+    );
     return {
-      name: 'span',
-      children: lines.map((line, idx) => {
-        const arr = [];
-        if (line) arr.push({ type: 'text', text: line });
-        if (idx < lines.length - 1) arr.push({ name: 'br' });
-        return { name: 'span', children: arr };
-      })
+      nxDoGoodsName: '',
+      nxDoGoodsOriginalName: '',
+      nxDoQuantity: '',
+      nxDoStandard: '',
+      nxDoRemark: '',
+      nxDoAddRemark: false,
+      nxDoStatus: -2,
+      nxDoDepartmentId: department ? department.id : this.data.depId,
+      nxDoDepartmentFatherId: department ? department.fatherId : this.data.depFatherId,
+      nxDoDisGoodsId: null,
+      nxDoStandardWarn: 0,
+      goodsNameWarn: 0,
+      nxDoDistributerId: this.data.disId,
+      nxDoPurchaseUserId: -1,
+      nxDoOrderUserId: this.data.userId,
+      nxDoIsAgent: -1,
+      standardWeight: '',
+      cartonUnit: '',
+      itemUnit: '',
+      itemsPerCarton: '',
+      nxDoIsValid: false,
+      v2DepartmentName: department ? department.name : this.data.depName,
+      v2Confidence: 'low',
+      v2NeedsReview: true,
+      v2Warning: '请填写新订单',
+      v2SourceText: '',
+      v2CorrectionText: ''
     };
   },
 
-
-  // 注意：_formatOrderContent 方法已迁移到 lib/orderParser.js，请使用 parseOrderFromText 工具函数
-  // 保留此方法仅用于向后兼容，建议使用工具函数
-  _formatOrderContent: function (content) {
-    // 改为 let，后面要对 orders 重新赋值
-    let orders = [];
-    // 1. 按行拆分
-    let lines = content.split(/\r?\n/);
-  
-    // 过滤无效行
-    lines = lines.filter(line => {
-      line = line.trim();
-      if (!line) return false; // 跳过空行
-      if (/^备注[:：]/.test(line)) return true;
-  
-      let orderRegex = /^\d+[、，\.．]\s*(.+?)[:：]\s*(.+)$/;
-      if (orderRegex.test(line)) return true;
-  
-      let commaRegex = /^(.*?)\s*[\,，]\s*(.+)$/;
-      if (commaRegex.test(line)) return true;
-  
-      let hasNumber = /[\d零一二两三四五六七八九十百千万半]/.test(line);
-      return hasNumber;
-    });
-  
-    // ============ A. 中文数字转阿拉伯数字 ============
-    function chineseNumberToArabic(chineseNum) {
-      const map = {
-        '零': 0, '一': 1, '二': 2, '两': 2, '三': 3,
-        '四': 4, '五': 5, '六': 6, '七': 7, '八': 8,
-        '九': 9, '十': 10, '百': 100, '千': 1000,
-        '万': 10000, '半': 0.5
-      };
-      let result = 0, temp = 0;
-      for (let i = 0; i < chineseNum.length; i++) {
-        const char = chineseNum[i];
-        if (char === '半') {
-          result += 0.5;
-        } else if (map[char] >= 10) {
-          if (temp === 0) temp = 1;
-          result += temp * map[char];
-          temp = 0;
-        } else if (map[char] !== undefined) {
-          temp = temp * 10 + map[char];
-        }
-      }
-      result += temp;
-      return result;
-    }
-  
-    // ============ B. 从尾部解析「名称 + 括号备注 + 数量+单位」 ============
-    function parseSegmentEndOfLine(segment) {
-      segment = segment.trim().replace(/[,，、。.]+$/g, '');
-  
-      // 先移除说明文字，避免被当作备注
-      segment = segment.replace(/（说明.+?）/g, '');
-      
-      const bracketRegex = /(?:（|\(|【)(.+?)(?:）|\)|】)/;
-      let remarkText = '';
-      const bracketMatch = segment.match(bracketRegex);
-      if (bracketMatch) {
-        remarkText = bracketMatch[1];
-        segment = segment.replace(bracketRegex, '').trim();
-      }
-  
-      const hasArabic = /[0-9]/.test(segment);
-      let name = segment, qtyVal = '', qtyUnit = '', regex;
-  
-      if (hasArabic) {
-        regex = /^(.*?)([\d\.]+)(\S*)$/;
-      } else {
-        regex = /^(.*?)([一二两三四五六七八九十百千万半]+)(\S*)$/;
-      }
-      const m = segment.match(regex);
-      if (m) {
-        let potentialName = m[1].trim().replace(/\s+/g, '');
-        let potentialQty  = m[2].trim();
-        let potentialUnit = m[3].trim();
-        name = potentialName;
-  
-        console.log('[parseSegmentEndOfLine] 解析结果:', {
-          segment,
-          potentialName,
-          potentialQty,
-          potentialUnit
-        });
-  
-        // 数量值
-        if (/^[\d\.]+$/.test(potentialQty)) {
-          qtyVal = potentialQty;
-        } else {
-          qtyVal = chineseNumberToArabic(potentialQty).toString();
-        }
-  
-        // 单位列表
-        const validUnits = ['斤','个','包','根','棵','条','盒','捆','袋','跟','块','瓶','罐','桶','箱','件'];
-        let foundUnit = '';
-        for (let u of validUnits) {
-          if (potentialUnit.startsWith(u)) {
-            foundUnit = u; break;
-          }
-        }
-        if (foundUnit) {
-          qtyUnit = foundUnit;
-          const extra = potentialUnit.slice(foundUnit.length).trim();
-          if (extra) remarkText = remarkText ? (remarkText + ' ' + extra) : extra;
-        } else {
-          qtyUnit = potentialUnit;
-        }
-        
-        console.log('[parseSegmentEndOfLine] 最终结果:', {
-          name,
-          qtyVal,
-          qtyUnit,
-          remarkText
-        });
-      }
-  
-      return {
-        nxDoGoodsName: name,
-        nxDoGoodsOriginalName: name, // 保存原始商品名称
-        nxDoQuantity:  qtyVal,
-        nxDoStandard:  qtyUnit,
-        nxDoRemark:    remarkText,
-      };
-    }
-  
-    // ============ C. 序号格式解析 ============
-    function parseLineWithSerial(line) {
-      const match = line.match(/^(\d+)[、，\.．]\s*(.+?)[:：]\s*(.+)$/);
-      if (!match) return null;
-  
-      let namePart = match[2].trim().replace(/\s+/g, '');
-      let qtyPart  = match[3].trim().replace(/[\.。]+$/g, '').trim();
-  
-      // 先移除说明文字，避免被当作备注
-      namePart = namePart.replace(/（说明.+?）/g, '');
-      qtyPart = qtyPart.replace(/（说明.+?）/g, '');
-  
-      let remarkText = '';
-      const br = namePart.match(/(?:（|\(|【)(.+?)(?:）|\)|】)/);
-      if (br) { remarkText = br[1]; namePart = namePart.replace(/(?:（|\(|【).+?(?:）|\)|】)/, '').trim(); }
-  
-      const qMatch = qtyPart.match(/^([\d一二三四五六七八九十百千万半\.]+)\s*(\S*)$/);
-      let val = '', unit = '';
-      if (qMatch) { val = qMatch[1]; unit = qMatch[2]; }
-      if (/[零一二两三四五六七八九十百千万半]/.test(val)) {
-        val = chineseNumberToArabic(val).toString();
-      }
-      if (unit === '两' || unit === '量') {
-        let v = parseFloat(val) / 10; v = +v.toFixed(1);
-        val = v.toString(); unit = '斤';
-      }
-  
-      return {
-        nxDoGoodsName: namePart,
-        nxDoGoodsOriginalName: namePart, // 保存原始商品名称
-        nxDoQuantity:  val,
-        nxDoStandard:  unit,
-        nxDoRemark:    remarkText
-      };
-    }
-  
-    // ============ D. 拆逗号分隔 ============
-    function splitByCommaOutsideBrackets(str) {
-      let res = [], depth = 0, cur = '';
-      for (let c of str) {
-        if ('（(【'.includes(c)) { depth++; cur += c; }
-        else if ('）)】'.includes(c)) { depth = Math.max(0, depth - 1); cur += c; }
-        else if ((c === ','||c==='，'||c==='、') && depth === 0) {
-          if (cur.trim()) res.push(cur.trim());
-          cur = '';
-        } else cur += c;
-      }
-      if (cur.trim()) res.push(cur.trim());
-      return res;
-    }
-  
-    function parseLineWithComma(line) {
-      console.log('[parseLineWithComma] 开始解析行:', line);
-      
-      // 先移除说明文字（格式：说明...），避免说明文字中的逗号影响分割
-      // 说明文字格式：（说明...）或（说明...）
-      let remarkText = '';
-      const remarkMatch = line.match(/（说明(.+?)）/);
-      if (remarkMatch) {
-        remarkText = remarkMatch[1];
-        line = line.replace(/（说明.+?）/g, '').trim();
-        console.log('[parseLineWithComma] 移除说明文字后:', line, '说明内容:', remarkText);
-      }
-      
-      // 先按逗号分割，处理逗号分隔的商品
-      if (/[，,]/.test(line)) {
-        let commaParts = line.split(/[，,]/);
-        let arr = [];
-        
-        console.log('[parseLineWithComma] 按逗号分割后的部分:', commaParts);
-        
-        for (let i = 0; i < commaParts.length; i++) {
-          let item = commaParts[i].trim();
-          if (!item) continue;
-          
-                    console.log('[parseLineWithComma] 处理逗号分割部分:', item);
-          
-          // 检查是否包含多个商品（用空格分隔）
-          if (/\s/.test(item) && item.length > 10) {
-            console.log('[parseLineWithComma] 检测到可能包含多个商品，尝试进一步分割:', item);
-            let subParts = item.split(/\s+/);
-            let subArr = [];
-            
-            for (let j = 0; j < subParts.length; j++) {
-              let subItem = subParts[j].trim();
-              if (!subItem) continue;
-              
-              console.log('[parseLineWithComma] 处理子部分:', subItem);
-              
-              // 检查子部分是否包含数字
-              const subItemHasNumber = /[\d一二两三四五六七八九十百千万半]/.test(subItem);
-              
-              // 如果子部分没有数字，且下一部分有数字+单位格式，优先组合处理
-              if (!subItemHasNumber && j < subParts.length - 1) {
-                let nextSubItem = subParts[j + 1].trim();
-                const nextSubItemHasNumberUnit = /^[\d一二两三四五六七八九十百千万半\.]+[斤个包根棵条盒捆袋跟块瓶罐桶箱毫升升克千克公斤件]+/.test(nextSubItem);
-                
-                if (nextSubItem && nextSubItemHasNumberUnit) {
-                  let combinedSub = subItem + nextSubItem;
-                  console.log('[parseLineWithComma] 子部分无数字，优先组合:', combinedSub);
-                  
-                  // 使用从右往左匹配
-                  const unitMatch = combinedSub.match(/([斤个包根棵条盒捆袋跟块瓶罐桶箱毫升升克千克公斤]+)$/);
-                  if (unitMatch) {
-                    const unit = unitMatch[1];
-                    const beforeUnit = combinedSub.slice(0, -unit.length);
-                    
-                    const qtyMatch = beforeUnit.match(/([\d一二两三四五六七八九十百千万半\.]+)$/);
-                    if (qtyMatch) {
-                      const quantity = qtyMatch[1];
-                      const goodsName = beforeUnit.slice(0, -quantity.length).trim();
-                      
-                      if (goodsName && /[\u4e00-\u9fa5]/.test(goodsName) && goodsName.length > 0) {
-                        let qtyVal = quantity;
-                        if (/[零一二两三四五六七八九十百千万半]/.test(quantity)) {
-                          qtyVal = chineseNumberToArabic(quantity).toString();
-                        }
-                        
-                        let subRemarkText = '';
-                        const bracketRegex = /(?:（|\(|【)(.+?)(?:）|\)|】)/;
-                        const bracketMatch = unit.match(bracketRegex);
-                        if (bracketMatch) {
-                          subRemarkText = bracketMatch[1];
-                          unit = unit.replace(bracketRegex, '').trim();
-                        }
-                        
-                        console.log('[parseLineWithComma] 子部分组合成功:', { goodsName, qtyVal, unit });
-                        subArr.push({
-                          nxDoGoodsName: goodsName,
-                          nxDoGoodsOriginalName: goodsName, // 保存原始商品名称
-                          nxDoQuantity: qtyVal,
-                          nxDoStandard: unit,
-                          nxDoRemark: subRemarkText || remarkText
-                        });
-                        j++; // 跳过下一个部分
-                        continue;
-                      }
-                    }
-                  }
-                }
-              }
-              
-              // 对子部分进行解析
-              let subMm = subItem.match(/^(.+?)([\d一二两三四五六七八九十百千万半\.]+)(\S*)$/);
-              if (subMm) {
-                let subGoodsName = subMm[1].trim();
-                let subQuantity = subMm[2].trim();
-                let subUnit = subMm[3].trim().replace(/[。，,\.]+$/, ''); // 去掉末尾的标点符号
-                
-                console.log('[parseLineWithComma] 子部分匹配成功:', { subGoodsName, subQuantity, subUnit });
-                
-                // 验证：如果数量是单个中文字符，且商品名以中文结尾，可能是误匹配
-                const isSingleChineseNumber = /^[一二两三四五六七八九十]$/.test(subQuantity);
-                const subGoodsNameEndsWithChinese = /[\u4e00-\u9fa5]$/.test(subGoodsName);
-                
-                if (isSingleChineseNumber && subGoodsNameEndsWithChinese && j < subParts.length - 1) {
-                  // 可能是误匹配，跳过这个子部分，让下一轮循环处理组合
-                  console.log('[parseLineWithComma] 子部分可能是误匹配，跳过');
-                  continue;
-                }
-                
-                if (/[\u4e00-\u9fa5]/.test(subGoodsName) && subGoodsName.length > 0 && subGoodsName.length <= 10) {
-                  let subQtyVal = subQuantity;
-                  if (/[零一二两三四五六七八九十百千万半]/.test(subQuantity)) {
-                    subQtyVal = chineseNumberToArabic(subQuantity).toString();
-                  }
-                  
-                  console.log('[parseLineWithComma] 添加子商品:', { subGoodsName, subQtyVal, subUnit });
-                  subArr.push({
-                    nxDoGoodsName: subGoodsName,
-                    nxDoGoodsOriginalName: subGoodsName, // 保存原始商品名称
-                    nxDoQuantity: subQtyVal,
-                    nxDoStandard: subUnit,
-                    nxDoRemark: remarkText
-                  });
-                }
-              } else {
-                // 尝试使用 parseSegmentEndOfLine 解析子部分
-                let subParsed = parseSegmentEndOfLine(subItem);
-                if (subParsed && subParsed.nxDoQuantity) {
-                  console.log('[parseLineWithComma] 子部分 parseSegmentEndOfLine 解析结果:', subParsed);
-                  if (remarkText) {
-                    subParsed.nxDoRemark = (subParsed.nxDoRemark || '') + ' ' + remarkText;
-                  }
-                  // 确保有原始商品名称字段
-                  if (!subParsed.nxDoGoodsOriginalName) {
-                    subParsed.nxDoGoodsOriginalName = subParsed.nxDoGoodsName || '';
-                  }
-                  subArr.push(subParsed);
-                }
-              }
-            }
-            
-            if (subArr.length > 0) {
-              console.log('[parseLineWithComma] 子部分解析成功，添加多个商品:', subArr);
-              arr.push(...subArr);
-              continue;
-            }
-          }
-          
-          // 1. 尝试匹配 "商品名+数字+单位" 格式
-          let mm = item.match(/^(.+?)([\d一二两三四五六七八九十百千万半\.]+)(\S*)$/);
-          console.log('[parseLineWithComma] 正则匹配结果:', mm);
-          if (mm) {
-            let goodsName = mm[1].trim();
-            let quantity = mm[2].trim();
-            let unit = mm[3].trim().replace(/[。，,\.]+$/, ''); // 去掉末尾的标点符号
-            
-            console.log('[parseLineWithComma] 匹配到格式1:', { goodsName, quantity, unit });
-            
-            // 验证商品名包含中文字符，并且商品名不能太长（避免匹配到多个商品）
-            console.log('[parseLineWithComma] 验证商品名:', { goodsName, hasChinese: /[\u4e00-\u9fa5]/.test(goodsName), length: goodsName.length });
-            if (/[\u4e00-\u9fa5]/.test(goodsName) && goodsName.length > 0 && goodsName.length <= 10) {
-              let qtyVal = quantity;
-              if (/[零一二两三四五六七八九十百千万半]/.test(quantity)) {
-                qtyVal = chineseNumberToArabic(quantity).toString();
-              }
-              
-              console.log('[parseLineWithComma] 添加商品:', { goodsName, qtyVal, unit });
-              arr.push({
-                nxDoGoodsName: goodsName,
-                nxDoGoodsOriginalName: goodsName, // 保存原始商品名称
-                nxDoQuantity: qtyVal,
-                nxDoStandard: unit,
-                nxDoRemark: ''
-              });
-              continue;
-            } else {
-              console.log('[parseLineWithComma] 商品名验证失败:', { goodsName, hasChinese: /[\u4e00-\u9fa5]/.test(goodsName), length: goodsName.length });
-            }
-          }
-          
-          // 2. 尝试使用 parseSegmentEndOfLine 解析
-          let parsed = parseSegmentEndOfLine(item);
-          if (parsed && parsed.nxDoQuantity) {
-            console.log('[parseLineWithComma] parseSegmentEndOfLine 解析结果:', parsed);
-            // 确保有原始商品名称字段
-            if (!parsed.nxDoGoodsOriginalName) {
-              parsed.nxDoGoodsOriginalName = parsed.nxDoGoodsName || '';
-            }
-            arr.push(parsed);
-            continue;
-          }
-          
-          // 3. 如果都失败了，尝试匹配纯数字格式
-          mm = item.match(/^(.+?)(\d+)(.+)$/);
-          if (mm) {
-            let goodsName = mm[1].trim();
-            if (/[\u4e00-\u9fa5]/.test(goodsName) && goodsName.length > 0) {
-              console.log('[parseLineWithComma] 匹配到纯数字格式:', mm);
-              arr.push({
-                nxDoGoodsName: goodsName,
-                nxDoGoodsOriginalName: goodsName, // 保存原始商品名称
-                nxDoQuantity: mm[2].trim(),
-                nxDoStandard: mm[3].trim(),
-                nxDoRemark: ''
-              });
-              continue;
-            }
-          }
-          
-          // 4. 新增：尝试组合相邻部分
-          if (i < commaParts.length - 1) {
-            let nextItem = commaParts[i + 1].trim();
-            if (nextItem) {
-              let combined = item + nextItem;
-              console.log('[parseLineWithComma] 尝试组合:', combined);
-              
-              // 尝试匹配组合后的格式
-              mm = combined.match(/^(.+?)([\d一二两三四五六七八九十百千万半\.]+)(\S*)$/);
-              if (mm) {
-                let goodsName = mm[1].trim();
-                let quantity = mm[2].trim();
-                let unit = mm[3].trim().replace(/[。，,\.]+$/, '');
-                
-                console.log('[parseLineWithComma] 组合匹配成功:', { goodsName, quantity, unit });
-                
-                if (/[\u4e00-\u9fa5]/.test(goodsName) && goodsName.length > 0) {
-                  let qtyVal = quantity;
-                  if (/[零一二两三四五六七八九十百千万半]/.test(quantity)) {
-                    qtyVal = chineseNumberToArabic(quantity).toString();
-                  }
-                  
-                  console.log('[parseLineWithComma] 添加组合商品:', { goodsName, qtyVal, unit });
-                  arr.push({
-                    nxDoGoodsName: goodsName,
-                    nxDoGoodsOriginalName: goodsName, // 保存原始商品名称
-                    nxDoQuantity: qtyVal,
-                    nxDoStandard: unit,
-                    nxDoRemark: ''
-                  });
-                  i++; // 跳过下一个部分，因为已经组合处理了
-                  continue;
-                }
-              }
-            }
-          }
-          
-          // 5. 新增：处理被分割的商品名（如"油 菜"）
-          if (i < commaParts.length - 2) {
-            let nextItem = commaParts[i + 1].trim();
-            let nextNextItem = commaParts[i + 2].trim();
-            
-            // 检查当前项和下一项是否都是中文字符，且下一项的下一个项包含数字
-            if (/^[\u4e00-\u9fa5]+$/.test(item) && 
-                /^[\u4e00-\u9fa5]+$/.test(nextItem) && 
-                /[\d一二两三四五六七八九十百千万半]/.test(nextNextItem)) {
-              
-              let combinedName = item + nextItem;
-              let combined = combinedName + nextNextItem;
-              console.log('[parseLineWithComma] 尝试组合商品名:', combined);
-              
-              // 尝试匹配组合后的格式
-              mm = combined.match(/^(.+?)([\d一二两三四五六七八九十百千万半\.]+)(\S*)$/);
-              if (mm) {
-                let goodsName = mm[1].trim();
-                let quantity = mm[2].trim();
-                let unit = mm[3].trim().replace(/[。，,\.]+$/, '');
-                
-                console.log('[parseLineWithComma] 商品名组合匹配成功:', { goodsName, quantity, unit });
-                
-                if (/[\u4e00-\u9fa5]/.test(goodsName) && goodsName.length > 0) {
-                  let qtyVal = quantity;
-                  if (/[零一二两三四五六七八九十百千万半]/.test(quantity)) {
-                    qtyVal = chineseNumberToArabic(quantity).toString();
-                  }
-                  
-                  console.log('[parseLineWithComma] 添加组合商品名商品:', { goodsName, qtyVal, unit });
-                  arr.push({
-                    nxDoGoodsName: goodsName,
-                    nxDoGoodsOriginalName: goodsName, // 保存原始商品名称
-                    nxDoQuantity: qtyVal,
-                    nxDoStandard: unit,
-                    nxDoRemark: ''
-                  });
-                  i += 2; // 跳过两个部分，因为已经组合处理了
-                  continue;
-                }
-              }
-            }
-          }
-        }
-        
-        console.log('[parseLineWithComma] 逗号分割最终解析结果:', arr);
-        if (arr.length) {
-          return arr;
-        }
-      }
-
-      // 如果没有逗号，尝试按空格分割
-      if (/\s/.test(line)) {
-        let spaceParts = line.split(/\s+/);
-        let arr = [];
-        
-        console.log('[parseLineWithComma] 按空格分割后的部分:', spaceParts);
-        
-        for (let i = 0; i < spaceParts.length; i++) {
-          let item = spaceParts[i].trim();
-          if (!item) continue;
-          
-          console.log('[parseLineWithComma] 处理空格分割部分:', item);
-          
-          // 检查当前部分是否包含数字（用于判断是否需要与下一部分组合）
-          const hasNumberInItem = /[\d一二两三四五六七八九十百千万半]/.test(item);
-          
-          // 优先处理：如果下一部分有明确的"数字+单位"格式，优先组合处理
-          // 这样可以避免商品名中的数字（如"一品鲜"中的"一"）被误识别为数量
-          if (i < spaceParts.length - 1) {
-            let nextItem = spaceParts[i + 1].trim();
-            // 检查下一部分是否是明确的"数字+单位"格式（如"1瓶"、"2斤"等）
-            const nextItemHasNumberUnit = /^[\d一二两三四五六七八九十百千万半\.]+[斤个包根棵条盒捆袋跟块瓶罐桶箱毫升升克千克公斤件]+/.test(nextItem);
-            
-            if (nextItem && nextItemHasNumberUnit) {
-              let combined = item + nextItem;
-              console.log('[parseLineWithComma] 下一部分有数字+单位格式，优先组合:', combined);
-              
-              // 使用从右往左匹配：先匹配单位，再匹配数量，最后是商品名
-              // 这样可以避免商品名中的数字被误识别
-                  const unitMatch = combined.match(/([斤个包根棵条盒捆袋跟块瓶罐桶箱毫升升克千克公斤件]+)$/);
-              if (unitMatch) {
-                const unit = unitMatch[1];
-                const beforeUnit = combined.slice(0, -unit.length);
-                
-                // 从右往左匹配数量（阿拉伯数字或中文数字）
-                const qtyMatch = beforeUnit.match(/([\d一二两三四五六七八九十百千万半\.]+)$/);
-                if (qtyMatch) {
-                  const quantity = qtyMatch[1];
-                  const goodsName = beforeUnit.slice(0, -quantity.length).trim();
-                  
-                  // 验证商品名不为空且包含中文字符
-                  if (goodsName && /[\u4e00-\u9fa5]/.test(goodsName) && goodsName.length > 0) {
-                    let qtyVal = quantity;
-                    if (/[零一二两三四五六七八九十百千万半]/.test(quantity)) {
-                      qtyVal = chineseNumberToArabic(quantity).toString();
-                    }
-                    
-                    // 处理备注：从单位中提取括号内的备注
-                    let remarkText = '';
-                    const bracketRegex = /(?:（|\(|【)(.+?)(?:）|\)|】)/;
-                    const bracketMatch = unit.match(bracketRegex);
-                    if (bracketMatch) {
-                      remarkText = bracketMatch[1];
-                      unit = unit.replace(bracketRegex, '').trim();
-                    }
-                    
-                    console.log('[parseLineWithComma] 从右往左匹配成功:', { goodsName, qtyVal, unit, remarkText });
-                    arr.push({
-                      nxDoGoodsName: goodsName,
-                      nxDoGoodsOriginalName: goodsName, // 保存原始商品名称
-                      nxDoQuantity: qtyVal,
-                      nxDoStandard: unit,
-                      nxDoRemark: remarkText
-                    });
-                    i++; // 跳过下一个部分，因为已经组合处理了
-                    continue;
-                  }
-                }
-              }
-              
-              // 如果从右往左匹配失败，尝试使用原来的正则匹配
-              let mm = combined.match(/^(.+?)([\d一二两三四五六七八九十百千万半\.]+)([斤个包根棵条盒捆袋跟块瓶罐桶箱毫升升克千克公斤件]+)$/);
-              if (mm) {
-                let goodsName = mm[1].trim();
-                let quantity = mm[2].trim();
-                let unit = mm[3].trim();
-                
-                console.log('[parseLineWithComma] 组合匹配成功:', { goodsName, quantity, unit });
-                
-                // 验证：商品名应该包含当前部分的内容
-                if (/[\u4e00-\u9fa5]/.test(goodsName) && goodsName.length > 0 && goodsName.includes(item)) {
-                  let qtyVal = quantity;
-                  if (/[零一二两三四五六七八九十百千万半]/.test(quantity)) {
-                    qtyVal = chineseNumberToArabic(quantity).toString();
-                  }
-                  
-                  // 处理备注：从单位中提取括号内的备注
-                  let remarkText = '';
-                  const bracketRegex = /(?:（|\(|【)(.+?)(?:）|\)|】)/;
-                  const bracketMatch = unit.match(bracketRegex);
-                  if (bracketMatch) {
-                    remarkText = bracketMatch[1];
-                    unit = unit.replace(bracketRegex, '').trim();
-                  }
-                  
-                  console.log('[parseLineWithComma] 添加组合商品:', { goodsName, qtyVal, unit, remarkText });
-                  arr.push({
-                    nxDoGoodsName: goodsName,
-                    nxDoGoodsOriginalName: goodsName, // 保存原始商品名称
-                    nxDoQuantity: qtyVal,
-                    nxDoStandard: unit,
-                    nxDoRemark: remarkText
-                  });
-                  i++; // 跳过下一个部分，因为已经组合处理了
-                  continue;
-                }
-              }
-            }
-          }
-          
-          // 1. 尝试匹配 "商品名+数字+单位" 格式
-          let mm = item.match(/^(.+?)([\d一二两三四五六七八九十百千万半\.]+)(\S*)$/);
-          console.log('[parseLineWithComma] 正则匹配结果:', mm);
-          if (mm) {
-            let goodsName = mm[1].trim();
-            let quantity = mm[2].trim();
-            let unit = mm[3].trim().replace(/[。，,\.]+$/, ''); // 去掉末尾的标点符号
-            
-            console.log('[parseLineWithComma] 匹配到格式1:', { goodsName, quantity, unit });
-            
-            // 验证：如果数量是单个中文字符（如"一"），且商品名以中文字符结尾，可能是误匹配
-            // 例如："李锦记一品鲜" 中的 "一" 不应该被识别为数量
-            const isSingleChineseNumber = /^[一二两三四五六七八九十]$/.test(quantity);
-            const goodsNameEndsWithChinese = /[\u4e00-\u9fa5]$/.test(goodsName);
-            
-            if (isSingleChineseNumber && goodsNameEndsWithChinese && i < spaceParts.length - 1) {
-              // 可能是误匹配，尝试与下一部分组合
-              let nextItem = spaceParts[i + 1].trim();
-              if (nextItem && /[\d一二两三四五六七八九十百千万半]/.test(nextItem)) {
-                console.log('[parseLineWithComma] 检测到可能的误匹配，尝试组合下一部分');
-                let combined = item + nextItem;
-                
-                // 使用从右往左匹配：先匹配单位，再匹配数量，最后是商品名
-                  const unitMatch = combined.match(/([斤个包根棵条盒捆袋跟块瓶罐桶箱毫升升克千克公斤件]+)$/);
-                if (unitMatch) {
-                  const combinedUnit = unitMatch[1];
-                  const beforeUnit = combined.slice(0, -combinedUnit.length);
-                  
-                  // 从右往左匹配数量
-                  const qtyMatch = beforeUnit.match(/([\d一二两三四五六七八九十百千万半\.]+)$/);
-                  if (qtyMatch) {
-                    const combinedQuantity = qtyMatch[1];
-                    const combinedGoodsName = beforeUnit.slice(0, -combinedQuantity.length).trim();
-                    
-                    // 验证组合后的商品名包含原始商品名，且数量不在商品名中
-                    if (combinedGoodsName && /[\u4e00-\u9fa5]/.test(combinedGoodsName) && combinedGoodsName.includes(goodsName)) {
-                      console.log('[parseLineWithComma] 组合后从右往左匹配成功，使用组合结果:', { combinedGoodsName, combinedQuantity, combinedUnit });
-                      let qtyVal = combinedQuantity;
-                      if (/[零一二两三四五六七八九十百千万半]/.test(combinedQuantity)) {
-                        qtyVal = chineseNumberToArabic(combinedQuantity).toString();
-                      }
-                      
-                      let remarkText = '';
-                      const bracketRegex = /(?:（|\(|【)(.+?)(?:）|\)|】)/;
-                      const bracketMatch = combinedUnit.match(bracketRegex);
-                      if (bracketMatch) {
-                        remarkText = bracketMatch[1];
-                        combinedUnit = combinedUnit.replace(bracketRegex, '').trim();
-                      }
-                      
-                      arr.push({
-                        nxDoGoodsName: combinedGoodsName,
-                        nxDoGoodsOriginalName: combinedGoodsName, // 保存原始商品名称
-                        nxDoQuantity: qtyVal,
-                        nxDoStandard: combinedUnit,
-                        nxDoRemark: remarkText
-                      });
-                      i++; // 跳过下一个部分
-                      continue;
-                    }
-                  }
-                }
-                
-                // 如果从右往左匹配失败，尝试使用原来的正则匹配
-                let combinedMm = combined.match(/^(.+?)([\d一二两三四五六七八九十百千万半\.]+)([斤个包根棵条盒捆袋跟块瓶罐桶箱毫升升克千克公斤]+)$/);
-                if (combinedMm) {
-                  let combinedGoodsName = combinedMm[1].trim();
-                  let combinedQuantity = combinedMm[2].trim();
-                  let combinedUnit = combinedMm[3].trim();
-                  
-                  // 验证组合后的商品名包含原始商品名
-                  if (/[\u4e00-\u9fa5]/.test(combinedGoodsName) && combinedGoodsName.includes(goodsName)) {
-                    console.log('[parseLineWithComma] 组合后匹配成功，使用组合结果:', { combinedGoodsName, combinedQuantity, combinedUnit });
-                    let qtyVal = combinedQuantity;
-                    if (/[零一二两三四五六七八九十百千万半]/.test(combinedQuantity)) {
-                      qtyVal = chineseNumberToArabic(combinedQuantity).toString();
-                    }
-                    
-                    let remarkText = '';
-                    const bracketRegex = /(?:（|\(|【)(.+?)(?:）|\)|】)/;
-                    const bracketMatch = combinedUnit.match(bracketRegex);
-                    if (bracketMatch) {
-                      remarkText = bracketMatch[1];
-                      combinedUnit = combinedUnit.replace(bracketRegex, '').trim();
-                    }
-                    
-                    arr.push({
-                      nxDoGoodsName: combinedGoodsName,
-                      nxDoGoodsOriginalName: combinedGoodsName, // 保存原始商品名称
-                      nxDoQuantity: qtyVal,
-                      nxDoStandard: combinedUnit,
-                      nxDoRemark: remarkText
-                    });
-                    i++; // 跳过下一个部分
-                    continue;
-                  }
-                }
-              }
-            }
-            
-            // 验证商品名包含中文字符，并且商品名不能太长（避免匹配到多个商品）
-            console.log('[parseLineWithComma] 验证商品名:', { goodsName, hasChinese: /[\u4e00-\u9fa5]/.test(goodsName), length: goodsName.length });
-            if (/[\u4e00-\u9fa5]/.test(goodsName) && goodsName.length > 0 && goodsName.length <= 10) {
-              let qtyVal = quantity;
-              if (/[零一二两三四五六七八九十百千万半]/.test(quantity)) {
-                qtyVal = chineseNumberToArabic(quantity).toString();
-              }
-              
-              console.log('[parseLineWithComma] 添加商品:', { goodsName, qtyVal, unit });
-              arr.push({
-                nxDoGoodsName: goodsName,
-                nxDoGoodsOriginalName: goodsName, // 保存原始商品名称
-                nxDoQuantity: qtyVal,
-                nxDoStandard: unit,
-                nxDoRemark: ''
-              });
-              continue;
-            } else {
-              console.log('[parseLineWithComma] 商品名验证失败:', { goodsName, hasChinese: /[\u4e00-\u9fa5]/.test(goodsName), length: goodsName.length });
-            }
-          }
-          
-          // 2. 尝试使用 parseSegmentEndOfLine 解析
-          let parsed = parseSegmentEndOfLine(item);
-          if (parsed && parsed.nxDoQuantity) {
-            console.log('[parseLineWithComma] parseSegmentEndOfLine 解析结果:', parsed);
-            // 确保有原始商品名称字段
-            if (!parsed.nxDoGoodsOriginalName) {
-              parsed.nxDoGoodsOriginalName = parsed.nxDoGoodsName || '';
-            }
-            arr.push(parsed);
-            continue;
-          }
-          
-          // 3. 如果都失败了，尝试匹配纯数字格式
-          mm = item.match(/^(.+?)(\d+)(.+)$/);
-          if (mm) {
-            let goodsName = mm[1].trim();
-            if (/[\u4e00-\u9fa5]/.test(goodsName) && goodsName.length > 0) {
-              console.log('[parseLineWithComma] 匹配到纯数字格式:', mm);
-              arr.push({
-                nxDoGoodsName: goodsName,
-                nxDoGoodsOriginalName: goodsName, // 保存原始商品名称
-                nxDoQuantity: mm[2].trim(),
-                nxDoStandard: mm[3].trim(),
-                nxDoRemark: ''
-              });
-              continue;
-            }
-          }
-          
-          // 4. 新增：尝试组合相邻部分
-          if (i < spaceParts.length - 1) {
-            let nextItem = spaceParts[i + 1].trim();
-            if (nextItem) {
-              let combined = item + nextItem;
-              console.log('[parseLineWithComma] 尝试组合:', combined);
-              
-              // 尝试匹配组合后的格式
-              mm = combined.match(/^(.+?)([\d一二两三四五六七八九十百千万半\.]+)(\S*)$/);
-              if (mm) {
-                let goodsName = mm[1].trim();
-                let quantity = mm[2].trim();
-                let unit = mm[3].trim().replace(/[。，,\.]+$/, '');
-                
-                console.log('[parseLineWithComma] 组合匹配成功:', { goodsName, quantity, unit });
-                
-                if (/[\u4e00-\u9fa5]/.test(goodsName) && goodsName.length > 0) {
-                  let qtyVal = quantity;
-                  if (/[零一二两三四五六七八九十百千万半]/.test(quantity)) {
-                    qtyVal = chineseNumberToArabic(quantity).toString();
-                  }
-                  
-                  // 处理备注：从单位中提取括号内的备注
-                  let remarkText = '';
-                  const bracketRegex = /(?:（|\(|【)(.+?)(?:）|\)|】)/;
-                  const bracketMatch = unit.match(bracketRegex);
-                  if (bracketMatch) {
-                    remarkText = bracketMatch[1];
-                    unit = unit.replace(bracketRegex, '').trim();
-                  }
-                  
-                  console.log('[parseLineWithComma] 添加组合商品:', { goodsName, qtyVal, unit, remarkText });
-                  arr.push({
-                    nxDoGoodsName: goodsName,
-                    nxDoGoodsOriginalName: goodsName, // 保存原始商品名称
-                    nxDoQuantity: qtyVal,
-                    nxDoStandard: unit,
-                    nxDoRemark: remarkText
-                  });
-                  i++; // 跳过下一个部分，因为已经组合处理了
-                  continue;
-                }
-              }
-            }
-          }
-          
-          // 5. 新增：处理被分割的商品名（如"油 菜"）
-          if (i < spaceParts.length - 2) {
-            let nextItem = spaceParts[i + 1].trim();
-            let nextNextItem = spaceParts[i + 2].trim();
-            
-            // 检查当前项和下一项是否都是中文字符，且下一项的下一个项包含数字
-            if (/^[\u4e00-\u9fa5]+$/.test(item) && 
-                /^[\u4e00-\u9fa5]+$/.test(nextItem) && 
-                /[\d一二两三四五六七八九十百千万半]/.test(nextNextItem)) {
-              
-              let combinedName = item + nextItem;
-              let combined = combinedName + nextNextItem;
-              console.log('[parseLineWithComma] 尝试组合商品名:', combined);
-              
-              // 尝试匹配组合后的格式
-              mm = combined.match(/^(.+?)([\d一二两三四五六七八九十百千万半\.]+)(\S*)$/);
-              if (mm) {
-                let goodsName = mm[1].trim();
-                let quantity = mm[2].trim();
-                let unit = mm[3].trim().replace(/[。，,\.]+$/, '');
-                
-                console.log('[parseLineWithComma] 商品名组合匹配成功:', { goodsName, quantity, unit });
-                
-                if (/[\u4e00-\u9fa5]/.test(goodsName) && goodsName.length > 0) {
-                  let qtyVal = quantity;
-                  if (/[零一二两三四五六七八九十百千万半]/.test(quantity)) {
-                    qtyVal = chineseNumberToArabic(quantity).toString();
-                  }
-                  
-                  // 处理备注：从单位中提取括号内的备注
-                  let remarkText = '';
-                  const bracketRegex = /(?:（|\(|【)(.+?)(?:）|\)|】)/;
-                  const bracketMatch = unit.match(bracketRegex);
-                  if (bracketMatch) {
-                    remarkText = bracketMatch[1];
-                    unit = unit.replace(bracketRegex, '').trim();
-                  }
-                  
-                  console.log('[parseLineWithComma] 添加组合商品名商品:', { goodsName, qtyVal, unit, remarkText });
-                  arr.push({
-                    nxDoGoodsName: goodsName,
-                    nxDoGoodsOriginalName: goodsName, // 保存原始商品名称
-                    nxDoQuantity: qtyVal,
-                    nxDoStandard: unit,
-                    nxDoRemark: remarkText
-                  });
-                  i += 2; // 跳过两个部分，因为已经组合处理了
-                  continue;
-                }
-              }
-            }
-          }
-        }
-        
-        console.log('[parseLineWithComma] 空格分割最终解析结果:', arr);
-        if (arr.length) {
-          return arr;
-        }
-      }
-
-      // 逗号分隔
-      line = line.replace(/[\u3002]+/g, ',');
-      let segs = splitByCommaOutsideBrackets(line), arr = [];
-      segs.forEach(seg => {
-        let result = parseSegmentEndOfLine(seg);
-        if (result) arr.push(result);
-      });
-      return arr;
-    }
-  
-    // ============ E. 逐行处理 ============
-    lines.forEach(line => {
-      line = line.trim();
-      if (!line) return;
-      
-      if (/^备注[:：]/.test(line)) {
-        if (orders.length) {
-          let last = orders[orders.length - 1];
-          last.nxDoRemark = (last.nxDoRemark || '') + ' ' + line.replace(/^备注[:：]/, '').trim();
-        }
-        return;
-      }
-  
-      // 1) 序号格式
-      let obj1 = parseLineWithSerial(line);
-      if (obj1) {
-        orders.push({
-          ...obj1,
-          nxDoAddRemark: !!obj1.nxDoRemark,
-          nxDoStatus: -2,
-          nxDoDepartmentId: this.data.depId,
-          nxDoDepartmentFatherId: this.data.depFatherId,
-          nxDoDisGoodsId: null,
-          nxDoStandardWarn: 0,
-          goodsNameWarn: 0,
-          nxDoDistributerId: this.data.disId,
-          nxDoPurchaseUserId: -1,
-          nxDoOrderUserId: this.data.userId,
-          nxDoIsAgent: -1,
-          standardWeight: "",
-          cartonUnit: "",
-          itemUnit: "",
-          itemsPerCarton: "",
-        });
-        return;
-      }
-  
-      // 2) 冒号替换为空格
-      if (/^(.*?)[:：](.+)$/.test(line)) {
-        console.log('[formatOrderContent] 检测到冒号，替换为空格');
-        line = line.replace(/^(.+?)[:：](.+)$/, '$1 $2');
-        console.log('[formatOrderContent] 冒号替换后:', line);
-      }
-  
-      // 3) 逗号分隔
-      
-      let arr2 = parseLineWithComma(line);
-      if (arr2 && arr2.length) {
-        arr2.forEach(i => {
-          if (i && i.nxDoGoodsName) {
-            // 如果 parseLineWithComma 返回的对象已经有 nxDoGoodsNameOriginal，使用它
-            // 如果没有，使用 nxDoGoodsName（这种情况应该很少，因为 parseLineWithComma 应该已经设置了）
-            const originalName = i.nxDoGoodsOriginalName || i.nxDoGoodsName;
-            orders.push({
-              ...i,
-              nxDoGoodsOriginalName: originalName, // 使用解析时设置的原始名称，不修改
-              nxDoAddRemark: !!i.nxDoRemark,
-              nxDoStatus: -2,
-              nxDoDepartmentId: this.data.depId,
-              nxDoDepartmentFatherId: this.data.depFatherId,
-              nxDoDisGoodsId: null,
-              nxDoStandardWarn: 0,
-              goodsNameWarn: 0,
-              nxDoDistributerId: this.data.disId,
-              nxDoPurchaseUserId: -1,
-              nxDoOrderUserId: this.data.userId,
-              nxDoIsAgent: -1,
-              standardWeight: "",
-              cartonUnit: "",
-              itemUnit: "",
-              itemsPerCarton: "",
-            });
-          }
-        });
-        return;
-      }
-  
-      // 4) 空格分隔（兜底）
-      let parts = line.split(/\s+/);
-      parts.forEach(item => {
-        let mm = item.match(/^(.+?)(\d+)(.+)$/);
-        if (mm) {
-          const goodsName = mm[1].trim();
-          orders.push({
-            nxDoGoodsName: goodsName,
-            nxDoGoodsOriginalName: goodsName, // 保存原始商品名称
-            nxDoQuantity:  mm[2].trim(),
-            nxDoStandard:  mm[3].trim(),
-            nxDoRemark:    '',
-            nxDoAddRemark: false,
-            nxDoStatus: -2,
-            nxDoDepartmentId: this.data.depId,
-            nxDoDepartmentFatherId: this.data.depFatherId,
-            nxDoDisGoodsId: null,
-            nxDoStandardWarn: 0,
-            goodsNameWarn: 0,
-            nxDoDistributerId: this.data.disId,
-            nxDoPurchaseUserId: -1,
-            nxDoOrderUserId: this.data.userId,
-            nxDoIsAgent: -1,
-            standardWeight: "",
-            cartonUnit: "",
-            itemUnit: "",
-            itemsPerCarton: "",
-
-          });
-        }
-      });
-    });
-  
-    // ============ F. 初次写入 ============
-    this.setData({ orderArr: orders });
-    // 更新未保存订单状态
-    this._updateHasUnsavedOrders(orders);
-    
-    // ============ F3. 最终新增 nxDoAddRemark 字段（保险） ============
-    orders = orders.map(o => ({
-      ...o,
-      nxDoAddRemark: !!o.nxDoRemark
-    }));
-  
-    // ============ G. 最终写入 ============
-    // 新解析的订单都是未保存的草稿（status == -2），所以 saveCount 应该为 null（显示保存按钮）
-    this.setData({ 
-      orderArr: orders,
-      saveCount: null // 确保保存按钮显示
-    });
-    // 更新未保存订单状态
-    this._updateHasUnsavedOrders(orders);
-   
-  
-    // ============ H. 可选：返回预览字符串 ============
-    const formatted = orders.map(o => {
-      let str = `${o.nxDoGoodsName}${o.nxDoQuantity}${o.nxDoStandard}`;
-      if (o.nxDoRemark) str += `（${o.nxDoRemark}）`;
-      return str;
-    }).join('\n');
-    return { orders, formatted };
-  },
-
-
-  //修改预览订单内容
-  editOrder(e) {
-    
-    var type = e.currentTarget.dataset.type;
-    var index = e.currentTarget.dataset.index;
-    // 用户开始编辑时清除校验失败高亮
-    if (this.data.invalidOrderIndex >= 0) {
-      this.setData({ invalidOrderIndex: -1, invalidOrderField: '' });
-    }
-    if (e.detail.value.length > 0) {
-
-      this.setData({
-        orderArrIndex: index,
-
-      })
-      if (type == "name") {
-        var data = "orderArr[" + index + "].nxDoGoodsName";
-        this.setData({
-          [data]: e.detail.value,
-        })
-      }
-      if (type == "quantity") {
-        console.log("quannaididi", e.detail.value);
-        var data = "orderArr[" + index + "].nxDoQuantity";
-        this.setData({
-          [data]: e.detail.value,
-        })
-      }
-      if (type == "standard") {
-        var data = "orderArr[" + index + "].nxDoStandard";
-        this.setData({
-          [data]: e.detail.value,
-        })
-      }
-
-    }
-    if (type == "remark") {
-      var data = "orderArr[" + index + "].nxDoRemark";
-      if (e.detail.value.length > 0) {
-        this.setData({
-          [data]: e.detail.value,
-        })
-      }
-       else {
-        var dataAdd = "orderArr[" + index + "].nxDoAddRemark";
-        this.setData({
-          [data]: "",
-          [dataAdd]: false
-        })
-      }
-
-    }
-
-  },
-
-
-
-  //保存预览订单
-  pasteSearchGoods() {
-    const orderArr = this.data.orderArr || [];
-    const result = this._validateOrdersForSave(orderArr);
-    console.log('[pasteSearchGoods] 校验结果:', result);
-    if (!result.valid) {
-      console.log('[pasteSearchGoods] 校验失败，invalidIndex:', result.invalidIndex, 'msg:', result.msg);
-      wx.showModal({
-        title: '订单校验失败',
-        content: result.msg,
-        showCancel: false,
-        confirmText: '知道了',
-        success: (res) => {
-          console.log('[pasteSearchGoods] 弹窗关闭 success', res);
-          const idx = result.invalidIndex;
-          const scrollId = `paste-order-item-${idx}`;
-          console.log('[pasteSearchGoods] 准备 setData invalidOrderIndex=', idx, 'scrollIntoViewId=', scrollId);
-          console.log('[pasteSearchGoods] 当前 orderArrIndex=', this.data.orderArrIndex, 'invalidOrderIndex=', this.data.invalidOrderIndex, 'saveCount=', this.data.saveCount);
-          this.setData({
-            orderArrIndex: idx,
-            invalidOrderIndex: idx,
-            invalidOrderField: result.invalidField || '',
-            scrollIntoViewId: scrollId
-          }, () => {
-            console.log('[pasteSearchGoods] setData 完成，orderArrIndex=', this.data.orderArrIndex, 'invalidOrderIndex=', this.data.invalidOrderIndex);
-            setTimeout(() => {
-              this.setData({ scrollIntoViewId: '' });
-              console.log('[pasteSearchGoods] 已清空 scrollIntoViewId，invalidOrderIndex=', this.data.invalidOrderIndex);
-            }, 500);
-          });
-        }
-      });
+  deleteOrder(e) {
+    const index = Number(e.currentTarget.dataset.index);
+    const orderArr = this.data.orderArr.filter((_, itemIndex) => itemIndex !== index);
+    if (!orderArr.length) {
+      this.clearAll();
       return;
     }
-    load.showLoading("识别商品中");
-    const sentence = this.data.originSentence || this.data.sentence || '';
-    pasteSearchGoods({
-      orderList: orderArr,
-      pasteText: sentence
-    }).then(res => {
-      load.hideLoading();
-      if (res.result.code == 0) {
-        wx.redirectTo({
-          url: '../ocrOrder/ocrOrder?taskId=' + res.result.taskId,
-        });
-      } else {
-        wx.showToast({
-          title: res.result.msg || '保存失败',
-          icon: 'none'
-        });
-      }
-    }).catch(() => {
-      load.hideLoading();
-    });
+    this.setData({ orderArr }, () => this._refreshSummary());
   },
 
-  /**
-   * 校验订单列表（保存前）
-   * @returns {{ valid: boolean, invalidIndex?: number, invalidField?: string, msg?: string }}
-   */
-  _validateOrdersForSave(orderArr) {
-    if (!orderArr || orderArr.length === 0) {
-      return { valid: false, invalidIndex: 0, invalidField: 'name', msg: '订单列表为空' };
+  _validateOrdersForSave() {
+    const orders = this.data.orderArr || [];
+    if (!orders.length) {
+      return { valid: false, index: 0, field: 'name', message: '订单列表为空' };
     }
-    for (let i = 0; i < orderArr.length; i++) {
-      const order = orderArr[i];
-      const rowNum = i + 1;
-      if (!order) {
-        return { valid: false, invalidIndex: i, invalidField: 'name', msg: `第${rowNum}条订单数据错误` };
+    for (let index = 0; index < orders.length; index += 1) {
+      const order = orders[index];
+      if (!String(order.nxDoGoodsName || '').trim()) {
+        return { valid: false, index, field: 'name', message: `第${index + 1}条缺少商品名称` };
       }
-      if (!order.nxDoGoodsName || String(order.nxDoGoodsName).trim() === '') {
-        return { valid: false, invalidIndex: i, invalidField: 'name', msg: `第${rowNum}条订单商品名称为空` };
+      if (!(Number(order.nxDoQuantity) > 0)) {
+        return { valid: false, index, field: 'quantity', message: `第${index + 1}条数量需要大于0` };
       }
-      const qty = order.nxDoQuantity;
-      if (qty === undefined || qty === null || String(qty).trim() === '') {
-        return { valid: false, invalidIndex: i, invalidField: 'quantity', msg: `第${rowNum}条订单数量为空` };
+      const standard = String(order.nxDoStandard || '').trim();
+      if (!standard || standard.length > 4) {
+        return { valid: false, index, field: 'standard', message: `第${index + 1}条单位不正确` };
       }
-      const qtyNum = Number(qty);
-      if (Number.isNaN(qtyNum)) {
-        return { valid: false, invalidIndex: i, invalidField: 'quantity', msg: `第${rowNum}条订单数量必须是数字` };
-      }
-      if (qtyNum <= 0) {
-        return { valid: false, invalidIndex: i, invalidField: 'quantity', msg: `第${rowNum}条订单数量必须大于 0` };
-      }
-      if (!order.nxDoStandard || String(order.nxDoStandard).trim() === '') {
-        return { valid: false, invalidIndex: i, invalidField: 'standard', msg: `第${rowNum}条订单规格为空` };
-      }
-      const spec = String(order.nxDoStandard).trim();
-      const chineseOnly = /^[\u4e00-\u9fff]+$/;
-      if (!chineseOnly.test(spec)) {
-        return { valid: false, invalidIndex: i, invalidField: 'standard', msg: `第${rowNum}条订单规格必须为汉字` };
-      }
-      if (spec.length > 2) {
-        return { valid: false, invalidIndex: i, invalidField: 'standard', msg: `第${rowNum}条订单规格汉字数量不能大于 2 个，当前为 ${spec.length} 个` };
+      if (order.nxDoDepartmentId == null || order.nxDoDepartmentId === '') {
+        return { valid: false, index, field: 'department', message: `第${index + 1}条缺少部门` };
       }
     }
     return { valid: true };
   },
 
-
-
-
-  editOrderName(e) {
-    var index = e.currentTarget.dataset.index;
-    if (this.data.invalidOrderIndex >= 0) {
-      this.setData({ invalidOrderIndex: -1, invalidOrderField: '' });
-    }
-    this.setData({
-      orderArrIndex: index,
-      goodsName: e.detail.value,
-    })
-    
-    if (e.detail.value.length > 0) {
-      var data = "orderArr[" + index + "].nxDoGoodsName";
-      this.setData({
-        [data]: e.detail.value,
-      })
-      console.log("调用 getSearchString 搜索商品...");
-      this.getSearchString(e);
-    } else {
-      console.log("输入为空，不搜索");
-    }
-  },
-
-
-  _checkOrderItemContent(order, i) {
-    console.log("订单项 order:", order);
-    console.log("订单索引 i:", i);
-    
-    if (!order) {
-      console.error("❌ order 为 undefined 或 null");
-      wx.showToast({
-        title: '订单数据错误',
-        icon: 'none'
-      });
-      return false;
-    }
-    
-    var that = this;
-    var name = order.nxDoGoodsName;
-    var standard = order.nxDoStandard;
-    var quantity = order.nxDoQuantity;
-    var standarWarn = order.nxDoStandardWarn;
-    
-    console.log("订单内容检查:", {
-      name: name,
-      standard: standard,
-      quantity: quantity,
-      standarWarn: standarWarn,
-      standardLength: standard ? standard.length : 'undefined'
+  _orderForApi(order) {
+    const payload = { ...order };
+    Object.keys(payload).forEach(key => {
+      if (key.startsWith('v2') || key === 'nxDoIsValid') delete payload[key];
     });
-    if (standard.length > 2 && standarWarn == 0) {
+    payload.nxDoGoodsOriginalName = payload.nxDoGoodsOriginalName || payload.nxDoGoodsName;
+    payload.nxDoAddRemark = !!payload.nxDoRemark;
+    return payload;
+  },
 
+  async saveOrders() {
+    if (this.data.saving) return;
+    const validation = this._validateOrdersForSave();
+    if (!validation.valid) {
+      const scrollId = `paste-v2-order-${validation.index}`;
+      this.setData({
+        invalidOrderIndex: validation.index,
+        invalidOrderField: validation.field,
+        scrollIntoViewId: scrollId
+      });
+      wx.showToast({ title: validation.message, icon: 'none', duration: 2200 });
+      return;
+    }
+
+    const groups = new Map();
+    this.data.orderArr.forEach(order => {
+      const key = String(order.nxDoDepartmentId);
+      if (!groups.has(key)) groups.set(key, []);
+      groups.get(key).push(this._orderForApi(order));
+    });
+
+    this.setData({ saving: true });
+    load.showLoading(groups.size > 1 ? `正在生成${groups.size}个部门任务` : '正在识别商品');
+    const results = [];
+    try {
+      for (const orderList of groups.values()) {
+        const response = await pasteSearchGoods({
+          orderList,
+          pasteText: this.data.sourceText || this.data.inputContent || ''
+        });
+        if (!response || !response.result || response.result.code !== 0) {
+          throw new Error(response && response.result && response.result.msg || '保存订单失败');
+        }
+        results.push(response.result);
+      }
+      load.hideLoading();
+      this.setData({ saving: false });
+      if (results.length === 1 && results[0].taskId) {
+        wx.redirectTo({ url: `../ocrOrder/ocrOrder?taskId=${results[0].taskId}` });
+        return;
+      }
       wx.showModal({
-        title: '单位是否正确?',
-        content: name + " " + quantity + " " + standard,
-        showCancel: true, //是否显示取消按钮-----》false去掉取消按钮
-        cancelText: "确定正确", //默认是"取消"
-        cancelColor: 'black', //取消文字的颜色
-        confirmText: "修改单位", //默认是"确定"
-        confirmColor: '#147062', //确定文字的颜色
-        success: function (res) {
-          if (res.cancel) {
-            //点击取消
-            console.log("您点击了取消i", i)
-            var data = "orderArr[" + i + "].nxDoStandardWarn";
-            that.setData({
-              [data]: 1
-            })
-            that._choiceGoods();
-          } else if (res.confirm) {
-            //点击确定
-            console.log("您点击了确定")
-          }
-        }
-
-      })
-      canSave = false;
-      return canSave;
-
-
-    } else {
-      if (name.length > 0 && standard.length > 0 && Number(quantity) > 0) {
-        if (standarWarn > 0) {
-
-          canSave = true;
-        }
-      } else {
-        // i = arr.length - 1;
-        // console.log("rong", i);
-        wx.showModal({
-          title: '订单是否缺少内容?',
-          content: name + " " + quantity + " " + standard,
-          showCancel: false,
-          confirmText: "知道了", //默认是"确定"
-
-        })
-        canSave = false;
-      }
-    }
-    console.log("rerereerrcanSave===================", canSave)
-    return canSave;
-  },
-
-
-  saveOrder(e) {
-    this.setData({
-      orderArrIndex: e.currentTarget.dataset.index,
-      goodsId: e.currentTarget.dataset.id,
-    })
-
-    this._choiceGoods();
-
-  },
-
-  
-  closeStr(){
-    this.setData({
-      strArr: [],
-      nxArr: [],
-      orderArrIndex: -1,
-    })
-  },
-
-  
-  _choiceGoods() {
-    var index = this.data.orderArrIndex;
-    
-    // 检查 orderArrIndex 是否有效
-    if (index === undefined || index === null || index < 0) {
-      console.error("❌ orderArrIndex 无效:", index);
-      wx.showToast({
-        title: '订单索引无效',
-        icon: 'none'
+        title: '订单已按部门生成',
+        content: `已生成${results.length}个部门识别任务，请在订单页逐个复核。`,
+        showCancel: false,
+        success: () => wx.navigateBack({ delta: 1 })
       });
-      return;
-    }
-    
-    // 检查 orderArr 是否存在
-    if (!this.data.orderArr) {
-      console.error("❌ orderArr 不存在");
-      wx.showToast({
-        title: '订单列表不存在',
-        icon: 'none'
-      });
-      return;
-    }
-    
-    // 检查索引是否越界
-    if (index >= this.data.orderArr.length) {
-      console.error("❌ orderArrIndex 越界:", {
-        index,
-        orderArrLength: this.data.orderArr.length
-      });
-      wx.showToast({
-        title: '订单索引越界',
-        icon: 'none'
-      });
-      return;
-    }
-    
-    var order = this.data.orderArr[index];
-    if (!order) {
-      console.error("❌ 订单项不存在，index:", index);
-      wx.showToast({
-        title: '订单项不存在',
-        icon: 'none'
-      });
-      return;
-    }
-    
-    var canSave = this._checkOrderItemContent(order, index);
-    
-    if (canSave) {
-      // 读取原始商品名称（不修改，只读取）
-      // nxDoGoodsOriginalName 是解析订单后的用户录入的商品名称，不应该再改变
-      const correctOriginalName = order.nxDoGoodsOriginalName || order.nxDoGoodsName || '';
-      // 如果原始名称不存在，记录警告但不修改（应该只在创建订单时设置）
-      if (!order.nxDoGoodsOriginalName || order.nxDoGoodsOriginalName.trim() === '') {
-        console.warn(`[_choiceGoods] 订单 ${index} 缺少原始商品名称`);
-      }
-      
-      // 使用原始商品名称（nxDoGoodsNameOriginal）来调用接口，如果不存在则使用当前名称
-      order.nxDoGoodsName = correctOriginalName;
-     
-      order.nxDoDisGoodsId = this.data.goodsId;
-      load.showLoading("保存订单中")
-      choiceGoodsForApply(order).then(res => {
-        if (res.result.code == 0) {
-          load.hideLoading();
-          
-          // 保留原有的 nxDoGoodsNameOriginal（不修改，只保留）
-          // nxDoGoodsOriginalName 是解析订单后的用户录入的商品名称，不应该再改变
-          const currentOrderBeforeUpdate = this.data.orderArr[index];
-          const preservedOriginalName = currentOrderBeforeUpdate?.nxDoGoodsOriginalName || correctOriginalName || '';
-          
-          const updatedOrder = {
-            ...res.result.data,
-            // 保留原有的 nxDoGoodsNameOriginal，不修改
-            nxDoGoodsOriginalName: preservedOriginalName
-          };
-          
-          var data = "orderArr[" + index + "]";
-          this.setData({
-            [data]: updatedOrder,
-            saveOrder: false,
-            findGoods: false,
-            strArr: [],
-            nxArr: [],
-            // 注意：先不重置 orderArrIndex，因为 _updateStorage 需要使用它
-          })
-          // 先更新存储（需要使用 orderArrIndex）
-          this._updateStorage(updatedOrder);
-          // 更新存储后再重置 orderArrIndex
-          this.setData({
-            orderArrIndex: -1
-          })
-        } else {
-          console.error("❌ 保存订单失败:", res.result ? res.result.msg : '未知错误');
-          load.hideLoading();
-          wx.showToast({
-            title: res.result ? res.result.msg : '保存失败',
-            icon: 'none'
-          })
-        }
-      })
-      .catch(err => {
-        console.error("❌ choiceGoodsForApply 接口调用异常:", err);
-        load.hideLoading();
-        wx.showToast({
-          title: '保存订单失败',
-          icon: 'none'
-        })
-      })
-    }
-  },
-
-
-
-  addDisAlias() {
-    var standard = this.data.orderArr[this.data.orderArrIndex].nxDoStandard;
-    var name = this.data.orderArr[this.data.orderArrIndex].nxDoGoodsName;
-    wx.navigateTo({
-      url: '../../../../subPackage/pages/goods/disAddGoodsLinshi/disAddGoodsLinshi?goodsName=' + name + '&from=paste' + '&standard=' + standard ,
-    })
-  },
-
-
-  showPasteOperation(e) {
-    this.setData({
-      orderPasteIndex: e.currentTarget.dataset.index,
-      showOperationPaste: true,
-      orderItem: this.data.orderArr[e.currentTarget.dataset.index],
-    })
-  },
-
-
-  addRemark() {
-    var index = this.data.orderPasteIndex;
-    var orderItem = this.data.orderItem;
-    orderItem.nxDoRemark = "";
-    var data = "orderArr[" + index + "]";
-    this.setData({
-      [data]: orderItem,
-      showOperationPaste: false
-    })
-
-  },
-
-  addNewPasteOrderBefore() {
-
-    var index = this.data.orderPasteIndex;
-    var arr = this.data.orderArr;
-    var data = {
-      nxDoRemark: -1,
-      nxDoStatus: -2,
-      nxDoIsAgent: -1,
-      nxDoDepartmentId: this.data.depId,
-      nxDoDepartmentFatherId: this.data.depFatherId,
-      nxDoDisGoodsId: null,
-      nxDoStandardWarn: 0,
-      goodsNameWarn: 0,
-      nxDoDistributerId: this.data.disId,
-      nxDoPurchaseUserId: -1, 
-      nxDoOrderUserId: this.data.userId,
-      nxDoIsAgent: -1,
-      standardWeight: "",
-      cartonUnit: "",
-      itemUnit: "",
-      itemsPerCarton: "",
-    }
-    // 方法1
-    const newArr1 = [...arr];
-    newArr1.splice(index, 0, data);
-    console.log(newArr1.length);
-    this.setData({
-      orderArr: newArr1,
-      showOperationPaste: false,
-    })
-    // 更新未保存订单状态
-    this._updateHasUnsavedOrders(newArr1);
-   
-  },
-
-
-  //删除预览订单
-  delOrder() {
-    var index = this.data.orderPasteIndex;
-    var arr = this.data.orderArr;
-    var orderItem = arr[index];
-    
-    if (!orderItem) {
-      console.error("要删除的订单不存在，index:", index);
-      return;
-    }
-    
-    console.log("========== delOrder 开始 ==========");
-    console.log("订单索引:", index);
-    
-    // 如果订单有 nxDepartmentOrdersId，说明已经保存到服务器，需要调用接口删除
-    if (orderItem.nxDepartmentOrdersId) {
-      console.log("订单已保存到服务器，调用 deleteOrder 接口删除");
-      
-      load.showLoading("删除订单中");
-      var that = this;
-      deleteOrder(orderItem.nxDepartmentOrdersId).then(res => {
-        load.hideLoading();
-        if (res.result.code == 0) {
-          console.log("接口删除成功");
-          // 从数组中删除
-          var filteredArr = that.data.orderArr.filter((_, idx) => idx !== index);
-          console.log("删除后的订单数量:", filteredArr.length);
-          
-          that.setData({
-            orderArr: filteredArr,
-            showOperationPaste: false,
-          });
-          // 更新未保存订单状态
-          that._updateHasUnsavedOrders(filteredArr);
-          // 立即同步到缓存
-          that._saveToStorage(filteredArr);
-          
-          wx.showToast({
-            title: '删除成功',
-            icon: 'success'
-          });
-        } else {
-          console.error("接口删除失败:", res.result.msg);
-          wx.showToast({
-            title: res.result.msg || '删除失败',
-            icon: 'none'
-          });
-        }
-      }).catch(error => {
-        load.hideLoading();
-        console.error("删除订单接口调用失败:", error);
-        wx.showToast({
-          title: '删除失败，请检查网络',
-          icon: 'none'
-        });
-      });
-      return;
-    }
-    
-    // 如果订单没有 nxDepartmentOrdersId，说明只是草稿，直接从数组中删除
-    console.log("订单是草稿，直接从数组中删除");
-    arr.splice(index, 1);
-    console.log("删除后的订单数量:", arr.length);
-    console.log("========== delOrder 结束 ==========");
-    this.setData({
-      orderArr: arr,
-      showOperationPaste: false,
-    })
-    // 更新未保存订单状态
-    this._updateHasUnsavedOrders(arr);
-    // 立即同步到缓存
-    this._saveToStorage(arr);
-
-  },
-
-
-
-  showOperation(e) {
-    this.setData({
-      orderArrIndex: e.currentTarget.dataset.index,
-      showOperation: true,
-      applyItem: this.data.orderArr[e.currentTarget.dataset.index],
-    })
-  },
-
-  hideMask() {
-    this.setData({
-      showOperation: false,
-      showOperationPaste: false
-    })
-  },
-
-
-  //根据修商品名称，搜索商品
-  getSearchString(e) {
-    if (e.detail.value.length > 0) {
-      var data = {
-        disId: this.data.disId,
-        searchStr: e.detail.value,
-        depId: this.data.depId,
-      }
-      this.setData({
-        searchStr: e.detail.value,
-      })
-      load.showLoading("搜索商品中")
-      queryDisGoodsByQuickSearchWithDepId(data).then(res => {
-        load.hideLoading();
-        if(res.result.code == 0){
-            console.log("→ 设置 strArr，长度:", res.result.data.disArr.length);
-            this.setData({
-              strArr: res.result.data.disArr,
-              nxArr: res.result.data.nxArr,
-            })
-          
-          }else{
-            wx.showToast({
-              title: res.result.msg,
-              icon: 'none'
-            })
-            this.setData({
-              nxArr: [],
-              disArr:  []
-            })
-          }
-
-        })
-     
-    } 
-
-  },
-
-
-  /**
-   * 下载收藏商品
-   * @param {*} e 
-   */
-  downLoadGoods: function (e) {
-    this.setData({
-      item: e.currentTarget.dataset.item,
-    })
-    var dg = {
-      nxDgDistributerId: this.data.disId,
-      nxDgNxGoodsId: this.data.item.nxGoodsId,
-      nxDgGoodsName: this.data.item.nxGoodsName,
-      nxDgNxFatherId: this.data.fatherId,
-      nxDgNxFatherImg: this.data.fatherImg,
-      nxDgNxFatherName: this.data.fatherName,
-      nxDgGoodsDetail: this.data.item.nxGoodsDetail,
-      nxDgGoodsPlace: this.data.item.nxGoodsPlace,
-      nxDgGoodsBrand: this.data.item.nxGoodsBrand,
-      nxDgGoodsStandardname: this.data.item.nxGoodsStandardname,
-      nxDgGoodsStandardWeight: this.data.item.nxGoodsStandardWeight,
-      nxDgGoodsPinyin: this.data.item.nxGoodsPinyin,
-      nxDgGoodsPy: this.data.item.nxGoodsPy,
-      nxDgPullOff: 0,
-      nxDgGoodsStatus: 0,
-      nxDgNxGoodsFatherColor: this.data.color,
-      nxStandardEntities: this.data.item.nxGoodsStandardEntities,
-      nxAliasEntities: this.data.item.nxAliasEntities,
-      nxDgPurchaseAuto: 1,
-    };
-
-    load.showLoading("保存商品")
-    downDisGoods(dg)
-      .then(res => {
-        if (res.result.code == 0) {
-          load.hideLoading();
-          this.setData({
-            showType: 0,
-          })
-          this._againSearchString();
-
-        } else {
-          load.hideLoading();
-          wx.showToast({
-            title: res.result.msg,
-            icon: 'none'
-          })
-        }
-      })
-  },
-
-  downLoadGoodsNx: function (e) {
-    var that = this;
-    var orderIndex = e.currentTarget.dataset.index;
-    
-    console.log("订单索引 orderIndex:", orderIndex);
-    console.log("当前 orderArr 长度:", this.data.orderArr ? this.data.orderArr.length : 'undefined');
-    
-    if (orderIndex === undefined || orderIndex === null) {
-      console.error("❌ orderIndex 为 undefined 或 null");
-      wx.showToast({
-        title: '订单索引错误',
-        icon: 'none'
-      });
-      return;
-    }
-    
-    if (!this.data.orderArr || orderIndex < 0 || orderIndex >= this.data.orderArr.length) {
-      console.error("❌ orderArr 索引越界:", {
-        orderIndex,
-        orderArrLength: this.data.orderArr ? this.data.orderArr.length : 0
-      });
-      wx.showToast({
-        title: '订单索引越界',
-        icon: 'none'
-      });
-      return;
-    }
-    
-    var item = e.currentTarget.dataset.item;
-    if (!item) {
-      console.error("❌ item 为 undefined");
-      wx.showToast({
-        title: '商品数据错误',
-        icon: 'none'
-      });
-      return;
-    }
-    
-    this.setData({
-      item: item,
-      orderArrIndex: orderIndex,
-    })
-    
-    console.log("设置后 orderArrIndex:", this.data.orderArrIndex);
-    var dg = {
-      nxDgDistributerId: this.data.disId,
-      nxDgNxGoodsId: this.data.item.nxGoodsId,
-      nxDgGoodsName: this.data.item.nxGoodsName,
-      nxDgNxFatherId: this.data.fatherId,
-      nxDgNxFatherImg: this.data.fatherImg,
-      nxDgNxFatherName: this.data.fatherName,
-      nxDgGoodsDetail: this.data.item.nxGoodsDetail,
-      nxDgGoodsPlace: this.data.item.nxGoodsPlace,
-      nxDgGoodsBrand: this.data.item.nxGoodsBrand,
-      nxDgGoodsStandardname: this.data.item.nxGoodsStandardname,
-      nxDgGoodsStandardWeight: this.data.item.nxGoodsStandardWeight,
-      nxDgGoodsPinyin: this.data.item.nxGoodsPinyin,
-      nxDgGoodsPy: this.data.item.nxGoodsPy,
-      nxDgPullOff: 0,
-      nxDgGoodsStatus: 0,
-      nxDgNxGoodsFatherColor: this.data.color,
-      nxStandardEntities: this.data.item.nxGoodsStandardEntities,
-      nxAliasEntities: this.data.item.nxAliasEntities,
-      nxDgPurchaseAuto: 1,
-    };
-
-    load.showLoading("保存商品")
-    downDisGoods(dg)
-      .then(res => {
-        if (res.result.code == 0) {
-          load.hideLoading();
-          that.setData({
-            goodsId: res.result.data.nxDistributerGoodsId,
-            name: res.result.data.nxDgGoodsName,
-            // 修复：使用 that.data.orderArrIndex 而不是 this.data.orderArrIndex，如果为 undefined 则使用 orderIndex
-            orderArrIndex: that.data.orderArrIndex !== undefined ? that.data.orderArrIndex : orderIndex
-          })
-          
-          console.log("设置后 orderArrIndex:", that.data.orderArrIndex);
-          console.log("准备调用 _choiceGoods");
-          that._choiceGoods()
-
-        } else {
-          load.hideLoading();
-          wx.showToast({
-            title: res.result.msg,
-            icon: 'none'
-          })
-        }
-      })
-  },
-
-  _againSearchString(e) {
-
-    var data = {
-      disId: this.data.disId,
-      searchStr: this.data.searchStr,
-      depId: this.data.depId,
-    }
-
-    queryDisGoodsByQuickSearchWithDepId(data).then(res => {
-      if(res.result.code == 0){
-        console.log("→ 设置 strArr，长度:", res.result.data.disArr.length);
-        this.setData({
-          strArr: res.result.data.disArr,
-          nxArr: res.result.data.nxArr,
-        })
-      }else{
-        wx.showToast({
-          title: res.result.msg,
-          icon: 'none'
-        })
-        this.setData({
-          nxArr: [],
-          disArr:  []
-        })
-      }
-    })
-
-  },
-
-
-
-  confirm: function (e) {
-
-    this._updateDisOrder(e);
-
-    this.setData({
-      showOrder: false,
-      applyItem: "",
-      item: "",
-      applyNumber: "",
-      applyStandardName: "",
-      showMyIndependent: false,
-    })
-  },
-
-
-
-  /**
-   * 换订货单位
-   * @param {}} e 
-   */
-  changeStandard: function (e) {
-    this.setData({
-      applyStandardName: e.detail.applyStandardName
-    })
-  },
-
-
-  cancle() {
-    console.log("cancle....")
-    this.setData({
-      item: "",
-      applyStandardName: "",
-      showOrder: false,
-      applyItem: "",
-      applyNumber: "",
-      depStandardArr: [],
-
-    })
-
-    if (this.data.isSearching) {
-      this.setData({
-        isSearching: false,
-        searchStr: ""
-      })
-    }
-  },
-
-
-  confirmStandard(e) {
-    console.log(e);
-
-    var data = {
-      nxDsDisGoodsId: this.data.itemDis.nxDistributerGoodsId,
-      nxDsStandardName: e.detail.newStandardName,
-    }
-    disSaveStandard(data).
-    then(res => {
-      if (res.result.code == 0) {
-        console.log(res)
-        var standardArr = this.data.itemDis.nxDistributerStandardEntities;
-        standardArr.push(res.result.data);
-        var standards = "itemDis.nxDistributerStandardEntities"
-        this.setData({
-          [standards]: standardArr,
-          applyStandardName: res.result.data.nxDsStandardName,
-        })
-
-      } else {
-        wx.showToast({
-          title: res.result.msg,
-          icon: 'none'
-        })
-      }
-    })
-  },
-
-
-
-
-  /**
-   * 修改配送商品申请
-   */
-  editApply() {
-    var applyItem = this.data.applyItem;
-    
-    // 根据 nxDoDisGoodsId 先请求接口获取 nxDistributerGoodsEntity
-    if (applyItem.nxDoDisGoodsId) {
-      load.showLoading('加载商品信息');
-      disGetGoods(applyItem.nxDoDisGoodsId).then(res => {
-        load.hideLoading();
-        if (res.result.code == 0 && res.result.data) {
-          // 获取到商品信息后，设置到 itemDis
-    this.setData({
-      showOrder: true,
-      editApply: true,
-      applyStandardName: applyItem.nxDoStandard,
-            itemDis: res.result.data, // 使用接口返回的商品信息
-      item: this.data.applyItem.nxDepartmentDisGoodsEntity,
-      applyNumber: applyItem.nxDoQuantity,
-      applyRemark: applyItem.nxDoRemark,
-            showOperation: false
-          });
-        } else {
-          // 接口返回失败，使用原有的 nxDistributerGoodsEntity（如果有）
-          wx.showToast({
-            title: res.result.msg || '获取商品信息失败',
-            icon: 'none'
-          });
-    this.setData({
-            showOrder: true,
-            editApply: true,
-            applyStandardName: applyItem.nxDoStandard,
-            itemDis: this.data.applyItem.nxDistributerGoodsEntity || null,
-            item: this.data.applyItem.nxDepartmentDisGoodsEntity,
-            applyNumber: applyItem.nxDoQuantity,
-            applyRemark: applyItem.nxDoRemark,
-      showOperation: false
-          });
-        }
-      }).catch(err => {
-        load.hideLoading();
-        console.error('获取商品信息失败:', err);
-        wx.showToast({
-          title: '获取商品信息失败',
-          icon: 'none'
-        });
-        // 失败时使用原有的 nxDistributerGoodsEntity（如果有）
-        this.setData({
-          showOrder: true,
-          editApply: true,
-          applyStandardName: applyItem.nxDoStandard,
-          itemDis: this.data.applyItem.nxDistributerGoodsEntity || null,
-          item: this.data.applyItem.nxDepartmentDisGoodsEntity,
-          applyNumber: applyItem.nxDoQuantity,
-          applyRemark: applyItem.nxDoRemark,
-          showOperation: false
-        });
-      });
-    } else {
-      // 没有 nxDoDisGoodsId，直接使用原有的 nxDistributerGoodsEntity
-      this.setData({
-        showOrder: true,
-        editApply: true,
-        applyStandardName: applyItem.nxDoStandard,
-        itemDis: this.data.applyItem.nxDistributerGoodsEntity,
-        item: this.data.applyItem.nxDepartmentDisGoodsEntity,
-        applyNumber: applyItem.nxDoQuantity,
-        applyRemark: applyItem.nxDoRemark,
-        showOperation: false
+    } catch (error) {
+      load.hideLoading();
+      this.setData({ saving: false });
+      const partial = results.length ? `，已有${results.length}个部门保存成功` : '';
+      wx.showModal({
+        title: '保存未完成',
+        content: `${error.message || '请检查网络后重试'}${partial}`,
+        showCancel: false
       });
     }
   },
-
-
-  /**
-   * 修改配送申请
-   * @param {} e 
-   */
-  _updateDisOrder(e) {
-    const std = e.detail.applyStandardName;
-    const dis =
-      (this.data.applyItem && this.data.applyItem.nxDistributerGoodsEntity) ||
-      this.data.itemDis;
-    const pl = resolveNxDoCostPriceLevel(dis, std);
-    const baseStd = dis && dis.nxDgGoodsStandardname;
-    const twoStd = dis && dis.nxDgWillPriceTwoStandard;
-    const printStandard =
-      pl === 2 && twoStd ? twoStd : baseStd || "";
-
-    var dg = {
-      id: this.data.applyItem.nxDepartmentOrdersId,
-      weight: e.detail.applyNumber,
-      standard: std,
-      remark: e.detail.applyRemark,
-      printStandard,
-      priceLevel: pl,
-    };
-    updateOrder(dg).then(res => {
-      load.showLoading("修改订单")
-      if (res.result.code == 0) {
-        load.hideLoading();
-        var goodsName = this.data.orderArr[this.data.orderArrIndex].nxDoGoodsName;
-        
-        // 保留原有的 nxDoGoodsNameOriginal（不修改，只保留）
-        // nxDoGoodsOriginalName 是解析订单后的用户录入的商品名称，不应该再改变
-        const currentOrder = this.data.orderArr[this.data.orderArrIndex];
-        const preservedOriginalName = currentOrder?.nxDoGoodsOriginalName || '';
-        
-        const updatedOrder = {
-          ...res.result.data,
-          nxDoGoodsName: goodsName, // 保持当前的商品名称
-          // 保留原有的 nxDoGoodsNameOriginal，不修改
-          nxDoGoodsOriginalName: preservedOriginalName
-        };
-        
-        var data = "orderArr[" + this.data.orderArrIndex + "]";
-        this.setData({
-          [data]: updatedOrder,
-        })
-        // 更新未保存订单状态（单个订单更新后，需要重新检查整个数组）
-        this._updateHasUnsavedOrders();
-      } else {
-        load.hideLoading();
-        wx.showToast({
-          title: res.result.msg,
-          icon: "none"
-        })
-      }
-
-    })
-  },
-
-
-
-  addNewOrderBefore(e) {
-    this.hideMask();
-
-    wx.navigateTo({
-
-      url: '../resGoodsList/resGoodsList?depFatherId=' + this.data.depFatherId +
-        '&depId=' + this.data.depId + '&depName=' + this.data.depName +
-        '&gbDepFatherId=-1&depSettleType=' + this.data.depInfo.nxDepartmentSettleType +
-        '&beforeId=' + this.data.applyItem.nxDepartmentOrdersId
-    })
-
-
-  },
-
-
-  delStandard(e) {
-    console.log(e);
-    this.setData({
-      standardName: e.detail.standardName,
-      show: false,
-      delStandardShow: true,
-      applyItem: "",
-      disStandardId: e.detail.id,
-    })
-
-  },
-
-
-  deleteStandard() {
-    disDeleteStandard(this.data.disStandardId).then(res => {
-      if (res.result.code == 0) {
-        this.setData({
-          standardName: "",
-          delStandardShow: false,
-          disStandardId: "",
-        })
-
-      } else {
-        wx.showToast({
-          title: res.result.msg,
-          icon: 'none'
-        })
-      }
-    })
-  },
-
-
-
-  delApply() {
-
-    var that = this;
-    deleteOrder(this.data.applyItem.nxDepartmentOrdersId).then(res => {
-      if (res.result.code == 0) {
-        // var arr = this.data.orderArr.splice(this.data.orderArrIndex,1);
-        var arr = that.data.orderArr;
-        arr = arr.filter((_, index) => index !== that.data.orderArrIndex);
-        that.setData({
-          editApply: false,
-          showOrder: false,
-          applyItem: "",
-          orderArr: arr,
-        })
-        // 更新未保存订单状态
-        that._updateHasUnsavedOrders(arr);
-        that.updateStorageDelete();
-
-      } else {
-        wx.showToast({
-          title: res.result.msg,
-          icon: 'none'
-        })
-      }
-    })
-  },
-
-  /**
-   * 更新 hasUnsavedOrders 状态
-   * 检查订单数组中是否有未保存的订单（status == -2）
-   * @param {Array} orders - 订单数组，如果不传则使用 this.data.orderArr
-   */
-  _updateHasUnsavedOrders(orders) {
-    const orderArr = orders || this.data.orderArr || [];
-    const hasUnsavedOrders = orderArr.some(order => order && order.nxDoStatus === -2);
-    this.setData({ hasUnsavedOrders });
-    return hasUnsavedOrders;
-  },
-
-
-
-  addRemark() {
-    var index = this.data.orderPasteIndex;
-   
-    var data = "orderArr[" + index + "].nxDoAddRemark";
-    this.setData({
-      [data]: true,
-      showOperationPaste: false
-    })
-
-  },
-
 
   toBack() {
-
-    this.onUnload();
-    wx.navigateBack({
-      delta: 1
-    })
-
+    wx.navigateBack({ delta: 1 });
   },
 
-
-  
-  onUnload() {
-    console.log("========== onUnload 开始 ==========");
-    // 清除录音定时器
-    console.log("[onUnload] 清除录音定时器");
-    if (this.data.timer) {
-      clearInterval(this.data.timer);
-      console.log("[onUnload] 定时器已清除，timer ID:", this.data.timer);
-    } else {
-      console.log("[onUnload] 定时器不存在或已被清除");
-    }
-    // 停止录音
-    if (this.data.isRecording) {
-      console.log("[onUnload] 检测到正在录音，停止录音");
-      this.setData({
-        isRecording: false,
-        timer: null
-      });
-      try {
-        speechRecognizerManager.stop();
-        console.log("[onUnload] 已调用 speechRecognizerManager.stop()");
-      } catch (e) {
-        console.error("[onUnload] 停止录音失败:", e);
-      }
-    }
-    console.log("当前 pasteDepId:", this.data.pasteDepId);
-    console.log("当前 pasteDepIndex:", this.data.pasteDepIndex);
-    
-    
-  },
-
-
-  // ==================== 七、缓存管理相关 ====================
-
-
-  /**
-   * 重新上传（删除所有订单）
-   */
-
-  reuploadOrders: function () {
-    // 检查是否有订单
-    if (!this.data.orderArr || this.data.orderArr.length === 0) {
-      wx.showToast({
-        title: '没有可删除的订单',
-        icon: 'none'
-      });
-      return;
-    }
-    // 收集所有有订单ID的订单
-    const orderIds = [];
-    this.data.orderArr.forEach(order => {
-      if (order.nxDepartmentOrdersId) {
-        orderIds.push(order.nxDepartmentOrdersId);
-      }
-    });
-    if (orderIds.length === 0) {
-      // 如果没有已保存的订单，直接清空列表
-      this._clearAllOrders();
-      return;
-    }
-    // 显示确认对话框
-    wx.showModal({
-      title: '确认删除',
-      content: `确定要删除所有 ${orderIds.length} 个订单吗？删除后将返回上传页面。`,
-      confirmText: '确定',
-      cancelText: '取消',
-      success: (res) => {
-        if (res.confirm) {
-          // 用户确认删除
-          this._deleteBatchOrders(orderIds);
-        }
-      }
-    });
-  },
-
-  /**
-   * 批量删除订单
-   */
-
-  _deleteBatchOrders: function (orderIds) {
-    // 显示加载提示
-    load.showLoading('正在删除订单...');
-    // 调用批量删除接口
-    deleteBatchOrders({
-      orderIds: orderIds,
-      taskId: this.data.taskId,
-    }).then(res => {
-      load.hideLoading();
-      // 处理响应数据：如果 res.result 是字符串，先解析
-      let resultData = res.result;
-      let responseCode;
-      if (typeof res.result === 'string') {
-        try {
-          resultData = JSON.parse(res.result);
-          responseCode = resultData?.code;
-        } catch (e) {
-          // JSON 解析失败，尝试用正则表达式提取 code 值
-          const codeMatch = res.result.match(/"code"\s*:\s*(\d+)/);
-          if (codeMatch) {
-            responseCode = parseInt(codeMatch[1], 10);
-            // 如果成功提取到 code，创建一个临时的 resultData 对象
-            resultData = {
-              code: responseCode
-            };
-          } else {
-            resultData = null;
-          }
-        }
-      } else {
-        // res.result 已经是对象
-        responseCode = resultData?.code;
-      }
-      // code 为 0 或 "0" 都视为成功
-      if (resultData && (responseCode === 0 || responseCode == 0)) {
-        // 删除成功
-        wx.showToast({
-          title: '删除成功',
-          icon: 'success',
-          duration: 2000
-        });
-        wx.navigateBack({
-          delta: 1
-        })
-
-        // 清空所有订单，返回上传页面
-        this._clearAllOrders();
-      } else {
-        // 删除失败
-        const errorMsg = resultData?.msg || '删除失败，请重试';
-        wx.showModal({
-          title: '删除失败',
-          content: errorMsg,
-          showCancel: false,
-          confirmText: '确定'
-        });
-      }
-    }).catch(err => {
-      load.hideLoading();
-      wx.showModal({
-        title: '删除失败',
-        content: '网络请求失败，请检查网络连接后重试',
-        showCancel: false,
-        confirmText: '确定'
-      });
-    });
-  },
-
-  /**
-   * 显示订单修正弹窗（调整订单内容）
-   */
-
-  showCorrectionModal: function () {
-    // 检查是否有订单
-    if (!this.data.orderArr || this.data.orderArr.length === 0) {
-      wx.showToast({
-        title: '没有可修正的订单',
-        icon: 'none'
-      });
-      return;
-    }
-    // 根据 sourceType 获取对应的 prompt
-    const depInfo = this.data.depInfo;
-    let defaultText = '';
-    if (this.data.sourceType === 'excel' && depInfo && depInfo.nxDepartmentOcrPromptExcel) {
-      defaultText = depInfo.nxDepartmentOcrPromptExcel;
-    } else if (this.data.sourceType === 'image' && depInfo && depInfo.nxDepartmentOcrPromptImage) {
-      defaultText = depInfo.nxDepartmentOcrPromptImage;
-    }
-    // 显示修正弹窗
-    this.setData({
-      showCorrectionModal: true,
-      correctionDefaultText: defaultText
-    }, () => {});
-  },
-
-  /**
-   * 关闭修正弹窗
-   */
-
-  onCorrectionModalCancel: function () {
-    this.setData({
-      showCorrectionModal: false
-    });
-  },
-
-  /**
-   * 确认修正订单
-   */
-
-  onCorrectionModalConfirm: function (e) {
-    const correctionText = e.detail.correctionText;
-    if (!correctionText || !correctionText.trim()) {
-      wx.showToast({
-        title: '请输入修改要求',
-        icon: 'none'
-      });
-      return;
-    }
-    // 关闭弹窗
-    this.setData({
-      showCorrectionModal: false
-    });
-    // 调用修正接口
-    this.correctOrders(correctionText);
-  },
-
-  /**
-   * 调用修正接口
-   */
-
-  correctOrders: function (userInstructions) {
-    // 显示加载提示
-    load.showLoading('正在修正订单...');
-    // 直接传递原始订单数据，不做任何过滤
-    const requestData = {
-      orderItems: this.data.orderArr, // 传递完整的原始订单数据
-      userInstructions: userInstructions,
-      depId: this.data.depId,
-      disId: this.data.disId,
-      depFatherId: this.data.depFatherId,
-      userId: this.data.userId,
-      inputType: this.data.sourceType || 'image' // image/excel/paste
-    };
-    // 调用修正接口
-    correctOrders(requestData).then(res => {
-      load.hideLoading();
-      if (res.result && res.result.code === 0 && res.result.data) {
-        this.setData({
-          orderAr: res.result.data,
-        })
-      
-      } else {
-        // 修正失败
-        const errorMsg = res.result?.msg || '修正失败，请重试';
-        wx.showModal({
-          title: '修正失败',
-          content: errorMsg,
-          showCancel: false,
-          confirmText: '确定'
-        });
-      }
-    }).catch(err => {
-      load.hideLoading();
-      wx.showModal({
-        title: '修正失败',
-        content: '网络请求失败，请检查网络连接后重试',
-        showCancel: false,
-        confirmText: '确定'
-      });
-    });
-  },
-
-
-
-  // 跳转到 OCR 识别页面
-  /**
-   * 点击“图片”按钮：直接复用 ocrUpload 组件的选图 + 裁剪 + 单列/多列模式选择逻辑
-   * 选完并裁剪后，组件会通过 startOCR / startOCRFast 事件回调，在本页内直接识别，无需跳转 ocrUpload 页面
-   */
-  recognizeOrder(e) {
-    const ocr = this.selectComponent('#pasteOcrUpload');
+  recognizeOrder() {
+    if (this.data.isRecording || this.data.ocrSubmitting) return;
+    this._closeKeyboard();
+    const ocr = this.selectComponent('#pasteV2OcrUpload');
     if (!ocr) {
       wx.showToast({ title: '图片组件未就绪，请重试', icon: 'none' });
       return;
     }
-    // 触发组件内的选图 → 裁剪弹窗（含单列/多列模式选择、开始识别）
     ocr.chooseImages();
   },
 
-  /**
-   * 组件图片列表变化（选图/裁剪完成后同步到页面）
-   */
   onOcrImageChange(e) {
-    this.setData({
-      ocrImageList: (e.detail && e.detail.imageList) || []
-    });
+    this.setData({ ocrImageList: e.detail && e.detail.imageList || [] });
   },
 
-  /**
-   * 获取本页有效的部门参数（带兜底，避免 depFatherId 为空导致后端报“参数 depFatherId 不能为空”）
-   */
   _getOcrDepParams() {
     const depInfo = this.data.depInfo || {};
     const depId = this.data.depId || depInfo.nxDepartmentId || '';
-    // depFatherId 兜底：优先 URL 参数 → depInfo 的父部门 → 退回 depId
     let depFatherId = this.data.depFatherId;
-    if (depFatherId === undefined || depFatherId === null || depFatherId === '' || depFatherId === 'null') {
+    if (depFatherId == null || depFatherId === '' || depFatherId === 'null') {
       depFatherId = depInfo.nxDepartmentFatherId || depId;
     }
     return {
-      depId: depId,
-      depFatherId: depFatherId,
+      depId,
+      depFatherId,
       disId: this.data.disId || '',
-      userId: this.data.userId || -1,
-      depName: this.data.depName || ''
+      userId: this.data.userId || -1
     };
   },
 
-  /**
-   * 复杂图片识别（多列）：调用异步接口，后台队列处理
-   */
+  _validateOcrParams(params) {
+    if (params.depId && params.depFatherId && params.disId) return true;
+    wx.showToast({ title: '部门信息不完整，请返回重进', icon: 'none', duration: 3000 });
+    return false;
+  },
+
+  _getOcrImagePath(imageList) {
+    const image = imageList && imageList[0] || {};
+    return image.path || image.tempFilePath || '';
+  },
+
+  _resetOcrState() {
+    this.setData({
+      ocrImageList: [],
+      ocrResetKey: Date.now()
+    });
+  },
+
   async onStartOCR(e) {
-    const imageList = (e.detail && e.detail.imageList) || this.data.ocrImageList || [];
+    const imageList = e.detail && e.detail.imageList || this.data.ocrImageList || [];
     if (!imageList.length) {
       wx.showToast({ title: '请先选择图片', icon: 'none' });
       return;
     }
+    if (this.data.ocrSubmitting) return;
     const params = this._getOcrDepParams();
-    if (!params.depFatherId) {
-      wx.showToast({ title: '缺少部门信息，请返回重进', icon: 'none' });
+    if (!this._validateOcrParams(params)) return;
+    const imagePath = this._getOcrImagePath(imageList);
+    if (!imagePath) {
+      wx.showToast({ title: '图片读取失败，请重新选择', icon: 'none' });
       return;
     }
-    load.showLoading('正在上传识别...');
+    this.setData({ ocrSubmitting: true });
+    load.showLoading('正在提交多列图片');
     try {
-      const base64 = await this._ocrImageToBase64(imageList[0].path);
+      const base64 = await this._ocrImageToBase64(imagePath);
       const res = await recognizeOrderAsync({
         ImageBase64: base64,
         Action: 'GeneralAccurateOCR',
@@ -3200,38 +826,40 @@ Page({
         depFatherId: params.depFatherId,
         userId: -1
       });
-      load.hideLoading();
-      const data = res.result;
-      if (data && data.code === 0) {
-        this.setData({ ocrImageList: [] });
-        wx.showToast({ title: '已加入识别队列', icon: 'success', duration: 1500 });
-        wx.navigateBack({ delta: 2 });
+      const result = res && res.result;
+      if (result && result.code === 0) {
+        this._resetOcrState();
+        wx.showToast({ title: '图片已加入识别队列', icon: 'success', duration: 1600 });
+        wx.navigateBack({ delta: 1 });
       } else {
-        wx.showToast({ title: (data && (data.msg || data.message)) || '上传失败', icon: 'none', duration: 3000 });
+        throw new Error(result && (result.msg || result.message) || '图片上传失败');
       }
-    } catch (err) {
+    } catch (error) {
+      wx.showToast({ title: error.message || '多列图片识别失败', icon: 'none', duration: 3000 });
+    } finally {
       load.hideLoading();
-      wx.showToast({ title: err.message || '上传失败', icon: 'none', duration: 3000 });
+      this.setData({ ocrSubmitting: false });
     }
   },
 
-  /**
-   * 单列快速识别：调用快速接口，成功后跳转 ocrOrder 复核结果
-   */
   async onStartOCRFast(e) {
-    const imageList = (e.detail && e.detail.imageList) || this.data.ocrImageList || [];
+    const imageList = e.detail && e.detail.imageList || this.data.ocrImageList || [];
     if (!imageList.length) {
       wx.showToast({ title: '请先选择图片', icon: 'none' });
       return;
     }
+    if (this.data.ocrSubmitting) return;
     const params = this._getOcrDepParams();
-    if (!params.depId || !params.disId || !params.depFatherId) {
-      wx.showToast({ title: '缺少必要参数，请重新进入', icon: 'none', duration: 3000 });
+    if (!this._validateOcrParams(params)) return;
+    const imagePath = this._getOcrImagePath(imageList);
+    if (!imagePath) {
+      wx.showToast({ title: '图片读取失败，请重新选择', icon: 'none' });
       return;
     }
-    load.showLoading('单列图片识别中...');
+    this.setData({ ocrSubmitting: true });
+    load.showLoading('单列图片识别中');
     try {
-      const base64 = await this._ocrImageToBase64(imageList[0].path);
+      const base64 = await this._ocrImageToBase64(imagePath);
       const res = await recognizeOrderFast({
         ImageBase64: base64,
         depId: params.depId,
@@ -3239,34 +867,34 @@ Page({
         depFatherId: params.depFatherId,
         userId: params.userId
       });
-      load.hideLoading();
-      const data = res.result;
-      if (data && data.code === 0) {
-        this.setData({ ocrImageList: [] });
-        wx.navigateBack({ delta: 2 });
+      const result = res && res.result;
+      if (result && result.code === 0) {
+        this._resetOcrState();
+        if (result.taskId) {
+          wx.redirectTo({ url: `../ocrOrder/ocrOrder?taskId=${result.taskId}` });
+        } else {
+          wx.showToast({ title: '图片识别完成', icon: 'success' });
+          wx.navigateBack({ delta: 1 });
+        }
       } else {
-        wx.showToast({ title: (data && (data.msg || data.message)) || '快速识别失败', icon: 'none', duration: 3000 });
+        throw new Error(result && (result.msg || result.message) || '快速识别失败');
       }
-    } catch (err) {
+    } catch (error) {
+      wx.showToast({ title: error.message || '快速识别失败', icon: 'none', duration: 3000 });
+    } finally {
       load.hideLoading();
-      wx.showToast({ title: err.message || '快速识别失败', icon: 'none', duration: 3000 });
+      this.setData({ ocrSubmitting: false });
     }
   },
 
-  /**
-   * 图片转 Base64
-   */
   _ocrImageToBase64(filePath) {
     return new Promise((resolve, reject) => {
       wx.getFileSystemManager().readFile({
-        filePath: filePath,
+        filePath,
         encoding: 'base64',
-        success: (res) => resolve(res.data),
-        fail: (err) => reject(err)
+        success: res => resolve(res.data),
+        fail: reject
       });
     });
-  },
-
-
-
-})
+  }
+});

@@ -302,6 +302,18 @@
   border-color: #f1dfbb;
 }
 
+.setting-row.highlight.announcement-entry {
+  background: linear-gradient(135deg, #effaf5, #ffffff);
+  border-color: #d2ecdf;
+}
+
+.setting-icon-letter {
+  color: #07875c;
+  font-size: 30rpx;
+  font-weight: 800;
+  line-height: 1;
+}
+
 .setting-icon {
   width: 42rpx;
   height: 42rpx;

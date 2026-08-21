@@ -12,6 +12,10 @@ Component({
       type: Boolean,
       value: false
     },
+    showPlanningLock: {
+      type: Boolean,
+      value: false
+    },
     routeStopsLength: {
       type: Number,
       value: 0

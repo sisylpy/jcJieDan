@@ -9,7 +9,7 @@
       <view class="driver-route-name-row driver-route-name-row-between">
         <view class="driver-route-name-group">
           <text class="driver-route-name">{{card.driverName}}</text>
-          <text class="driver-stop-count-badge" wx:if="{{card.customerStopCount}}">{{card.customerStopCount}} 站</text>
+          <text class="driver-stop-count-badge" style="color:{{ card.routeColor }}" wx:if="{{card.customerStopCount}}">{{card.customerStopCount}} 站</text>
           <text
             class="driver-dispatch-badge driver-dispatch-badge-{{card.driverStatusTone || 'ok'}}"
             wx:if="{{variant === 'delivery' && card.driverStatusLabel}}"
@@ -61,7 +61,7 @@
     </view>
     <view class="driver-metric-divider"></view>
     <view class="driver-metric-col driver-metric-col-return">
-      <text class="driver-metric-label">预计返回</text>
+      <text class="driver-metric-label">{{card.returnToDepot === false ? '路线结束' : '预计返回'}}</text>
       <text class="driver-metric-time">{{card.plannedReturnLabel || '—'}}</text>
     </view>
   </view>
@@ -79,7 +79,7 @@
   <view class="driver-summary-footer" wx:if="{{card.totalRoundTripDistanceText || card.totalRoundTripDurationText}}">
     <view class="driver-summary-footer-item" wx:if="{{card.totalRoundTripDistanceText}}">
       <image class="driver-footer-icon" src="/images/car.png" mode="aspectFit"></image>
-      <text>往返 {{card.totalRoundTripDistanceText}}</text>
+      <text>{{card.returnToDepot === false ? '全程' : '往返'}} {{card.totalRoundTripDistanceText}}</text>
     </view>
     <view class="driver-summary-footer-divider" wx:if="{{card.totalRoundTripDistanceText && card.totalRoundTripDurationText}}"></view>
     <view class="driver-summary-footer-item" wx:if="{{card.totalRoundTripDurationText}}">
@@ -94,7 +94,9 @@
     variant="{{variant === 'delivery' ? 'delivery' : 'default'}}"
     section-index="{{sectionIndex}}"
     card-index="{{cardIndex}}"
+    show-planning-lock="{{showPlanningLock}}"
     bind:headtap="relay"
+    bind:locktap="relay"
     bind:primaryaction="relay"
     bind:exceptionaction="relay"
   ></route-timeline>

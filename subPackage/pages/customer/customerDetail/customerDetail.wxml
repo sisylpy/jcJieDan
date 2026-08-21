@@ -80,6 +80,16 @@
       <text class="row-label">定价类型</text>
       <text class="row-value">{{depInfo.nxDepartmentType == 'unFixed' ? '市场变动' : '固定'}}</text>
     </view>
+    <view class="section-row" bindtap="showBusinessTypeEditor">
+      <text class="row-label">经营业态</text>
+      <view class="row-value">
+        <text class="{{customerBusinessTypeName ? 'business-type-value' : 'text-secondary'}}">
+          {{customerBusinessTypeName || '点击选择'}}
+        </text>
+        <text class="business-type-inherited" wx:if="{{businessTypeInherited}}">继承</text>
+        <image class="icon" src="/images/arrow-right-3.png" mode="aspectFill"></image>
+      </view>
+    </view>
   </view>
 
   <!-- 标签与分组 -->
@@ -213,7 +223,6 @@
   </view>
 
 </view>
-
 
 <!--  操作  -->
 <view class='overlay {{showOperation ? "show" : ""}}' catchtouchmove='ture' catchtap="{{!deleteShow && !editArrShow ? 'hideMask' : ''}}">

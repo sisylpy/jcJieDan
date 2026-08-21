@@ -3,8 +3,6 @@ page{
   background-color: #fff;
 }
 
-
-
 .avatar-preview-wrap {
   margin-top: 20rpx;
   font-size: 34rpx;

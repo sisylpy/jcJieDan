@@ -45,8 +45,6 @@
           longitude="{{pageViewModel.mapOverview.longitude}}"
           latitude="{{pageViewModel.mapOverview.latitude}}"
           scale="{{pageViewModel.mapOverview.scale}}"
-          subkey="{{pageViewModel.mapOverview.subkey}}"
-          layer-style="{{pageViewModel.mapOverview.layerStyle}}"
           include-points="{{pageViewModel.mapOverview.includePoints}}"
           padding="{{mapOverviewPadding}}"
           markers="{{pageViewModel.mapOverview.markers}}"
@@ -128,10 +126,6 @@
         <text class="route-section-count">{{routeStops.length}} 站</text>
       </view>
 
-      <view class="route-distance-notice" wx:if="{{pageViewModel.driver.routeMetricEstimated}}">
-        当前路线包含“直线估算”路段，请留意缺少坐标或腾讯路线接口暂不可用的门店。
-      </view>
-
       <route-timeline
         wx:if="{{editTimeline.length > 0}}"
         timeline="{{editTimeline}}"
@@ -139,7 +133,9 @@
         show-incoming-tag="{{pageViewModel.manualDispatchMode}}"
         route-stops-length="{{routeStops.length}}"
         removing-stop="{{removingStop}}"
+        show-planning-lock="{{true}}"
         bind:headtap="onTimelineStopHeadTap"
+        bind:locktap="onPlanningLockTap"
         bind:movestop="onMoveStop"
         bind:removestop="onRemoveStop"
       ></route-timeline>
@@ -152,8 +148,8 @@
     <view class="customer-add-card" wx:if="{{!pageViewModel.manualDispatchMode}}">
       <view class="customer-add-head">
         <view>
-          <text class="customer-add-title">补充路线客户</text>
-          <text class="customer-add-subtitle">可以搜索添加，也可以让系统按时间或距离自动计算</text>
+          <text class="customer-add-title">添加路线客户</text>
+          <text class="customer-add-subtitle">人工选择客户后，后台按 Huawei 真实道路重新试算</text>
         </view>
         <text class="customer-add-count">{{candidatePoolCount}} 个候选</text>
       </view>
@@ -170,137 +166,7 @@
         <text class="customer-search-clear" wx:if="{{customerSearchText}}" catchtap="onClearCustomerSearch">清除</text>
       </view>
 
-      <view class="route-addition-switches">
-        <view
-          class="route-addition-switch {{additionMode === 'TIME' ? 'is-active' : ''}}"
-          data-mode="TIME"
-          catchtap="changeAdditionMode"
-        >
-          <text class="route-addition-switch-icon">时</text>
-          <view class="route-addition-switch-copy">
-            <text class="route-addition-switch-title">按时间补充</text>
-            <text class="route-addition-switch-help">设置全程时间上限</text>
-          </view>
-        </view>
-        <view
-          class="route-addition-switch {{additionMode === 'DISTANCE' ? 'is-active' : ''}}"
-          data-mode="DISTANCE"
-          catchtap="changeAdditionMode"
-        >
-          <text class="route-addition-switch-icon">距</text>
-          <view class="route-addition-switch-copy">
-            <text class="route-addition-switch-title">按距离补充</text>
-            <text class="route-addition-switch-help">设置路线公里上限</text>
-          </view>
-        </view>
-      </view>
-
-      <view class="constraint-editor" wx:if="{{additionMode === 'TIME' || additionMode === 'DISTANCE'}}">
-        <view class="constraint-editor-head">
-          <view>
-            <text class="constraint-editor-title">{{additionMode === 'TIME' ? '按时间自动计算客户' : '按距离自动计算客户'}}</text>
-            <text class="constraint-editor-subtitle">保留原路线客户，从候选客户中自动筛选</text>
-          </view>
-          <text class="constraint-editor-cancel" data-mode="{{additionMode}}" catchtap="changeAdditionMode">取消</text>
-        </view>
-
-        <view class="constraint-current-row">
-          <text>{{additionMode === 'TIME' ? '当前全程' : (includeReturnDistance ? '当前往返距离' : '当前去程距离')}}</text>
-          <text class="constraint-current-value">
-            {{additionMode === 'TIME'
-              ? (pageViewModel.driver.totalRoundTripDurationText || '等待试算')
-              : (includeReturnDistance
-                ? (pageViewModel.driver.totalRoundTripDistanceText || '等待试算')
-                : (pageViewModel.driver.outboundDistanceText || '等待试算'))}}
-          </text>
-        </view>
-
-        <text class="constraint-label">{{additionMode === 'TIME' ? '允许的最大全程时间' : '允许的最大路线距离'}}</text>
-        <view class="constraint-input-row">
-          <input
-            wx:if="{{additionMode === 'TIME'}}"
-            class="constraint-input"
-            type="number"
-            value="{{targetRouteMinutes}}"
-            placeholder="输入分钟数"
-            bindinput="onTargetRouteMinutesInput"
-          />
-          <input
-            wx:else
-            class="constraint-input"
-            type="digit"
-            value="{{targetDistanceKm}}"
-            placeholder="输入公里数"
-            bindinput="onTargetDistanceInput"
-          />
-          <text class="constraint-input-unit">{{additionMode === 'TIME' ? '分钟' : '公里'}}</text>
-        </view>
-
-        <view class="return-distance-row" wx:if="{{additionMode === 'DISTANCE'}}">
-          <view class="return-distance-copy">
-            <text class="return-distance-title">包含回仓距离</text>
-            <text class="return-distance-help">关闭后只按仓库到最后一站的去程计算</text>
-          </view>
-          <switch color="#07917a" checked="{{includeReturnDistance}}" bindchange="toggleReturnDistance" />
-        </view>
-
-        <view class="route-sequence-field">
-          <text class="route-sequence-title">配送顺序</text>
-          <radio-group class="route-sequence-options" bindchange="changeRouteSequenceMode">
-            <label class="route-sequence-option {{routeSequenceMode === 'PRESERVE' ? 'is-active' : ''}}">
-              <radio value="PRESERVE" checked="{{routeSequenceMode === 'PRESERVE'}}" color="#07917a" />
-              <view class="route-sequence-copy">
-                <text class="route-sequence-name">保持当前顺序</text>
-                <text class="route-sequence-help">原客户顺序不变，新增客户排在后面</text>
-              </view>
-            </label>
-            <label class="route-sequence-option {{routeSequenceMode === 'OPTIMIZE' ? 'is-active' : ''}}">
-              <radio value="OPTIMIZE" checked="{{routeSequenceMode === 'OPTIMIZE'}}" color="#07917a" />
-              <view class="route-sequence-copy">
-                <text class="route-sequence-name">智能重排路线</text>
-                <text class="route-sequence-help">按客户坐标重新组合更短的配送顺序</text>
-              </view>
-            </label>
-          </radio-group>
-        </view>
-
-        <view class="constraint-feedback {{constraintPreview && constraintPreview.canApply ? 'is-success' : 'is-warning'}}">
-          <text>{{constraintFeedback}}</text>
-        </view>
-        <view class="constraint-plan-stats" wx:if="{{constraintPreview && constraintPreview.plannedCount != null}}">
-          <view class="constraint-plan-stat">
-            <text class="constraint-plan-value">{{constraintPreview.plannedCount}}</text>
-            <text class="constraint-plan-label">预计客户</text>
-          </view>
-          <view class="constraint-plan-stat">
-            <text class="constraint-plan-value is-add">+{{constraintPreview.addedCount || 0}}</text>
-            <text class="constraint-plan-label">自动增加</text>
-          </view>
-          <view class="constraint-plan-stat">
-            <text class="constraint-plan-value">{{constraintPreview.remainingCapacityText || '—'}}</text>
-            <text class="constraint-plan-label">预计余量</text>
-          </view>
-        </view>
-        <view
-          class="constraint-apply-btn {{constraintPreview && constraintPreview.canApply && !constraintAdjusting && !previewing ? '' : 'is-disabled'}}"
-          catchtap="applyConstraintPlan"
-        >
-          {{constraintAdjusting || previewing
-            ? '正在获取后台路线…'
-            : (additionMode === 'TIME' ? '按时间自动计算客户' : '按距离自动计算客户')}}
-        </view>
-        <text class="constraint-footnote">这里只生成路线预览，点击底部“确认这条路线”后才会正式保存。</text>
-      </view>
-
-      <view class="constraint-result" wx:if="{{constraintResult}}">
-        <text class="constraint-result-mark">✓</text>
-        <view class="constraint-result-copy">
-          <text class="constraint-result-title">{{constraintResult.modeLabel}}自动计算完成</text>
-          <text class="constraint-result-text">新增 {{constraintResult.addedCount}} 位、移除 {{constraintResult.removedCount}} 位后续加入的客户，当前共 {{constraintResult.plannedCount}} 位；后台路线已重新试算。</text>
-        </view>
-      </view>
-
-      <view class="customer-candidate-list" wx:if="{{additionMode === 'SEARCH' && filteredAddableStops.length > 0}}">
+      <view class="customer-candidate-list" wx:if="{{filteredAddableStops.length > 0}}">
         <view class="customer-candidate-item" wx:for="{{filteredAddableStops}}" wx:key="stopKey">
           <view class="customer-candidate-main">
             <view class="customer-candidate-title-row">
@@ -314,21 +180,33 @@
         </view>
       </view>
 
-      <view class="customer-candidate-empty" wx:elif="{{additionMode === 'SEARCH' && customerSearchText}}">
+      <view class="customer-candidate-empty" wx:elif="{{customerSearchText}}">
         没有找到匹配的待分配客户
       </view>
-      <view class="customer-candidate-empty" wx:elif="{{additionMode === 'SEARCH' && candidatePoolCount === 0}}">
+      <view class="customer-candidate-empty" wx:elif="{{candidatePoolCount === 0}}">
         当前没有可以加入这条路线的客户
       </view>
-      <text class="customer-candidate-more" wx:if="{{additionMode === 'SEARCH' && !customerSearchText && candidatePoolCount > filteredAddableStops.length}}">
+      <text class="customer-candidate-more" wx:if="{{!customerSearchText && candidatePoolCount > filteredAddableStops.length}}">
         还有 {{candidatePoolCount - filteredAddableStops.length}} 个候选，输入名称可快速查找
       </text>
+    </view>
+
+    <view class="route-expansion-card" wx:if="{{!pageViewModel.manualDispatchMode}}">
+      <view class="route-expansion-copy">
+        <text class="route-expansion-title">AI 补充客户</text>
+        <text class="route-expansion-subtitle">保留当前人工路线，只从未分配客户池寻找顺路客户</text>
+      </view>
+      <view
+        class="route-expansion-action {{expandingRoute || routeDirty || previewing ? 'is-disabled' : ''}}"
+        catchtap="onAiExpandRoute"
+      >{{expandingRoute ? '计算中…' : '生成建议'}}</view>
     </view>
 
     <view class="route-edit-help-card">
       <text class="route-edit-help-title">编辑说明</text>
       <text class="route-edit-help-line">• 上移、下移、添加或移除门店后会自动重新试算。</text>
-      <text class="route-edit-help-line">• 按时间或距离会先自动筛选客户，再由后台获取实际路线距离和到达时间。</text>
+      <text class="route-edit-help-line">• 小程序只提交人工确定的客户顺序，不在本地估算距离或时间。</text>
+      <text class="route-edit-help-line">• 道路距离、驾驶时间和预计到达均由后台 Huawei 道路服务计算。</text>
       <text class="route-edit-help-line">• 地图、预计到达和店与店之间的距离都会同步刷新。</text>
       <text class="route-edit-help-line">• 确认后只保存当前司机的这条路线。</text>
     </view>
@@ -341,14 +219,130 @@
         {{previewing ? '计算中…' : '重新计算'}}
       </view>
       <view
-        class="bottom-btn {{confirmReady && !routeDirty && additionMode === 'SEARCH' && !constraintAdjusting ? 'bottom-btn-primary' : 'bottom-btn-disabled'}}"
+        class="bottom-btn {{confirmReady && !routeDirty ? 'bottom-btn-primary' : 'bottom-btn-disabled'}}"
         catchtap="onBottomConfirm"
       >{{pageViewModel.manualDispatchMode ? '确认排单' : '确认这条路线'}}</view>
     </view>
-    <view class="bottom-action-hint" wx:if="{{additionMode !== 'SEARCH'}}">先完成或取消上方的时间、距离调整，再确认路线</view>
-    <view class="bottom-action-hint" wx:elif="{{routeDirty}}">请等待后台完成路线试算后再确认</view>
+    <view class="bottom-action-hint" wx:if="{{routeDirty}}">请等待后台完成路线试算后再确认</view>
     <view class="bottom-action-hint" wx:elif="{{pageViewModel.actions.confirmDisabledReason && !confirmReady}}">{{pageViewModel.actions.confirmDisabledReason}}</view>
     <view class="bottom-action-hint" wx:elif="{{pageViewModel.bottomHint}}">{{pageViewModel.bottomHint}}</view>
+  </view>
+
+  <view
+    class="ai-review-mask"
+    wx:if="{{expansionReviewVisible && expansionReview}}"
+    catchtap="onCancelExpansionReview"
+    catchtouchmove="stopExpansionReviewEvent"
+  >
+    <view class="ai-review-sheet" catchtap="stopExpansionReviewEvent">
+      <view class="ai-review-header">
+        <view class="ai-review-heading">
+          <text class="ai-review-eyebrow">AI 路线增补建议</text>
+          <text class="ai-review-title">先看清变化，再决定是否采用</text>
+          <text class="ai-review-summary">{{expansionReview.summary}}</text>
+        </view>
+        <view class="ai-review-close" catchtap="onCancelExpansionReview">×</view>
+      </view>
+
+      <scroll-view class="ai-review-body" scroll-y="true" enhanced="true" show-scrollbar="false">
+        <view class="ai-review-section">
+          <view class="ai-review-section-head">
+            <text class="ai-review-section-title">原路线</text>
+            <text class="ai-review-section-count">{{expansionReview.originalStops.length}} 家人工保留</text>
+          </view>
+          <scroll-view class="ai-route-flow-scroll" scroll-x="true" show-scrollbar="false">
+            <view class="ai-route-flow">
+              <view
+                class="ai-route-chip"
+                wx:for="{{expansionReview.originalStops}}"
+                wx:key="stopKey"
+              >
+                <text class="ai-route-chip-seq">{{item.seq}}</text>
+                <text class="ai-route-chip-name">{{item.customerName}}</text>
+              </view>
+              <text class="ai-route-empty" wx:if="{{!expansionReview.originalStops.length}}">当前没有人工保留客户</text>
+            </view>
+          </scroll-view>
+        </view>
+
+        <view class="ai-review-section ai-review-section-added">
+          <view class="ai-review-section-head">
+            <text class="ai-review-section-title">AI 新增客户</text>
+            <text class="ai-review-section-count ai-review-count-added">{{expansionReview.addedStops.length}} 家</text>
+          </view>
+          <view class="ai-added-list" wx:if="{{expansionReview.addedStops.length}}">
+            <view class="ai-added-item" wx:for="{{expansionReview.addedStops}}" wx:key="stopKey">
+              <text class="ai-added-mark">+</text>
+              <text class="ai-added-name">{{item.customerName}}</text>
+              <text class="ai-added-label">来自未分配池</text>
+            </view>
+          </view>
+          <view class="ai-added-empty" wx:else>当前能力范围内没有适合补充的客户</view>
+        </view>
+
+        <view class="ai-review-section">
+          <view class="ai-review-section-head">
+            <text class="ai-review-section-title">最终建议路线</text>
+            <text class="ai-review-section-count">保持原客户相对顺序</text>
+          </view>
+          <view class="ai-final-route">
+            <view class="ai-final-stop" wx:for="{{expansionReview.finalStops}}" wx:key="stopKey">
+              <view class="ai-final-stop-seq {{item.isAiAdded ? 'is-added' : ''}}">{{item.seq}}</view>
+              <view class="ai-final-stop-copy">
+                <text class="ai-final-stop-name">{{item.customerName}}</text>
+                <text class="ai-final-stop-source {{item.isAiAdded ? 'is-added' : ''}}">{{item.sourceLabel}}</text>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view class="ai-review-section">
+          <view class="ai-review-section-head">
+            <text class="ai-review-section-title">路线指标变化</text>
+            <text class="ai-review-section-count">Huawei 道路数据</text>
+          </view>
+          <view class="ai-metric-table">
+            <view class="ai-metric-head">
+              <text>指标</text>
+              <text>原路线</text>
+              <text>建议后</text>
+              <text>变化</text>
+            </view>
+            <view class="ai-metric-row" wx:for="{{expansionReview.metrics}}" wx:key="key">
+              <text class="ai-metric-label">{{item.label}}</text>
+              <text>{{item.beforeLabel}}</text>
+              <text class="ai-metric-after">{{item.afterLabel}}</text>
+              <text class="ai-metric-delta">{{item.deltaLabel}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="ai-review-section" wx:if="{{expansionReview.notSelectedStops.length}}">
+          <view class="ai-review-section-head">
+            <text class="ai-review-section-title">未采用客户</text>
+            <text class="ai-review-section-count">{{expansionReview.notSelectedStops.length}} 家</text>
+          </view>
+          <view class="ai-not-selected-list">
+            <view class="ai-not-selected-item" wx:for="{{expansionReview.notSelectedStops}}" wx:key="stopKey">
+              <text class="ai-not-selected-name">{{item.customerName}}</text>
+              <text class="ai-not-selected-reason">{{item.reason}}</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="ai-review-safety">
+          AI 只新增客户，不会删除、换司机或打乱人工路线。采用后仍需点击“确认这条路线”。
+        </view>
+      </scroll-view>
+
+      <view class="ai-review-actions">
+        <view class="ai-review-btn ai-review-btn-cancel" catchtap="onCancelExpansionReview">保持原路线</view>
+        <view
+          class="ai-review-btn {{expansionReview.hasAddedStops ? 'ai-review-btn-adopt' : 'ai-review-btn-disabled'}}"
+          catchtap="onAdoptExpansionProposal"
+        >{{expansionReview.hasAddedStops ? '采用建议' : '暂无可采用客户'}}</view>
+      </view>
+    </view>
   </view>
 
   <time-window-editor

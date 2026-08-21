@@ -20,7 +20,8 @@ import {
   deleteDisPurBatchItem,
   updatePasteBatch,
   deleteDisBatch,
-  disGetOfferDis
+  disGetOfferDis,
+  disFinishPurchaseBatch
 } from '../../../lib/apiDepOrder'
 
 Component({
@@ -2396,7 +2397,7 @@ Component({
       var batch = {
         nxDpbDistributerId: this.data.disId,
         nxDPGEntities: arr,
-        nxDPBPurUserId: this.data.userInfo.nxDistributerUserId,
+        nxDpbPurUserId: this.data.userInfo.nxDistributerUserId,
         nxDpbPurchaseType: 3,
       }
       
@@ -2418,34 +2419,27 @@ Component({
           that.setData({
             selectedArr: []
           })
-          console.log("batchId=" + res.result.data + "&retName=" + that.data.disInfo.nxDistributerName + "&disId=" + that.data.disId + "&purUserId=" + that.data.userInfo.nxDistributerUserId + '&fromBuyer=1')
-          wx.navigateTo({
-            url: 'url',
-          })
 
           wx.navigateToMiniProgram({
             appId: 'wx1ea78d3f33234284',
-            path: 'pages/txs/prepareBatch/prepareBatch?batchId=' + res.result.data + '&retName=' + that.data.disInfo.nxDistributerName + '&disId=' + that.data.disId + '&purUserId=' + that.data.userInfo.nxDistributerUserId + '&fromBuyer=1',
-            envVersion: 'trial', //release  develop  trial
+            path: '/pages/txs/prepareBatch/prepareBatch?batchId=' + encodeURIComponent(res.result.data) +
+              '&retName=' + encodeURIComponent((that.data.disInfo && that.data.disInfo.nxDistributerName) || '') +
+              '&disId=' + encodeURIComponent(that.data.disId) +
+              '&purUserId=' + encodeURIComponent(that.data.userInfo.nxDistributerUserId) +
+              '&fromBuyer=1&fromBoss=1&sourceEnv=boss',
+            envVersion: 'trial',
             success(res) {
               
             },
-            fail() {
-              console.log("shisbsiisisiididiid==", res.result.data);
-              
-              deleteDisBatch(res.result.data)
-              .then(res => {
-                if (res.result.code == 0) {
-                  
-                //  that._initData();
-                }
-              })
+            fail(err) {
+              console.error('打开精彩订货失败，采购批次已保留:', err);
               wx.showToast({
-                title: '没有订货',
+                title: '批次已保存，请稍后重试分享',
                 icon: 'none'
               });
             },
           })
+
 
           } else {
             wx.showToast({
@@ -2456,21 +2450,62 @@ Component({
         })
     },
 
-    // 点击批次「分享/卖家」按钮：打开「精彩订货 AI」小程序，按 batchId 打开对应批次页
+    // 点击批次中的供货方入口，打开精彩订货批次详情。
     toShareBatch(e) {
       var id = e.currentTarget.dataset.id;
-      console.log("toShareBatch batchId=" + id + "&retName=" + this.data.disInfo.nxDistributerName + "&disId=" + this.data.disId + "&purUserId=" + this.data.userInfo.nxDistributerUserId + "&buyUserId=" + this.data.userInfo.nxDistributerUserId + "&fromBuyer=1&fromBoss=1")
+      var retName = (this.data.disInfo && this.data.disInfo.nxDistributerName) || '';
+      var purUserId = this.data.userInfo && this.data.userInfo.nxDistributerUserId;
+      console.log("toShareBatch batchId=" + id + "&retName=" + retName + "&disId=" + this.data.disId + "&purUserId=" + purUserId + "&fromBuyer=1&fromBoss=1")
       wx.navigateToMiniProgram({
         appId: 'wx1ea78d3f33234284',
-        path: 'pages/txs/disOrderBatch/disOrderBatch?batchId=' + id + '&retName=' + this.data.disInfo.nxDistributerName + '&disId=' + this.data.disId + '&purUserId=' + this.data.userInfo.nxDistributerUserId + '&buyUserId=' + this.data.userInfo.nxDistributerUserId + '&fromBuyer=1&fromBoss=1',
-        envVersion: 'trial', //release  develop  trial
+        path: '/pages/txs/disOrderBatch/disOrderBatch?batchId=' + encodeURIComponent(id) +
+          '&retName=' + encodeURIComponent(retName) +
+          '&disId=' + encodeURIComponent(this.data.disId) +
+          '&purUserId=' + encodeURIComponent(purUserId) +
+          '&fromBuyer=1&fromBoss=1&sourceEnv=boss',
+        envVersion: 'trial',
         success(res) {
 
         },
-        fail() {
-
+        fail(err) {
+          console.error('打开精彩订货批次详情失败:', err);
+          wx.showToast({
+            title: '暂时无法打开精彩订货',
+            icon: 'none'
+          });
         },
       })
+    },
+
+    // 供货商已经回复数量和价格后，由老板确认本次订货完成。
+    showFinish(e) {
+      var batch = e.currentTarget.dataset.item;
+      if (!batch || batch.nxDpbStatus != 1) {
+        wx.showToast({ title: '订单状态已变化，请刷新', icon: 'none' });
+        return;
+      }
+      wx.showModal({
+        title: '确认收货',
+        content: '确认供货商填写的数量、单价和总额无误，并完成本次订货吗？',
+        confirmText: '确认完成',
+        success: (modalRes) => {
+          if (!modalRes.confirm) return;
+          load.showLoading('确认订货');
+          disFinishPurchaseBatch(batch).then(res => {
+            load.hideLoading();
+            if (res.result.code == 0) {
+              wx.showToast({ title: '订货已完成', icon: 'success' });
+              this._getPurchasingBatch();
+            } else {
+              wx.showToast({ title: res.result.msg || '确认失败', icon: 'none' });
+              this._getPurchasingBatch();
+            }
+          }).catch(err => {
+            load.hideLoading();
+            console.error('确认订货失败:', err);
+          });
+        }
+      });
     },
 
 

@@ -49,9 +49,10 @@
 
     <view bindtap="toCustomerPage" data-item="{{item}}" hover-class="hover" data-type="0" class="border-bottom flex-row-between bg-white p-20" wx:for="{{myCustomerArrOne}}">
       <view class="flex-column" >
-        <view class="flex-row">
+        <view class="flex-row flex-wrap">
           <text class="mr-20">{{index + 1}}.</text>
           <text class='font-lg'>{{item.nxDepartmentAttrName}}</text>
+          <text class="customer-status-tag" wx:if="{{item.nxDepartmentWorkingStatus !== 0}}">未开通</text>
         </view>
         <view class="flex-row-between">
           <text class="mr-20 text-white">{{index + 1}}.</text>
@@ -60,25 +61,8 @@
             <view class="flex-row-between" style="width: {{windowWidth - 140}}rpx; ">
              
               <view class="flex-row half-row">
-                <text class="mr-10 text-secondary">配送单格式:</text>
-                <block wx:if="{{item.nxDepartmentPrintName == 'ApplyPanel'}}">
-                  <text class="">一张一列</text>
-                </block>
-                <block wx:elif="{{item.nxDepartmentPrintName == 'ApplyFiftyPanel'}}">
-                  <text class="">一张二列</text>
-                </block>
-                <block wx:elif="{{item.nxDepartmentPrintName == 'ApplyHalfWholePanel'}}">
-                  <text class="">半张一列</text>
-                </block>
-                <block wx:elif="{{item.nxDepartmentPrintName == 'ApplyHalfPanel'}}">
-                  <text class="">半张两列</text>
-                </block>
-                <block wx:elif="{{item.nxDepartmentPrintName == 'ApplyThirtyWholePanel'}}">
-                  <text class="">三分之一张一列</text>
-                </block>
-                <block wx:elif="{{item.nxDepartmentPrintName == 'ApplyThirtyPanel'}}">
-                  <text class="">三分之一张两列</text>
-                </block>
+                <text class="mr-10 text-secondary">经营业态:</text>
+                <text class="">{{item.nxDepartmentBusinessTypeName ? item.nxDepartmentBusinessTypeName : '未设置'}}</text>
               </view>
 
               <view class="flex-row half-row">
@@ -93,14 +77,6 @@
             </view>
 
             </view>
-
-            <view class="flex-row-between" style="width: {{windowWidth - 160}}rpx; " wx:if="{{item.nxDepartmentWorkingStatus !== 0}}">
-              <view class="flex-row ">
-                <text class="mr-10 text-secondary">未开通</text>
-              </view>
-              <switch bindchange="openDep" data-item="{{item}}" />
-            </view>
-
 
           </view>
         </view>
@@ -137,25 +113,8 @@
             <view class="flex-row-between" style="width: {{windowWidth - 160}}rpx; ">
              
               <view class="flex-row half-row">
-                <text class="mr-10 text-secondary">配送单格式:</text>
-                <block wx:if="{{item.nxDepartmentPrintName == 'ApplyPanel'}}">
-                  <text class="">一张一列</text>
-                </block>
-                <block wx:elif="{{item.nxDepartmentPrintName == 'ApplyFiftyPanel'}}">
-                  <text class="">一张二列</text>
-                </block>
-                <block wx:elif="{{item.nxDepartmentPrintName == 'ApplyHalfWholePanel'}}">
-                  <text class="">半张一列</text>
-                </block>
-                <block wx:elif="{{item.nxDepartmentPrintName == 'ApplyHalfPanel'}}">
-                  <text class="">半张两列</text>
-                </block>
-                <block wx:elif="{{item.nxDepartmentPrintName == 'ApplyThirtyWholePanel'}}">
-                  <text class="">三分之一张一列</text>
-                </block>
-                <block wx:elif="{{item.nxDepartmentPrintName == 'ApplyThirtyPanel'}}">
-                  <text class="">三分之一张两列</text>
-                </block>
+                <text class="mr-10 text-secondary">经营业态:</text>
+                <text class="">{{item.nxDepartmentBusinessTypeName ? item.nxDepartmentBusinessTypeName : '未设置'}}</text>
               </view>
               <view class="flex-row half-row">
               <view class="flex-row-default">

@@ -1,6 +1,7 @@
 
 import { 
   saveOneCustomer, 
+  getDisUsers,
 } from '../../../../lib/apiDistributer'
 
 
@@ -19,6 +20,12 @@ Page({
     customerName: '',
     labelPrintName: '',
     orderName: '',
+    salesUsers: [],
+    clerkUsers: [],
+    salesIndex: -1,
+    clerkIndex: -1,
+    salesUserId: null,
+    clerkUserId: null,
   },
 
 
@@ -29,6 +36,7 @@ Page({
    */
   onLoad: function (options) {
     const globalData = getApp().globalData;
+    const owner = wx.getStorageSync('userInfo') || {};
   
     this.setData({
      
@@ -37,9 +45,70 @@ Page({
       windowHeight: globalData.windowHeight * globalData.rpxR,
       navBarHeight: globalData.navBarHeight  * globalData.rpxR,
       disId: options.disId,
+      fallbackOwner: owner,
       
     })
+    this._loadResponsibleUsers();
+  },
 
+  _loadResponsibleUsers() {
+    getDisUsers(this.data.disId).then(res => {
+      if (!res.result || res.result.code != 0) {
+        wx.showToast({ title: (res.result && res.result.msg) || '员工列表加载失败', icon: 'none' });
+        return;
+      }
+      var sales = res.result.data.sales || [];
+      var clerks = res.result.data.clerks || [];
+      var admins = res.result.data.admins || [];
+      var cachedOwner = wx.getStorageSync('userInfo') || {};
+      var fallbackOwner = admins.find(item =>
+        item.nxDistributerUserId == cachedOwner.nxDistributerUserId) || admins[0] || cachedOwner;
+      var update = { salesUsers: sales, clerkUsers: clerks, fallbackOwner: fallbackOwner };
+      if (sales.length === 1) {
+        update.salesIndex = 0;
+        update.salesUserId = sales[0].nxDistributerUserId;
+      }
+      if (clerks.length === 1) {
+        update.clerkIndex = 0;
+        update.clerkUserId = clerks[0].nxDistributerUserId;
+      }
+      if (!update.clerkUserId && update.salesUserId) {
+        var defaultClerkId = sales[update.salesIndex].nxDiuDefaultClerkUserId;
+        var defaultClerkIndex = clerks.findIndex(item =>
+          item.nxDistributerUserId == defaultClerkId);
+        if (defaultClerkIndex >= 0) {
+          update.clerkIndex = defaultClerkIndex;
+          update.clerkUserId = clerks[defaultClerkIndex].nxDistributerUserId;
+        }
+      }
+      this.setData(update);
+      this._ifCanSave();
+    }).catch(() => {
+      wx.showToast({ title: '员工列表加载失败', icon: 'none' });
+    });
+  },
+
+  onSalesChange(e) {
+    var index = Number(e.detail.value);
+    var user = this.data.salesUsers[index];
+    var update = { salesIndex: index, salesUserId: user && user.nxDistributerUserId };
+    if (user && user.nxDiuDefaultClerkUserId) {
+      var clerkIndex = this.data.clerkUsers.findIndex(item =>
+        item.nxDistributerUserId == user.nxDiuDefaultClerkUserId);
+      if (clerkIndex >= 0) {
+        update.clerkIndex = clerkIndex;
+        update.clerkUserId = this.data.clerkUsers[clerkIndex].nxDistributerUserId;
+      }
+    }
+    this.setData(update);
+    this._ifCanSave();
+  },
+
+  onClerkChange(e) {
+    var index = Number(e.detail.value);
+    var user = this.data.clerkUsers[index];
+    this.setData({ clerkIndex: index, clerkUserId: user && user.nxDistributerUserId });
+    this._ifCanSave();
   },
 
    
@@ -216,6 +285,8 @@ toSave(e){
   }
   var dep = {  
     nxDdDistributerId: this.data.disId,
+    salesUserId: this.data.salesUserId,
+    clerkUserId: this.data.clerkUserId,
     nxDepartmentEntity: {
       nxDepartmentFatherId: 0,
       nxDepartmentName: this.data.customerName || this.data.inputValue,

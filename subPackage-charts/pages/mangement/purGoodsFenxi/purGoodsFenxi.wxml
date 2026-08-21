@@ -1,32 +1,20 @@
-<wxs src="../../../../utils/fn.wxs" module="tool" />
+
 
 
 <view class="flex flex-column">
   <back-navbar style="height: {{navBarHeight}}rpx;" title="采购分析" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
  <!--  top -->
- <view class=" flex-row-between pl-20 pr-20 border-bottom bg-white">
-    <view class="flex-row">
-      <view class="p-20" bindtap="toDatePageSearch">
-        <image src="../../../../images/calender.png" class="icon"></image>
-      </view>
-      <view class="flex-column pt-10 font-xs">
-        <view class="font-yuan">{{hanzi}}</view>
-        <view class="flex-row" wx:if="{{startDate == stopDate}}">
-          <view class=" font-xs" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
-        </view>
-        <view class="flex-row" wx:else>
-          <view class="" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
-          <text class="plr-10">-</text>
-          <view class="" wx:if="{{stopDate}}">{{tool.transferDateString(stopDate)}}</view>
-        </view>
-      </view>
-    </view>
-
-    <!-- <view class="flex-row p-20" bindtap="toFilterType">
-      <image src="{{searchDepId !== -1 ? '../../../../images/filter.png' : '../../../../images/filter-3-fill.png'}}" class="icon mr-20"></image>
-    </view> -->
-  </view>
+ <view class="date-bar bg-white border-bottom">
+   <image src="../../../../images/calender.png" class="date-icon"></image>
+   <picker mode="date" value="{{startDate}}" bindchange="onStartDateChange" class="date-picker">
+     <view class="date-value">{{startDate}}</view>
+   </picker>
+   <text class="date-sep">至</text>
+   <picker mode="date" value="{{stopDate}}" bindchange="onEndDateChange" class="date-picker">
+     <view class="date-value">{{stopDate}}</view>
+   </picker>
+ </view>
 
 
 

@@ -5,6 +5,25 @@
 
   <view class='p-20 ' style='background:white; margin-top: {{navBarHeight}}rpx;'>
 
+    <view class="responsibility-card">
+      <view class="responsibility-title">客户负责人</view>
+      <view class="responsibility-row">
+        <text>业务员</text>
+        <picker wx:if="{{salesUsers.length > 0}}" mode="selector" range="{{salesUsers}}" range-key="nxDiuWxNickName" value="{{salesIndex}}" bindchange="onSalesChange">
+          <view class="responsibility-picker">{{salesUserName || '当前老板'}}{{salesOwnerManaged ? '（老板代管）' : ''}}</view>
+        </picker>
+        <view wx:else class="responsibility-picker">{{salesUserName || '当前老板'}}（老板代管）</view>
+      </view>
+      <view class="responsibility-row">
+        <text>录单员</text>
+        <picker wx:if="{{clerkUsers.length > 0}}" mode="selector" range="{{clerkUsers}}" range-key="nxDiuWxNickName" value="{{clerkIndex}}" bindchange="onClerkChange">
+          <view class="responsibility-picker">{{clerkUserName || '当前老板'}}{{clerkOwnerManaged ? '（老板代管）' : ''}}</view>
+        </picker>
+        <view wx:else class="responsibility-picker">{{clerkUserName || '老板'}}（老板代管）</view>
+      </view>
+      <view class="responsibility-save" bindtap="saveResponsibility">保存负责人</view>
+    </view>
+
     <view class="flex-row font-lg p-20">
       <text class="mr-10">订货部门:</text>
       <view class="flex-column">

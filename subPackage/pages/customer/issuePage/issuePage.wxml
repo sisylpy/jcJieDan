@@ -76,14 +76,10 @@
 				
 				
 				</view>
-        <view class="flex-row p-20" wx:if="{{bill.nxDbStatus == 0}}"  bindtap="openOperation"  data-item="{{orders}}" data-index="{{index}}">
+						<view class="flex-row p-20" wx:if="{{bill.nxDbStatus == 0 || orders.afterSalesEntryVisible}}" bindtap="openOperation" data-item="{{orders}}" data-index="{{index}}">
 							<image src="../../../../images/points.png" class="icon-md "></image>
 						</view>
 			</view>
-
-        <view class="after-sales-order-entry" wx:if="{{orders.afterSalesEntryVisible}}" bindtap="toCreateAfterSales" data-order-id="{{orders.nxDepartmentOrdersId}}">
-          <text>售后 · 记录问题</text>
-        </view>
 
        <view class="flex-row" wx:if="{{orders.nxDoReturnStatus !== null }}">
         <text class="white">{{index + 1}}.</text>
@@ -127,17 +123,12 @@
           </view>
         </view>
 
-        <view class="flex-row p-20" wx:if="{{bill.nxDbStatus == 0}}" bindtap="openOperation"  data-item="{{orders}}" data-index="{{index}}" data-depindex="{{depIndex}}">
+						<view class="flex-row p-20" wx:if="{{bill.nxDbStatus == 0 || orders.afterSalesEntryVisible}}" bindtap="openOperation" data-item="{{orders}}" data-index="{{index}}" data-depindex="{{depIndex}}">
 							<image src="../../../../images/points.png" class="icon-md "></image>
 						</view>
 				
 					
 				</view>
-
-        <view class="after-sales-order-entry" wx:if="{{orders.afterSalesEntryVisible}}" bindtap="toCreateAfterSales" data-order-id="{{orders.nxDepartmentOrdersId}}">
-          <text>售后 · 记录问题</text>
-        </view>
-
 <!--  -->
 			 </view>
 		</view>	
@@ -195,14 +186,19 @@
 <view class='overlay {{showOperation ? "show" : ""}}' catchtouchmove='ture' catchtap="hideMask" >
   <view class="flex-column nnn bg-white" wx:if="{{chooseSize}}" animation='{{animationData}}'>
 
-    <view class="p-20 flex-row border-bottom" bindtap="editBill">
+    <view class="p-20 flex-row border-bottom" wx:if="{{bill.nxDbStatus == 0}}" bindtap="editBill">
       <image src="../../../../images/edit.png" class="icon mr-20 ml-20"></image>
       <text class="font-md">修改单据数量</text>
     </view>
 
-    <view class="p-20 flex-row " bindtap="addReturn"> 
+    <view class="p-20 flex-row {{item.afterSalesEntryVisible ? 'border-bottom' : ''}}" wx:if="{{bill.nxDbStatus == 0}}" bindtap="addReturn">
       <image src="../../../../images/BusinessIcons_DocPaper-.png" class="icon mr-20 ml-20"></image>
       <text class="font-md {{item.nxDoReturnStatus == null || item.nxDoReturnStatus == 0 ? '' : 'text-secondary'}}">添加退货</text>
+    </view>
+
+    <view class="p-20 flex-row" wx:if="{{item.afterSalesEntryVisible}}" bindtap="createAfterSalesFromOperation">
+      <image src="../../../../images/record.png" class="icon mr-20 ml-20"></image>
+      <text class="font-md">记录售后问题</text>
     </view>
 
     <view style="height: 20rpx;"></view>

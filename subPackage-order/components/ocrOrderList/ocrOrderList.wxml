@@ -150,219 +150,173 @@
             placeholder-style="font-size: 24rpx; color: #999;" />
         </view>
 
-        <!-- 订单带的配送商商品列表 -->
-        <view class="flex-column"
-          wx:if="{{orderArrIndex == orderIndex && item.nxDoStatus !== 0 && item.nxDoIsAgent == '2' && item.nxDoQuantity !== '' && item.nxDoStandard !== '' }}">
-          <view class="flex-row-between font-xs p-20 mt-10" style="background-color: #eeee ;"
-            wx:if="{{nxArr.length == 0 && strArr.length == 0}}">
-            <view class="flex-column"
-              wx:if="{{item.nxDistributerGoodsEntityList.length > 0 ||item.nxGoodsEntities.length > 0}}">
-              <view class="flex-row">
-                <text class="text-secondary">配送商品:</text>
-                <text class="mr-10">{{item.nxDistributerGoodsEntityList.length}}个 </text>
-                <text class="text-secondary">新商品:</text>
-                <text>{{item.nxGoodsEntities.length}}个 </text>
+        <!-- 自动推荐的商品匹配结果 -->
+        <view class="match-panel"
+          wx:if="{{orderArrIndex == orderIndex && item.nxDoStatus !== 0 && item.nxDoIsAgent == '2' && item.nxDoQuantity !== '' && item.nxDoStandard !== '' && nxArr.length == 0 && strArr.length == 0}}">
+          <view class="match-panel-header">
+            <view class="match-heading">
+              <text class="match-title">请选择匹配商品</text>
+              <view class="match-counts">
+                <text class="match-count-pill is-saved">已有商品 {{item.nxDistributerGoodsEntityList.length}}</text>
+                <text class="match-count-pill is-new">可新增 {{item.nxGoodsEntities.length}}</text>
               </view>
             </view>
-
-            <text class="" wx:if="{{item.nxDistributerGoodsEntityList.length > 0 ||item.nxGoodsEntities.length > 0}}" bind:tap="onShowGoodsList" data-index="{{orderIndex}}">关闭</text>
-              <view wx:else="" class="flex-column-center p-20 text-secondary font-xs">暂无匹配商品</view> 
+            <view class="match-close-button" bind:tap="onShowGoodsList" data-index="{{orderIndex}}">
+              <text>收起</text><text class="match-close-arrow">⌃</text>
+            </view>
           </view>
-         
-          <scroll-view scroll-y="true"
-            style="max-height: 400rpx; width: {{windowWidth - 136}}rpx; margin-top: 12rpx; z-index: 9999999; ">
-            <view class="flex-column"
-              wx:if="{{item.nxDistributerGoodsEntityList && item.nxDistributerGoodsEntityList.length > 0 && strArr.length == 0 && nxArr.length == 0}}"
-              style="width: {{windowWidth - 140}}rpx; ">
 
-              <view class="flex-row-between p-20 " wx:for="{{item.nxDistributerGoodsEntityList}}"
-                wx:for-item="orderGoods" wx:for-index="orderGoodsIndex" wx:key="nxDistributerGoodsId"
-                style="width:{{windowWidth - 180}}rpx;  border-bottom: 1px solid #979797;  align-items: center; box-sizing: border-box;">
+          <view class="match-empty"
+            wx:if="{{item.nxDistributerGoodsEntityList.length == 0 && item.nxGoodsEntities.length == 0}}">
+            <text class="match-empty-title">没有找到合适商品</text>
+            <text class="match-empty-tip">可修改上方商品名称后重新搜索</text>
+          </view>
 
-                <view class="flex-column">
-
-                  <view class="flex-row-wrap flex-1 font-s" style="width: {{windowWidth - 320}}rpx;  ">
-                    <text class="mr-10">{{orderGoodsIndex + 1}}.</text>
-                    <block wx:if="{{orderGoods.nxDgDistributerId !== disId}}">
-                      <text class="font-xs mainColor">[{{orderGoods.nxDgDistributerName}}]</text>
-                    </block>
-                    <block wx:if="{{orderGoods.nxDgGoodsBrand !== 'null' && orderGoods.nxDgGoodsBrand.length > 0}}">
-                      <text class="brand">{{orderGoods.nxDgGoodsBrand}}</text>
-                    </block>
-                    <text class="mr-10">{{orderGoods.nxDgGoodsName}}</text>
-                    <block
-                      wx:if="{{orderGoods.nxDgGoodsStandardWeight !== 'null' && orderGoods.nxDgGoodsStandardWeight.length > 0}}">
-                      <text
-                        class="">({{orderGoods.nxDgGoodsStandardWeight}}/{{orderGoods.nxDgGoodsStandardname}})</text>
-                    </block>
-                    <block wx:else>
-                      <text class="">({{orderGoods.nxDgGoodsStandardname}})</text>
-                    </block>
+          <scroll-view scroll-y="true" class="match-scroll"
+            wx:if="{{item.nxDistributerGoodsEntityList.length > 0 || item.nxGoodsEntities.length > 0}}">
+            <!-- 配送商中已经存在的商品：直接选用 -->
+            <view wx:if="{{item.nxDistributerGoodsEntityList.length > 0}}" class="match-section">
+              <view class="match-section-heading">
+                <text class="match-section-title">已有配送商品</text>
+                <text class="match-section-tip">可直接选用</text>
+              </view>
+              <view class="match-candidate" wx:for="{{item.nxDistributerGoodsEntityList}}"
+                wx:for-item="orderGoods" wx:for-index="orderGoodsIndex" wx:key="nxDistributerGoodsId">
+                <text class="match-index">{{orderGoodsIndex + 1}}</text>
+                <view class="match-candidate-main">
+                  <view class="match-name-line">
+                    <text wx:if="{{orderGoods.nxDgDistributerId !== disId}}"
+                      class="match-distributor">{{orderGoods.nxDgDistributerName}}</text>
+                    <text wx:if="{{orderGoods.nxDgGoodsBrand !== 'null' && orderGoods.nxDgGoodsBrand.length > 0}}"
+                      class="match-brand">{{orderGoods.nxDgGoodsBrand}}</text>
+                    <text class="match-name">{{orderGoods.nxDgGoodsName}}</text>
+                    <text wx:if="{{orderGoods.nxDgGoodsStandardWeight !== 'null' && orderGoods.nxDgGoodsStandardWeight.length > 0}}"
+                      class="match-standard">{{orderGoods.nxDgGoodsStandardWeight}}/{{orderGoods.nxDgGoodsStandardname}}</text>
+                    <text wx:else class="match-standard">{{orderGoods.nxDgGoodsStandardname}}</text>
                   </view>
-                  <block wx:if="{{orderGoods.departmentDisGoodsEntity !== null}}">
-                    <view class="flex-row font-xs p-10"
-                      style="width: {{windowWidth - 340}}rpx; margin-left: 10rpx; background-color: rgb(0, 128, 233); color: #FFF; border-radius: 10rpx;">
-                      <view class="flex-row third-row">
-                        <text>{{tool.transferDateString(orderGoods.departmentDisGoodsEntity.nxDdgOrderDate)}}</text>
-                      </view>
-                      <view class="flex-row third-row">
-                        <text>单价:</text>
-                        <text>{{orderGoods.departmentDisGoodsEntity.nxDdgOrderPrice}}/{{orderGoods.nxDgGoodsStandardname}}</text>
-                      </view>
-                      <view class="flex-row third-row">
-                        <text>订货:</text>
-                        <text>{{orderGoods.departmentDisGoodsEntity.nxDdgOrderQuantity}}{{orderGoods.departmentDisGoodsEntity.nxDdgOrderStandard}}</text>
-                      </view>
-                    </view>
-
-                  </block>
-
+                  <view wx:if="{{orderGoods.departmentDisGoodsEntity !== null}}" class="match-history">
+                    <text>上次 {{tool.transferDateString(orderGoods.departmentDisGoodsEntity.nxDdgOrderDate)}}</text>
+                    <text>单价 {{orderGoods.departmentDisGoodsEntity.nxDdgOrderPrice}}/{{orderGoods.nxDgGoodsStandardname}}</text>
+                    <text>订货 {{orderGoods.departmentDisGoodsEntity.nxDdgOrderQuantity}}{{orderGoods.departmentDisGoodsEntity.nxDdgOrderStandard}}</text>
+                  </view>
                 </view>
-
-
-                <text class="bg-success font-xs p-10 radius-10" bindtap="onSaveOrder"
+                <view class="match-action is-select" bindtap="onSaveOrder"
                   data-id="{{orderGoods.nxDistributerGoodsId}}" data-index="{{orderIndex}}"
-                  data-name="{{orderGoods.nxDgGoodsName}}" data-item="{{orderGoods}}">选择</text>
+                  data-name="{{orderGoods.nxDgGoodsName}}" data-item="{{orderGoods}}">选用</view>
               </view>
             </view>
 
-            <!-- 订单带的推荐系统商品列表（无搜索结果时显示） -->
-            <block
-              wx:if="{{item.nxGoodsEntities && item.nxGoodsEntities.length > 0 && orderArrIndex == orderIndex && strArr.length == 0 && nxArr.length == 0}}">
-              <view class="flex-column">
-
-                <view class="border-bottom p-20 flex-row-between" wx:for="{{item.nxGoodsEntities}}" wx:for-item="goods"
-                  wx:for-index="nxIndex" wx:key="nxGoodsId" style="border-bottom: 1px solid gray;">
-                  <view class="flex-row-default font-sl">
-                    <text class="">{{nxIndex + 1}}.</text>
-                    <view class="flex-row-wrap">
-
-                      <text class="brand" wx:if="{{goods.nxGoodsBrand.length > 0 && goods.nxGoodsBrand !== 'null'}}"
-                        style="margin-right: 8rpx;">{{goods.nxGoodsBrand}}</text>
-                      <text class="mr-20">{{goods.nxGoodsName}}</text>
-                      <text class="font-xs text-primary"
-                        wx:if="{{goods.nxAliasEntities && goods.nxAliasEntities.length > 0}}"
-                        wx:for="{{goods.nxAliasEntities}}" wx:for-item="alias"
-                        wx:key="nxDaAliasName">@{{alias.nxAliasName}}</text>
-                      <block
-                        wx:if="{{goods.nxGoodsStandardWeight !== 'null' && goods.nxGoodsStandardWeight.length > 0}}">
-                        <text
-                          class="mr-10 font-md">({{goods.nxGoodsStandardWeight}}/{{goods.nxGoodsStandardname}})</text>
-                      </block>
-                      <block wx:else>
-                        <text class="font-md mr-10">({{goods.nxGoodsStandardname}})</text>
-                      </block>
-                      <text class="small mr-20 gray"
-                        wx:if="{{goods.nxGoodsPlace !== 'null' && goods.nxGoodsPlace.length > 0}}">产地:{{goods.nxGoodsPlace}}</text>
-                      <text class="small gray"
-                        wx:if="{{goods.nxGoodsDetail && goods.nxGoodsDetail.length > 0 && goods.nxGoodsDetail !== 'null'}}">{{goods.nxGoodsDetail}}</text>
-                    </view>
+            <!-- 系统商品：保存为配送商品后自动选用 -->
+            <view wx:if="{{item.nxGoodsEntities.length > 0}}" class="match-section">
+              <view class="match-section-heading">
+                <text class="match-section-title">系统商品</text>
+                <text class="match-section-tip">添加后自动选用</text>
+              </view>
+              <view class="match-candidate" wx:for="{{item.nxGoodsEntities}}" wx:for-item="goods"
+                wx:for-index="nxIndex" wx:key="nxGoodsId">
+                <text class="match-index is-new">{{nxIndex + 1}}</text>
+                <view class="match-candidate-main">
+                  <view class="match-name-line">
+                    <text wx:if="{{goods.nxGoodsBrand.length > 0 && goods.nxGoodsBrand !== 'null'}}"
+                      class="match-brand">{{goods.nxGoodsBrand}}</text>
+                    <text class="match-name">{{goods.nxGoodsName}}</text>
+                    <text wx:if="{{goods.nxGoodsStandardWeight !== 'null' && goods.nxGoodsStandardWeight.length > 0}}"
+                      class="match-standard">{{goods.nxGoodsStandardWeight}}/{{goods.nxGoodsStandardname}}</text>
+                    <text wx:else class="match-standard">{{goods.nxGoodsStandardname}}</text>
                   </view>
-                  <view class="button-container" bindtap="onDownloadGoods" data-index="{{orderIndex}}"
-                    data-item="{{goods}}">
-                    <image src="/images/download.png" mode="aspectFill" class="icon"
-                      style="opacity: 0.7; width: 44rpx; height: 44rpx;" />
+                  <view class="match-meta-line"
+                    wx:if="{{(goods.nxAliasEntities && goods.nxAliasEntities.length > 0) || (goods.nxGoodsPlace !== 'null' && goods.nxGoodsPlace.length > 0) || (goods.nxGoodsDetail && goods.nxGoodsDetail.length > 0 && goods.nxGoodsDetail !== 'null')}}">
+                    <text wx:for="{{goods.nxAliasEntities}}" wx:for-item="alias" wx:key="nxDaAliasName"
+                      class="match-alias">@{{alias.nxAliasName}}</text>
+                    <text wx:if="{{goods.nxGoodsPlace !== 'null' && goods.nxGoodsPlace.length > 0}}">产地 {{goods.nxGoodsPlace}}</text>
+                    <text wx:if="{{goods.nxGoodsDetail && goods.nxGoodsDetail.length > 0 && goods.nxGoodsDetail !== 'null'}}">{{goods.nxGoodsDetail}}</text>
                   </view>
                 </view>
+                <view class="match-action is-add" bindtap="onDownloadGoods" data-index="{{orderIndex}}"
+                  data-item="{{goods}}">
+                  <image src="/images/download.png" mode="aspectFit" class="match-action-icon" />
+                  <text>添加并选用</text>
+                </view>
               </view>
-              <view class="text-secondary"
-                style="height: 200rpx; text-align: center; font-size: 24rpx; line-height: 100rpx;">到底了!</view>
-            </block>
-
+            </view>
           </scroll-view>
+          <view class="match-panel-note"
+            wx:if="{{item.nxDistributerGoodsEntityList.length > 0 || item.nxGoodsEntities.length > 0}}">
+            选中商品后，这条订单会自动确认
+          </view>
         </view>
-        <!-- 商品输入框新内容搜索结果列表（strArr 和 nxArr） -->
-        <block
+
+        <!-- 修改商品名称后的搜索结果 -->
+        <view class="match-panel is-search"
           wx:if="{{orderArrIndex == orderIndex && item.nxDoIsAgent == '2' && item.nxDoStatus !== 0 && (strArr.length > 0 || nxArr.length > 0)}}">
-          <view class="flex-column" style="margin-top: 12rpx;  max-height: 900rpx; width: {{windowWidth - 180}}rpx; ">
-            <view class="flex-row-between font-xs p-20 bg-success mt-10" style="width: {{windowWidth - 160}}rpx;">
-              <view class="flex-column">
-                <view class="flex-row">
-                  <text class="mr-20">配送商品:{{strArr.length}}个 </text>
-                  <text>新商品:{{nxArr.length}}个 </text>
-                </view>
-
-                <!-- <view class="flex-row">
-            <text>原文:</text>
-            <text>{{item.nxDoGoodsOriginalName}}}</text>
-            </view> -->
+          <view class="match-panel-header">
+            <view class="match-heading">
+              <text class="match-title">搜索结果</text>
+              <view class="match-counts">
+                <text class="match-count-pill is-saved">已有商品 {{strArr.length}}</text>
+                <text class="match-count-pill is-new">可新增 {{nxArr.length}}</text>
               </view>
+            </view>
+            <view class="match-close-button" bind:tap="onShowGoodsList" data-index="{{orderIndex}}">
+              <text>收起</text><text class="match-close-arrow">⌃</text>
+            </view>
+          </view>
 
-              <text class="" bind:tap="onShowGoodsList" data-index="{{orderIndex}}">关闭</text>
+          <scroll-view scroll-y="true" class="match-scroll is-search">
+            <view wx:if="{{strArr.length > 0}}" class="match-section">
+              <view class="match-section-heading">
+                <text class="match-section-title">已有配送商品</text>
+                <text class="match-section-tip">可直接选用</text>
+              </view>
+              <view class="match-candidate" wx:for="{{strArr}}" wx:for-item="goods"
+                wx:for-index="goodsIndex" wx:key="nxDistributerGoodsId">
+                <text class="match-index">{{goodsIndex + 1}}</text>
+                <view class="match-candidate-main">
+                  <view class="match-name-line">
+                    <text wx:if="{{goods.nxDgDistributerId !== disId}}"
+                      class="match-distributor">{{goods.goodsNxDistributerName}}</text>
+                    <text wx:if="{{goods.nxDgGoodsBrand !== 'null' && goods.nxDgGoodsBrand.length > 0}}"
+                      class="match-brand">{{goods.nxDgGoodsBrand}}</text>
+                    <text class="match-name">{{goods.nxDgGoodsName}}</text>
+                    <text wx:if="{{goods.nxDgGoodsStandardWeight !== 'null' && goods.nxDgGoodsStandardWeight.length > 0}}"
+                      class="match-standard">{{goods.nxDgGoodsStandardWeight}}/{{goods.nxDgGoodsStandardname}}</text>
+                    <text wx:else class="match-standard">{{goods.nxDgGoodsStandardname}}</text>
+                  </view>
+                </view>
+                <view class="match-action is-select {{goods.nxDgNxGoodsId === null ? 'is-warning' : ''}}"
+                  bindtap="onSaveOrder" data-id="{{goods.nxDistributerGoodsId}}" data-index="{{orderArrIndex}}"
+                  data-name="{{goods.nxDgGoodsName}}" data-item="{{goods}}">选用</view>
+              </view>
             </view>
 
-
-            <scroll-view scroll-y="true" style="margin-top: 12rpx;max-height: 900rpx; width: 100%;">
-              <!-- 配送商商品搜索结果 -->
-              <block wx:if="{{strArr.length > 0}}">
-                <view class="flex-row-default p-20  border-bottom " wx:for="{{strArr}}" wx:for-item="goods"
-                  wx:for-index="goodsIndex" wx:key="nxDistributerGoodsId"
-                  style="background-color: #d9e4fb; border-bottom: 1px solid rgb(255, 255, 255);">
-                  <text class="mr-10">{{goodsIndex + 1}}.</text>
-                  <view class="flex-1" style="min-width: 0; flex: 1;">
-                    <view class="flex-row-wrap" style="align-items: center;">
-                      <block wx:if="{{goods.nxDgDistributerId !== disId}}">
-                        <text class="font-xs mainColor">[{{goods.goodsNxDistributerName}}]</text>
-                      </block>
-                      <block wx:if="{{goods.nxDgGoodsBrand !== 'null' && goods.nxDgGoodsBrand.length > 0}}">
-                        <text class="brand">{{goods.nxDgGoodsBrand}}</text>
-                      </block>
-                      <text class="mr-10">{{goods.nxDgGoodsName}}</text>
-                      <block
-                        wx:if="{{goods.nxDgGoodsStandardWeight !== 'null' && goods.nxDgGoodsStandardWeight.length > 0}}">
-                        <text class="font-md">({{goods.nxDgGoodsStandardWeight}}/{{goods.nxDgGoodsStandardname}})</text>
-                      </block>
-                      <block wx:else>
-                        <text class="font-md">({{goods.nxDgGoodsStandardname}})</text>
-                      </block>
-                    </view>
-                  </view>
-                  <block wx:if="{{goods.nxDgNxGoodsId !== null}}">
-                    <view class="ml-20" style="flex-shrink: 0; width: 100rpx;" bindtap="onSaveOrder"
-                      data-id="{{goods.nxDistributerGoodsId}}" data-index="{{orderArrIndex}}"
-                      data-name="{{goods.nxDgGoodsName}}" data-item="{{goods}}">
-                      <text class="bg-success font-xs p-10 radius-10">选择</text>
-                    </view>
-                  </block>
-                  <block wx:else>
-                    <view class="ml-20" style="flex-shrink: 0; width: 100rpx;" bindtap="onSaveOrder"
-                      data-id="{{goods.nxDistributerGoodsId}}" data-index="{{orderArrIndex}}"
-                      data-name="{{goods.nxDgGoodsName}}" data-item="{{goods}}">
-                      <text class="bg-warning font-xs radius-10 p-10">选择</text>
-                    </view>
-                  </block>
-                </view>
-              </block>
-              <!-- 系统商品搜索结果 -->
-              <block wx:if="{{nxArr.length > 0}}">
-                <view class="flex-row-between p-20" style="border-bottom: 1px solid #FFF; padding: 10rpx 0;"
-                  wx:for="{{nxArr}}" wx:for-item="goods" wx:for-index="nxIndex" wx:key="nxGoodsId">
-                  <view class="flex-row-default font-lg flex-1" style="min-width: 0; flex: 1; ">
-                    <text class="mr-10 text-primary p-10">{{nxIndex + 1}}.</text>
-                    <view class="flex-row-wrap flex-1 p-10" style="min-width: 0; align-items: center;">
-                      <text class="brand"
-                        wx:if="{{goods.nxGoodsBrand.length > 0 && goods.nxGoodsBrand !== 'null'}}">{{goods.nxGoodsBrand}}</text>
-                      <text class="font-lg mr-20">{{goods.nxGoodsName}}</text>
-                      <block
-                        wx:if="{{goods.nxGoodsStandardWeight !== 'null' && goods.nxGoodsStandardWeight.length > 0}}">
-                        <text
-                          class="mr-10 font-md">({{goods.nxGoodsStandardWeight}}/{{goods.nxGoodsStandardname}})</text>
-                      </block>
-                      <block wx:else>
-                        <text class="mr-10 font-md">({{goods.nxGoodsStandardname}})</text>
-                      </block>
-                    </view>
-                  </view>
-                  <view class="button-container" bindtap="onDownloadGoods" data-item="{{goods}}"
-                    data-index="{{orderArrIndex}}">
-                    <image src="/images/download.png" mode="aspectFill" class="icon" />
+            <view wx:if="{{nxArr.length > 0}}" class="match-section">
+              <view class="match-section-heading">
+                <text class="match-section-title">系统商品</text>
+                <text class="match-section-tip">添加后自动选用</text>
+              </view>
+              <view class="match-candidate" wx:for="{{nxArr}}" wx:for-item="goods"
+                wx:for-index="nxIndex" wx:key="nxGoodsId">
+                <text class="match-index is-new">{{nxIndex + 1}}</text>
+                <view class="match-candidate-main">
+                  <view class="match-name-line">
+                    <text wx:if="{{goods.nxGoodsBrand.length > 0 && goods.nxGoodsBrand !== 'null'}}"
+                      class="match-brand">{{goods.nxGoodsBrand}}</text>
+                    <text class="match-name">{{goods.nxGoodsName}}</text>
+                    <text wx:if="{{goods.nxGoodsStandardWeight !== 'null' && goods.nxGoodsStandardWeight.length > 0}}"
+                      class="match-standard">{{goods.nxGoodsStandardWeight}}/{{goods.nxGoodsStandardname}}</text>
+                    <text wx:else class="match-standard">{{goods.nxGoodsStandardname}}</text>
                   </view>
                 </view>
-              </block>
-              <view style="height: 100rpx; text-align: center; font-size: 24rpx; line-height: 100rpx;">到底了!</view>
-            </scroll-view>
-          </view>
-        </block>
+                <view class="match-action is-add" bindtap="onDownloadGoods" data-item="{{goods}}"
+                  data-index="{{orderArrIndex}}">
+                  <image src="/images/download.png" mode="aspectFit" class="match-action-icon" />
+                  <text>添加并选用</text>
+                </view>
+              </view>
+            </view>
+          </scroll-view>
+          <view class="match-panel-note">请选择与订单最相符的商品</view>
+        </view>
 
       </view>
     </view>
@@ -372,3 +326,4 @@
   <!-- <view  class="order-list-bottom-spacer"></view> -->
 
 </view>
+

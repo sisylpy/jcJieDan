@@ -13,9 +13,19 @@
   align-items: center;
 }
 .deepseek-logo-spin {
+  display: flex;
   width: 80rpx;
   height: 80rpx;
+  align-items: center;
+  justify-content: center;
   margin-bottom: 18rpx;
+  border-radius: 24rpx;
+  color: #ffffff;
+  font-size: 25rpx;
+  font-weight: 800;
+  letter-spacing: 1rpx;
+  background: linear-gradient(135deg, #6653c8, #3b82f6);
+  box-shadow: 0 12rpx 30rpx rgba(85, 75, 190, 0.22);
   animation: bounce-scale 1.2s infinite cubic-bezier(.68,-0.55,.27,1.55);
 }
 .loading-text {
@@ -31,4 +41,4 @@
   60%  { transform: translateY(-10rpx) scale(1.08);}
   80%  { transform: translateY(0) scale(1);}
   100% { transform: translateY(0) scale(1);}
-} 
+}

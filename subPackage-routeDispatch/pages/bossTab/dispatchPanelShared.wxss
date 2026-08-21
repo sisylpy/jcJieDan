@@ -895,7 +895,7 @@
   width: 48rpx;
   height: 48rpx;
   border-radius: 50%;
-  background: #1aa18e;
+  background: #5e6b7a;
   color: #fff;
   font-size: 22rpx;
   font-weight: 700;
@@ -905,11 +905,11 @@
   justify-content: center;
   flex-shrink: 0;
   margin-right: 16rpx;
-  box-shadow: 0 2rpx 8rpx rgba(26, 161, 142, 0.25);
+  box-shadow: 0 2rpx 8rpx rgba(94, 107, 122, 0.2);
 }
 
 .boss-timeline-marker-end {
-  background: #1aa18e;
+  background: #5e6b7a;
 }
 
 .boss-timeline-point-main {
@@ -961,8 +961,8 @@
   height: 56rpx;
   padding: 0 20rpx 0 16rpx;
   border-radius: 0;
-  background: #e8f7f4;
-  border-bottom: 1rpx solid #dcefe9;
+  background: #f3f5f7;
+  border-bottom: 1rpx solid #e8eaed;
   flex-shrink: 0;
 }
 
@@ -983,7 +983,7 @@
   flex: 1;
   min-width: 0;
   font-size: 24rpx;
-  color: #1aa18e;
+  color: #5e6b7a;
   font-weight: 500;
   line-height: 1.3;
 }

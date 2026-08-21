@@ -4,17 +4,6 @@ page{
   background: rgb(235, 235, 235);
 }
 
-.after-sales-order-entry {
-  align-self: flex-start;
-  margin: 12rpx 0 8rpx 34rpx;
-  padding: 10rpx 20rpx;
-  border-radius: 28rpx;
-  background: #fff2ef;
-  color: #c64535;
-  font-size: 25rpx;
-  border: 1rpx solid #f3c7c0;
-}
-
 .depName{
   font-size: 42rpx;
   font-weight: 500;

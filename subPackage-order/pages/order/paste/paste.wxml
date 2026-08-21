@@ -1,510 +1,301 @@
-<view class="flex flex-column page">
+<view class="page paste-v2-page">
+  <back-navbar
+    style="height: {{navBarHeight}}rpx;"
+    title="AI 智能下单"
+    avatar="/images/back-gray.png"
+    bindnavbuttontap="toBack"
+  ></back-navbar>
 
-  <back-navbar style="height: {{navBarHeight}}rpx;" title="{{depName}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+  <!-- back-navbar 为固定定位，这里保留真实高度，避免内容被导航栏遮挡 -->
+  <view class="navbar-spacer" style="height: {{navBarHeight}}rpx;"></view>
 
-  <view class="flex-column flex-1" >
-   
-      
-  <view class="flex-column p-20" wx:if="{{orderArr.length == 0}}">
-      <view class="flex-row p-10">
-        <text>录音时长：{{duration}}秒</text>
-        <text class="ml-20 text-danger ">{{isRecording ? '录音中': ''}}</text>
-      </view>
-      <view class="flex-row">
-
-        <view class="flex-column" style="flex: 1;">
-          <textarea class="mr-20 p-20 sentence {{sentence !== null ? 'is-active' : ''}}" value="{{sentence}}" style="width: {{windowWidth - 250}}rpx; height: {{windowHeight - navBarHeight - 460}}rpx; font-size: 42rpx; margin-right: 20rpx;" bindinput="onInput" maxlength="-1" />
+  <!-- 快速输入区 -->
+  <view wx:if="{{showInputPanel}}" class="input-stage">
+    <view class="hero-card">
+      <view class="hero-topline">
+        <view class="hero-brand">
+          <view class="ai-orb">AI</view>
+          <text>智能识单 V2</text>
         </view>
-
-        <view class="flex-column paste-actions">
-
-          <!-- 录音：始终显示，文本态禁用 -->
-          <view bindtap="{{(sentence != null && sentence != '' && !isRecording) ? '' : (isRecording ? 'stopRecord' : 'startRecord')}}" 
-            class="third_btn paste-action {{isRecording ? 'recording' : ''}} {{sentence != null && sentence != '' && !isRecording ? 'paste-action--disabled' : ''}}">
-            <image class="paste-action-icon" src="{{isRecording ? '/images/luyin-3.png' : '/images/luyin.png'}}" mode="aspectFit" />
-            <text class="paste-action-text">{{isRecording ? '停止' : '录音'}}</text>
-          </view>
-
-          <!-- 粘贴：始终显示，文本态禁用 -->
-          <view bindtap="{{sentence != null && sentence != '' && !isRecording ? '' : 'pasteFromClipboard'}}" 
-            class="third_btn paste-action paste-action--highlight {{sentence != null && sentence != '' && !isRecording ? 'paste-action--disabled' : ''}}">
-            <image class="paste-action-icon" src="/images/-_niantie.png" mode="aspectFit" />
-            <text class="paste-action-text">粘贴</text>
-          </view>
-
-          <!-- 图片识别：始终显示，文本态禁用 -->
-          <view bindtap="{{sentence != null && sentence != '' && !isRecording ? '' : 'recognizeOrder'}}" 
-            class="third_btn paste-action picture-action--highlight {{sentence != null && sentence != '' && !isRecording ? 'paste-action--disabled' : ''}}">
-            <image class="paste-action-icon" src="/images/tupianshibie-2.png" mode="aspectFit" />
-            <text class="picture-action-text">图片</text>
-          </view>
-
-          <view class="paste-action-divider"></view>
-
-          <!-- 识别：始终显示，空态/录音中禁用 -->
-          <view bindtap="{{((sentence == null || sentence == '') || isRecording) ? '' : 'formatContent'}}" 
-            class="third_btn paste-action {{((sentence == null || sentence == '') || isRecording) ? 'paste-action--disabled' : ''}}">
-            <image class="paste-action-icon" src="/images/OCRwenzishibie.png" mode="aspectFit" />
-            <text class="paste-action-text">识别</text>
-          </view>
-
-          <!-- AI识别：始终显示，空态/录音中禁用 -->
-          <view bindtap="{{((sentence == null || sentence == '') || isRecording) ? '' : 'aiRecogniseFirst'}}" 
-            class="third_btn paste-action {{((sentence == null || sentence == '') || isRecording) ? 'paste-action--disabled' : ''}}">
-            <image class="paste-action-icon" src="/images/AIshibie.png" mode="aspectFit" />
-            <text class="paste-action-text">AI识别</text>
-          </view>
-
-          <!-- 清除：始终显示，空态/录音中禁用 -->
-          <view bindtap="{{((sentence == null || sentence == '') || isRecording) ? '' : 'clearSentence'}}" 
-            class="third_btn paste-action {{((sentence == null || sentence == '') || isRecording) ? 'paste-action--disabled' : ''}}">
-            <image class="paste-action-icon" src="/images/ashbin.png" mode="aspectFit" />
-            <text class="paste-action-text">清除</text>
-          </view>
-
-        </view>
-
-      </view>
-
-      <!-- 输入框下方的小贴士 -->
-      <view class="paste-tip">
-        <image class="paste-tip-image" src="{{url + 'uploadImage/imPurchase/300jj.png'}}"  mode="aspectFit" />
-        <view class="paste-tip-content">
-          <text class="paste-tip-title">小贴士</text>
-          <text class="paste-tip-desc">支持语音下单、文字识别、图片识别等多种方式</text>
-          <text class="paste-tip-desc">智能识别商品和数量，识别结果可编辑，确认后加入订单</text>
+        <view class="department-hint">
+          <text class="department-hint-label">部门</text>
+          <text class="department-name">{{depName}}</text>
         </view>
       </view>
     </view>
 
-    <view wx:else="" class="flex-row-between">
-
-      <!-- 状态1：saveCount == null 时显示草稿编辑状态的按钮 -->
-      <block wx:if="{{saveCount == null}}">
-        <view class="flex-row-between p-20" style="margin-top: 20rpx; width: {{windowWidth - 40}}rpx; ">
-
-          <view class="flex-row bg-gray radius-10 p-10" bindtap="againPaste">
-            <text>重新粘贴</text>
-          </view>
-       
-
-          <text bindtap="pasteSearchGoods" class='mainBack_new_btn mr-20'>保存订单</text>
+    <view class="editor-card {{isRecording ? 'editor-card--recording' : ''}}">
+      <view class="editor-header">
+        <text class="editor-label">订单清单</text>
+        <view class="editor-header-actions">
+          <text wx:if="{{inputFocused}}" class="keyboard-done-link" bindtap="finishInput">完成</text>
+          <text wx:if="{{!inputContent}}" class="example-link" bindtap="useExample">试用示例</text>
+          <text wx:if="{{inputContent}}" class="clear-link" bindtap="clearAll">清空</text>
         </view>
-      </block>
-      
-      <!-- 状态2：saveCount != null 时，已保存订单状态，不显示保存按钮 -->
+      </view>
+      <textarea
+        class="order-textarea"
+        style="height: {{inputAreaHeight}}rpx;"
+        value="{{inputContent}}"
+        bindinput="onInput"
+        bindfocus="onInputFocus"
+        bindblur="onInputBlur"
+        bindconfirm="finishInput"
+        focus="{{inputFocused}}"
+        maxlength="-1"
+        auto-height="{{false}}"
+        show-confirm-bar="{{true}}"
+        confirm-type="done"
+        disabled="{{isRecording}}"
+        placeholder="{{inputPlaceholder}}"
+        placeholder-style="color: #9aa6a2; line-height: 1.65;"
+      ></textarea>
+      <view wx:if="{{isRecording || recognitionStatus}}" class="record-status {{isRecording ? 'record-status--active' : ''}}">
+        <view wx:if="{{isRecording}}" class="record-dot"></view>
+        <text>{{recognitionStatus}}</text>
+        <text wx:if="{{isRecording}}" class="record-time">{{duration}}s</text>
+      </view>
     </view>
 
-    <scroll-view scroll-y="true" scroll-into-view="{{scrollIntoViewId}}" scroll-with-animation="true"
-      style="height: {{windowHeight - navBarHeight - (saveCount == null ? 120 : 40)}}rpx; width: {{windowWidth}}rpx;  overflow: visible;" wx:if="{{orderArr.length > 0}}" class="table">
+    <view class="source-actions">
+      <view
+        class="source-action {{isRecording ? 'source-action--recording' : ''}}"
+        bindtap="{{isRecording ? 'stopRecord' : 'startRecord'}}"
+      >
+        <view class="source-icon source-icon--voice">{{isRecording ? '■' : '●'}}</view>
+        <text>{{isRecording ? '停止录音' : '语音说单'}}</text>
+      </view>
+      <view
+        class="source-action source-action--primary {{isRecording ? 'source-action--disabled' : ''}}"
+        bindtap="pasteFromClipboard"
+      >
+        <view class="source-icon source-icon--paste">粘</view>
+        <text>粘贴清单</text>
+      </view>
+      <view
+        class="source-action {{isRecording || ocrSubmitting ? 'source-action--disabled' : ''}}"
+        bindtap="recognizeOrder"
+      >
+        <view class="source-icon source-icon--image">图</view>
+        <text>{{ocrSubmitting ? '正在识别' : '图片识别'}}</text>
+      </view>
+    </view>
 
-      <!-- 状态1：saveCount == null 时显示草稿编辑界面 -->
-      <block wx:if="{{saveCount == null}}">
+    <view class="parse-actions">
+      <view class="smart-parse-button {{!inputContent || isRecording ? 'button--disabled' : ''}}" bindtap="smartParse">
+        <text class="sparkle">✦</text>
+        <text>{{inputContent ? '立即生成订单' : '请先粘贴或输入订单'}}</text>
+        <text class="button-arrow">›</text>
+      </view>
+      <view class="ai-parse-button {{!inputContent || isRecording || isAiOptimizing ? 'button--disabled' : ''}}" bindtap="aiEnhance">
+        <view class="ai-button-mark">DS</view>
+        <text>{{isAiOptimizing ? 'DeepSeek 识别中…' : 'DeepSeek 智能识别'}}</text>
+      </view>
+    </view>
+  </view>
 
-        <view class="flex-row" style="background-color: #eeeeee; padding: 10rpx;">
-          <text class="" style="width: {{windowWidth * 11 / 20}}rpx; margin-left: 60rpx;">商品名称</text>
-          <text class="" style="width: {{windowWidth * 3 / 20}}rpx;">数量</text>
-          <text class="" style="width: {{windowWidth * 3 / 20}}rpx; ">规格</text>
+  <!-- 智能解析结果 -->
+  <view wx:else="" class="review-stage">
+    <view class="review-topbar">
+      <view>
+        <text class="review-title">识别完成</text>
+        <view class="review-subtitle">
+          <text wx:if="{{aiEnhanced}}" class="ai-result-badge">DeepSeek已精修</text>
+          <text>请快速扫一眼，确认后即可下单</text>
         </view>
-        <view id="paste-order-item-{{orderIndex}}" class="p-20 flex-row border-bottom" wx:for="{{orderArr}}" wx:for-index="orderIndex" wx:key="orderIndex">
-          <view class="flex-column">
-            <view class="flex-row-default">
-              <view class="flex-row font-bold" style="width: {{windowWidth * 11 / 20}}rpx; ">
-                <text class="mr-10 text-secondary">{{orderIndex + 1}}.</text>
-                <!-- name -->
-                <view class="flex-column {{invalidOrderIndex == orderIndex && invalidOrderField == 'name' ? 'input-wrap-error' : ''}}">
-                  <input class="input" style="width: {{windowWidth / 2 - 80}}rpx; " type="text" bindinput="editOrder" data-type="name" data-index="{{orderIndex}}" value="{{item.nxDoGoodsName}}" />
-                </view>
-              </view>
-              <!-- ../name -->
-
-              <!-- quantity -->
-              <view class="{{invalidOrderIndex == orderIndex && invalidOrderField == 'quantity' ? 'input-wrap-error' : ''}}">
-                <input class="input p-10 mr-10" type="number" bindinput="editOrder" data-type="quantity" data-index="{{orderIndex}}" value="{{item.nxDoQuantity}}" style="width: {{windowWidth / 7 - 20}}rpx; " />
-              </view>
-              <!-- ../quantity -->
-              <!-- standard -->
-              <view class="{{invalidOrderIndex == orderIndex && invalidOrderField == 'standard' ? 'input-wrap-error' : ''}}">
-                <input class="input p-10 mr-10" type="text" bindinput="editOrder" data-type="standard" data-index="{{orderIndex}}" value="{{item.nxDoStandard}}" style="width: {{windowWidth / 7}}rpx;" />
-              </view>
-
-              <!-- ../standard -->
-
-              <!-- </view> -->
-            </view>
-            <view class="flex-row" wx:if="{{item.standardWeight !== '' && item.standardWeight !== '500g'}}">
-              <text class="mr-10 text-white pt-10">{{orderIndex + 1}}.</text>
-
-               <view class="flex-row">
-                <text>规格重量:</text>
-                <text>{{item.standardWeight}}/{{item.itemUnit}}</text>
-               </view>
-               <view class="flex-row ">
-                <text wx:if="{{item.itemsPerCarton !== ''}}">*{{item.itemsPerCarton}}{{item.itemUnit}}</text>
-                <text  wx:if="{{item.cartonUnit !== ''}}">{{item.cartonUnit}}</text>
-               </view>
-              
-              </view>
-              <view class="flex-row p-10" wx:if="{{item.nxDoAddRemark || item.nxDoRemark}}" style="margin-top: 12rpx; padding-left: 60rpx;">
-                <text class="mr-10 text-secondary font-sl" style="color: #999; font-size: 34rpx;">备注:</text>
-                <text wx:if="{{item.nxDoStatus == 0}}" style="flex: 1; font-size: 36rpx; color: #333333;">{{item.nxDoRemark || ''}}</text>
-                <input wx:else class="input p-10 {{item.nxDoStatus == -2 ? 'status-draft' : 'status-saved'}}" type="text" bindinput="editOrder" data-type="remark" data-index="{{orderIndex}}" value="{{item.nxDoRemark}}" style="flex: 1; font-size: 36rpx; color: #333333; border-color: {{item.nxDoStatus == -2 ? '#00c48c' : '#e0e0e0'}};" placeholder="添加备注信息" />
-              </view>
-
-           
-          </view>
-
-
-          <view class="button-container" bindtap="showPasteOperation" data-index="{{orderIndex}}">
-            <image src="/images/points.png" mode="aspectFill" class="icon" />
-          </view>
-
-          <!-- </view> -->
+      </view>
+      <view class="review-top-actions">
+        <view class="review-deepseek-button {{isAiOptimizing ? 'button--disabled' : ''}}" bindtap="aiEnhance">
+          <text class="review-deepseek-mark">DS</text>
+          <text>{{aiEnhanced ? '再次精修' : 'DeepSeek'}}</text>
         </view>
-        <view style="height: 200rpx;" class="text-secondary font-xs center-content">没有数据啦！</view>
-      </block>
+        <view class="edit-source-button" bindtap="editOriginal">修改原文</view>
+      </view>
+    </view>
 
-      <view class="flex-column" wx:else="">
+    <view class="summary-card">
+      <view class="summary-item">
+        <text class="summary-number">{{parseSummary.totalCount}}</text>
+        <text class="summary-label">商品</text>
+      </view>
+      <view class="summary-divider"></view>
+      <view class="summary-item summary-item--success">
+        <text class="summary-number">{{parseSummary.validCount}}</text>
+        <text class="summary-label">已确认</text>
+      </view>
+      <view class="summary-divider"></view>
+      <view class="summary-item {{parseSummary.reviewCount > 0 ? 'summary-item--warning' : ''}}">
+        <text class="summary-number">{{parseSummary.reviewCount}}</text>
+        <text class="summary-label">待检查</text>
+      </view>
+      <view class="summary-divider"></view>
+      <view class="summary-item summary-item--ai">
+        <text class="summary-number">{{parseSummary.correctionCount}}</text>
+        <text class="summary-label">智能修正</text>
+      </view>
+    </view>
 
-        <view class="flex-row p-20" >
-            <text class="mainBack_new_btn third-row mr-20" bind:tap="clearSave" wx:if="{{hasCache}}">除缓存</text>
+    <view wx:if="{{departmentSegments.length > 0}}" class="department-result-card">
+      <view class="result-icon result-icon--department">部</view>
+      <view class="result-copy">
+        <text class="result-title">已识别部门标题</text>
+        <view class="department-chips">
+          <text class="department-chip" wx:for="{{departmentSegments}}" wx:key="lineIndex">{{item.departmentName}}</text>
+        </view>
+      </view>
+    </view>
 
-            <text class="mainBack_new_btn third-row mr-20" bind:tap="reuploadOrders" wx:if="{{hasCache}}">重新上传</text>
-            
-            <text class="mainBack_new_btn third-row mr-20" bind:tap="showCorrectionModal" wx:if="{{hasCache}}">调整订单</text>
-           </view>
+    <view wx:if="{{corrections.length > 0}}" class="correction-card">
+      <view class="correction-head" bindtap="toggleCorrectionDetails">
+        <view class="result-icon result-icon--correction">✦</view>
+        <view class="result-copy">
+          <text class="result-title">AI 已自动修正 {{corrections.length}} 处</text>
+          <text class="result-desc">原文保留，修正结果已写入订单</text>
+        </view>
+        <text class="expand-icon">{{showCorrectionDetails ? '⌃' : '⌄'}}</text>
+      </view>
+      <view wx:if="{{showCorrectionDetails}}" class="correction-list">
+        <view class="correction-row" wx:for="{{corrections}}" wx:key="lineIndex">
+          <text class="correction-source">{{item.segmentText}}</text>
+          <view class="correction-change">
+            <text class="wrong-text">{{item.from}}</text>
+            <text class="change-arrow">→</text>
+            <text class="right-text">{{item.to}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
 
-        <view class="flex-row border-bottom" style="padding: 10rpx;">
-          <text class="" style="width: {{windowWidth / 2}}rpx; margin-left: 60rpx;">商品名称</text>
-          <text class="" style="width: {{windowWidth / 5}}rpx;">数量</text>
-          <text class="" style="width: {{windowWidth / 5}}rpx; ">规格</text>
-         
+    <view wx:if="{{parseSummary.reviewCount > 0}}" class="review-warning-card">
+      <view class="warning-symbol">!</view>
+      <view class="result-copy">
+        <text class="result-title">有 {{parseSummary.reviewCount}} 条需要确认</text>
+        <text class="result-desc">正确商品已保留，可补全黄色项目，或用 DeepSeek 精修</text>
+      </view>
+      <view class="warning-ai-button" bindtap="aiEnhance">DeepSeek</view>
+    </view>
+
+    <scroll-view
+      class="orders-scroll"
+      scroll-y="true"
+      scroll-with-animation="true"
+      scroll-into-view="{{scrollIntoViewId}}"
+    >
+      <view
+        id="paste-v2-order-{{index}}"
+        class="order-card {{item.v2NeedsReview ? 'order-card--review' : ''}} {{invalidOrderIndex == index ? 'order-card--invalid' : ''}}"
+        wx:for="{{orderArr}}"
+        wx:key="index"
+      >
+        <view class="order-card-head">
+          <view class="order-sequence">{{index + 1}}</view>
+          <view class="confidence-pill confidence-pill--{{item.v2Confidence}}">
+            <text>{{item.v2NeedsReview ? '待确认' : (item.v2Confidence == 'high' ? '高置信' : '已确认')}}</text>
+          </view>
+          <picker
+            wx:if="{{departmentOptions.length > 1}}"
+            class="department-picker"
+            mode="selector"
+            range="{{departmentOptions}}"
+            range-key="name"
+            bindchange="changeOrderDepartment"
+            data-index="{{index}}"
+          >
+            <view class="department-picker-value">{{item.v2DepartmentName || depName}}⌄</view>
+          </picker>
+          <text wx:else="" class="department-static">{{item.v2DepartmentName || depName}}</text>
+          <view class="order-delete" bindtap="deleteOrder" data-index="{{index}}">删除</view>
         </view>
 
-        <view class="flex-row-default border-bottom p-20" wx:for="{{orderArr}}" wx:for-index="orderIndex" wx:key="orderIndex" style="position: relative; width: {{windowWidth - 40}}rpx;">
-          <view class="flex-row-default font-lg" >
-            <text class="mr-10">{{orderIndex + 1}}.</text>
-
-            <block wx:if="{{item.nxDoStatus == -2}}">
-
-              <view class="flex-column">
-                <view class="flex-row-default" style=" width: {{windowWidth - 180}}rpx; ">
-
-                  <view class="flex-column" style="position: relative; width: {{windowWidth * 11 / 20}}rpx; ">
-                    <input class="input  mainColor " style="width: 80%;" type="text" bindinput="editOrderName" data-type="name" data-index="{{orderIndex}}" value="{{item.nxDoGoodsName}}" adjust-position="true" />
-                  </view>
-                  <!-- ../name -->
-
-                  <!-- quantity -->
-                  <input class="input mr-20 mainColor" type="number" bindinput="editOrder" data-type="quantity" data-index="{{orderIndex}}" value="{{item.nxDoQuantity}}" style="width: {{windowWidth * 3 / 20}}rpx;" />
-                  <!-- ../quantity -->
-                  <!-- standard -->
-                  <input class="input mr-20 mainColor" type="text" bindinput="editOrder" data-type="standard" data-index="{{orderIndex}}" value="{{item.nxDoStandard}}" style="width: {{windowWidth * 3 / 20}}rpx;" />
-                  <!-- ../standard -->
-                </view>
-
-                <view class="flex-row" wx:if="{{item.standardWeight !== '' && item.standardWeight !== '500g'}}">
-               <view class="flex-row">
-                <text>规格重量:</text>
-                <text>{{item.standardWeight}}/{{item.itemUnit}}</text>
-               </view>
-               <view class="flex-row ">
-                <text wx:if="{{item.itemsPerCarton !== ''}}">*{{item.itemsPerCarton}}{{item.itemUnit}}</text>
-                <text  wx:if="{{item.cartonUnit !== ''}}">{{item.cartonUnit}}</text>
-               </view>
-              
-              </view>
-              <view class="flex-row p-10" wx:if="{{item.nxDoAddRemark || item.nxDoRemark}}" style="margin-top: 12rpx; padding-left: 60rpx;">
-                <text class="mr-10 text-secondary font-sl" style="color: #999; font-size: 34rpx;">备注:</text>
-                <text wx:if="{{item.nxDoStatus == 0}}" style="flex: 1; font-size: 36rpx; color: #333333;">{{item.nxDoRemark || ''}}</text>
-                <input wx:else class="input p-10 {{item.nxDoStatus == -2 ? 'status-draft' : 'status-saved'}}" type="text" bindinput="editOrder" data-type="remark" data-index="{{orderIndex}}" value="{{item.nxDoRemark}}" style="flex: 1; font-size: 36rpx; color: #333333; border-color: {{item.nxDoStatus == -2 ? '#00c48c' : '#e0e0e0'}};" placeholder="添加备注信息" />
-              </view>
-
-
-
-                <!-- 搜索结果商品 - 移到 flex-row-default 外面，不受商品名称列宽度限制 -->
-                <!-- 如果有搜索结果，且当前订单索引匹配，则显示（包括从缓存恢复的情况） -->
-                <block wx:if="{{orderArrIndex == orderIndex && (strArr.length > 0 || nxArr.length > 0)}}">
-                  <scroll-view scroll-y="true" style="position: absolute; left: 20rpx; top: 0; margin-top: 80rpx; width: {{windowWidth - 140}}rpx; z-index: 9999; max-height: 700rpx; border: 1px solid #e0e0e0; background-color: #ffffff; border-radius: 12rpx; box-shadow: 0 4rpx 16rpx rgba(0,0,0,0.1);" class="">
-                        <view class="main_background flex-row-between p-20" wx:if="{{strArr.length > 0 || nxArr.length > 0}}">
-                          <text></text>
-                          <view class="plr-20" bindtap="closeStr" data-index="{{orderIndex}}">
-                            <image src="/images/del.png" mode="aspectFill" class="icon" />
-                          </view>
-                        </view>
-
-                        <block wx:if="{{strArr.length > 0}}">
-                          <view class="flex-row p-20 border-bottom" wx:for="{{strArr}}" wx:for-item="goods" wx:for-index="goodsIndex" wx:key="nxDistributerGoodsId" style="background-color: #ffffff; border-bottom: 1px solid #f0f0f0; padding: 24rpx 20rpx; align-items: center;">
-                            <text class="mr-10" style="color: #666; font-weight: 500; font-size: 32rpx; min-width: 40rpx;">{{goodsIndex + 1}}.</text>
-                            <view class="flex-1" style="min-width: 0; flex: 1;">
-                              <view class="flex-row-wrap" style="align-items: center;">
-                                <block wx:if="{{goods.nxDgGoodsBrand !== 'null' && goods.nxDgGoodsBrand.length > 0}}">
-                                  <text class="brand" style="margin-right: 8rpx;">{{goods.nxDgGoodsBrand}}</text>
-                                </block>
-                                <text class="" style="color: #333; font-size: 32rpx; font-weight: 500; line-height: 1.5;">{{goods.nxDgGoodsName}}</text>
-                                <block wx:if="{{goods.nxDgGoodsStandardWeight !== 'null' && goods.nxDgGoodsStandardWeight.length > 0}}">
-                                  <text class="" style="color: #666; font-size: 32rpx; margin-left: 8rpx;">({{goods.nxDgGoodsStandardWeight}}/{{goods.nxDgGoodsStandardname}})</text>
-                                </block>
-                                <block wx:else>
-                                  <text style="color: #666; font-size: 32rpx; margin-left: 8rpx;">({{goods.nxDgGoodsStandardname}})</text>
-                                </block>
-                              </view>
-                            </view>
-
-                            <block wx:if="{{goods.nxDgNxGoodsId !== null}}">
-                              <view class="ml-20" style="flex-shrink: 0; width: 100rpx;" bindtap="saveOrder" data-id="{{goods.nxDistributerGoodsId}}" data-index="{{orderIndex}}" data-name="{{goods.nxDgGoodsName}}">
-                                <text class="bg-success font-xs p-10 radius-10" style="display: inline-block; text-align: center; min-width: 80rpx; padding: 8rpx 16rpx; font-size: 32rpx;">选择</text>
-                              </view>
-                            </block>
-                            <block wx:else="">
-                              <view class="ml-20" style="flex-shrink: 0; width: 100rpx;" bindtap="saveOrder" data-id="{{goods.nxDistributerGoodsId}}" data-index="{{orderIndex}}" data-name="{{goods.nxDgGoodsName}}">
-                                <text class="bg-warning font-xs p-10 radius-10" style="display: inline-block; text-align: center; min-width: 80rpx; padding: 8rpx 16rpx; font-size: 32rpx;">临时</text>
-                              </view>
-                            </block>
-
-                          </view>
-                         
-                        </block>
-
-                        <block wx:if="{{nxArr.length > 0}}">
-                        <!-- 加阴影 -->
-                           <view class="flex-column" style="border: 1px solid #e0e0e0; border-radius: 8rpx; box-shadow: 0 12rpx 12rpx rgba(70, 69, 69, 0.08); overflow: hidden; margin: 10rpx 0;"> 
-                           <view class="p-10 font-xs text-secondary" style="background-color: #f5f7fa; color: #666; font-size: 26rpx; padding: 16rpx 20rpx; border-bottom: 1px solid #e8e8e8; font-weight: 500;">下载商品库{{nxArr.length}}个:</view>
-                          <view class="flex-row-between border-bottom p-20" wx:for="{{nxArr}}" wx:for-item="goods" wx:for-index="nxIndex" wx:key="nxGoodsId" style="background-color: #ffffff; border-bottom: 1px solid #f0f0f0; padding: 24rpx 20rpx; align-items: center;">
-                            <view class="flex-row-default font-lg flex-1" style="min-width: 0; flex: 1;">
-                              <text class="text-secondary mr-10" style="color: #666; font-weight: 500; font-size: 32rpx; min-width: 40rpx;">{{nxIndex + 1}}.</text>
-                              <view class="flex-row-wrap flex-1" style="min-width: 0; align-items: center;">
-
-                                <text class="brand" wx:if="{{goods.nxGoodsBrand.length > 0 && goods.nxGoodsBrand !==  'null'}}" style="margin-right: 8rpx;">{{goods.nxGoodsBrand}}</text>
-
-                                <text class="font-lg mr-20" style="color: #333; font-size: 32rpx; font-weight: 500; line-height: 1.5;">{{goods.nxGoodsName}}</text>
-                               
-                                <block wx:if="{{goods.nxGoodsStandardWeight !== 'null' && goods.nxGoodsStandardWeight.length > 0}}">
-                                  <text class="font-xs mr-10"   style="color: #666; font-size: 32rpx; margin-right: 12rpx;">({{goods.nxGoodsStandardname}}/{{goods.nxGoodsStandardWeight}})</text>
-                                </block>
-                                <block wx:else>
-                                  <text class="normalmr-10" style="color: #666; font-size: 32rpx; margin-right: 12rpx;">({{goods.nxGoodsStandardname}})</text>
-                                </block>
-
-                                <text class="font-xs mr-20 gray" wx:if="{{goods.nxGoodsPlace !== 'null' && goods.nxGoodsPlace.length > 0}}" style="color: #666; font-size: 26rpx; margin-right: 12rpx;">产地:{{goods.nxGoodsPlace}}</text>
-
-                                <text class="font-xs gray" wx:if="{{goods.nxGoodsDetail.length > 0 && goods.nxGoodsDetail !==  'null'}}" style="color: #666; font-size: 26rpx;">{{goods.nxGoodsDetail}}</text>
-                              </view>
-                            </view>
-
-                            <view class="p-20" style="flex-shrink: 0; padding: 20rpx; display: flex; align-items: center; justify-content: center;" bindtap="downLoadGoodsNx" data-item="{{goods}}" data-index="{{orderIndex}}">
-                              <image src="../../../../images/download.png" mode="aspectFill" class="icon" style="opacity: 0.7; width: 44rpx; height: 44rpx;" />
-                            </view>
-                           
-                          </view>
-                        </view>
-                        </block>
-
-                      </scroll-view>
-                    </block>
-
-                <!-- 订单自带商品 - 移到 flex-row-default 外面，不受商品名称列宽度限制 -->
-                <scroll-view scroll-y="true" style="max-height: 400rpx; width: 100%;" wx:if="{{orderArrIndex !== orderIndex}}">
-                   <!-- 订单自带配送商品 -->
-                <view class="flex-column" wx:if="{{item.nxDistributerGoodsEntityList.length > 0}}" style="width: 100%; border-left: 1px solid gray;">
-                  <view class="flex-row p-20 border-bottom" wx:for="{{item.nxDistributerGoodsEntityList}}" wx:for-item="orderGoods" wx:for-index="orderGoodsIndex" bindtap="saveOrder" data-id="{{orderGoods.nxDistributerGoodsId}}" data-index="{{orderIndex}}" data-name="{{item.nxDoGoodsName}}" wx:key="nxDistributerGoodsId" style="width: 95%; background-color: #ffffff; border-bottom: 1px solid #f0f0f0;  padding: 24rpx 20rpx; align-items: center; box-sizing: border-box; ">
-                    <view class="flex-row-wrap flex-1" >
-                      <text class="" style="color: #666; font-weight: 500; font-size: 32rpx; min-width: 50rpx;">({{orderGoodsIndex + 1}}).</text>
-                      <block wx:if="{{orderGoods.nxDgGoodsBrand !== 'null' && orderGoods.nxDgGoodsBrand.length > 0}}">
-                        <text class="brand" style="margin-right: 8rpx;">{{orderGoods.nxDgGoodsBrand}}</text>
-                      </block>
-                      <text class="" style="color: #333; font-size: 32rpx; font-weight: 500; line-height: 1.5;">{{orderGoods.nxDgGoodsName}}</text>
-                      <block wx:if="{{orderGoods.nxDgGoodsStandardWeight !== 'null' && orderGoods.nxDgGoodsStandardWeight.length > 0}}">
-                        <text class="" style="color: #666; font-size: 32rpx; margin-left: 8rpx;">({{orderGoods.nxDgGoodsStandardWeight}}/{{orderGoods.nxDgGoodsStandardname}})</text>
-                      </block>
-                      <block wx:else>
-                        <text class="" style="color: #666; font-size: 32rpx; margin-left: 8rpx;">({{orderGoods.nxDgGoodsStandardname}})</text>
-                      </block>
-                    </view>
-                    <text class="bg-success font-xs p-10 radius-10" style="flex-shrink: 0; display: inline-block; text-align: center; min-width: 80rpx; padding: 8rpx 16rpx; font-size: 32rpx;">选择</text>
-                  </view>
-                </view>
-                <!-- 订单自带系统下载商品 -->
-                <block wx:if="{{item.nxGoodsEntities.length > 0 }}">
-                   <view class="flex-column " style="border-left: 1px solid gray; border-right: 1px solid gray; border-bottom: 1px solid gray;">
-                  <view class="border-bottom p-20" wx:for="{{item.nxGoodsEntities}}" wx:for-item="goods" wx:for-index="nxIndex" wx:key="nxGoodsId" style="width: 100%; border-bottom: 1px solid #f0f0f0; padding: 24rpx 20rpx; align-items: center; box-sizing: border-box; display: flex; flex-direction: row;">
-                    <view class="flex-row" style="flex: 1; align-items: center;padding: 10rpx; min-height: 60rpx; margin-right: 20rpx; width: calc(100% - 100rpx);">
-                      <text class="" style="color: #666; font-weight: 500; font-size: 32rpx; min-width: 40rpx; flex-shrink: 0;">{{nxIndex + 1}}.</text>
-                      <view class="flex-row-wrap" style="flex: 1; align-items: center; display: flex; flex-direction: row; flex-wrap: nowrap;  padding: 10rpx; min-height: 40rpx; overflow: hidden;">
-                        <text class="brand" wx:if="{{goods.nxGoodsBrand.length > 0 && goods.nxGoodsBrand !==  'null'}}" style="margin-right: 8rpx;">{{goods.nxGoodsBrand}}</text>
-                        <text class="font-lg mr-20" style="color: #333; font-size: 32rpx; font-weight: 500; line-height: 1.5;">{{goods.nxGoodsName}}</text>
-                        <text class="" wx:if="{{goods.nxAliasEntities.length > 0}}" wx:for="{{goods.nxAliasEntities}}" wx:for-item="alias" wx:key="nxDaAliasName" style="color: #1c7efb; font-size: 32rpx; margin-right: 8rpx;">@{{alias.nxDaAliasName}}</text>
-                        <block wx:if="{{goods.nxGoodsStandardWeight !== 'null' && goods.nxGoodsStandardWeight.length > 0}}">
-                          <text class="font-xs mr-10" wx:if="{{goods.nxGoodsStandardname !== '斤'}}" style="color: #666; font-size: 32rpx; margin-right: 12rpx;">({{goods.nxGoodsStandardWeight}}/{{goods.nxGoodsStandardname}})</text>
-                        </block>
-                        <block wx:else>
-                          <text class="font-lg mr-10" style="color: #666; font-size: 32rpx; margin-right: 12rpx;">({{goods.nxGoodsStandardname}})</text>
-                        </block>
-
-                        <text class="font-xs mr-20 gray" wx:if="{{goods.nxGoodsPlace !== 'null' && goods.nxGoodsPlace.length > 0}}" style="color: #666; font-size: 26rpx; margin-right: 12rpx;">产地:{{goods.nxGoodsPlace}}</text>
-                        <text class="font-xs gray" wx:if="{{goods.nxGoodsDetail.length > 0 && goods.nxGoodsDetail !==  'null'}}" style="color: #666; font-size: 26rpx;">{{goods.nxGoodsDetail}}</text>
-                      </view>
-                    </view>
-
-                    <view class="p-20 center-content" style="flex-shrink: 0; padding: 20rpx; display: flex; align-items: center; justify-content: center;  width: 40rpx;" bindtap="downLoadGoodsNx" data-index="{{orderIndex}}" data-item="{{goods}}">
-                      <image src="../../../../images/download.png" mode="aspectFill" class="icon" style="opacity: 0.7; width: 44rpx; height: 44rpx;" />
-                    </view>
-
-                  </view>
-                </view>
-                </block>
-                </scroll-view>
-
-              </view>
-            </block>
-
-            <block wx:else="">
-               <view class="flex-column">
-                <view class="flex-row" style="width: {{windowWidth - 220}}rpx; ">
-                <text class="half-row">{{item.nxDoGoodsName}}</text>
-                <text class="quarter-row">{{item.nxDoQuantity}}</text>
-                <text class="quarter-row">{{item.nxDoStandard}}</text>
-              </view>
-
-                <view class="flex-row" wx:if="{{item.standardWeight !== '' && item.standardWeight !== '500g'}}">
-               <view class="flex-row">
-                <text>规格重量:</text>
-                <text>{{item.standardWeight}}/{{item.itemUnit}}</text>
-               </view>
-               <view class="flex-row ">
-                <text wx:if="{{item.itemsPerCarton !== ''}}">*{{item.itemsPerCarton}}{{item.itemUnit}}</text>
-                <text  wx:if="{{item.cartonUnit !== ''}}">{{item.cartonUnit}}</text>
-               </view>
-              
-              </view>
-              <view class="flex-row p-10" wx:if="{{item.nxDoAddRemark || item.nxDoRemark}}" style="margin-top: 12rpx; padding-left: 60rpx;">
-                <text class="mr-10 text-secondary font-sl" style="color: #999; font-size: 34rpx;">备注:</text>
-                <text wx:if="{{item.nxDoStatus == 0}}" style="flex: 1; font-size: 36rpx; color: #333333;">{{item.nxDoRemark || ''}}</text>
-                <input wx:else class="input p-10 {{item.nxDoStatus == -2 ? 'status-draft' : 'status-saved'}}" type="text" bindinput="editOrder" data-type="remark" data-index="{{orderIndex}}" value="{{item.nxDoRemark}}" style="flex: 1; font-size: 36rpx; color: #333333; border-color: {{item.nxDoStatus == -2 ? '#00c48c' : '#e0e0e0'}};" placeholder="添加备注信息" />
-              </view>
-               
-               </view>
-            
-              
-            </block>
+        <view class="order-fields">
+          <view class="field field--name {{invalidOrderIndex == index && invalidOrderField == 'name' ? 'field--invalid' : ''}}">
+            <text class="field-label">商品名称</text>
+            <input
+              class="field-input"
+              value="{{item.nxDoGoodsName}}"
+              bindinput="editOrder"
+              data-index="{{index}}"
+              data-field="name"
+              placeholder="请输入商品"
+            />
           </view>
-
-          
-          <view class="flex-row">
-            <view class="">
-              <image src="/images/correct-2.png" mode="aspectFill" class="icon" />
-            </view>
-            <view class="" bindtap="showOperation" data-index="{{orderIndex}}" data-id="{{applyItem.nxDepartmentOrdersId}}" >
-              <image src="/images/points.png" mode="aspectFill" class="icon" />
-            </view>
+          <view class="field field--quantity {{invalidOrderIndex == index && invalidOrderField == 'quantity' ? 'field--invalid' : ''}}">
+            <text class="field-label">数量</text>
+            <input
+              class="field-input field-input--center"
+              type="digit"
+              value="{{item.nxDoQuantity}}"
+              bindinput="editOrder"
+              data-index="{{index}}"
+              data-field="quantity"
+              placeholder="0"
+            />
           </view>
-
+          <view class="field field--unit {{invalidOrderIndex == index && invalidOrderField == 'standard' ? 'field--invalid' : ''}}">
+            <text class="field-label">单位</text>
+            <input
+              class="field-input field-input--center"
+              value="{{item.nxDoStandard}}"
+              bindinput="editOrder"
+              data-index="{{index}}"
+              data-field="standard"
+              placeholder="斤"
+            />
+          </view>
         </view>
-        <view class="center-content font-md text-secondary" style="height: 200rpx;">
-          没有数据啦!
+
+        <view wx:if="{{item.v2CorrectionText}}" class="inline-correction">
+          <text class="inline-sparkle">✦</text>
+          <text>已修正单位：{{item.v2CorrectionText}}</text>
+        </view>
+        <view wx:if="{{item.v2NeedsReview}}" class="inline-warning">
+          <text>请确认：{{item.v2Warning}}</text>
+        </view>
+
+        <view wx:if="{{item.nxDoAddRemark || item.nxDoRemark}}" class="remark-field">
+          <text class="remark-label">备注</text>
+          <input
+            class="remark-input"
+            value="{{item.nxDoRemark}}"
+            bindinput="editOrder"
+            data-index="{{index}}"
+            data-field="remark"
+            placeholder="例如：要新鲜的、不要太大"
+          />
+        </view>
+
+        <view class="order-quick-actions">
+          <text wx:if="{{!item.nxDoAddRemark && !item.nxDoRemark}}" bindtap="addRemark" data-index="{{index}}">＋备注</text>
+          <text bindtap="insertOrderBefore" data-index="{{index}}">＋在前面加一条</text>
+          <text wx:if="{{item.v2SourceText}}" class="source-preview">原文：{{item.v2SourceText}}</text>
         </view>
       </view>
 
-
+      <view class="append-order" bindtap="appendOrder">
+        <text class="append-plus">＋</text>
+        <text>手动补一条商品</text>
+      </view>
+      <view class="scroll-spacer"></view>
     </scroll-view>
 
-  </view>
-</view>
-
-
-
-
-
-
-
-
-
-<!-- pasteOperation -->
-<view class='overlay {{showOperationPaste ? "show" : "hide"}}' catchtouchmove='ture' catchtap="hideMask">
-  <view class="nnn bg-white  font-lg">
-    <view class="center-content border-bottom">
-      <text class="p-30">{{editOrder.nxDoGoodsName}}</text>
-    </view>
-    <view class="flex-column">
-      <view class="flex-row p-30 border-bottom" catchtap="delOrder" hover-class="hover">
-        <image src="/images/edit.png" class="icon mr-20"></image>
-        <text class="">删除数据</text>
-      </view>
-     
-
-      <view class="flex-row p-30 " catchtap="addRemark" hover-class="hover">
-        <image src="/images/edit.png" class="icon mr-20"></image>
-        <text class="">添加备注</text>
-      </view>
-      <view class="flex-row p-30" catchtap="addNewPasteOrderBefore" hover-class="hover">
-        <image src="../../../../images/add-bold-2.png" class="icon mr-20"></image>
-        <text class="">在之前加新订单</text>
+    <view class="bottom-action-bar">
+      <view class="secondary-bottom-button" bindtap="clearAll">重新下单</view>
+      <view class="primary-bottom-button {{saving ? 'button--disabled' : ''}}" bindtap="saveOrders">
+        <text>{{saving ? '正在生成订单…' : '确认下单'}}</text>
+        <text wx:if="{{!saving}}" class="order-count">{{parseSummary.totalCount}}条</text>
       </view>
     </view>
-
-    <view style="height: 20rpx;"></view>
-
-
   </view>
 
+  <deepseek-loading show="{{showDeepSeekLoading}}" />
+
+  <ocrUpload
+    id="pasteV2OcrUpload"
+    hide-upload="{{true}}"
+    reset-key="{{ocrResetKey}}"
+    image-list="{{ocrImageList}}"
+    bind:imageChange="onOcrImageChange"
+    bind:startOCR="onStartOCR"
+    bind:startOCRFast="onStartOCRFast"
+  ></ocrUpload>
 </view>
-<!-- ../goodsOperation -->
-
-
-<!-- goodsOperation -->
-<view class='overlay {{showOperation ? "show" : "hide"}}' catchtouchmove='ture' catchtap="hideMask">
-  <view class="nnn bg-white font-lg">
-
-    <view class="center-content  border-bottom pt-20 pb-10">
-      <text class="">{{applyItem.nxDoGoodsNameOriginal}}</text>
-    </view>
-
-    <view class="flex-row p-30 border-bottom" catchtap="addDisAlias" hover-class="hover">
-        <image src="/images/edit.png" class="icon mr-20"></image>
-        <text class="">添加新商品</text>
-      </view>
-
-    <view class="flex-row p-30  border-bottom" catchtap="editApply" hover-class="hover">
-      <image src="/images/edit.png" class="icon mr-20"></image>
-      <text class="">修改订单</text>
-    </view>
-
-    <view class="flex-row p-30" catchtap="addNewOrderBefore" hover-class="hover">
-      <image src="../../../../images/add-bold-2.png" class="icon mr-20"></image>
-      <text class="">在之前加新订单</text>
-    </view>
-    <view style="height: 40rpx;"></view>
-  </view>
-
-</view>
-<!-- ../goodsOperation -->
-
-
-
-<addOrder visible="{{showOrder}}" bindconfirm="confirm" bindcancle="cancle" binddelApply="delApply" binddelStandard="delStandard" applyStandardName="{{applyStandardName}}" bindconfirmStandard="confirmStandard" applyNumber="{{applyNumber}}" applyRemark="{{applyRemark}}" editApply="{{editApply}}" bindchangeStandard="changeStandard" applyGoodsName="{{applyGoodsName}}" applyGoodsId="{{applyGoodsId}}" item="{{itemDis}}" windowWidth="{{windowWidth}}" newStandardName="{{newStandardName}}" />
-
-
-<delWarnModal wx:if="{{showPopupWarn}}" type="{{popupType}}" warnContent="{{warnContent}}" bind:closeWarn="closeWarn" bind:confirmWarn="confirmWarn" />
-
-<myDismodalCashSingle show="{{showCash}}" bindconfirm="confirmCash" bindcancle="cancle" binddelApply="delApply" bindconfirmStandard="confirmStandard" applyStandardName="{{applyStandardName}}" applyNumber="{{applyNumber}}" applySubtotal="{{applySubtotal}}" applyRemark="{{applyRemark}}" editApply="{{editApply}}" expectPrice="{{expectPrice}}" bindchangeStandard="changeStandard" applyGoodsName="{{applyGoodsName}}" applyGoodsId="{{applyGoodsId}}" item="{{itemDis}}" applyStandardName="{{applyStandardName}}" windowWidth="{{windowWidth}}" windowHeight="{{windowHeight}}" statusBarHeight="{{statusBarHeight}}" />
-
-
-<deepseek-loading show="{{showDeepSeekLoading}}" />
-
-<!-- 订单修正弹窗 -->
-<correctionModal 
-  show="{{showCorrectionModal}}" 
-  defaultText="{{correctionDefaultText}}"
-  bind:cancel="onCorrectionModalCancel"
-  bind:confirm="onCorrectionModalConfirm"
-/>
-
-<!-- 图片识别：复用 ocrUpload 组件的选图+裁剪+模式选择逻辑（隐藏其顶部上传区，点击“图片”按钮由页面主动触发 chooseImages） -->
-<ocrUpload
-  id="pasteOcrUpload"
-  hide-upload="{{true}}"
-  image-list="{{ocrImageList}}"
-  bind:imageChange="onOcrImageChange"
-  bind:startOCR="onStartOCR"
-  bind:startOCRFast="onStartOCRFast"
-></ocrUpload>

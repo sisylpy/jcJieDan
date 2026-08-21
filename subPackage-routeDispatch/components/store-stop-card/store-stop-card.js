@@ -51,6 +51,10 @@ Component({
     nodeIndex: {
       type: Number,
       value: -1
+    },
+    showPlanningLock: {
+      type: Boolean,
+      value: false
     }
   },
 
@@ -76,6 +80,10 @@ Component({
 
     onPrimaryAction: function () {
       this.emitMeta('primaryaction')
+    },
+
+    onPlanningLockTap: function () {
+      this.emitMeta('locktap')
     },
 
     onExceptionAction: function () {

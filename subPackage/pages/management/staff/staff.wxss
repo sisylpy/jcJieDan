@@ -55,3 +55,20 @@ button.group_btn::after {
 .duty-status-label-off {
   color: #999;
 }
+
+.role-row {
+  align-items: center;
+  margin-top: 8rpx;
+}
+
+.role-picker {
+  padding: 6rpx 18rpx;
+  color: #147062;
+  background: #edf8f6;
+  border-radius: 10rpx;
+}
+
+.role-picker.locked {
+  color: #66736f;
+  background: #f0f2f1;
+}

@@ -1,0 +1,102 @@
+<wxs src="../../../../utils/fn.wxs" module="tool" />
+<back-navbar title="售后管理" avatar="/images/back-gray.png" button-text="" bindnavbuttontap="toBack"></back-navbar>
+
+<view class="after-page" style="padding-top: {{navBarHeight}}rpx;">
+  <view class="flex-row-between pl-20 pr-20 border-bottom bg-white">
+    <view class="flex-row date-bar" bindtap="toDatePage">
+      <view class="p-20">
+        <image src="/images/calender.png" class="icon"></image>
+      </view>
+      <view class="flex-column pt-10 font-xs">
+        <view class="font-yuan">{{hanzi}}</view>
+        <view class="flex-row" wx:if="{{startDate == stopDate}}">
+          <view wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
+        </view>
+        <view class="flex-row" wx:else>
+          <view wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
+          <text class="plr-10">-</text>
+          <view wx:if="{{stopDate}}">{{tool.transferDateString(stopDate)}}</view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <view class="loading" wx:if="{{loading}}">加载中...</view>
+  <view class="error-card" wx:elif="{{errorText}}">{{errorText}}</view>
+
+  <block wx:else>
+    <view class="kpi-grid">
+      <view class="kpi-cell">
+        <text class="kpi-value">{{overview.totalIssue}}</text>
+        <text class="kpi-label">问题工单</text>
+      </view>
+      <view class="kpi-cell">
+        <text class="kpi-value">{{kpi.deliveredOrderCount}}</text>
+        <text class="kpi-label">配送订单</text>
+      </view>
+      <view class="kpi-cell">
+        <text class="kpi-value">{{kpi.problemOrderCount}}</text>
+        <text class="kpi-label">问题订单</text>
+      </view>
+      <view class="kpi-cell">
+        <text class="kpi-value">{{kpi.normalOrderCount}}</text>
+        <text class="kpi-label">正常订单</text>
+      </view>
+    </view>
+
+    <view class="status-row">
+      <view class="status-card">
+        <text class="status-value">{{kpi.processingCount}}</text>
+        <text class="status-label">处理中</text>
+      </view>
+      <view class="status-card">
+        <text class="status-value">{{kpi.waitConfirmCount}}</text>
+        <text class="status-label">待确认</text>
+      </view>
+      <view class="status-card">
+        <text class="status-value">{{kpi.completedCount}}</text>
+        <text class="status-label">已解决</text>
+      </view>
+    </view>
+
+    <view class="panel">
+      <view class="panel-title">问题类型分布</view>
+      <view class="dist-row" wx:if="{{issueTypeStats.length > 0}}">
+        <view class="chart-wrap">
+          <ec-canvas id="issueTypeChart" canvas-id="issueTypeChart" ec="{{ec}}"></ec-canvas>
+        </view>
+        <view class="top5-list">
+          <view class="top5-item" wx:for="{{issueTypeStats}}" wx:key="issueType">
+            <view class="top5-left">
+              <text class="top5-rank">{{index + 1}}</text>
+              <text class="top5-name">{{item.issueTypeName}}</text>
+            </view>
+            <view class="top5-right">
+              <text class="top5-count">{{item.count}} 单</text>
+              <text class="top5-percent">{{item.percent}}%</text>
+            </view>
+          </view>
+        </view>
+      </view>
+      <view class="empty-card" wx:else>当前日期范围内没有售后问题</view>
+    </view>
+
+    <view class="panel">
+      <view class="panel-title underlined">近期工单</view>
+      <view class="empty-card" wx:if="{{cases.length === 0}}">当前日期没有售后问题</view>
+      <view class="case-card severity-{{item.severityClass}}" wx:for="{{cases}}" wx:key="afterSalesId" bindtap="openDetail" data-id="{{item.afterSalesId}}" data-name="{{item.customerName}}">
+        <view class="case-main">
+          <view class="case-top">
+            <text class="case-customer">{{item.customerName}}</text>
+            <text class="severity-badge">{{item.severityLabel}}</text>
+          </view>
+          <view class="case-summary">{{item.issueItemSummary}} · {{item.issueTypeLabel}}</view>
+          <view class="case-bottom">
+            <text class="case-status">{{item.statusLabel}}</text>
+            <text class="case-time">{{item.createdText}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </block>
+</view>

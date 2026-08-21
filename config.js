@@ -1,22 +1,19 @@
-// 开发版/体验版只访问 Test Tomcat；正式版继续固定访问正式 Tomcat。
-// 不允许为了联调直接改写正式版地址。
-const PROD_SERVER = 'https://grainservice.club:8443/nongxinle/'
-const TEST_SERVER = 'https://test-api.grainservice.club/nongxinle/'
-
-function currentEnvVersion() {
-  try {
-    return wx.getAccountInfoSync().miniProgram.envVersion || 'release'
-  } catch (e) {
-    return 'release'
-  }
-}
-
-const server = currentEnvVersion() === 'release' ? PROD_SERVER : TEST_SERVER
-
 module.exports = {
-  apiUrl: server + 'api/',
-  server: server,
-  envVersion: currentEnvVersion(),
+  // 本地调试服务器（当前启用）
+  // 本地 Tomcat Application context 是 /nongxinle_server_war_exploded，
+  // 不要再叠加业务前缀 /nongxinle（那是正式服务器 contextPath 才有的），
+  // 否则 Shiro 的 /api/**=anon 匹配不到，会被拦截 302 到 login.html。
+  // apiUrl: 'http://192.168.0.102:8081/nongxinle_server_war_exploded/api/',
+  // server: 'http://192.168.0.102:8081/nongxinle_server_war_exploded/',
+// 
+  // 正式服务器：发布正式环境时，注释上面的本地地址并启用这一组。
+  apiUrl: 'https://grainservice.club:8443/nongxinle/api/',
+  server: 'https://grainservice.club:8443/nongxinle/',
+
+  // 测试服务器：测试时启用这一组。
+  // apiUrl: 'https://test-api.grainservice.club/nongxinle/api/',
+  // server: 'https://test-api.grainservice.club/nongxinle/',
+
   tencentCloud: {
     engineModelType: '16k_zh',
     voiceFormat: 1

@@ -1,1 +1,212 @@
 @import '../dispatchPanelShared.wxss';
+
+.planning-card {
+  margin: 10rpx 8rpx 0;
+  padding: 20rpx 22rpx;
+  border-radius: 22rpx;
+  background: #fff;
+  box-shadow: 0 6rpx 22rpx rgba(31, 58, 48, .06);
+}
+
+.planning-card-head,
+.planning-target-row,
+.planning-head-actions,
+.desktop-login-entry,
+.planning-mode-group,
+.planning-input-wrap,
+.planning-lock-sheet-head,
+.planning-driver-item {
+  display: flex;
+  align-items: center;
+}
+
+.planning-head-actions {
+  gap: 12rpx;
+}
+
+.desktop-login-entry {
+  height: 54rpx;
+  padding: 0 16rpx;
+  border: 1rpx solid #99d4c0;
+  border-radius: 12rpx;
+  color: #087654;
+  background: #effaf6;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.desktop-login-icon {
+  margin-right: 7rpx;
+  font-size: 24rpx;
+}
+
+.planning-card-head,
+.planning-lock-sheet-head {
+  justify-content: space-between;
+}
+
+.planning-card-title,
+.planning-card-note,
+.planning-lock-sheet-title,
+.planning-lock-sheet-note {
+  display: block;
+}
+
+.planning-card-title,
+.planning-lock-sheet-title {
+  color: #193c30;
+  font-size: 28rpx;
+  font-weight: 700;
+}
+
+.planning-card-note,
+.planning-lock-sheet-note {
+  margin-top: 4rpx;
+  color: #87948f;
+  font-size: 21rpx;
+}
+
+.planning-mode-group {
+  padding: 4rpx;
+  border-radius: 12rpx;
+  background: #f1f5f3;
+}
+
+.planning-mode {
+  padding: 10rpx 18rpx;
+  border-radius: 9rpx;
+  color: #6d7d77;
+  font-size: 23rpx;
+}
+
+.planning-mode-active {
+  color: #087654;
+  background: #fff;
+  box-shadow: 0 2rpx 8rpx rgba(24, 90, 66, .1);
+  font-weight: 700;
+}
+
+.planning-target-row {
+  gap: 10rpx;
+  margin-top: 18rpx;
+  color: #6f7d78;
+  font-size: 22rpx;
+}
+
+.planning-input-wrap {
+  flex: 1;
+  height: 58rpx;
+  padding: 0 12rpx;
+  border: 1rpx solid #dce6e2;
+  border-radius: 12rpx;
+  background: #fbfcfc;
+}
+
+.planning-input-wrap input {
+  min-width: 0;
+  flex: 1;
+  color: #1c3a30;
+  font-size: 24rpx;
+}
+
+.planning-input-wrap text {
+  color: #88948f;
+  font-size: 20rpx;
+}
+
+.planning-submit,
+.planning-unlock {
+  padding: 16rpx 20rpx;
+  border-radius: 12rpx;
+  color: #fff;
+  background: #0c9469;
+  font-size: 23rpx;
+  font-weight: 700;
+}
+
+.planning-submit-disabled {
+  opacity: .55;
+}
+
+.planning-warning {
+  margin-top: 10rpx;
+  color: #b26a1b;
+  font-size: 21rpx;
+}
+
+.planning-lock-mask {
+  position: fixed;
+  z-index: 1200;
+  display: flex;
+  align-items: flex-end;
+  inset: 0;
+  background: rgba(17, 32, 27, .48);
+}
+
+.planning-lock-sheet {
+  width: 100%;
+  padding: 28rpx 26rpx calc(28rpx + env(safe-area-inset-bottom));
+  border-radius: 30rpx 30rpx 0 0;
+  background: #fff;
+}
+
+.planning-lock-close {
+  padding: 8rpx 14rpx;
+  color: #82908b;
+  font-size: 44rpx;
+}
+
+.planning-driver-list {
+  max-height: 520rpx;
+  margin-top: 20rpx;
+}
+
+.planning-driver-item {
+  padding: 18rpx 4rpx;
+  border-bottom: 1rpx solid #edf1ef;
+}
+
+.planning-driver-avatar {
+  display: flex;
+  width: 68rpx;
+  height: 68rpx;
+  align-items: center;
+  justify-content: center;
+  border-radius: 18rpx;
+  color: #fff;
+  background: #15956c;
+  font-size: 27rpx;
+  font-weight: 700;
+}
+
+.planning-driver-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  margin-left: 18rpx;
+}
+
+.planning-driver-copy text:first-child {
+  color: #223a32;
+  font-size: 27rpx;
+  font-weight: 700;
+}
+
+.planning-driver-copy text:last-child,
+.planning-driver-current {
+  margin-top: 5rpx;
+  color: #7f8c87;
+  font-size: 21rpx;
+}
+
+.planning-driver-current {
+  color: #0a855e;
+}
+
+.planning-unlock {
+  margin-top: 20rpx;
+  color: #a24f38;
+  background: #fff4ef;
+  text-align: center;
+}

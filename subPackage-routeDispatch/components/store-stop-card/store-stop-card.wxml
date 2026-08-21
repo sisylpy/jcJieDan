@@ -32,6 +32,11 @@
               <text>{{stop.windowRequirementLabel}}</text>
             </view>
           </view>
+          <view
+            wx:if="{{showPlanningLock && variant !== 'delivery'}}"
+            class="planning-lock-btn {{stop.driverLocked ? 'planning-lock-btn-active' : ''}}"
+            catchtap="onPlanningLockTap"
+          >{{stop.driverLocked ? '已锁' : '锁司机'}}</view>
           <view class="delivery-stop-actions" wx:if="{{variant === 'delivery' && (stop.showCancelDelivery || stop.showMarkException)}}">
             <view
               wx:if="{{stop.showCancelDelivery && stop.primaryAction && stop.primaryAction.label}}"

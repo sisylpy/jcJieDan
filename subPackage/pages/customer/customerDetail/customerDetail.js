@@ -15,6 +15,9 @@ import {
   updateGroupName,
   updateDeliverySettings,
 
+  // 客户业态
+  getCustomerBusinessTypes,
+
   // 标签相关API
   disGetLabelData,
   disSyncDepartmentLabels,
@@ -37,7 +40,10 @@ Page({
     isChoosingLocation: false,
     priorityOptions: ['最低', '较低', '普通', '较高', '最高'],
     priorityIndex: 2,
-    allowEarlyDelivery: true
+    allowEarlyDelivery: true,
+    customerBusinessTypeName: '',
+    selectedBusinessTypeId: null,
+    businessTypeInherited: false
   },
 
   onShow() {
@@ -1241,6 +1247,8 @@ Page({
         wx.setStorageSync('depInfo', depInfo);
         // 获取客户标签
         this._getDepLabels('getDepInfo:' + source);
+        // 获取独立客户业态；禁止复用 nxDepartmentType 定价字段。
+        this._getCustomerBusinessType('getDepInfo:' + source);
         return depInfo;
       } else {
         wx.showToast({
@@ -1265,6 +1273,59 @@ Page({
       }
     });
     return request;
+  },
+
+  // ============ 客户业态管理 ============
+
+  _getCustomerBusinessType(source = 'unknown') {
+    const departmentId = this.data.depFatherId;
+    if (!departmentId) return Promise.resolve(null);
+
+    return getCustomerBusinessTypes(departmentId).then(res => {
+      const customerResult = res && res.result || {};
+      if (customerResult.code != 0) {
+        throw new Error(customerResult.msg || '获取客户业态失败');
+      }
+
+      const relationData = customerResult.data || {};
+      const customerTypes = relationData.types || [];
+      const primaryType = customerTypes.find(item => item.isPrimary == 1)
+        || customerTypes[0]
+        || null;
+      this.setData({
+        customerBusinessTypeName: primaryType ? primaryType.typeName : '',
+        selectedBusinessTypeId: primaryType ? primaryType.businessTypeId : null,
+        businessTypeInherited: !!relationData.inherited
+      });
+      console.log('[customerDetail][businessType] loaded', {
+        source,
+        departmentId,
+        selectedBusinessTypeId: primaryType ? primaryType.businessTypeId : null,
+        inherited: !!relationData.inherited
+      });
+      return relationData;
+    }).catch(error => {
+      console.error('[customerDetail][businessType] load failed', {
+        source,
+        departmentId,
+        error
+      });
+      return null;
+    });
+  },
+
+  showBusinessTypeEditor() {
+    const departmentId = this.data.depFatherId;
+    if (!departmentId) {
+      wx.showToast({ title: '客户信息不完整', icon: 'none' });
+      return;
+    }
+    const customerName = this.data.depInfo && (this.data.depInfo.nxDepartmentAttrName
+      || this.data.depInfo.nxDepartmentName) || '';
+    wx.navigateTo({
+      url: '../customerBusinessType/customerBusinessType?departmentId=' + departmentId
+        + '&customerName=' + encodeURIComponent(customerName)
+    });
   },
 
   // ============ 标签管理相关方法 ============

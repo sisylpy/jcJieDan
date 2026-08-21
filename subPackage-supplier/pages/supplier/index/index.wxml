@@ -53,9 +53,6 @@
               <view class="supplier-details">
                 <text class="supplier-name">{{supplier.nxJrdhsSupplierName}}</text>
               </view>
-              <view class="supplier-menu-btn" bindtap="openOperation" data-item="{{supplier}}" catchtap="openOperation">
-                <image src="../../../../images/points.png" class="menu-icon"></image>
-              </view>
             </view>
 
             <!-- 订单统计 -->
@@ -110,60 +107,4 @@
     </view>
   </view>
 
-</view>
-
-
-<view class='overlay {{showOperation ? "show" : "hide"}}' catchtouchmove='ture' catchtap="hideMask">
-  <view class="flex-column nnn bg-white" wx:if="{{chooseSize}}" animation='{{animationData}}'>
-
-
-    <!-- <view class="p-30  flex-row border-bottom" catch:tap="toSupplierDetail" hover-class="hover">
-      <image src="../../../../images/duizhangdanbill.png" class="icon mr-20"></image>
-      <text class="font-md">订货账单</text>
-    </view> -->
-    <view class="p-30  flex-row border-bottom" catch:tap="toSupplierGoods">
-      <image src="../../../../images/zidongtianjia.png" class="icon mr-20"></image>
-      <text class="font-md">自动订货商品</text>
-    </view>
-    <!-- <view class="p-30  flex-row border-bottom" catch:tap="toSupplierStars" hover-class="hover">
-      <image src="../../../../images/starGray.png" class="icon mr-20"></image>
-      <text class="font-md">退货</text>
-    </view> -->
-    <view class="p-30  flex-row border-bottom" catch:tap="toSupplierFenxi" hover-class="hover">
-      <image src="../../../../images/statistic.png" class="icon mr-20"></image>
-      <text class="font-md">供货商分析</text>
-    </view>
-    <view class="p-30  flex-row border-bottom" catch:tap="toEditSupplier" hover-class="hover">
-      <image src="../../../../images/edit.png" class="icon mr-20"></image>
-      <text class="font-md">修改供货商名称</text>
-    </view>
-    <view class="p-30  flex-row " catch:tap="toDeleteSupplier" hover-class="hover">
-      <image src="../../../../images/delete.png" class="icon mr-20"></image>
-      <text class="font-md">删除供货商</text>
-    </view>
-
-    <view style="height: 20rpx;"></view>
-
-
-  </view>
-</view>
-
-<!-- 编辑供货商名称弹窗 -->
-<view class='overlay {{showEditModal ? "show" : "hide"}}' catchtouchmove='true' catchtap="hideEditModal">
-  <view class="flex-column bg-white popup" style="width: 80%; max-width: 600rpx; " catchtap="stopPropagation">
-    <view class="p-30 border-bottom">
-      <text class="font-lg">修改供货商名称</text>
-    </view>
-
-    <view class="p-30">
-      <input class="edit-input" placeholder="请输入供货商名称" value="{{editSupplierName}}" bindinput="onEditSupplierNameInput" maxlength="50" style="width: {{windowWidth - 240}}rpx;" />
-    </view>
-
-    <view class="flex-row p-20 ">
-      <button class="btn-cancel" bindtap="hideEditModal">取消</button>
-      <button class="btn-confirm  {{editSupplierName !== originalSupplierName ? 'btn-confirm-active' : 'btn-confirm-disabled'}}" bindtap="{{editSupplierName !== originalSupplierName ? 'confirmEditSupplier' : ''}}" disabled="{{editSupplierName === originalSupplierName}}">
-        确认
-      </button>
-    </view>
-  </view>
 </view>

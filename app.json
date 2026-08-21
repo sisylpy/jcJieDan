@@ -35,6 +35,7 @@
       "pages/customer/customerUsers/customerUsers",
       "pages/customer/customerPageGb/customerPageGb",
       "pages/customer/customerDetail/customerDetail",
+      "pages/customer/customerBusinessType/customerBusinessType",
       "pages/customer/customerDetailGb/customerDetailGb",
       "pages/customer/settleAccount/settleAccount",
       "pages/customer/settleAccountGb/settleAccountGb",
@@ -89,9 +90,8 @@
       "pages/management/compensationCoupon/compensationCoupon",
       "pages/management/compensationCoupon/compensationCouponEdit",
 
-      "pages/afterSales/index/index",
-      "pages/afterSales/create/create",
-      "pages/afterSales/detail/detail",
+      "pages/announcement/index/index",
+      "pages/announcement/detail/detail",
 
        "pages/offerNx/offerNxDistributerList/offerNxDistributerList",
        "pages/offerNx/inviteOfferDis/inviteOfferDis",
@@ -161,7 +161,11 @@
       "pages/mangement/costGoodsFenxi/costGoodsFenxi",
       "pages/mangement/purGoodsFenxi/purGoodsFenxi",
       "pages/mangement/goodsFenxiCost/goodsFenxiCost",
-      "pages/mangement/goodsFenxiPurchase/goodsFenxiPurchase"
+      "pages/mangement/goodsFenxiPurchase/goodsFenxiPurchase",
+
+      "pages/afterSales/index/index",
+      "pages/afterSales/create/create",
+      "pages/afterSales/detail/detail"
     ]
     }, {
     "root": "subPackage-order/",
@@ -200,7 +204,8 @@
       "pages/trans/settlePageGb/settlePageGb",
       "pages/supplier/index/index",
       "pages/supplier/supplierDetail/supplierDetail",
-      "pages/supplier/supplierBills/supplierBills"
+      "pages/supplier/supplierBills/supplierBills",
+      "pages/supplier/myPurchaseDetail/myPurchaseDetail"
     ]
     }],
   "preloadRule": {
@@ -269,7 +274,7 @@
   },
   "plugins": {
     "QCloudAIVoice": {
-      "version": "2.3.12",
+      "version": "3.0.0",
       "provider": "wx3e17776051baf153"
     }
   },

@@ -94,6 +94,7 @@ Page({
       if (!order || !order.nxDepartmentOrdersId) return;
       var context = cache[String(order.nxDepartmentOrdersId)];
       order.afterSalesEntryVisible = !!order.nxDoDepDisGoodsId;
+      order.afterSalesTaskContext = context || null;
       order.afterSalesContext = context && context.delivered ? context : null;
     };
     ;((bill && bill.nxDepartmentOrdersEntities) || []).forEach(decorate);
@@ -143,6 +144,19 @@ Page({
     wx.setStorageSync('afterSalesDeliveryOrderContext', cache);
   },
 
+  _clearAfterSalesContexts(bill, applyArr) {
+    var cache = wx.getStorageSync('afterSalesDeliveryOrderContext') || {};
+    var clear = function (order) {
+      if (order && order.nxDepartmentOrdersId) delete cache[String(order.nxDepartmentOrdersId)];
+    };
+    ;((bill && bill.nxDepartmentOrdersEntities) || []).forEach(clear);
+    ;(applyArr || []).forEach(function (row) {
+      if (row && Array.isArray(row.depOrders)) row.depOrders.forEach(clear);
+      else clear(row);
+    });
+    wx.setStorageSync('afterSalesDeliveryOrderContext', cache);
+  },
+
   _refreshAfterSalesContexts(bill, applyArr) {
     if (this._afterSalesContextPromise) return this._afterSalesContextPromise;
     this._afterSalesContextPromise = getDispatchDeliveryToday({
@@ -150,6 +164,7 @@ Page({
       routeDate: this._resolveBillRouteDate(bill)
     }).then((res) => {
       if (!res.result || res.result.code !== 0) return false;
+      this._clearAfterSalesContexts(bill, applyArr);
       this._cacheAfterSalesContexts(res.result.data && res.result.data.pageViewModel);
       this._decorateAfterSalesOrders(bill, applyArr);
       this.setData({ bill: bill, applyArr: applyArr });
@@ -183,13 +198,19 @@ Page({
     }
     if (!selected.afterSalesContext || !selected.afterSalesContext.deliveryStopId) {
       wx.showLoading({ title: '匹配配送任务' });
-      this._refreshAfterSalesContexts(this.data.bill, this.data.applyArr).then(() => {
+      this._refreshAfterSalesContexts(this.data.bill, this.data.applyArr).then((refreshedSuccessfully) => {
         wx.hideLoading();
-        var refreshed = this._findBillOrder(orderId);
-        if (!refreshed || !refreshed.afterSalesContext || !refreshed.afterSalesContext.deliveryStopId) {
-          wx.showToast({ title: '未找到对应的已送达配送任务', icon: 'none', duration: 2500 });
+        if (!refreshedSuccessfully) {
+          wx.showToast({ title: '配送任务状态获取失败，请重试', icon: 'none' });
           return;
         }
+        var refreshed = this._findBillOrder(orderId) || selected;
+        if (refreshed.afterSalesTaskContext && !refreshed.afterSalesContext) {
+          wx.showToast({ title: '配送任务尚未送达', icon: 'none' });
+          return;
+        }
+        // 历史送货单不一定经过新的派单流程。确认当前确实没有任务后，
+        // 直接按原订单创建售后，不应阻断记录问题。
         this._openAfterSalesCreate(refreshed);
       });
       return;
@@ -198,9 +219,16 @@ Page({
   },
 
   _openAfterSalesCreate(selected) {
-    var taskId = selected.afterSalesContext.deliveryStopId;
+    var taskId = selected.afterSalesContext && selected.afterSalesContext.deliveryStopId;
+    var selectedDepartmentId = selected.nxDoDepartmentId;
     var candidates = this._allBillOrders().filter(function (item) {
-      return item && item.nxDoDepDisGoodsId && item.afterSalesContext &&
+      if (!item || !item.nxDoDepDisGoodsId) return false;
+      if (selectedDepartmentId != null && item.nxDoDepartmentId != null &&
+          String(item.nxDoDepartmentId) !== String(selectedDepartmentId)) return false;
+      if (!taskId) {
+        return !item.afterSalesTaskContext || !item.afterSalesTaskContext.deliveryStopId;
+      }
+      return item.afterSalesContext &&
         String(item.afterSalesContext.deliveryStopId) === String(taskId);
     }).map(function (item) {
       var goods = item.nxDistributerGoodsEntity || {};
@@ -215,13 +243,14 @@ Page({
       };
     });
     wx.setStorageSync('afterSalesCreateDraft', {
-      originalShipmentTaskId: taskId,
-      routeDate: selected.afterSalesContext.routeDate || '',
-      customerName: selected.afterSalesContext.customerName || this.data.depName || '',
+      originalShipmentTaskId: taskId || null,
+      anchorHistoryOrderId: selected.nxDepartmentOrdersId,
+      routeDate: (selected.afterSalesContext && selected.afterSalesContext.routeDate) || '',
+      customerName: (selected.afterSalesContext && selected.afterSalesContext.customerName) || this.data.depName || '',
       orders: candidates,
       createdAt: Date.now()
     });
-    wx.navigateTo({ url: '../../afterSales/create/create' });
+    wx.navigateTo({ url: '/subPackage-charts/pages/afterSales/create/create' });
   },
 
   //  //////////////
@@ -287,6 +316,19 @@ Page({
     })
     this.chooseSezi();
 
+  },
+
+  createAfterSalesFromOperation() {
+    var selected = this.data.item;
+    this.setData({ showOperation: false });
+    this.hideModal();
+    if (!selected || !selected.nxDepartmentOrdersId) {
+      wx.showToast({ title: '未找到原订单', icon: 'none' });
+      return;
+    }
+    this.toCreateAfterSales({
+      currentTarget: { dataset: { orderId: selected.nxDepartmentOrdersId } }
+    });
   },
 
   /**

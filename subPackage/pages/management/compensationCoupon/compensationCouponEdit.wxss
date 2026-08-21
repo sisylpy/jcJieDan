@@ -1,16 +1,190 @@
-page { background: #f5f5f2; color: #273230; }
-.edit-page { padding: 22rpx 24rpx 70rpx; box-sizing: border-box; }
-.notice { padding: 20rpx 22rpx; border-radius: 16rpx; background: #fff1dc; color: #93602d; font-size: 24rpx; line-height: 1.55; }
-.form-card { margin-top: 18rpx; padding: 26rpx; border-radius: 20rpx; background: #fff; }
-.field-title { display: block; margin-top: 28rpx; font-size: 27rpx; font-weight: 650; }
-.field-title:first-child { margin-top: 0; }
-.form-card input, .form-card textarea, .picker-field { box-sizing: border-box; width: 100%; margin-top: 13rpx; padding: 18rpx; border-radius: 14rpx; background: #f5f6f4; font-size: 28rpx; }
-.form-card textarea { height: 150rpx; }
-.amount-input, .days-input { display: flex; align-items: center; margin-top: 13rpx; border-radius: 14rpx; background: #f5f6f4; }
-.amount-input > text { padding-left: 20rpx; color: #34776d; font-size: 35rpx; font-weight: 700; }
-.amount-input input, .days-input input { margin-top: 0; }
-.days-input text { padding-right: 20rpx; color: #6f7976; }
-.field-help { display: block; margin-top: 9rpx; color: #929a98; font-size: 22rpx; }
-.picker-field { display: flex; align-items: center; justify-content: space-between; }
-.picker-field text { color: #8a9391; font-size: 34rpx; }
-.save-button { margin-top: 24rpx; background: #315f62; color: #fff; }
+page {
+  background: #f4f6f5;
+  color: #24312f;
+}
+
+.edit-page {
+  padding: 26rpx 26rpx 90rpx;
+  box-sizing: border-box;
+}
+
+.notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 16rpx;
+  padding: 22rpx 24rpx;
+  border: 1rpx solid #f6dfbd;
+  border-radius: 18rpx;
+  background: #fff4e2;
+  color: #8b5927;
+  font-size: 29rpx;
+  line-height: 1.6;
+}
+
+.notice-icon {
+  flex: none;
+  width: 36rpx;
+  height: 36rpx;
+  margin-top: 5rpx;
+  border-radius: 50%;
+  background: #d99045;
+  color: #fff;
+  font-size: 25rpx;
+  font-weight: 700;
+  line-height: 36rpx;
+  text-align: center;
+}
+
+.form-card {
+  margin-top: 22rpx;
+  padding: 36rpx 30rpx 38rpx;
+  border: 1rpx solid #e9eeeb;
+  border-radius: 26rpx;
+  background: #fff;
+  box-shadow: 0 8rpx 28rpx rgba(36, 72, 67, 0.06);
+}
+
+.field-group + .field-group {
+  margin-top: 34rpx;
+}
+
+.field-title {
+  display: block;
+  color: #263532;
+  font-size: 34rpx;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.text-input,
+.amount-input,
+.days-input,
+.picker-field {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100rpx;
+  margin-top: 16rpx;
+  border: 1rpx solid #e6ebe8;
+  border-radius: 18rpx;
+  background: #f4f7f5;
+}
+
+.text-input {
+  padding: 0 24rpx;
+  color: #253431;
+  font-size: 33rpx;
+  line-height: 100rpx;
+}
+
+.amount-input,
+.days-input {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.amount-symbol {
+  flex: none;
+  padding-left: 24rpx;
+  color: #2d746b;
+  font-size: 42rpx;
+  font-weight: 700;
+  line-height: 100rpx;
+}
+
+.amount-value-input,
+.days-value-input {
+  display: block;
+  box-sizing: border-box;
+  flex: 1;
+  width: auto;
+  min-width: 0;
+  height: 100rpx;
+  min-height: 100rpx;
+  padding: 0 18rpx;
+  color: #253431;
+  font-size: 35rpx;
+  line-height: 100rpx;
+}
+
+.amount-unit,
+.days-unit {
+  flex: none;
+  padding-right: 24rpx;
+  color: #6e7d79;
+  font-size: 32rpx;
+  line-height: 100rpx;
+}
+
+.field-help {
+  display: block;
+  margin-top: 12rpx;
+  color: #818e8a;
+  font-size: 27rpx;
+  line-height: 1.55;
+}
+
+.picker-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 22rpx 0 24rpx;
+}
+
+.picker-value {
+  color: #253431;
+  font-size: 33rpx;
+}
+
+.picker-arrow {
+  color: #7f8c89;
+  font-size: 42rpx;
+  line-height: 1;
+}
+
+.words-input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 212rpx;
+  margin-top: 16rpx;
+  padding: 22rpx 24rpx 48rpx;
+  border: 1rpx solid #e6ebe8;
+  border-radius: 18rpx;
+  background: #f4f7f5;
+  color: #253431;
+  font-size: 33rpx;
+  line-height: 1.55;
+}
+
+.field-group:last-child {
+  position: relative;
+}
+
+.word-count {
+  position: absolute;
+  right: 20rpx;
+  bottom: 16rpx;
+  color: #9aa4a1;
+  font-size: 25rpx;
+}
+
+.input-placeholder {
+  color: #9aa4a1;
+  font-size: 30rpx;
+}
+
+.save-button {
+  height: 104rpx;
+  margin-top: 30rpx;
+  border-radius: 18rpx;
+  background: #315f62;
+  color: #fff;
+  font-size: 36rpx;
+  font-weight: 700;
+  line-height: 104rpx;
+  box-shadow: 0 8rpx 22rpx rgba(49, 95, 98, 0.16);
+}
+
+.save-button::after {
+  border: none;
+}

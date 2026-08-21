@@ -1,0 +1,144 @@
+page { background: #f5f5f5; color: #333; }
+.after-page { padding: 20rpx 0 60rpx; box-sizing: border-box; }
+
+/* 日期栏沿用系统通用样式（.icon / .pl-20 / .flex-row 等定义在 common） */
+.date-bar {
+  align-items: center;
+  padding: 6rpx 0;
+}
+
+.loading, .error-card, .empty-card {
+  padding: 60rpx 24rpx;
+  text-align: center;
+  color: #999;
+  background: #fff;
+}
+
+/* KPI 卡片：扁平、4 列 */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rpx;
+  background: #fff;
+}
+.kpi-cell {
+  background: #fff;
+  padding: 24rpx 8rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.kpi-value { font-size: 40rpx; font-weight: 700; color: #315f62; line-height: 1.2; }
+.kpi-label { margin-top: 6rpx; font-size: 22rpx; color: #888; }
+
+/* 状态统计行 */
+.status-row {
+  display: flex;
+  background: #fff;
+  padding: 24rpx 24rpx 32rpx;
+  margin-top: 1rpx;
+  gap: 20rpx;
+}
+.status-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24rpx 0;
+  background: #f9fafb;
+}
+.status-value { font-size: 42rpx; font-weight: 700; color: #315f62; line-height: 1.2; }
+.status-label { margin-top: 10rpx; font-size: 24rpx; color: #666; }
+
+/* 面板 */
+.panel {
+  background: #fff;
+  margin-top: 20rpx;
+  padding: 24rpx;
+}
+.panel-title {
+  font-size: 30rpx;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+.panel-title.underlined {
+  display: inline-block;
+  padding-bottom: 8rpx;
+  border-bottom: 4rpx solid #315f62;
+}
+
+/* 问题类型分布：左右布局 */
+.dist-row {
+  display: flex;
+  align-items: center;
+}
+.chart-wrap {
+  width: 260rpx;
+  height: 260rpx;
+  flex-shrink: 0;
+}
+.chart-wrap ec-canvas { width: 100%; height: 100%; }
+
+/* TOP5 列表 */
+.top5-list {
+  flex: 1;
+  margin-left: 24rpx;
+}
+.top5-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12rpx 0;
+  border-bottom: 1rpx solid #f5f5f5;
+  font-size: 24rpx;
+}
+.top5-item:last-child { border-bottom: none; }
+.top5-left { display: flex; align-items: center; }
+.top5-rank {
+  width: 34rpx;
+  height: 34rpx;
+  line-height: 34rpx;
+  text-align: center;
+  background: #315f62;
+  color: #fff;
+  font-size: 20rpx;
+  margin-right: 14rpx;
+}
+.top5-name { color: #333; }
+.top5-right { display: flex; align-items: center; }
+.top5-count { color: #666; margin-right: 16rpx; }
+.top5-percent { color: #315f62; font-weight: 600; min-width: 80rpx; text-align: right; }
+
+/* 异常记录卡片 */
+.case-card {
+  display: flex;
+  background: #fff;
+  border-left: 6rpx solid #b9c7a5;
+  margin-bottom: 16rpx;
+}
+.case-card.severity-medium { border-left-color: #f9a825; }
+.case-card.severity-serious { border-left-color: #e53935; }
+.case-main {
+  flex: 1;
+  padding: 28rpx 24rpx;
+}
+.case-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.case-customer { font-size: 30rpx; font-weight: 600; color: #333; }
+.severity-badge { font-size: 22rpx; padding: 4rpx 14rpx; background: #f5f5f5; color: #666; }
+.case-card.severity-medium .severity-badge { background: #fff8e1; color: #f57f17; }
+.case-card.severity-serious .severity-badge { background: #ffebee; color: #c62828; }
+.case-summary { margin: 18rpx 0; font-size: 26rpx; color: #666; line-height: 1.5; }
+.case-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 22rpx;
+  color: #999;
+}
+.case-status { color: #315f62; font-weight: 600; }
+.case-time { margin-left: auto; }

@@ -1,10 +1,8 @@
 var load = require('../../../lib/load.js');
-var utils = require('../../../utils/util')
 const app = getApp();
 
 import {
   disUserSaveWithFile,
-  disLogin,
 } from '../../../lib/apiDistributer'
 
 Page({
@@ -29,7 +27,7 @@ Page({
       phoneValid: false,
       disId: options.disId,
       disName: options.disName,
-      admin: options.admin,
+      inviteCode: options.inviteCode,
     })
 
     this._aaa();
@@ -61,37 +59,34 @@ Page({
 
   onChooseAvatar(e) {
     console.log(e);
-    var that = this;
     var src = [];
     src.push(e.detail.avatarUrl)
     var filePathList = src;
     var userName = this.data.nickName;
     var phone = this.data.phone;
-    var disId = this.data.disId;
     var code = this.data.code;
-    var admin = this.data.admin;
     load.showLoading("保存修改内容");
-    console.log(userName, phone, code, disId, filePathList)
-    disUserSaveWithFile(filePathList, userName, code, disId, admin, phone).then((res) => {
-      console.log(res);
-      if (res.result == '{"code":0}') {
-        if(that.data.admin == 0){
-          that._login();
-        }else{
-          wx.redirectTo({
-            url: '../downLoadApp/downLoadApp',
-          })
-
-        }
-    
-
+    disUserSaveWithFile(filePathList, userName, code, this.data.inviteCode, phone).then((res) => {
+      var result = res.result;
+      try { result = typeof result === 'string' ? JSON.parse(result) : result } catch (e) {}
+      if (result && result.code == 0) {
+        load.hideLoading();
+        wx.showModal({
+          title: '注册成功',
+          content: '你已注册为录单员，请返回老板确认。',
+          showCancel: false,
+          success: function () { wx.navigateBack({ delta: 1 }) }
+        })
       } else {
         load.hideLoading();
         wx.showToast({
-          title: "请直接登陆",
+          title: (result && result.msg) || "注册失败，请让老板重新邀请",
           icon: 'none'
         })
       }
+    }).catch(function () {
+      load.hideLoading();
+      wx.showToast({ title: '注册失败，请检查网络', icon: 'none' })
     })
   },
 
@@ -146,7 +141,12 @@ Page({
 
 
   tishi() {
-    if (!this.data.nickName || this.data.nickName.length === 0) {
+    if (!this.data.inviteCode) {
+      wx.showToast({
+        title: '邀请已失效，请让老板重新邀请',
+        icon: 'none'
+      });
+    } else if (!this.data.nickName || this.data.nickName.length === 0) {
       wx.showToast({
         title: '请输入用户名',
         icon: 'none'
@@ -168,64 +168,4 @@ Page({
       });
     }
   },
-
-  _login() {
-    var that = this;
-    wx.login({
-      success: (res) => {
-        load.hideLoading();
-
-        var disUser = {
-          nxDiuCode: res.code,
-        }
-        disLogin(disUser)
-          .then((res) => {
-            console.log(res);
-            if (res.result.code !== -1) { //登陆成功
-           
-              if (res.result.data.userInfo.nxDiuAdmin == 0) {
-                wx.setStorageSync('userInfo', res.result.data.userInfo);
-              wx.setStorageSync('disInfo', res.result.data.disInfo)
-              wx.switchTab({
-                url: '/pages/order/index/index',
-              })
-              }else if (res.result.data.userInfo.nxDiuAdmin == 3) {
-                wx.redirectTo({
-                  url: '../downLoadApp/downLoadApp',
-                })
-
-              }
-
-            } else { // 登陆失败
-              wx.showModal({
-                title: res.result.msg,
-                content: "请注册",
-                showCancel: false,
-                confirmText: "知道了",
-              })
-
-            }
-          })
-      },
-      
-      fail: (res => {
-        load.hideLoading();
-        wx.showModal({
-          title: res.result.msg,
-          showCancel: false,
-          confirmText: "知道了",
-        })
-      })
-    })
-
-
-  },
-
-
-
-
-
-
-
-
 })

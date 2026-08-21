@@ -418,6 +418,21 @@ button.group_btn::after {
   border-top: 1rpx solid #eee;
 }
 
+/* 客户业态 */
+.business-type-value {
+  color: #07c160;
+  font-weight: 500;
+}
+
+.business-type-inherited {
+  margin-left: 12rpx;
+  padding: 2rpx 10rpx;
+  border-radius: 12rpx;
+  background: #f0f5ff;
+  color: #597ef7;
+  font-size: 20rpx;
+}
+
 /* ===================== 客户详情页新卡片式样式 ===================== */
 
 /* 页面容器 */
