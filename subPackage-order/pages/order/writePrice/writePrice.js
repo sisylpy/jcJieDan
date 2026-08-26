@@ -499,7 +499,7 @@ Page({
   toHistoryPrice(e){
       wx.setStorageSync('disGoods', e.currentTarget.dataset.item);
     wx.navigateTo({
-      url: '/subPackage/pages/customer/customerGoodsPrice/customerGoodsPrice?depFatherId='
+      url: '/subPackage-charts/pages/customer/customerGoodsPrice/customerGoodsPrice?depFatherId='
        + this.data.depFatherId + '&goodsId=' +  e.currentTarget.dataset.id,
     })
 
