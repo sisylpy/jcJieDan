@@ -567,18 +567,6 @@ Page({
       wx.showToast({ title: '缺少 driverUserId', icon: 'none' })
       return
     }
-    if (!payload.stopKeys || !payload.stopKeys.length) {
-      this.setData({
-        confirmReady: false,
-        routeDirty: true,
-        autoPreviewing: false,
-        routeEstimateStatus: '当前路线暂无客户，请先添加客户'
-      })
-      if (!options.silent) {
-        wx.showToast({ title: '请至少添加一个客户', icon: 'none' })
-      }
-      return
-    }
     var requestRevision = this._editRevision || 0
     this.setData({
       previewing: true,
@@ -644,10 +632,6 @@ Page({
     var that = this
     if (this._autoPreviewTimer) {
       clearTimeout(this._autoPreviewTimer)
-    }
-    if (!this.data.stopKeys || !this.data.stopKeys.length) {
-      this.setData({ autoPreviewing: false })
-      return
     }
     this._autoPreviewTimer = setTimeout(function () {
       that._autoPreviewTimer = null
@@ -948,6 +932,13 @@ Page({
       }
       var data = (res.result && res.result.data) || {}
       var payload = that.data.requestPayload || {}
+      if (data.routeDeleted) {
+        wx.showToast({ title: '路线已删除，客户已回到待分配', icon: 'success' })
+        setTimeout(function () {
+          wx.navigateBack({ delta: 1 })
+        }, 400)
+        return
+      }
       if (payload.sourcePage === 'LOADING') {
         wx.showToast({
           title: data.exitedLoading ? '路线已清空并回到分派' : '已更新装车路线',

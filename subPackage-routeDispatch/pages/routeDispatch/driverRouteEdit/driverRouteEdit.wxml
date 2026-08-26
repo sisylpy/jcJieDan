@@ -141,7 +141,7 @@
       ></route-timeline>
 
       <view class="section-empty" wx:if="{{editTimeline.length === 0 && routeStops.length === 0}}">
-        当前路线暂无客户，请从下方添加客户
+        当前路线已清空；确认后将删除路线，客户保留在待分配
       </view>
     </view>
 
@@ -221,10 +221,11 @@
       <view
         class="bottom-btn {{confirmReady && !routeDirty ? 'bottom-btn-primary' : 'bottom-btn-disabled'}}"
         catchtap="onBottomConfirm"
-      >{{pageViewModel.manualDispatchMode ? '确认排单' : '确认这条路线'}}</view>
+      >{{pageViewModel.actions.confirmWillDeleteRoute ? '删除这条路线' : (pageViewModel.manualDispatchMode ? '确认排单' : '确认这条路线')}}</view>
     </view>
     <view class="bottom-action-hint" wx:if="{{routeDirty}}">请等待后台完成路线试算后再确认</view>
     <view class="bottom-action-hint" wx:elif="{{pageViewModel.actions.confirmDisabledReason && !confirmReady}}">{{pageViewModel.actions.confirmDisabledReason}}</view>
+    <view class="bottom-action-hint" wx:elif="{{pageViewModel.actions.confirmWillDeleteRoute}}">确认后路线卡片将移除，客户保留在本轮待分配</view>
     <view class="bottom-action-hint" wx:elif="{{pageViewModel.bottomHint}}">{{pageViewModel.bottomHint}}</view>
   </view>
 
