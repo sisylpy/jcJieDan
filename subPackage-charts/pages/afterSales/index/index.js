@@ -10,6 +10,36 @@ function number(source, key) {
   return Number(value || 0)
 }
 
+function formatDate(date) {
+  var year = date.getFullYear()
+  var month = date.getMonth() + 1
+  var day = date.getDate()
+  return year + '-' + (month < 10 ? '0' + month : month)
+    + '-' + (day < 10 ? '0' + day : day)
+}
+
+// 售后是实时工作台，“过去7天”必须包含今天，方便新建工单立即进入列表。
+function recentSevenDaysIncludingToday() {
+  var today = new Date()
+  var start = new Date(today)
+  start.setDate(today.getDate() - 6)
+  return {
+    startDate: formatDate(start),
+    stopDate: formatDate(today),
+    name: '过去7天'
+  }
+}
+
+function afterSalesDateRange(myDate) {
+  if (!myDate || myDate.name === 'lastSevenDays') {
+    return recentSevenDaysIncludingToday()
+  }
+  if (myDate.name === 'custom') {
+    return dateUtils.getDateRange(myDate.name, myDate.startDate, myDate.stopDate)
+  }
+  return dateUtils.getDateRange(myDate.name)
+}
+
 var ISSUE_TYPE_COLORS = ['#5B8FF9', '#61DDAA', '#F6BD16', '#7262FD', '#FF9D4D',
   '#78D3F8', '#9661BC', '#F6903D', '#008685', '#F08BB4']
 
@@ -52,12 +82,7 @@ Page({
     if (this.data.update) {
       var myDate = wx.getStorageSync('myDate')
       if (myDate) {
-        var dateRange
-        if (myDate.name === 'custom') {
-          dateRange = dateUtils.getDateRange(myDate.name, myDate.startDate, myDate.stopDate)
-        } else {
-          dateRange = dateUtils.getDateRange(myDate.name)
-        }
+        var dateRange = afterSalesDateRange(myDate)
         var dateType = myDate.dateType
         if (myDate.name === 'lastSevenDays' && dateType !== 'week') {
           dateType = 'week'
@@ -77,12 +102,7 @@ Page({
   initDate() {
     var myDate = wx.getStorageSync('myDate')
     if (myDate) {
-      var dateRange
-      if (myDate.name === 'custom') {
-        dateRange = dateUtils.getDateRange(myDate.name, myDate.startDate, myDate.stopDate)
-      } else {
-        dateRange = dateUtils.getDateRange(myDate.name)
-      }
+      var dateRange = afterSalesDateRange(myDate)
       var dateType = myDate.dateType
       if (myDate.name === 'lastSevenDays' && dateType !== 'week') {
         dateType = 'week'
@@ -94,7 +114,7 @@ Page({
         hanzi: myDate.hanzi || dateRange.name
       })
     } else {
-      var range = dateUtils.getDateRange('lastSevenDays')
+      var range = recentSevenDaysIncludingToday()
       this.setData({
         dateType: 'week',
         startDate: range.startDate,
