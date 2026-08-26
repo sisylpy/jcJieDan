@@ -1,7 +1,7 @@
 import apiUrl from '../../../../config.js'
 var load = require('../../../../lib/load.js');
 var dateUtils = require('../../../../utils/dateUtil.js');
-import * as echarts from '../../../../subPackage-charts/ec-canvas/echarts';
+import * as echarts from '../../../ec-canvas/echarts';
 
 let windowWidth = 0;
 let itemWidth = 0;
@@ -106,7 +106,7 @@ Page({
       update: true,
     })
     wx.navigateTo({
-      url: '../../sel/date/date?startDate=' + this.data.startDate + '&stopDate=' + this.data.stopDate + '&dateType=' + this.data.dateType,
+      url: '/subPackage-charts/pages/sel/date/date?startDate=' + this.data.startDate + '&stopDate=' + this.data.stopDate + '&dateType=' + this.data.dateType,
     })
   },
 
@@ -313,7 +313,7 @@ testPdf() {
               const savedFilePath = savedRes.savedFilePath;
               console.log('文件已保存：', savedFilePath);
               wx.navigateTo({
-                url: '../webview/webview?pdfUrl=' + encodeURIComponent(savedFilePath)
+                url: '/subPackage/pages/customer/webview/webview?pdfUrl=' + encodeURIComponent(savedFilePath)
               });
               // 2. 打开PDF
             //   wx.openDocument({

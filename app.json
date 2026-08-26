@@ -29,8 +29,6 @@
       "pages/customer/customerGoods/customerGoods",
       "pages/customer/customerGoodsStandard/customerGoodsStandard",
       "pages/customer/customerGoodsStandardEdit/customerGoodsStandardEdit",
-      "pages/customer/customerPdf/customerPdf",
-      "pages/customer/customerGoodsPrice/customerGoodsPrice",
       "pages/customer/collNxDisGoodsPrice/collNxDisGoodsPrice",
       "pages/customer/customerGoodsGb/customerGoodsGb",
       "pages/customer/customerUsers/customerUsers",
@@ -167,7 +165,10 @@
 
       "pages/afterSales/index/index",
       "pages/afterSales/create/create",
-      "pages/afterSales/detail/detail"
+      "pages/afterSales/detail/detail",
+
+      "pages/customer/customerPdf/customerPdf",
+      "pages/customer/customerGoodsPrice/customerGoodsPrice"
     ]
     }, {
     "root": "subPackage-order/",

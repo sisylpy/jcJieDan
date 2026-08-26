@@ -1,0 +1,120 @@
+<view class="page flex-column">
+  <back-navbar
+    style="height: {{navBarHeight}}rpx;"
+    title="历史单价"
+    avatar="/images/back-gray.png"
+    bindnavbuttontap="toBack"
+  ></back-navbar>
+
+  <view wx:if="{{!loading}}" class="content" style="margin-top: {{navBarHeight}}rpx;">
+    <view class="product-head">
+      <view class="product-image">
+        <image wx:if="{{productImageUrl}}" src="{{productImageUrl}}" mode="aspectFill"></image>
+        <text wx:else>{{productInitial}}</text>
+      </view>
+      <view class="product-info">
+        <view class="product-name-row">
+          <text class="product-name">{{customerGoodsName || disGoods.nxDgGoodsName}}</text>
+          <text wx:if="{{customerStandard}}" class="product-standard">{{customerStandard}}</text>
+        </view>
+        <text wx:if="{{customerName}}" class="product-customer">客户：{{customerName}}</text>
+        <text class="product-count">有效历史单价 {{validPriceCount}} 条</text>
+      </view>
+    </view>
+
+    <view
+      wx:if="{{departmentDisGoodsId}}"
+      class="requirement-card {{hasCustomerStandard ? 'has-content' : ''}}"
+      bindtap="toCustomerGoodsStandard"
+    >
+      <view class="requirement-main">
+        <view class="requirement-title-row">
+          <text class="requirement-title">客户要求</text>
+          <text wx:if="{{requirementCount}}" class="requirement-count">{{requirementCount}}项</text>
+        </view>
+        <text wx:if="{{requirementLoading}}" class="requirement-summary empty">正在读取客户要求...</text>
+        <view wx:else class="requirement-content-row">
+          <text class="requirement-summary {{hasCustomerStandard ? '' : 'empty'}}">{{requirementSummary}}</text>
+          <text wx:if="{{standardImageCount}}" class="requirement-images">▧ {{standardImageCount}}张标准图</text>
+        </view>
+      </view>
+      <view class="add-requirement-button" catchtap="toAddRequirement">＋ 添加新要求</view>
+      <text class="requirement-arrow">›</text>
+    </view>
+
+    <view class="price-summary ">
+      <view class="price-stat current">
+        <text class="stat-label">当前单价</text>
+        <view class="stat-price">¥{{summary.currentPrice}}<text wx:if="{{summary.priceUnit}}">/{{summary.priceUnit}}</text></view>
+        <text class="stat-date">{{summary.currentDate}}</text>
+      </view>
+      <view class="price-stat">
+        <text class="stat-label">近30天均价</text>
+        <view class="stat-price">¥{{summary.averagePrice}}<text wx:if="{{summary.priceUnit}}">/{{summary.priceUnit}}</text></view>
+        <text class="stat-date">{{summary.averagePrice === '—' ? '近30天无记录' : '真实订单均价'}}</text>
+      </view>
+      <view class="price-stat high">
+        <text class="stat-label">最高价</text>
+        <view class="stat-price">¥{{summary.highestPrice}}<text wx:if="{{summary.priceUnit}}">/{{summary.priceUnit}}</text></view>
+        <text class="stat-date">{{summary.highestDate}}</text>
+      </view>
+      <view class="price-stat low">
+        <text class="stat-label">最低价</text>
+        <view class="stat-price">¥{{summary.lowestPrice}}<text wx:if="{{summary.priceUnit}}">/{{summary.priceUnit}}</text></view>
+        <text class="stat-date">{{summary.lowestDate}}</text>
+      </view>
+    </view>
+
+    <view class="trend-section">
+      <view class="section-head">
+        <text class="section-title">价格趋势</text>
+        <view class="range-tabs">
+          <view
+            class="range-tab {{selectedDays === item ? 'active' : ''}}"
+            wx:for="{{rangeOptions}}"
+            wx:key="*this"
+            data-days="{{item}}"
+            bindtap="selectRange"
+          >{{item}}天</view>
+        </view>
+      </view>
+
+      <view class="chart-wrap">
+        <ec-canvas id="priceChart" canvas-id="priceChart" ec="{{ecPrice}}"></ec-canvas>
+      </view>
+
+      <view class="trend-note tone-{{trend.tone}}">
+        <text class="trend-icon">↗</text>
+        <text>{{trend.text}}</text>
+      </view>
+    </view>
+
+    <view class="history-section">
+      <view class="history-title-row">
+        <text class="section-title">历史价格明细</text>
+        <text class="history-count">近{{selectedDays}}天 · {{filteredRecords.length}}条</text>
+      </view>
+
+      <view wx:if="{{filteredRecords.length}}" class="history-table">
+        <view class="history-header">
+          <text>订货日期</text>
+          <text>订货数量</text>
+          <text>单价</text>
+        </view>
+        <view class="history-row" wx:for="{{filteredRecords}}" wx:key="id" wx:for-item="record">
+          <view class="history-date">
+            <text>{{record.orderDateText}}</text>
+            <text wx:if="{{record.remark}}" class="history-remark">{{record.remark}}</text>
+          </view>
+          <text class="history-quantity">{{record.demandText}}</text>
+          <view class="history-price">
+            <text>¥{{record.priceText}}</text>
+            <text wx:if="{{record.priceUnit}}" class="history-unit">/{{record.priceUnit}}</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:else class="history-empty">所选时间内没有真实单价记录</view>
+    </view>
+  </view>
+</view>

@@ -30,7 +30,7 @@
       </view>
     </view>
      <view class="flex flex-column center-content">
-        <image class="empty_image" src="../../../images/xiuxi.png"></image>
+        <image class="empty_image" src="../../../../images/xiuxi.png"></image>
         <text class="font-xl p-20">暂时无订货商品</text>
         <text class=" darktext-secondary">显示配送成功的商品</text>
       </view>

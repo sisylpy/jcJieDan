@@ -1,0 +1,397 @@
+page {
+  background: #f6f7f8;
+  color: #18201c;
+}
+
+.page {
+  min-height: 100vh;
+  padding-bottom: calc(30rpx + env(safe-area-inset-bottom));
+}
+
+.content {
+  padding: 18rpx 24rpx 0 24rpx;
+  box-sizing: border-box;
+}
+
+.product-head {
+  padding: 8rpx 0 20rpx;
+  display: flex;
+  align-items: center;
+  gap: 18rpx;
+}
+
+.product-image {
+  width: 96rpx;
+  height: 96rpx;
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: #5f6d65;
+  font-size: 34rpx;
+  font-weight: 700;
+  background: #eef2ef;
+  border: 1rpx solid #e1e7e3;
+  border-radius: 12rpx;
+}
+
+.product-image image {
+  width: 100%;
+  height: 100%;
+}
+
+.product-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.product-name-row {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+}
+
+.product-name {
+  max-width: 430rpx;
+  overflow: hidden;
+  color: #172019;
+  font-size: 34rpx;
+  font-weight: 700;
+  line-height: 42rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.product-standard {
+  padding: 3rpx 9rpx;
+  color: #167e4c;
+  font-size: 20rpx;
+  background: #e9f5ee;
+  border-radius: 5rpx;
+}
+
+.product-customer,
+.product-count {
+  display: block;
+  margin-top: 6rpx;
+  color: #77827c;
+  font-size: 23rpx;
+  line-height: 29rpx;
+}
+
+.requirement-card {
+  min-height: 86rpx;
+  margin-bottom: 18rpx;
+  padding: 16rpx 16rpx 16rpx 18rpx;
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  background: #fff;
+  border: 1rpx solid #e4e9e6;
+  border-left: 5rpx solid #c8d2cc;
+  border-radius: 10rpx;
+  box-sizing: border-box;
+}
+
+.requirement-card.has-content {
+  border-left-color: #169b59;
+}
+
+.requirement-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.requirement-title-row,
+.requirement-content-row {
+  display: flex;
+  align-items: center;
+}
+
+.requirement-title-row {
+  gap: 10rpx;
+}
+
+.requirement-title {
+  color: #1c251f;
+  font-size: 25rpx;
+  font-weight: 700;
+}
+
+.requirement-count {
+  padding: 1rpx 8rpx;
+  color: #168a51;
+  font-size: 18rpx;
+  background: #edf7f1;
+  border-radius: 5rpx;
+}
+
+.requirement-content-row {
+  min-width: 0;
+  margin-top: 7rpx;
+  gap: 12rpx;
+}
+
+.requirement-summary {
+  min-width: 0;
+  overflow: hidden;
+  flex: 1;
+  color: #455149;
+  font-size: 22rpx;
+  line-height: 30rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.requirement-summary.empty {
+  color: #919b95;
+}
+
+.requirement-images {
+  flex: 0 0 auto;
+  color: #69756e;
+  font-size: 20rpx;
+}
+
+.add-requirement-button {
+  height: 54rpx;
+  padding: 0 15rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  color: #168b52;
+  font-size: 21rpx;
+  font-weight: 600;
+  background: #fff;
+  border: 1rpx solid #8ac9aa;
+  border-radius: 8rpx;
+}
+
+.requirement-arrow {
+  flex: 0 0 auto;
+  color: #9ba49f;
+  font-size: 36rpx;
+  line-height: 40rpx;
+}
+
+.price-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: #fff;
+  border: 1rpx solid #e6ebe8;
+  border-radius: 12rpx;
+}
+
+.price-stat {
+  min-width: 0;
+  padding: 22rpx 10rpx 20rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-right: 1rpx solid #e9edeb;
+}
+
+.price-stat:last-child {
+  border-right: 0;
+}
+
+.stat-label {
+  color: #7d8782;
+  font-size: 21rpx;
+}
+
+.stat-price {
+  margin-top: 10rpx;
+  color: #202923;
+  font-size: 28rpx;
+  font-weight: 700;
+  line-height: 34rpx;
+  white-space: nowrap;
+}
+
+.stat-price text {
+  font-size: 18rpx;
+  font-weight: 400;
+}
+
+.current .stat-price,
+.low .stat-price {
+  color: #158c53;
+}
+
+.high .stat-price {
+  color: #d24a43;
+}
+
+.stat-date {
+  margin-top: 7rpx;
+  overflow: hidden;
+  color: #929b96;
+  font-size: 18rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trend-section,
+.history-section {
+  margin-top: 18rpx;
+  padding: 20rpx;
+  background: #fff;
+  border: 1rpx solid #e6ebe8;
+  border-radius: 12rpx;
+}
+
+.section-head,
+.history-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.section-title {
+  color: #1c251f;
+  font-size: 29rpx;
+  font-weight: 700;
+}
+
+.range-tabs {
+  padding: 4rpx;
+  display: flex;
+  background: #f2f4f3;
+  border-radius: 8rpx;
+}
+
+.range-tab {
+  min-width: 72rpx;
+  height: 46rpx;
+  padding: 0 6rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5e6963;
+  font-size: 22rpx;
+  border-radius: 6rpx;
+}
+
+.range-tab.active {
+  color: #fff;
+  font-weight: 600;
+  background: #169b59;
+}
+
+.chart-wrap {
+  width: 100%;
+  height: 390rpx;
+  margin-top: 10rpx;
+}
+
+.chart-wrap ec-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+.trend-note {
+  min-height: 58rpx;
+  padding: 12rpx 16rpx;
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  color: #4f5c55;
+  font-size: 22rpx;
+  line-height: 32rpx;
+  background: #f4f7f5;
+  border-radius: 8rpx;
+  box-sizing: border-box;
+}
+
+.trend-icon {
+  color: #158f54;
+  font-size: 28rpx;
+}
+
+.tone-up .trend-icon {
+  color: #d24b43;
+}
+
+.tone-down .trend-icon {
+  color: #168f55;
+  transform: rotate(90deg);
+}
+
+.history-count {
+  color: #87918c;
+  font-size: 21rpx;
+}
+
+.history-table {
+  margin-top: 16rpx;
+  overflow: hidden;
+  border: 1rpx solid #e8ecea;
+  border-radius: 8rpx;
+}
+
+.history-header,
+.history-row {
+  display: grid;
+  grid-template-columns: 1.25fr 0.8fr 0.85fr;
+  align-items: center;
+  column-gap: 12rpx;
+}
+
+.history-header {
+  height: 60rpx;
+  padding: 0 16rpx;
+  color: #7f8984;
+  font-size: 21rpx;
+  background: #f6f8f7;
+}
+
+.history-row {
+  min-height: 78rpx;
+  padding: 10rpx 16rpx;
+  color: #253029;
+  font-size: 23rpx;
+  border-top: 1rpx solid #edf0ee;
+}
+
+.history-date,
+.history-price {
+  display: flex;
+  flex-direction: column;
+}
+
+.history-remark {
+  max-width: 240rpx;
+  margin-top: 3rpx;
+  overflow: hidden;
+  color: #939c97;
+  font-size: 18rpx;
+  line-height: 24rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.history-quantity {
+  color: #39443e;
+}
+
+.history-price {
+  color: #158d53;
+  font-weight: 650;
+}
+
+.history-unit {
+  margin-top: 2rpx;
+  color: #89938e;
+  font-size: 18rpx;
+  font-weight: 400;
+}
+
+.history-empty {
+  padding: 70rpx 0 54rpx;
+  color: #919b96;
+  font-size: 23rpx;
+  text-align: center;
+}
