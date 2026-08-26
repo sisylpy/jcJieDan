@@ -561,6 +561,8 @@ button.group_btn::after {
 .icon-address { background: #eb2f96; }
 .icon-goods { background: #13c2c2; }
 .icon-other { background: #8c8c8c; }
+.icon-staff { background: #2f54eb; }
+.icon-status { background: #fa8c16; }
 
 .section-title {
   font-size: 30rpx;
@@ -603,6 +605,57 @@ button.group_btn::after {
 .row-value .icon {
   margin-left: 12rpx;
   flex-shrink: 0;
+}
+
+/* 负责员工 */
+.picker-value {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.picker-value .icon {
+  margin-left: 12rpx;
+  flex-shrink: 0;
+}
+
+.staff-save-btn {
+  margin: 0;
+  padding: 0 36rpx;
+  height: 56rpx;
+  line-height: 56rpx;
+  font-size: 24rpx;
+  color: #fff;
+  background: #0a7d52;
+  border-radius: 28rpx;
+}
+
+.staff-save-btn::after {
+  border: none;
+}
+
+.staff-save-btn[disabled] {
+  color: rgba(255, 255, 255, 0.8);
+  background: #7cae97;
+}
+
+/* 开通状态 */
+.status-open {
+  color: #07c160;
+  font-weight: 500;
+}
+
+.status-closed {
+  color: #ff4d4f;
+  font-weight: 500;
+}
+
+.btn-close {
+  background: #ff4d4f;
+}
+
+.btn-close[disabled] {
+  background: #ffa39e;
 }
 
 .label-list-inline {

@@ -6,14 +6,6 @@
   <back-navbar style="height: {{navBarHeight}}rpx;" title="{{depInfo.nxDepartmentAttrName}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
    <view class="" style="margin-top: {{navBarHeight}}rpx;">
-		<view class="mainColor flex-row-between border-bottom p-20"  style="width: {{windowWidth - 40}}rpx;" bindtap="openDetail" hover-class="hover">
-     <text></text>
-       <view class="flex-row  p-20">
-        <text class="mr-10 font-lg">客户设置</text>
-        <image src="/images/arrow-right-circle.png" mode="aspectFill" class="icon"/>
-       </view>
-	
-		</view>
 
 	 </view>
 

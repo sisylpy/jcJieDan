@@ -334,12 +334,6 @@ toSettleBills(e){
   })
 },
 
-openDetail(){
-  wx.navigateTo({
-    url: '../customerDetail/customerDetail',
-  })
-},
-
   /**
    * 下载账单Excel（需后端实现 download/downloadBillExcelNx 接口，并在响应头返回文件名）
    */

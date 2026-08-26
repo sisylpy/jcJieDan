@@ -1,0 +1,260 @@
+<view class="page">
+  <back-navbar
+    style="height: {{navBarHeight}}rpx;"
+    title="客户详情"
+    avatar="/images/back-gray.png"
+    bindnavbuttontap="toBack"
+  ></back-navbar>
+
+  <view class="hero" style="padding-top: {{navBarHeight + 18}}rpx;">
+    <view class="page-tabs">
+      <view class="page-tab active">业务流程页</view>
+      <view class="page-tab" bindtap="openCustomerDetail">修改资料</view>
+    </view>
+  </view>
+
+  <view wx:if="{{loading}}" class="state-card loading-card">
+    <view class="loading-line wide"></view>
+    <view class="loading-line"></view>
+    <view class="loading-grid">
+      <view></view><view></view><view></view><view></view>
+    </view>
+    <text>正在整理客户业务信息…</text>
+  </view>
+
+  <view wx:elif="{{loadError}}" class="state-card error-card">
+    <text class="state-title">暂时无法读取</text>
+    <text class="state-desc">{{loadError}}</text>
+    <button class="retry-button" bindtap="retry">重新加载</button>
+  </view>
+
+  <view wx:else class="content">
+    <view class="customer-card">
+      <view class="customer-main">
+        <image class="customer-avatar" src="{{customer.avatarUrl}}" mode="aspectFill"></image>
+        <view class="customer-copy">
+          <view class="customer-title-row">
+            <text class="customer-name">{{customer.displayName}}</text>
+            <text class="formal-tag">正式客户</text>
+          </view>
+          <text class="customer-subline">
+            {{customer.businessTypeName}} · {{customer.settlementName}} · {{customer.cooperationText}}
+          </text>
+          <view class="owner-line">
+            <text class="owner-icon">人</text>
+            <text>负责业务：{{customer.salespersonName}}</text>
+          </view>
+        </view>
+        <view class="stage-medal">
+          <text class="stage-medal-icon">★</text>
+          <text>{{stage.label}}</text>
+        </view>
+      </view>
+
+      <view class="metric-grid">
+        <view class="metric-item">
+          <text class="metric-icon green">单</text>
+          <text class="metric-label">累计订单</text>
+          <view class="metric-value">{{metrics.orderCount}}<text> 单</text></view>
+        </view>
+        <view class="metric-item">
+          <text class="metric-icon mint">金</text>
+          <text class="metric-label">累计金额</text>
+          <view class="metric-value money"><text>¥</text>{{metrics.totalAmountText}}</view>
+        </view>
+        <view class="metric-item">
+          <text class="metric-icon amber">购</text>
+          <text class="metric-label">最近采购</text>
+          <view class="metric-value date">{{metrics.recentOrderText}}</view>
+        </view>
+        <view class="metric-item">
+          <text class="metric-icon orange">阶</text>
+          <text class="metric-label">业务阶段</text>
+          <view class="metric-value stage-value">{{stage.label}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="business-card info-grid">
+      <view class="info-section">
+        <view class="section-heading">
+          <text class="section-badge delivery">配</text>
+          <text>配送信息</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">配送方式</text>
+          <text class="info-value">{{customer.deliveryModeName}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">配送时间</text>
+          <text class="info-value">{{customer.deliveryTimeText}}</text>
+        </view>
+        <view class="info-address">{{customer.addressText}}</view>
+      </view>
+
+      <view class="info-section middle">
+        <view class="section-heading">
+          <text class="section-badge operation">营</text>
+          <text>经营信息</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">经营业态</text>
+          <text class="info-value emphasis">{{customer.businessTypeName}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">支付方式</text>
+          <text class="info-value emphasis">{{customer.settlementName}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">定价类型</text>
+          <text class="info-value emphasis">{{customer.pricingName}}</text>
+        </view>
+      </view>
+
+      <view class="info-section">
+        <view class="section-heading">
+          <text class="section-badge status">通</text>
+          <text>{{customer.nxDepartmentSettleType == 0 ? '开通状态' : '合作状态'}}</text>
+        </view>
+        <view class="status-line">
+          <text class="status-dot"></text>
+          <text class="status-name">{{customer.nxDepartmentSettleType == 0 ? customer.workingStatusName : stage.label}}</text>
+        </view>
+        <view class="info-row stacked">
+          <text class="info-label">合作开始</text>
+          <text class="info-value">{{metrics.cooperationSince || '暂无'}}</text>
+        </view>
+        <view class="info-row stacked">
+          <text class="info-label">合作时长</text>
+          <text class="info-value">{{metrics.cooperationDays}} 天</text>
+        </view>
+      </view>
+    </view>
+
+    <view class="business-card action-row">
+      <view class="action-title">
+        <text class="action-icon coupon">券</text>
+        <view>
+          <text class="action-name">客户优惠券</text>
+          <view class="coupon-counts">
+            <text>可用 <text class="red">{{coupons.availableCount}} 张</text></text>
+            <text>累计领取 <text class="dark">{{coupons.receivedCount}} 张</text></text>
+            <text>已使用 <text class="green-text">{{coupons.usedCount}} 张</text></text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view class="business-card action-row tappable" bindtap="openCustomerGoods">
+      <view class="action-title">
+        <text class="action-icon goods">品</text>
+        <view>
+          <text class="action-name">常购商品</text>
+          <text class="action-hint">进入后按需查询，不占用本页加载时间</text>
+        </view>
+      </view>
+      <text class="action-link">查看 ›</text>
+    </view>
+
+    <view class="business-card timeline-card">
+      <view class="timeline-header">
+        <view>
+          <text class="timeline-title">客户业务轨迹</text>
+          <text class="timeline-subtitle">关键业务节点 · 最新动态在前</text>
+        </view>
+        <text class="timeline-count">共 {{timeline.length}} 条</text>
+      </view>
+
+      <view wx:if="{{!timeline.length}}" class="timeline-empty">
+        <text>暂无业务轨迹</text>
+        <text>后续拜访、报价、订单和优惠券事件会显示在这里</text>
+      </view>
+
+      <view wx:else class="timeline-list">
+        <view class="timeline-item" wx:for="{{timeline}}" wx:key="key">
+          <view class="timeline-axis">
+            <view class="timeline-node tone-{{item.tone}} {{item.type == 'AFTER_SALES_CASE' ? 'case-node' : ''}}">
+              {{item.type == 'AFTER_SALES_CASE' ? '!' : item.sequence}}
+            </view>
+            <view wx:if="{{index < timeline.length - 1}}" class="timeline-line"></view>
+          </view>
+
+          <view wx:if="{{item.type == 'AFTER_SALES_CASE'}}" class="timeline-body after-sales-body">
+            <view class="timeline-meta">
+              <text>{{item.eventDate}}</text>
+              <text wx:if="{{item.eventTime}}">{{item.eventTime}}</text>
+            </view>
+
+            <view class="after-sales-heading">
+              <view class="after-sales-title-row">
+                <text class="event-title">客户反馈问题</text>
+                <text class="handler-tag">{{item.afterSales.handlerName}}</text>
+              </view>
+              <text class="case-status status-{{item.afterSales.statusTone}}">{{item.afterSales.statusLabel}}</text>
+            </view>
+
+            <view class="after-sales-summary">
+              <view class="case-info-row">
+                <text class="case-info-label">问题类型</text>
+                <text class="case-info-value">{{item.afterSales.issueTypeLabel}}</text>
+                <text class="severity-tag">{{item.afterSales.severityLabel}}</text>
+              </view>
+              <view class="case-info-row description-row">
+                <text class="case-info-label">问题描述</text>
+                <text class="case-info-value description">{{item.afterSales.issueDescription || '未填写'}}</text>
+              </view>
+              <view class="case-info-row">
+                <text class="case-info-label">提交人员</text>
+                <text class="case-info-value">{{item.afterSales.createdByName}}</text>
+              </view>
+            </view>
+
+            <view wx:if="{{item.afterSales.steps.length}}" class="case-process">
+              <view class="case-step" wx:for="{{item.afterSales.steps}}" wx:key="key" wx:for-item="step" wx:for-index="stepIndex">
+                <view class="case-step-axis">
+                  <view class="case-step-dot status-{{step.statusTone}}"></view>
+                  <view wx:if="{{stepIndex < item.afterSales.steps.length - 1}}" class="case-step-line"></view>
+                </view>
+                <view class="case-step-content">
+                  <view class="case-step-title-row">
+                    <text class="case-step-time">{{step.displayTime}}</text>
+                    <text class="case-step-title">{{step.title}}</text>
+                  </view>
+                  <text class="case-step-handler">负责人：{{step.handlerName}}</text>
+                  <text wx:if="{{step.detail}}" class="case-step-detail">{{step.detail}}</text>
+                  <view wx:if="{{step.result}}" class="case-step-result">
+                    <text>处理结果</text>
+                    <text>{{step.result}}</text>
+                  </view>
+                </view>
+              </view>
+            </view>
+
+            <view wx:else class="case-process-empty">已登记问题，等待业务人员处理</view>
+
+            <view class="case-final">
+              <view class="case-final-result">
+                <text class="case-final-label">{{item.afterSales.finalLabel}}</text>
+                <text class="case-final-value {{item.afterSales.hasFinalResult ? 'resolved' : ''}}">{{item.afterSales.finalResult}}</text>
+              </view>
+              <text class="customer-result result-{{item.afterSales.customerResultTone}}">{{item.afterSales.customerResultLabel}}</text>
+              <text wx:if="{{item.afterSales.customerConfirmRemark}}" class="customer-confirm-remark">{{item.afterSales.customerConfirmRemark}}</text>
+            </view>
+          </view>
+
+          <view wx:else class="timeline-body">
+            <view class="timeline-meta">
+              <text>{{item.eventDate}}</text>
+              <text wx:if="{{item.eventTime}}">{{item.eventTime}}</text>
+            </view>
+            <text class="event-title">{{item.title}}</text>
+            <text wx:if="{{item.content}}" class="event-content">{{item.content}}</text>
+            <view wx:if="{{item.feedback}}" class="event-feedback">
+              <text>客户反馈：</text>{{item.feedback}}
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>

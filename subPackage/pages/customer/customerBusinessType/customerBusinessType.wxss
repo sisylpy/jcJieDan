@@ -51,9 +51,12 @@ page {
 }
 
 .current-value {
+  min-width: 0;
+  flex: 1;
   color: #137353;
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 650;
+  line-height: 1.45;
 }
 
 .current-empty {
@@ -124,9 +127,9 @@ page {
 
 .type-option {
   width: calc(50% - 8rpx);
-  min-height: 96rpx;
+  min-height: 118rpx;
   margin-bottom: 16rpx;
-  padding: 20rpx;
+  padding: 17rpx;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -143,8 +146,31 @@ page {
 
 .type-copy {
   min-width: 0;
+  flex: 1;
   display: flex;
   flex-direction: column;
+}
+
+.type-icon {
+  width: 52rpx;
+  height: 52rpx;
+  margin-right: 12rpx;
+  flex: none;
+}
+
+.type-name-row {
+  display: flex;
+  align-items: center;
+}
+
+.primary-tag {
+  margin-left: 7rpx;
+  padding: 2rpx 7rpx;
+  flex: none;
+  color: #fff;
+  background: #187e6e;
+  border-radius: 8rpx;
+  font-size: 17rpx;
 }
 
 .type-name {
@@ -162,28 +188,31 @@ page {
   font-size: 20rpx;
 }
 
-.radio {
+.checkbox {
   width: 34rpx;
   height: 34rpx;
-  margin-left: 10rpx;
+  margin-left: 8rpx;
   display: flex;
   flex: none;
   align-items: center;
   justify-content: center;
   box-sizing: border-box;
   border: 2rpx solid #a9b2ad;
-  border-radius: 50%;
+  color: #fff;
+  border-radius: 9rpx;
+  font-size: 22rpx;
 }
 
-.radio.checked {
+.checkbox.checked {
+  background: #187e6e;
   border-color: #187e6e;
 }
 
-.radio-dot {
-  width: 18rpx;
-  height: 18rpx;
-  background: #187e6e;
-  border-radius: 50%;
+.set-primary {
+  margin-top: 7rpx;
+  color: #187e6e;
+  font-size: 19rpx;
+  text-decoration: underline;
 }
 
 .state {

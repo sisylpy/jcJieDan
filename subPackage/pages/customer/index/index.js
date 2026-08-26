@@ -101,7 +101,7 @@ Page({
       var depInfoItem  = e.currentTarget.dataset.item;
       wx.setStorageSync('depInfo', depInfoItem);
       wx.navigateTo({
-        url: '../customerPage/customerPage?depId=' + depInfoItem.nxDepartmentId,
+        url: '../customerGrowth/customerGrowth?depId=' + depInfoItem.nxDepartmentId,
       })
     },
 

@@ -25,7 +25,14 @@ import {
   saveLabel,
   updateLabel,
   deleteLabel,
-  disGetLabels
+  disGetLabels,
+
+  // 负责员工相关API
+  getDisUsers,
+  updateCustomerResponsibility,
+
+  // 客户开通状态
+  updateNxDep
 }
 from '../../../../lib/apiDistributer'
 
@@ -43,7 +50,16 @@ Page({
     allowEarlyDelivery: true,
     customerBusinessTypeName: '',
     selectedBusinessTypeId: null,
-    businessTypeInherited: false
+    businessTypeInherited: false,
+    // 负责员工（业务员 / 录单员）
+    salesOptions: [],
+    clerkOptions: [],
+    salesIndex: 0,
+    clerkIndex: 0,
+    staffVersion: 0,
+    staffSaving: false,
+    // 客户开通状态（0=已开通，非0=未开通）
+    workingStatusSaving: false
   },
 
   onShow() {
@@ -87,6 +103,14 @@ Page({
         userInfo: value,
       })
       var depInfoValue = wx.getStorageSync('depInfo');
+
+      // 列表点击进来会带 depId；用 depId 重新拉取，保证数据是最新的、不依赖上一次的 storage
+      if (options && options.depId) {
+        this.setData({ depFatherId: options.depId })
+        wx.setStorageSync('depFatherId', options.depId)
+        this._getDepInfo('onLoad:depId');
+        return;
+      }
 
       if (depInfoValue.nxDepartmentSubAmount > 0) {
         this.setData({
@@ -324,6 +348,12 @@ Page({
   toDepGoods(){
     wx.navigateTo({
       url: '../customerGoods/customerGoods',
+    })
+  },
+
+  toCustomerBill() {
+    wx.navigateTo({
+      url: '../customerPage/customerPage?depId=' + this.data.depFatherId,
     })
   },
 
@@ -1245,6 +1275,8 @@ Page({
           });
         });
         wx.setStorageSync('depInfo', depInfo);
+        // 同步负责员工（业务员 / 录单员）状态
+        this._loadResponsibilityStaff(depInfo);
         // 获取客户标签
         this._getDepLabels('getDepInfo:' + source);
         // 获取独立客户业态；禁止复用 nxDepartmentType 定价字段。
@@ -1275,6 +1307,193 @@ Page({
     return request;
   },
 
+  // ============ 负责员工（业务员 / 录单员） ============
+
+  // 加载当前配送商的业务员/录单员列表，并根据客户已保存的负责人初始化选中状态
+  _loadResponsibilityStaff(depInfo) {
+    const disId = this.data.disId;
+    if (!disId || !depInfo) return;
+
+    // 只有客户主体（is_group_dep=1）才能设置负责人，子部门不设置
+    if (Number(depInfo.nxDepartmentIsGroupDep) !== 1) {
+      this.setData({
+        salesOptions: [],
+        clerkOptions: [],
+        staffVersion: 0
+      });
+      return;
+    }
+
+    getDisUsers(disId).then(res => {
+      if (!res || res.result.code != 0) return;
+      const data = res.result.data || {};
+      const sales = data.sales || [];
+      const clerks = data.clerks || [];
+
+      // 第一个选项固定为「老板（我）」，id 为 null（后端回落为老板亲自负责）
+      const salesOptions = [{ id: null, name: '老板（我）' }].concat(
+        sales.map(user => ({
+          id: user.nxDistributerUserId,
+          name: user.nxDiuWxNickName || user.nxDiuName || '未命名'
+        }))
+      );
+      const clerkOptions = [{ id: null, name: '老板（我）' }].concat(
+        clerks.map(user => ({
+          id: user.nxDistributerUserId,
+          name: user.nxDiuWxNickName || user.nxDiuName || '未命名'
+        }))
+      );
+
+      let salesIndex = salesOptions.findIndex(option => option.id === Number(depInfo.nxDepartmentSalesUserId));
+      let clerkIndex = clerkOptions.findIndex(option => option.id === Number(depInfo.nxDepartmentClerkUserId));
+      if (salesIndex < 0) salesIndex = 0;
+      if (clerkIndex < 0) clerkIndex = 0;
+
+      this.setData({
+        salesOptions,
+        clerkOptions,
+        salesIndex,
+        clerkIndex,
+        staffVersion: Number(depInfo.nxDepartmentStaffVersion) || 0
+      });
+    });
+  },
+
+  changeSalesUser(e) {
+    this.setData({ salesIndex: Number(e.detail.value) });
+  },
+
+  changeClerkUser(e) {
+    this.setData({ clerkIndex: Number(e.detail.value) });
+  },
+
+  saveResponsibilityStaff() {
+    if (this.data.staffSaving) return;
+    const depInfo = this.data.depInfo || {};
+    if (!depInfo.nxDepartmentId) {
+      wx.showToast({ title: '客户信息无效，请刷新后重试', icon: 'none' });
+      return;
+    }
+
+    const salesUserId = this.data.salesOptions[this.data.salesIndex]
+      ? this.data.salesOptions[this.data.salesIndex].id
+      : null;
+    const clerkUserId = this.data.clerkOptions[this.data.clerkIndex]
+      ? this.data.clerkOptions[this.data.clerkIndex].id
+      : null;
+
+    this.setData({ staffSaving: true });
+    wx.showLoading({ title: '保存中...', mask: true });
+
+    updateCustomerResponsibility(depInfo.nxDepartmentId, {
+      salesUserId,
+      clerkUserId,
+      expectedVersion: this.data.staffVersion
+    }).then(res => {
+      wx.hideLoading();
+      this.setData({ staffSaving: false });
+      const result = res && res.result || {};
+      if (result.code == 0) {
+        const saved = result.data || {};
+        // 老板兜底：后端会把 null/老板自己回落为老板真实 userId，用返回值反查选中项
+        let salesIndex = this.data.salesOptions.findIndex(option => option.id === Number(saved.nxDepartmentSalesUserId));
+        let clerkIndex = this.data.clerkOptions.findIndex(option => option.id === Number(saved.nxDepartmentClerkUserId));
+        if (salesIndex < 0) salesIndex = 0;
+        if (clerkIndex < 0) clerkIndex = 0;
+
+        this.setData({
+          salesIndex,
+          clerkIndex,
+          staffVersion: Number(saved.nxDepartmentStaffVersion) || (Number(this.data.staffVersion) + 1),
+          'depInfo.nxDepartmentSalesUserId': saved.nxDepartmentSalesUserId,
+          'depInfo.nxDepartmentClerkUserId': saved.nxDepartmentClerkUserId,
+          'depInfo.nxDepartmentStaffVersion': saved.nxDepartmentStaffVersion
+        });
+
+        const stored = wx.getStorageSync('depInfo');
+        if (stored) {
+          stored.nxDepartmentSalesUserId = saved.nxDepartmentSalesUserId;
+          stored.nxDepartmentClerkUserId = saved.nxDepartmentClerkUserId;
+          stored.nxDepartmentStaffVersion = saved.nxDepartmentStaffVersion;
+          wx.setStorageSync('depInfo', stored);
+        }
+
+        wx.showToast({ title: '保存成功', icon: 'success' });
+      } else {
+        wx.showToast({ title: result.msg || '保存失败', icon: 'none' });
+        // 负责人可能已被其他人修改（乐观锁冲突），重新拉取最新状态
+        this._loadResponsibilityStaff(depInfo);
+      }
+    }).catch(() => {
+      wx.hideLoading();
+      this.setData({ staffSaving: false });
+      wx.showToast({ title: '网络错误，请重试', icon: 'none' });
+    });
+  },
+
+  // ============ 客户开通状态（开通 / 关闭） ============
+
+  // 切换客户开通状态：0=已开通，-1=未开通
+  toggleWorkingStatus() {
+    if (this.data.workingStatusSaving) return;
+    const depInfo = this.data.depInfo || {};
+    if (!depInfo.nxDepartmentId) {
+      wx.showToast({ title: '客户信息无效，请刷新后重试', icon: 'none' });
+      return;
+    }
+
+    const isOpen = Number(depInfo.nxDepartmentWorkingStatus) === 0;
+    const targetStatus = isOpen ? -1 : 0;
+
+    const doUpdate = () => {
+      this.setData({ workingStatusSaving: true });
+      wx.showLoading({ title: '保存中...', mask: true });
+
+      updateNxDep({
+        nxDepartmentId: depInfo.nxDepartmentId,
+        nxDepartmentName: depInfo.nxDepartmentName || '',
+        nxDepartmentWorkingStatus: targetStatus
+      }).then(res => {
+        wx.hideLoading();
+        this.setData({ workingStatusSaving: false });
+        const result = res && res.result || {};
+        if (result.code == 0) {
+          this.setData({
+            'depInfo.nxDepartmentWorkingStatus': targetStatus
+          });
+          const stored = wx.getStorageSync('depInfo');
+          if (stored) {
+            stored.nxDepartmentWorkingStatus = targetStatus;
+            wx.setStorageSync('depInfo', stored);
+          }
+          wx.showToast({ title: targetStatus === 0 ? '已开通' : '已关闭', icon: 'success' });
+        } else {
+          wx.showToast({ title: result.msg || '操作失败', icon: 'none' });
+        }
+      }).catch(() => {
+        wx.hideLoading();
+        this.setData({ workingStatusSaving: false });
+        wx.showToast({ title: '网络错误，请重试', icon: 'none' });
+      });
+    };
+
+    if (isOpen) {
+      // 关闭客户需二次确认
+      wx.showModal({
+        title: '关闭客户',
+        content: '关闭后该客户将无法在订货小程序正常下单，确定关闭吗？',
+        confirmText: '确定关闭',
+        confirmColor: '#ff4d4f',
+        success: (res) => {
+          if (res.confirm) doUpdate();
+        }
+      });
+    } else {
+      // 开通客户直接执行
+      doUpdate();
+    }
+  },
+
   // ============ 客户业态管理 ============
 
   _getCustomerBusinessType(source = 'unknown') {
@@ -1293,7 +1512,7 @@ Page({
         || customerTypes[0]
         || null;
       this.setData({
-        customerBusinessTypeName: primaryType ? primaryType.typeName : '',
+        customerBusinessTypeName: customerTypes.map(item => item.typeName).filter(Boolean).join('、'),
         selectedBusinessTypeId: primaryType ? primaryType.businessTypeId : null,
         businessTypeInherited: !!relationData.inherited
       });

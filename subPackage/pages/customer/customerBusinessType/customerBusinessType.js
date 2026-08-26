@@ -3,6 +3,7 @@ import {
   getCustomerBusinessTypes,
   updateCustomerBusinessType
 } from '../../../../lib/apiDistributer'
+import apiUrl from '../../../../config.js'
 
 const CATEGORY_ORDER = [
   'CUISINE',
@@ -36,9 +37,11 @@ Page({
     categories: [],
     activeCategory: '',
     visibleTypes: [],
-    selectedBusinessTypeId: null,
-    originalBusinessTypeId: null,
-    selectedBusinessTypeName: '',
+    primaryBusinessTypeId: null,
+    originalPrimaryBusinessTypeId: null,
+    selectedBusinessTypeIds: [],
+    originalBusinessTypeIds: [],
+    selectedBusinessTypeNames: '',
     inherited: false
   },
 
@@ -76,12 +79,13 @@ Page({
         throw new Error(typeResult.msg || customerResult.msg || '客户业态加载失败')
       }
 
-      const types = typeResult.data || []
+      const types = (typeResult.data || []).map(item => this.decorateType(item))
       const relationData = customerResult.data || {}
       const customerTypes = relationData.types || []
       const primaryType = customerTypes.find(item => item.isPrimary == 1)
         || customerTypes[0]
         || null
+      const selectedIds = customerTypes.map(item => Number(item.businessTypeId))
       const categories = this.buildCategories(types)
       const selectedType = primaryType
         ? types.find(item => Number(item.businessTypeId) === Number(primaryType.businessTypeId))
@@ -95,10 +99,13 @@ Page({
         loading: false,
         categories,
         activeCategory,
-        visibleTypes: this.typesForCategory(types, activeCategory),
-        selectedBusinessTypeId: primaryType ? primaryType.businessTypeId : null,
-        originalBusinessTypeId: primaryType ? primaryType.businessTypeId : null,
-        selectedBusinessTypeName: primaryType ? primaryType.typeName : '',
+        visibleTypes: this.typesForCategory(types, activeCategory, selectedIds,
+          primaryType ? primaryType.businessTypeId : null),
+        primaryBusinessTypeId: primaryType ? primaryType.businessTypeId : null,
+        originalPrimaryBusinessTypeId: primaryType ? primaryType.businessTypeId : null,
+        selectedBusinessTypeIds: selectedIds,
+        originalBusinessTypeIds: selectedIds,
+        selectedBusinessTypeNames: this.selectedNames(types, selectedIds),
         inherited: !!relationData.inherited
       })
     }).catch(error => {
@@ -133,8 +140,27 @@ Page({
     return known
   },
 
-  typesForCategory(types, category) {
+  decorateType(item) {
+    const absolute = path => !path ? '' : (/^https?:\/\//.test(path) ? path : apiUrl.server + path.replace(/^\//, ''))
+    return Object.assign({}, item, {
+      iconUrl: absolute(item.iconRef),
+      activeIconUrl: absolute(item.activeIconRef || item.iconRef)
+    })
+  },
+
+  typesForCategory(types, category, selectedIds, primaryId) {
+    const selected = selectedIds || this.data.selectedBusinessTypeIds || []
+    const primary = primaryId === undefined ? this.data.primaryBusinessTypeId : primaryId
     return (types || []).filter(item => (item.typeCategory || 'OTHER') === category)
+      .map(item => Object.assign({}, item, {
+        selected: selected.some(id => Number(id) === Number(item.businessTypeId)),
+        primary: Number(primary) === Number(item.businessTypeId)
+      }))
+  },
+
+  selectedNames(types, selectedIds) {
+    return (types || []).filter(item => (selectedIds || []).some(id =>
+      Number(id) === Number(item.businessTypeId))).map(item => item.typeName).join('、')
   },
 
   selectCategory(e) {
@@ -151,27 +177,55 @@ Page({
     const selected = (this._allTypes || [])
       .find(item => Number(item.businessTypeId) === id)
     if (!selected) return
+    let selectedIds = this.data.selectedBusinessTypeIds.slice()
+    const index = selectedIds.findIndex(item => Number(item) === id)
+    let primaryId = this.data.primaryBusinessTypeId
+    if (index >= 0) {
+      selectedIds.splice(index, 1)
+      if (Number(primaryId) === id) primaryId = selectedIds.length ? selectedIds[0] : null
+    } else {
+      selectedIds.push(selected.businessTypeId)
+      if (primaryId === null || primaryId === undefined) primaryId = selected.businessTypeId
+    }
     this.setData({
-      selectedBusinessTypeId: selected.businessTypeId,
-      selectedBusinessTypeName: selected.typeName
+      selectedBusinessTypeIds: selectedIds,
+      primaryBusinessTypeId: primaryId,
+      selectedBusinessTypeNames: this.selectedNames(this._allTypes, selectedIds),
+      visibleTypes: this.typesForCategory(this._allTypes, this.data.activeCategory,
+        selectedIds, primaryId)
+    })
+  },
+
+  setPrimaryBusinessType(e) {
+    if (this.data.saving) return
+    const id = Number(e.currentTarget.dataset.id)
+    const selectedIds = this.data.selectedBusinessTypeIds.slice()
+    if (!selectedIds.some(item => Number(item) === id)) selectedIds.push(id)
+    this.setData({
+      selectedBusinessTypeIds: selectedIds,
+      primaryBusinessTypeId: id,
+      selectedBusinessTypeNames: this.selectedNames(this._allTypes, selectedIds),
+      visibleTypes: this.typesForCategory(this._allTypes, this.data.activeCategory,
+        selectedIds, id)
     })
   },
 
   save() {
     if (this.data.saving) return
-    const selectedId = this.data.selectedBusinessTypeId
+    const selectedId = this.data.primaryBusinessTypeId
     if (selectedId === null || selectedId === undefined) {
-      wx.showToast({ title: '请选择一个客户业态', icon: 'none' })
+      wx.showToast({ title: '请至少选择一个客户业态', icon: 'none' })
       return
     }
-    if (Number(selectedId) === Number(this.data.originalBusinessTypeId)) {
+    if (!this.selectionChanged()) {
       wx.navigateBack({ delta: 1 })
       return
     }
 
     this.setData({ saving: true })
     wx.showLoading({ title: '保存中...' })
-    updateCustomerBusinessType(this.data.departmentId, selectedId)
+    updateCustomerBusinessType(this.data.departmentId, selectedId,
+      this.data.selectedBusinessTypeIds)
       .then(res => {
         const result = res && res.result || {}
         if (result.code != 0) {
@@ -179,7 +233,8 @@ Page({
         }
         this.setData({
           saving: false,
-          originalBusinessTypeId: selectedId
+          originalPrimaryBusinessTypeId: selectedId,
+          originalBusinessTypeIds: this.data.selectedBusinessTypeIds.slice()
         })
         wx.showToast({ title: '已保存', icon: 'success' })
         setTimeout(() => wx.navigateBack({ delta: 1 }), 450)
@@ -193,8 +248,7 @@ Page({
   },
 
   toBack() {
-    const changed = this.data.selectedBusinessTypeId !== null
-      && Number(this.data.selectedBusinessTypeId) !== Number(this.data.originalBusinessTypeId)
+    const changed = this.selectionChanged()
     if (!changed) {
       wx.navigateBack({ delta: 1 })
       return
@@ -208,5 +262,12 @@ Page({
         if (res.confirm) wx.navigateBack({ delta: 1 })
       }
     })
+  },
+
+  selectionChanged() {
+    const current = this.data.selectedBusinessTypeIds.map(Number).sort((a, b) => a - b).join(',')
+    const original = this.data.originalBusinessTypeIds.map(Number).sort((a, b) => a - b).join(',')
+    return current !== original || Number(this.data.primaryBusinessTypeId)
+      !== Number(this.data.originalPrimaryBusinessTypeId)
   }
 })
