@@ -1,0 +1,167 @@
+<view class="edit-page">
+  <back-navbar
+    style="height: {{navBarHeight}}rpx;"
+    title="{{mode === 'image' ? '编辑参考图片' : (isEditMode ? '编辑客户要求' : '添加客户要求')}}"
+    avatar="/images/back-gray.png"
+    bindnavbuttontap="toBack"
+  ></back-navbar>
+
+  <view class="edit-header">
+    <view class="edit-header-title">{{isEditMode ? '编辑客户要求' : '添加客户要求'}}</view>
+    <view class="edit-header-sub" wx:if="{{departmentName}}">{{departmentName}} · {{customerGoodsName || goodsName}}</view>
+  </view>
+
+  <scroll-view class="edit-scroll" scroll-y enhanced show-scrollbar="{{false}}">
+    <view class="edit-content">
+      <view class="loading-card" wx:if="{{pageLoading}}">
+        <view class="loading-dot"></view>
+        <text>正在加载</text>
+      </view>
+
+      <view class="error-card" wx:elif="{{pageError}}">
+        <text class="error-title">暂时无法加载</text>
+        <text class="error-message">{{pageError}}</text>
+        <view class="retry-button" bindtap="retryLoad">重新加载</view>
+      </view>
+
+      <block wx:else>
+        <!-- item 模式：文字要求 -->
+        <view class="form-card" wx:if="{{mode === 'item'}}">
+          <view class="form-section-title">要求内容</view>
+          <textarea
+            class="requirement-input"
+            placeholder="请输入客户要求，例如：重量 3 斤以上、颜色翠绿、不带黄叶"
+            value="{{requirementText}}"
+            maxlength="200"
+            bindinput="onRequirementInput"
+          ></textarea>
+
+          <view class="form-row">
+            <view class="form-field half">
+              <text class="form-label">标准维度</text>
+              <picker
+                class="picker-field"
+                mode="selector"
+                range="{{dimensionOptions}}"
+                range-key="name"
+                value="{{dimensionIndex}}"
+                bindchange="onDimensionChange"
+              >
+                <view class="picker-value">
+                  <text>{{dimensionOptions[dimensionIndex].name}}</text>
+                  <text class="picker-arrow">▾</text>
+                </view>
+              </picker>
+            </view>
+            <view class="form-field half">
+              <text class="form-label">重要程度</text>
+              <picker
+                class="picker-field"
+                mode="selector"
+                range="{{importanceOptions}}"
+                range-key="name"
+                value="{{importanceIndex}}"
+                bindchange="onImportanceChange"
+              >
+                <view class="picker-value">
+                  <text>{{importanceOptions[importanceIndex].name}}</text>
+                  <text class="picker-arrow">▾</text>
+                </view>
+              </picker>
+            </view>
+          </view>
+        </view>
+
+        <!-- 图片区 -->
+        <view class="form-card image-card">
+          <view class="form-section-title-row">
+            <view class="form-section-title">参考图片</view>
+            <view class="image-count" wx:if="{{images.length}}">已选 {{images.length}} 张</view>
+          </view>
+          <view class="image-edit-list">
+            <view class="image-edit-item" wx:for="{{images}}" wx:key="clientKey" wx:for-item="image" wx:for-index="index">
+              <view class="image-edit-preview-wrap">
+                <image
+                  class="image-edit-preview"
+                  wx:if="{{image.uploadStatus === 'done'}}"
+                  src="{{image.previewUrl}}"
+                  mode="aspectFill"
+                  bindtap="previewImage"
+                  data-url="{{image.previewUrl}}"
+                ></image>
+                <view class="upload-cover" wx:elif="{{image.uploadStatus === 'uploading'}}">
+                  <text class="upload-percent">{{image.progress}}%</text>
+                </view>
+                <view class="upload-cover failed" wx:else>
+                  <text>上传失败</text>
+                  <text class="retry-upload" bindtap="retryUploadImage" data-index="{{index}}">重试</text>
+                </view>
+                <view class="image-remove" catchtap="removeImage" data-index="{{index}}">✕</view>
+              </view>
+              <view class="image-edit-fields">
+                <view class="image-field-row">
+                  <view class="image-field half">
+                    <text class="form-label">图片角色</text>
+                    <picker
+                      class="picker-field"
+                      mode="selector"
+                      range="{{imageRoleOptions}}"
+                      range-key="name"
+                      value="{{image.roleIndex}}"
+                      bindchange="onImageRoleChange"
+                      data-index="{{index}}"
+                    >
+                      <view class="picker-value">
+                        <text>{{image.imageRole === 'PASS' ? '合格参考' : (image.imageRole === 'PROHIBITED' ? '禁止这样' : '普通参考')}}</text>
+                        <text class="picker-arrow">▾</text>
+                      </view>
+                    </picker>
+                  </view>
+                  <view class="image-field half">
+                    <text class="form-label">重要程度</text>
+                    <picker
+                      class="picker-field"
+                      mode="selector"
+                      range="{{importanceOptions}}"
+                      range-key="name"
+                      value="{{image.importanceIndex}}"
+                      bindchange="onImageImportanceChange"
+                      data-index="{{index}}"
+                    >
+                      <view class="picker-value">
+                        <text>{{importanceOptions[image.importanceIndex].name}}</text>
+                        <text class="picker-arrow">▾</text>
+                      </view>
+                    </picker>
+                  </view>
+                </view>
+                <input
+                  class="image-description-input"
+                  placeholder="图片说明（可选）"
+                  value="{{image.description}}"
+                  bindinput="onImageDescriptionInput"
+                  data-index="{{index}}"
+                />
+              </view>
+            </view>
+            <view class="add-image-button" bindtap="chooseImages">
+              <text class="add-image-plus">＋</text>
+              <text>添加图片</text>
+            </view>
+          </view>
+        </view>
+
+        <view class="edit-tip">提示：上传的图片可作为合格参考或禁止示例，保存后客户要求列表会同步显示。</view>
+
+        <!-- 删除按钮（仅编辑已有要求时显示） -->
+        <view class="delete-item-button" wx:if="{{mode === 'item' && isEditMode}}" bindtap="deleteItem">
+          删除这条客户要求
+        </view>
+
+        <view class="edit-footer">
+          <view class="footer-save" bindtap="saveEdit">保存</view>
+        </view>
+      </block>
+    </view>
+  </scroll-view>
+</view>

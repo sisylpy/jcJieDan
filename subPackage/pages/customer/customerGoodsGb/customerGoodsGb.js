@@ -84,7 +84,7 @@ Page({
  
   toPdf(){
     wx.navigateTo({
-      url: '../customerPdf/customerPdf',
+      url: '/subPackage-charts/pages/customer/customerPdf/customerPdf',
     })
   },
   

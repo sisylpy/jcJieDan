@@ -4,10 +4,10 @@ import {
   getDepartmentGoodsStandardDimensions,
   getDepartmentGoodsCurrentStandard,
   updateDepartmentGoodsRelation,
-  saveDepartmentGoodsStandard,
   getDepartmentGoodsStandardHistory,
-  uploadDepartmentGoodsStandardImage,
-  queryDisGoodsAndNxGoodsByQuickSearch
+  queryDisGoodsAndNxGoodsByQuickSearch,
+  saveDepartmentGoodsStandard,
+  uploadDepartmentGoodsStandardImage
 } from '../../../../lib/apiDistributer'
 
 const DIMENSION_LABELS = {
@@ -34,10 +34,6 @@ const IMPORTANCE_OPTIONS = [
   { value: 5, name: '5 关键' }
 ]
 
-function createClientKey(prefix) {
-  return prefix + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8)
-}
-
 function parseSnapshot(value) {
   if (!value) return {}
   if (typeof value === 'object') return value
@@ -57,6 +53,10 @@ function firstValue(object, keys, fallback) {
   return fallback
 }
 
+function uuid() {
+  return 'c_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8)
+}
+
 Page({
   data: {
     navBarHeight: 0,
@@ -64,21 +64,21 @@ Page({
     departmentDisGoodsId: null,
     distributerId: null,
     operatorUserId: null,
+    operatorName: '',
     goodsName: '',
     customerGoodsName: '',
     departmentName: '',
-    pageMode: 'view',
     pageLoading: true,
     pageError: '',
-    dimensionOptions: [],
     dimensionMap: {},
-    importanceOptions: IMPORTANCE_OPTIONS,
-    imageRoleOptions: IMAGE_ROLE_OPTIONS,
-    standardGroups: [],
-    generalImageSections: [],
+    requirementItems: [],
+    imageGrid: [],
+    // 参考图片：本次新增尚未保存的图（上传中/完成/失败）
+    pendingGridImages: [],
+    removedGridImageIds: [],
+    gridSaving: false,
     standardHasContent: false,
     standardPreviewUrls: [],
-    currentStandardRaw: null,
     linkedDisGoodsId: null,
     linkedDisGoodsName: '',
     linkedDisGoodsStandardName: '',
@@ -90,14 +90,7 @@ Page({
     relationSearchResults: [],
     relationSearching: false,
     relationSaving: false,
-    editItems: [],
-    editImages: [],
-    imageBindOptions: [],
-    inactiveItemIds: [],
-    inactiveImageIds: [],
-    standardDirty: false,
-    uploadingCount: 0,
-    savingStandard: false,
+    showHistoryPopup: false,
     historyLoading: false,
     historyList: []
   },
@@ -107,7 +100,7 @@ Page({
     const globalData = app.globalData || {}
     const userInfo = wx.getStorageSync('userInfo')
     const distributerEntity = userInfo && userInfo.nxDistributerEntity
-    const departmentDisGoodsId = Number(options.departmentDisGoodsId)
+    const departmentDisGoodsId = Number(options.departmentDisGoodsId || options.depDisGoodsId)
 
     if (!departmentDisGoodsId || !userInfo || !userInfo.nxDistributerUserId || !distributerEntity) {
       wx.showToast({
@@ -132,6 +125,14 @@ Page({
     })
 
     this._loadPage()
+  },
+
+  onShow() {
+    // 从添加/编辑页返回后刷新列表
+    if (this._loadedOnce) {
+      this._loadCurrentStandard().catch(() => {})
+    }
+    this._loadedOnce = true
   },
 
   _scopeData() {
@@ -189,7 +190,6 @@ Page({
       const current = res.result.data || { items: [], images: [] }
       const view = this._buildCurrentView(current)
       this.setData({
-        currentStandardRaw: current,
         goodsName: current.disGoodsName || this.data.goodsName,
         linkedDisGoodsId: current.disGoodsId || null,
         linkedDisGoodsName: current.disGoodsName || '',
@@ -197,8 +197,8 @@ Page({
         linkedDisGoodsBrand: current.disGoodsBrand || '',
         linkedDisGoodsDetail: current.disGoodsDetail || '',
         linkedDisGoodsImage: this._absoluteImageUrl(current.disGoodsFile || ''),
-        standardGroups: view.groups,
-        generalImageSections: view.generalImageSections,
+        requirementItems: view.requirementItems,
+        imageGrid: view.imageGrid,
         standardHasContent: view.hasContent,
         standardPreviewUrls: view.previewUrls
       })
@@ -211,57 +211,41 @@ Page({
     const rawImages = Array.isArray(current.images) ? current.images : []
     const images = rawImages.map((image) => this._normalizeViewImage(image))
 
+    // 客户要求：编号列表
     const items = rawItems.map((item) => {
       const itemId = item.nxDdgsiId
       const dimensionCode = item.nxDdgsiDimensionCode
       const importance = Number(item.nxDdgsiImportanceLevel || 3)
       const itemImages = images.filter((image) => String(image.standardItemId || '') === String(itemId))
+      const thumbnailImage = itemImages[0]
       return {
         itemId,
-        dimensionCode,
         dimensionName: item.nxDdgsiDimensionName || dimensionMap[dimensionCode] || dimensionCode,
         requirementText: item.nxDdgsiRequirementText,
         importanceLevel: importance,
-        importanceText: IMPORTANCE_OPTIONS[importance - 1].name,
         stars: '★★★★★'.slice(0, importance),
         sort: Number(item.nxDdgsiSort || 0),
-        imageSections: this._buildImageSections(itemImages)
+        thumbnail: thumbnailImage ? thumbnailImage.previewUrl : ''
       }
-    })
+    }).sort((a, b) => b.importanceLevel - a.importanceLevel || a.sort - b.sort)
 
-    const groupMap = {}
-    items.forEach((item) => {
-      if (!groupMap[item.dimensionCode]) {
-        groupMap[item.dimensionCode] = {
-          code: item.dimensionCode,
-          name: dimensionMap[item.dimensionCode] || item.dimensionName || item.dimensionCode,
-          maxImportance: 0,
-          items: []
-        }
-      }
-      groupMap[item.dimensionCode].items.push(item)
-      groupMap[item.dimensionCode].maxImportance = Math.max(
-        groupMap[item.dimensionCode].maxImportance,
-        item.importanceLevel
-      )
-    })
+    // 参考图片：宫格（未绑定具体要求的整体图片）
+    const gridRoleOrder = { PASS: 0, PROHIBITED: 1, REFERENCE: 2 }
+    const gridImages = images
+      .filter((image) => !image.standardItemId)
+      .map((image) => Object.assign({}, image, {
+        isPass: image.imageRole === 'PASS',
+        isProhibited: image.imageRole === 'PROHIBITED'
+      }))
+      .sort((a, b) => {
+        return (gridRoleOrder[a.imageRole] || 9) - (gridRoleOrder[b.imageRole] || 9) ||
+          b.importanceLevel - a.importanceLevel || a.sort - b.sort
+      })
 
-    const dimensionOrder = {}
-    this.data.dimensionOptions.forEach((item, index) => { dimensionOrder[item.code] = index })
-    const groups = Object.keys(groupMap).map((code) => {
-      const group = groupMap[code]
-      group.items.sort((a, b) => b.importanceLevel - a.importanceLevel || a.sort - b.sort)
-      return group
-    }).sort((a, b) => {
-      return b.maxImportance - a.maxImportance ||
-        (dimensionOrder[a.code] || 0) - (dimensionOrder[b.code] || 0)
-    })
-
-    const generalImages = images.filter((image) => !image.standardItemId)
     return {
-      groups,
-      generalImageSections: this._buildImageSections(generalImages),
-      hasContent: items.length > 0 || generalImages.length > 0,
+      requirementItems: items,
+      imageGrid: gridImages,
+      hasContent: items.length > 0 || gridImages.length > 0,
       previewUrls: images.map((image) => image.previewUrl)
     }
   },
@@ -282,20 +266,6 @@ Page({
     }
   },
 
-  _buildImageSections(images) {
-    return IMAGE_ROLE_OPTIONS.map((role) => {
-      const roleImages = images
-        .filter((image) => image.imageRole === role.code)
-        .sort((a, b) => b.importanceLevel - a.importanceLevel || a.sort - b.sort)
-      return {
-        role: role.code,
-        name: role.viewName,
-        className: role.code.toLowerCase(),
-        images: roleImages
-      }
-    }).filter((section) => section.images.length > 0)
-  },
-
   _absoluteImageUrl(imageUrl) {
     if (!imageUrl) return ''
     if (/^(https?:|wxfile:|blob:)/i.test(imageUrl)) return imageUrl
@@ -314,8 +284,197 @@ Page({
     wx.previewImage({ current, urls: urls.length ? urls : [current] })
   },
 
+  // —— 跳转添加/编辑页 ——
+
+  toAddRequirement() {
+    this._gotoEditPage('item', null)
+  },
+
+  toEditRequirement(e) {
+    const itemId = Number(e.currentTarget.dataset.id)
+    if (!itemId) return
+    this._gotoEditPage('item', itemId)
+  },
+
+  // —— 参考图片：在当前页直接添加 / 删除 / 保存（不跳转编辑页） ——
+
+  chooseGridImages() {
+    if (this.data.gridSaving) return
+    const uploading = this.data.pendingGridImages.filter((image) => image.uploadStatus === 'uploading')
+    if (uploading.length) {
+      wx.showToast({ title: '图片上传中，请稍候', icon: 'none' })
+      return
+    }
+    const total = this.data.imageGrid.length + this.data.pendingGridImages.length
+    const max = Math.max(0, 9 - total)
+    if (max <= 0) {
+      wx.showToast({ title: '参考图片最多 9 张', icon: 'none' })
+      return
+    }
+    wx.chooseMedia({
+      count: max,
+      mediaType: ['image'],
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: (res) => {
+        const files = (res.tempFiles || []).map((file) => ({
+          clientKey: uuid(),
+          localPath: file.tempFilePath,
+          previewUrl: file.tempFilePath,
+          imageId: null,
+          uploadStatus: 'pending'
+        }))
+        if (!files.length) return
+        const pendingGridImages = this.data.pendingGridImages.concat(files)
+        this.setData({ pendingGridImages })
+        files.forEach((file, offset) => {
+          const index = pendingGridImages.length - files.length + offset
+          this._uploadGridImage(index)
+        })
+      }
+    })
+  },
+
+  _uploadGridImage(index) {
+    const pending = this.data.pendingGridImages
+    const image = pending[index]
+    if (!image || image.uploadStatus === 'uploading') return
+    this.setData({ ['pendingGridImages[' + index + '].uploadStatus']: 'uploading' })
+    uploadDepartmentGoodsStandardImage({
+      departmentDisGoodsId: this.data.departmentDisGoodsId,
+      distributerId: this.data.distributerId,
+      operatorUserId: this.data.operatorUserId,
+      filePath: image.localPath
+    }).then((res) => {
+      if (!res.result || res.result.code !== 0) {
+        throw new Error((res.result && res.result.msg) || '图片上传失败')
+      }
+      const uploaded = res.result.data && res.result.data[0]
+      const uploadedUrl = uploaded && (uploaded.fileUrl || uploaded.url || uploaded.imageUrl)
+      if (!uploadedUrl) throw new Error('图片上传结果异常')
+      this.setData({
+        ['pendingGridImages[' + index + '].uploadStatus']: 'done',
+        ['pendingGridImages[' + index + '].previewUrl']: uploadedUrl,
+        ['pendingGridImages[' + index + '].imageUrl']: uploadedUrl
+      })
+      this._maybeFlushGridChanges()
+    }).catch((error) => {
+      this.setData({ ['pendingGridImages[' + index + '].uploadStatus']: 'failed' })
+      wx.showToast({
+        title: error && error.message ? error.message : '图片上传失败',
+        icon: 'none'
+      })
+    })
+  },
+
+  // 所有待上传图片处理完后统一保存一次
+  _maybeFlushGridChanges() {
+    const pending = this.data.pendingGridImages
+    if (!pending.length) return
+    if (pending.some((image) => image.uploadStatus === 'uploading')) return
+    this._flushGridChanges()
+  },
+
+  _flushGridChanges() {
+    const newImages = this.data.pendingGridImages
+      .filter((image) => image.uploadStatus === 'done' && image.imageUrl)
+      .map((image, index) => ({
+        imageId: null,
+        clientKey: image.clientKey,
+        imageUrl: image.imageUrl,
+        imageRole: 'REFERENCE',
+        description: '',
+        importanceLevel: 3,
+        sort: index + 1,
+        dimensionCode: 'OTHER'
+      }))
+    const removedIds = this.data.removedGridImageIds || []
+    if (!newImages.length && !removedIds.length) {
+      this.setData({ pendingGridImages: [] })
+      return
+    }
+    this.setData({ gridSaving: true })
+    wx.showLoading({ title: '保存中...', mask: true })
+    saveDepartmentGoodsStandard(this.data.departmentDisGoodsId, {
+      distributerId: this.data.distributerId,
+      operatorUserId: this.data.operatorUserId,
+      operatorName: this.data.operatorName,
+      confirmed: true,
+      changeReason: '',
+      sourceType: 'MANUAL',
+      items: [],
+      images: newImages,
+      inactiveItemIds: [],
+      inactiveImageIds: removedIds
+    }).then((res) => {
+      wx.hideLoading()
+      if (!res.result || res.result.code !== 0) {
+        throw new Error((res.result && res.result.msg) || '保存失败')
+      }
+      this.setData({
+        pendingGridImages: [],
+        removedGridImageIds: [],
+        gridSaving: false
+      })
+      wx.showToast({ title: '已保存', icon: 'success' })
+      return this._loadCurrentStandard()
+    }).catch((error) => {
+      wx.hideLoading()
+      this.setData({ gridSaving: false })
+      wx.showToast({
+        title: error && error.message ? error.message : '保存失败',
+        icon: 'none',
+        duration: 2500
+      })
+    })
+  },
+
+  removeGridImage(e) {
+    if (this.data.gridSaving) return
+    const dataset = e.currentTarget.dataset
+    // 本次新增尚未保存的图：直接本地移除，无需调接口
+    if (dataset.key === 'pending') {
+      const pendingGridImages = this.data.pendingGridImages.slice()
+      pendingGridImages.splice(Number(dataset.index), 1)
+      this.setData({ pendingGridImages })
+      return
+    }
+    const imageId = Number(dataset.id)
+    if (!imageId) return
+    wx.showModal({
+      title: '移除参考图片',
+      content: '确定移除这张参考图片吗？',
+      confirmText: '移除',
+      confirmColor: '#d63e3e',
+      success: (modal) => {
+        if (!modal.confirm) return
+        const removedGridImageIds = (this.data.removedGridImageIds || []).slice()
+        if (removedGridImageIds.indexOf(imageId) < 0) removedGridImageIds.push(imageId)
+        const imageGrid = this.data.imageGrid.filter((image) => image.imageId !== imageId)
+        this.setData({ removedGridImageIds, imageGrid })
+        this._flushGridChanges()
+      }
+    })
+  },
+
+  _gotoEditPage(mode, itemId) {
+    const query = [
+      'departmentDisGoodsId=' + this.data.departmentDisGoodsId,
+      'mode=' + mode,
+      'goodsName=' + encodeURIComponent(this.data.goodsName || ''),
+      'customerGoodsName=' + encodeURIComponent(this.data.customerGoodsName || ''),
+      'departmentName=' + encodeURIComponent(this.data.departmentName || '')
+    ]
+    if (itemId) query.push('itemId=' + itemId)
+    wx.navigateTo({
+      url: '../customerGoodsStandardEdit/customerGoodsStandardEdit?' + query.join('&')
+    })
+  },
+
+  // —— 更换关联商品 ——
+
   openGoodsRelationPicker() {
-    if (this.data.pageMode !== 'view') return
+    if (this.data.pageLoading || this.data.pageError) return
     const keyword = String(this.data.customerGoodsName || this.data.goodsName || '').trim()
     this.setData({
       showGoodsRelationPicker: true,
@@ -427,527 +586,11 @@ Page({
     })
   },
 
-  openEdit() {
-    const current = this.data.currentStandardRaw || { items: [], images: [] }
-    const dimensionOptions = this.data.dimensionOptions
-    const items = (current.items || []).map((item) => {
-      const importance = Number(item.nxDdgsiImportanceLevel || 3)
-      const dimensionIndex = Math.max(0, dimensionOptions.findIndex(
-        (option) => option.code === item.nxDdgsiDimensionCode
-      ))
-      return {
-        uiKey: 'item-' + item.nxDdgsiId,
-        itemId: item.nxDdgsiId,
-        clientKey: '',
-        dimensionCode: item.nxDdgsiDimensionCode,
-        dimensionName: item.nxDdgsiDimensionName || '',
-        dimensionIndex,
-        requirementText: item.nxDdgsiRequirementText || '',
-        importanceLevel: importance,
-        importanceIndex: importance - 1,
-        sort: Number(item.nxDdgsiSort || 0),
-        isNew: false,
-        dirty: false
-      }
-    })
-
-    const images = (current.images || []).map((image) => {
-      const role = image.nxDdgimgImageRole || 'REFERENCE'
-      const importance = Number(image.nxDdgimgImportanceLevel || 3)
-      const linkedItem = items.find((item) => String(item.itemId) === String(image.nxDdgimgStandardItemId))
-      return {
-        uiKey: 'image-' + image.nxDdgimgId,
-        imageId: image.nxDdgimgId,
-        linkedItemKey: linkedItem ? linkedItem.uiKey : '',
-        bindIndex: 0,
-        serverImageUrl: image.nxDdgimgImageUrl,
-        previewUrl: this._absoluteImageUrl(image.nxDdgimgImageUrl),
-        dimensionCode: image.nxDdgimgDimensionCode || (linkedItem && linkedItem.dimensionCode) || 'OTHER',
-        imageRole: role,
-        roleClass: role.toLowerCase(),
-        roleIndex: Math.max(0, IMAGE_ROLE_OPTIONS.findIndex((option) => option.code === role)),
-        description: image.nxDdgimgDescription || '',
-        importanceLevel: importance,
-        importanceIndex: importance - 1,
-        sort: Number(image.nxDdgimgSort || 0),
-        isNew: false,
-        dirty: false,
-        uploadStatus: 'success',
-        uploadProgress: 100
-      }
-    })
-
-    const rebuilt = this._rebuildImageBindOptions(items, images)
-    this.setData({
-      pageMode: 'edit',
-      editItems: items,
-      editImages: rebuilt.images,
-      imageBindOptions: rebuilt.options,
-      inactiveItemIds: [],
-      inactiveImageIds: [],
-      standardDirty: false,
-      uploadingCount: 0
-    })
-  },
-
-  _rebuildImageBindOptions(items, images) {
-    const options = [{ key: '', name: '整个客户商品' }]
-    items.forEach((item) => {
-      options.push({
-        key: item.uiKey,
-        name: (this.data.dimensionMap[item.dimensionCode] || item.dimensionName || item.dimensionCode) +
-          ' · ' + (item.requirementText || '未填写要求')
-      })
-    })
-    const nextImages = images.map((image) => {
-      const bindIndex = options.findIndex((option) => option.key === image.linkedItemKey)
-      return Object.assign({}, image, { bindIndex: bindIndex < 0 ? 0 : bindIndex })
-    })
-    return { options, images: nextImages }
-  },
-
-  addStandardItem() {
-    const dimension = this.data.dimensionOptions[0]
-    if (!dimension) return
-    const maxSort = this.data.editItems.reduce((max, item) => Math.max(max, item.sort || 0), 0)
-    const items = this.data.editItems.concat([{
-      uiKey: createClientKey('item'),
-      itemId: null,
-      clientKey: createClientKey('client'),
-      dimensionCode: dimension.code,
-      dimensionName: dimension.name,
-      dimensionIndex: 0,
-      requirementText: '',
-      importanceLevel: 3,
-      importanceIndex: 2,
-      sort: maxSort + 10,
-      isNew: true,
-      dirty: true
-    }])
-    const rebuilt = this._rebuildImageBindOptions(items, this.data.editImages)
-    this.setData({
-      editItems: items,
-      editImages: rebuilt.images,
-      imageBindOptions: rebuilt.options,
-      standardDirty: true
-    })
-  },
-
-  onItemDimensionChange(e) {
-    const index = Number(e.currentTarget.dataset.index)
-    const dimensionIndex = Number(e.detail.value)
-    const option = this.data.dimensionOptions[dimensionIndex]
-    if (!option || !this.data.editItems[index]) return
-    const items = this.data.editItems.slice()
-    const images = this.data.editImages.slice()
-    const item = Object.assign({}, items[index], {
-      dimensionIndex,
-      dimensionCode: option.code,
-      dimensionName: option.name,
-      dirty: true
-    })
-    items[index] = item
-    images.forEach((image, imageIndex) => {
-      if (image.linkedItemKey === item.uiKey) {
-        images[imageIndex] = Object.assign({}, image, {
-          dimensionCode: option.code,
-          dirty: true
-        })
-      }
-    })
-    const rebuilt = this._rebuildImageBindOptions(items, images)
-    this.setData({
-      editItems: items,
-      editImages: rebuilt.images,
-      imageBindOptions: rebuilt.options,
-      standardDirty: true
-    })
-  },
-
-  onItemTextInput(e) {
-    const index = Number(e.currentTarget.dataset.index)
-    if (!this.data.editItems[index]) return
-    const items = this.data.editItems.slice()
-    items[index] = Object.assign({}, items[index], {
-      requirementText: e.detail.value,
-      dirty: true
-    })
-    const rebuilt = this._rebuildImageBindOptions(items, this.data.editImages)
-    this.setData({
-      editItems: items,
-      editImages: rebuilt.images,
-      imageBindOptions: rebuilt.options,
-      standardDirty: true
-    })
-  },
-
-  onItemImportanceChange(e) {
-    const index = Number(e.currentTarget.dataset.index)
-    const importanceIndex = Number(e.detail.value)
-    if (!this.data.editItems[index]) return
-    const items = this.data.editItems.slice()
-    items[index] = Object.assign({}, items[index], {
-      importanceIndex,
-      importanceLevel: IMPORTANCE_OPTIONS[importanceIndex].value,
-      dirty: true
-    })
-    this.setData({ editItems: items, standardDirty: true })
-  },
-
-  removeStandardItem(e) {
-    const index = Number(e.currentTarget.dataset.index)
-    const item = this.data.editItems[index]
-    if (!item) return
-    const content = item.isNew
-      ? '移除这条尚未保存的文字要求？'
-      : '失效这条文字要求？它关联的正式标准图片也会一并失效。'
-    wx.showModal({
-      title: item.isNew ? '移除要求' : '失效要求',
-      content,
-      success: (res) => {
-        if (res.confirm) this._removeStandardItem(index)
-      }
-    })
-  },
-
-  _removeStandardItem(index) {
-    const items = this.data.editItems.slice()
-    const item = items[index]
-    const inactiveItemIds = this.data.inactiveItemIds.slice()
-    let images = this.data.editImages.slice()
-    if (!item.isNew) inactiveItemIds.push(item.itemId)
-    items.splice(index, 1)
-
-    if (item.isNew) {
-      images = images.map((image) => {
-        if (image.linkedItemKey !== item.uiKey) return image
-        return Object.assign({}, image, {
-          linkedItemKey: '',
-          dimensionCode: 'OTHER',
-          dirty: true
-        })
-      })
-    } else {
-      images = images.filter((image) => image.linkedItemKey !== item.uiKey)
-    }
-
-    const rebuilt = this._rebuildImageBindOptions(items, images)
-    this.setData({
-      editItems: items,
-      editImages: rebuilt.images,
-      imageBindOptions: rebuilt.options,
-      inactiveItemIds,
-      standardDirty: true
-    })
-  },
-
-  chooseStandardImages() {
-    const newImageCount = this.data.editImages.filter((image) => image.isNew).length
-    const remaining = 20 - newImageCount
-    if (remaining <= 0) {
-      wx.showToast({ title: '本批最多添加20张图片', icon: 'none' })
-      return
-    }
-    wx.chooseMedia({
-      count: Math.min(9, remaining),
-      mediaType: ['image'],
-      sizeType: ['original', 'compressed'],
-      sourceType: ['album', 'camera'],
-      success: (res) => this._prepareSelectedImages(res.tempFiles || []),
-      fail: (error) => {
-        if (!error.errMsg || error.errMsg.indexOf('cancel') < 0) {
-          wx.showToast({ title: '选择图片失败', icon: 'none' })
-        }
-      }
-    })
-  },
-
-  _prepareSelectedImages(files) {
-    const validFiles = []
-    let tooLarge = 0
-    let unsupported = 0
-    files.forEach((file) => {
-      const path = file.tempFilePath || ''
-      const extensionMatch = path.toLowerCase().match(/\.([a-z0-9]+)(?:\?|$)/)
-      const extension = extensionMatch ? extensionMatch[1] : ''
-      if (Number(file.size || 0) > 10 * 1024 * 1024) {
-        tooLarge += 1
-      } else if (extension && ['jpg', 'jpeg', 'png', 'webp'].indexOf(extension) < 0) {
-        unsupported += 1
-      } else {
-        validFiles.push(file)
-      }
-    })
-
-    if (tooLarge || unsupported) {
-      const messages = []
-      if (tooLarge) messages.push(tooLarge + '张超过10MB')
-      if (unsupported) messages.push(unsupported + '张格式不支持')
-      wx.showToast({ title: messages.join('，'), icon: 'none', duration: 2500 })
-    }
-    if (!validFiles.length) return
-
-    const maxSort = this.data.editImages.reduce((max, image) => Math.max(max, image.sort || 0), 0)
-    const newImages = validFiles.map((file, index) => ({
-      uiKey: createClientKey('image'),
-      imageId: null,
-      linkedItemKey: '',
-      bindIndex: 0,
-      localPath: file.tempFilePath,
-      serverImageUrl: '',
-      previewUrl: file.tempFilePath,
-      dimensionCode: 'OTHER',
-      imageRole: 'REFERENCE',
-      roleClass: 'reference',
-      roleIndex: 2,
-      description: '',
-      importanceLevel: 3,
-      importanceIndex: 2,
-      sort: maxSort + (index + 1) * 10,
-      isNew: true,
-      dirty: true,
-      uploadStatus: 'uploading',
-      uploadProgress: 0,
-      uploadError: ''
-    }))
-    const images = this.data.editImages.concat(newImages)
-    const rebuilt = this._rebuildImageBindOptions(this.data.editItems, images)
-    this.setData({
-      editImages: rebuilt.images,
-      imageBindOptions: rebuilt.options,
-      uploadingCount: this.data.uploadingCount + newImages.length,
-      standardDirty: true
-    })
-    newImages.forEach((image) => this._uploadStandardImage(image.uiKey))
-  },
-
-  _uploadStandardImage(uiKey) {
-    const image = this.data.editImages.find((item) => item.uiKey === uiKey)
-    if (!image) return
-    uploadDepartmentGoodsStandardImage({
-      departmentDisGoodsId: this.data.departmentDisGoodsId,
-      distributerId: this.data.distributerId,
-      operatorUserId: this.data.operatorUserId,
-      filePath: image.localPath,
-      onProgress: (progress) => this._updateImageUploadProgress(uiKey, progress.progress)
-    }).then((res) => {
-      if (!res.result || res.result.code !== 0) {
-        throw new Error((res.result && res.result.msg) || '图片上传失败')
-      }
-      const uploaded = Array.isArray(res.result.data) ? res.result.data[0] : res.result.data
-      if (!uploaded || !uploaded.imageUrl) throw new Error('后台未返回图片地址')
-      this._updateEditImage(uiKey, {
-        serverImageUrl: uploaded.imageUrl,
-        previewUrl: this._absoluteImageUrl(uploaded.imageUrl),
-        uploadStatus: 'success',
-        uploadProgress: 100,
-        uploadError: ''
-      })
-    }).catch((error) => {
-      this._updateEditImage(uiKey, {
-        uploadStatus: 'failed',
-        uploadError: error && error.message ? error.message : '上传失败'
-      })
-    }).finally(() => {
-      this.setData({ uploadingCount: Math.max(0, this.data.uploadingCount - 1) })
-    })
-  },
-
-  _updateImageUploadProgress(uiKey, progress) {
-    this._updateEditImage(uiKey, { uploadProgress: progress })
-  },
-
-  _updateEditImage(uiKey, values) {
-    const images = this.data.editImages.slice()
-    const index = images.findIndex((image) => image.uiKey === uiKey)
-    if (index < 0) return
-    images[index] = Object.assign({}, images[index], values)
-    this.setData({ editImages: images })
-  },
-
-  retryStandardImage(e) {
-    const uiKey = e.currentTarget.dataset.key
-    const image = this.data.editImages.find((item) => item.uiKey === uiKey)
-    if (!image || image.uploadStatus === 'uploading') return
-    this._updateEditImage(uiKey, { uploadStatus: 'uploading', uploadProgress: 0, uploadError: '' })
-    this.setData({ uploadingCount: this.data.uploadingCount + 1 })
-    this._uploadStandardImage(uiKey)
-  },
-
-  removeStandardImage(e) {
-    const index = Number(e.currentTarget.dataset.index)
-    const image = this.data.editImages[index]
-    if (!image) return
-    if (image.isNew) {
-      const images = this.data.editImages.slice()
-      images.splice(index, 1)
-      this.setData({ editImages: images, standardDirty: true })
-      return
-    }
-    wx.showModal({
-      title: '失效正式图片',
-      content: '正式标准图片不会替换原文件。确认后旧图将失效，如需换图请再上传新图。',
-      confirmText: '确认失效',
-      success: (res) => {
-        if (!res.confirm) return
-        const images = this.data.editImages.slice()
-        const inactiveImageIds = this.data.inactiveImageIds.concat([image.imageId])
-        images.splice(index, 1)
-        this.setData({ editImages: images, inactiveImageIds, standardDirty: true })
-      }
-    })
-  },
-
-  previewEditImage(e) {
-    const current = e.currentTarget.dataset.url
-    const urls = this.data.editImages.map((image) => image.previewUrl).filter(Boolean)
-    if (current) wx.previewImage({ current, urls })
-  },
-
-  onImageRoleChange(e) {
-    const index = Number(e.currentTarget.dataset.index)
-    const roleIndex = Number(e.detail.value)
-    this._patchImageAt(index, {
-      roleIndex,
-      imageRole: IMAGE_ROLE_OPTIONS[roleIndex].code,
-      roleClass: IMAGE_ROLE_OPTIONS[roleIndex].code.toLowerCase(),
-      dirty: true
-    })
-  },
-
-  onImageBindChange(e) {
-    const index = Number(e.currentTarget.dataset.index)
-    const bindIndex = Number(e.detail.value)
-    const option = this.data.imageBindOptions[bindIndex]
-    const item = this.data.editItems.find((editItem) => editItem.uiKey === option.key)
-    this._patchImageAt(index, {
-      bindIndex,
-      linkedItemKey: option.key,
-      dimensionCode: item ? item.dimensionCode : 'OTHER',
-      dirty: true
-    })
-  },
-
-  onImageDescriptionInput(e) {
-    this._patchImageAt(Number(e.currentTarget.dataset.index), {
-      description: e.detail.value,
-      dirty: true
-    })
-  },
-
-  onImageImportanceChange(e) {
-    const importanceIndex = Number(e.detail.value)
-    this._patchImageAt(Number(e.currentTarget.dataset.index), {
-      importanceIndex,
-      importanceLevel: IMPORTANCE_OPTIONS[importanceIndex].value,
-      dirty: true
-    })
-  },
-
-  _patchImageAt(index, values) {
-    if (!this.data.editImages[index]) return
-    const images = this.data.editImages.slice()
-    images[index] = Object.assign({}, images[index], values)
-    this.setData({ editImages: images, standardDirty: true })
-  },
-
-  saveStandard() {
-    if (this.data.savingStandard) return
-    if (this.data.uploadingCount > 0) {
-      wx.showToast({ title: '请等待图片上传完成', icon: 'none' })
-      return
-    }
-    if (this.data.editImages.some((image) => image.uploadStatus === 'failed')) {
-      wx.showToast({ title: '请重试或移除上传失败的图片', icon: 'none' })
-      return
-    }
-
-    const emptyItem = this.data.editItems.find((item) => !String(item.requirementText || '').trim())
-    if (emptyItem) {
-      wx.showToast({ title: '请填写完整的文字要求', icon: 'none' })
-      return
-    }
-
-    const changedItems = this.data.editItems.filter((item) => item.isNew || item.dirty)
-    const changedImages = this.data.editImages.filter((image) => image.isNew || image.dirty)
-    const changeCount = changedItems.length + changedImages.length +
-      this.data.inactiveItemIds.length + this.data.inactiveImageIds.length
-    if (!changeCount) {
-      wx.showToast({ title: '没有需要保存的变化', icon: 'none' })
-      return
-    }
-
-    const items = changedItems.map((item) => ({
-      itemId: item.isNew ? null : item.itemId,
-      clientKey: item.isNew ? item.clientKey : null,
-      dimensionCode: item.dimensionCode,
-      dimensionName: item.dimensionCode === 'OTHER' ? (item.dimensionName || '其他') : null,
-      requirementText: String(item.requirementText).trim(),
-      importanceLevel: item.importanceLevel,
-      sort: item.sort,
-      sourceType: item.isNew ? 'MANUAL' : null
-    }))
-
-    const images = changedImages.map((image) => {
-      const linkedItem = this.data.editItems.find((item) => item.uiKey === image.linkedItemKey)
-      const payload = {
-        imageId: image.isNew ? null : image.imageId,
-        standardItemId: linkedItem && !linkedItem.isNew ? linkedItem.itemId : null,
-        standardItemClientKey: linkedItem && linkedItem.isNew ? linkedItem.clientKey : null,
-        clearStandardItem: !image.isNew && !linkedItem,
-        dimensionCode: linkedItem ? linkedItem.dimensionCode : (image.dimensionCode || 'OTHER'),
-        imageRole: image.imageRole,
-        description: String(image.description || '').trim(),
-        importanceLevel: image.importanceLevel,
-        sort: image.sort,
-        sourceType: image.isNew ? 'MANUAL' : null
-      }
-      if (image.isNew) payload.imageUrl = image.serverImageUrl
-      return payload
-    })
-
-    const request = {
-      distributerId: this.data.distributerId,
-      operatorUserId: this.data.operatorUserId,
-      confirmed: true,
-      changeReason: '小程序维护客户商品标准',
-      sourceType: 'MANUAL',
-      items,
-      images,
-      inactiveItemIds: this.data.inactiveItemIds,
-      inactiveImageIds: this.data.inactiveImageIds
-    }
-
-    this.setData({ savingStandard: true })
-    saveDepartmentGoodsStandard(this.data.departmentDisGoodsId, request)
-      .then((res) => {
-        if (!res.result || res.result.code !== 0) {
-          throw new Error((res.result && res.result.msg) || '保存失败')
-        }
-        this.setData({
-          pageMode: 'view',
-          pageLoading: true,
-          pageError: '',
-          standardDirty: false
-        })
-        return this._loadCurrentStandard()
-      })
-      .then(() => {
-        this.setData({ pageLoading: false, savingStandard: false })
-        wx.showToast({ title: '保存成功', icon: 'success' })
-      })
-      .catch((error) => {
-        this.setData({ savingStandard: false, pageLoading: false })
-        wx.showToast({
-          title: error && error.message ? error.message : '保存失败',
-          icon: 'none',
-          duration: 2500
-        })
-      })
-  },
+  // —— 修改记录弹层 ——
 
   openHistory() {
-    this.setData({ pageMode: 'history', historyLoading: true, historyList: [] })
+    if (this.data.historyLoading) return
+    this.setData({ showHistoryPopup: true, historyLoading: true, historyList: [] })
     getDepartmentGoodsStandardHistory(
       this.data.departmentDisGoodsId,
       this._scopeData()
@@ -967,6 +610,12 @@ Page({
       })
     })
   },
+
+  closeHistory() {
+    this.setData({ showHistoryPopup: false })
+  },
+
+  noop() {},
 
   _formatHistory(versions) {
     const list = Array.isArray(versions) ? versions : []
@@ -1058,29 +707,6 @@ Page({
   },
 
   toBack() {
-    if (this.data.pageMode === 'history') {
-      this.setData({ pageMode: 'view' })
-      return
-    }
-    if (this.data.pageMode === 'edit') {
-      this.cancelEdit()
-      return
-    }
     wx.navigateBack({ delta: 1 })
-  },
-
-  cancelEdit() {
-    if (!this.data.standardDirty) {
-      this.setData({ pageMode: 'view' })
-      return
-    }
-    wx.showModal({
-      title: '放弃本次编辑？',
-      content: '尚未保存的文字和图片设置将不会生效。',
-      confirmText: '放弃',
-      success: (res) => {
-        if (res.confirm) this.setData({ pageMode: 'view', standardDirty: false })
-      }
-    })
   }
 })

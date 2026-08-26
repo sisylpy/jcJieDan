@@ -28,6 +28,7 @@
       "pages/customer/customerPage/customerPage",
       "pages/customer/customerGoods/customerGoods",
       "pages/customer/customerGoodsStandard/customerGoodsStandard",
+      "pages/customer/customerGoodsStandardEdit/customerGoodsStandardEdit",
       "pages/customer/customerPdf/customerPdf",
       "pages/customer/customerGoodsPrice/customerGoodsPrice",
       "pages/customer/collNxDisGoodsPrice/collNxDisGoodsPrice",
