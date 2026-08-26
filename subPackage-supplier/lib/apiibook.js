@@ -112,32 +112,6 @@ export const downDisGoodsAndSaveLinshiGoods = (data) => {
  * 搜索类别商品
  * @param {*} data 
  */
-export const queryNxGoodsWithNxDisByQuickSearch = (data) => {
-  return new Promise((resolve, reject) => {
-    getApp().ownerRequest({
-      url: apiUrl.apiUrl + 'nxgoods/queryNxGoodsWithNxDisByQuickSearch',
-      method: 'POST',
-      data: {
-        "searchStr": data.searchStr,
-        "disId": data.disId,
-        
-      },
-      header: {
-        "Content-Type": "application/x-www-form-urlencoded;charset=utf-8"
-      },
-      success: (res) => {
-        resolve({ result: res.data })
-      },
-      fail: (e) => {
-        reject(e);
-        wx.showToast({
-          title: '请检查网络',
-          icon: 'none'
-        })
-      }
-    })
-  })
-}
 
 
 
