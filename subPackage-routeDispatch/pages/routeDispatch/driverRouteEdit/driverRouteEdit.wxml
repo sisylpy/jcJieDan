@@ -195,8 +195,8 @@
       <view class="route-expansion-head">
         <view class="route-expansion-copy">
           <text class="route-expansion-title">AI补充饭店部门</text>
-          <text class="route-expansion-subtitle">保留当前人工路线，只从未分配客户池寻找顺路客户；相对站序不变。</text>
-          <text class="route-expansion-policy">当前仅从真正未分配的饭店部门中补充</text>
+          <text class="route-expansion-subtitle">保留当前人工路线，并优先为当前司机补满；可同步调整其他司机尚未确认的沙箱建议路线。</text>
+          <text class="route-expansion-policy">饭店部门只会保留一份沙箱归属，人工锁定和正式路线不会被移动</text>
           <text class="route-expansion-end-policy">{{routeEndPresentation.policyLabel}}；可工作时长包含驾驶、等待和服务，是否包含返仓由服务端路线策略决定。</text>
         </view>
         <view
@@ -360,6 +360,20 @@
 
         <view class="ai-review-section">
           <view class="ai-review-section-head">
+            <text class="ai-review-section-title">来源司机路线调整</text>
+            <text class="ai-review-section-count">{{expansionReview.sourceRouteChanges.length}} 条</text>
+          </view>
+          <view wx:if="{{expansionReview.hasSourceRouteChanges}}">
+            <view class="ai-not-selected-item" wx:for="{{expansionReview.sourceRouteChanges}}" wx:key="driverUserId">
+              <text class="ai-not-selected-name">{{item.driverLabel}}：{{item.changeLabel}}</text>
+              <text class="ai-not-selected-reason">{{item.routeResultLabel}}</text>
+            </view>
+          </view>
+          <view class="ai-review-safety" wx:else>本次新增客户全部来自未分配区域，不调整其他司机路线。</view>
+        </view>
+
+        <view class="ai-review-section">
+          <view class="ai-review-section-head">
             <text class="ai-review-section-title">原路线</text>
             <text class="ai-review-section-count">{{expansionReview.originalStops.length}} 家人工保留</text>
           </view>
@@ -387,7 +401,7 @@
             <view class="ai-added-item" wx:for="{{expansionReview.addedStops}}" wx:key="stopKey">
               <text class="ai-added-mark">+</text>
               <text class="ai-added-name">{{item.customerName}}</text>
-              <text class="ai-added-label">来自未分配池</text>
+              <text class="ai-added-label">{{item.sourceLabel}}</text>
             </view>
           </view>
           <view class="ai-added-empty" wx:else>{{expansionReview.emptyCandidateMessage}}</view>
@@ -457,7 +471,7 @@
         </view>
 
         <view class="ai-review-safety">
-          生成建议不会立即修改正式路线。AI 只新增饭店部门，不会删除、换司机或打乱人工路线；采用后仍需点击“确认这条路线”。
+          生成建议不会修改正式路线。采用时会原子更新整个受影响沙箱；采用建议后仍需点击“确认这条路线”。
         </view>
       </scroll-view>
 

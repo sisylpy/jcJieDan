@@ -22,12 +22,24 @@ function proposal(overrides = {}) {
   return Object.assign({
     proposalId: 'proposal-1',
     previewToken: 'preview-1',
-    candidatePolicy: 'UNASSIGNED_ONLY',
+    candidatePolicy: 'SANDBOX_REBALANCE',
     routeEndType: 'END_AT_LAST_STOP',
     routeEndLabel: '预计完成',
     preservedStopKeys: ['dep:1'],
     proposedStopKeys: ['dep:1', 'dep:2'],
-    addedStops: [{ stopKey: 'dep:2', departmentId: 2, customerName: '新饭店' }],
+    addedStops: [{
+      stopKey: 'dep:2', departmentId: 2, customerName: '新饭店',
+      sourceType: 'MOVABLE_SANDBOX_SUGGESTION',
+      sourceDriverUserId: 315, sourceDriverName: '来源司机'
+    }],
+    ownershipChanges: [{
+      stopKey: 'dep:2', fromDriverUserId: 315, fromDriverName: '来源司机',
+      toDriverUserId: 314, toDriverName: '测试司机'
+    }],
+    sourceRouteChanges: [{
+      driverUserId: 315, driverName: '来源司机', beforeStopCount: 2,
+      afterStopCount: 1, routeEmptied: false
+    }],
     notSelectedStops: [],
     addedStopCount: 1,
     beforeMetrics: {
@@ -65,7 +77,7 @@ function pageVm(overrides = {}) {
     canExpandRoute: true,
     expandDisabledReasonCode: null,
     expandDisabledMessage: null,
-    candidatePolicy: 'UNASSIGNED_ONLY',
+    candidatePolicy: 'SANDBOX_REBALANCE',
     expansionConstraintDefaults: {
       source: 'NONE',
       maxActiveRouteDurationS: null,
@@ -88,7 +100,7 @@ function pageVm(overrides = {}) {
 
 function loadPage(overrides = {}) {
   let registered;
-  const calls = { toast: [], expansion: [], preview: [] };
+  const calls = { toast: [], expansion: [], preview: [], sandboxRefresh: 0 };
   const expansionImpl = overrides.expansion || (payload => Promise.resolve({
     result: { code: 0, data: proposal() }
   }));
@@ -112,6 +124,7 @@ function loadPage(overrides = {}) {
       ? { buildTimeWindowRequest() { return {}; } }
       : { showLoading() {}, hideLoading() {} },
     getApp: () => ({ globalData: { navBarHeight: 44, rpxR: 2 } }),
+    getCurrentPages: () => [{ bumpPanelLoad() { calls.sandboxRefresh += 1; } }, {}],
     Page: config => { registered = config; },
     wx: {
       showToast(options) { calls.toast.push(options); },
@@ -220,8 +233,8 @@ test('3. 装车、配送和历史路线都显示 Server 禁用原因', () => {
   }
 });
 
-test('4. candidatePolicy 缺失或不兼容时第一版失败关闭', () => {
-  for (const candidatePolicy of [undefined, 'SANDBOX_REBALANCE']) {
+test('4. candidatePolicy 缺失或旧候选合同时失败关闭', () => {
+  for (const candidatePolicy of [undefined, 'UNASSIGNED_ONLY']) {
     const { page } = loadPage({ vm: { candidatePolicy } });
     assert.equal(page.data.expansionCapability.enabled, false);
     assert.equal(page.data.expansionCapability.reasonCode, 'ROUTE_EXPANSION_CLIENT_CONTRACT_MISMATCH');
@@ -325,6 +338,8 @@ test('13. 建议展示before/after、新增数量、完成时间和实际约束'
   assert.ok(page.data.expansionReview.metrics.some(item => item.key === 'distance'));
   assert.ok(page.data.expansionReview.metrics.some(item => item.key === 'finish'));
   assert.equal(page.data.expansionReview.constraints.length, 4);
+  assert.equal(page.data.expansionReview.sourceRouteChanges.length, 1);
+  assert.equal(page.data.expansionReview.sourceRouteChanges[0].movedCount, 1);
 });
 
 test('14. 无候选时显示正常空状态', async () => {
@@ -333,7 +348,7 @@ test('14. 无候选时显示正常空状态', async () => {
   page.data.expansionForm = { durationHours: '3', durationMinutes: '', latestFinishTime: '', maxRoadDistanceKm: '', maxAddedStops: '' };
   await page.onGenerateExpansionSuggestion();
   assert.equal(page.data.expansionReview.hasAddedStops, false);
-  assert.equal(page.data.expansionReview.emptyCandidateMessage, '当前没有真正未分配且符合条件的饭店部门');
+  assert.equal(page.data.expansionReview.emptyCandidateMessage, '当前没有未分配或可安全调入且符合条件的饭店部门');
 });
 
 test('15. 409清除旧建议并要求刷新，同时保留输入', async () => {
@@ -392,8 +407,16 @@ test('19. 采用建议仍进入原route-edit preview/confirm主链', async () =>
   assert.equal(calls.preview.length, 1);
   assert.deepEqual(calls.preview[0].stopKeys, ['dep:1', 'dep:2']);
   assert.equal(calls.preview[0].routeExpansionProposalId, 'proposal-1');
-  assert.match(wxml, /采用后仍需点击“确认这条路线”/);
+  assert.match(wxml, /采用建议后仍需点击“确认这条路线”/);
   await Promise.resolve();
+  await Promise.resolve();
+  assert.equal(calls.sandboxRefresh, 1);
+});
+
+test('26. 页面明确说明会同步调整其他司机未确认沙箱路线', () => {
+  assert.match(wxml, /同步调整其他司机尚未确认的沙箱建议路线/);
+  assert.match(wxml, /来源司机路线调整/);
+  assert.match(wxml, /原子更新整个受影响沙箱/);
 });
 
 test('20. 普通路线编辑的人工增删、移动和确认保持不变', () => {

@@ -257,7 +257,7 @@ function routeEndPresentation(pageViewModel) {
 
 function expansionCapability(pageViewModel) {
   pageViewModel = pageViewModel || {}
-  if (pageViewModel.candidatePolicy !== 'UNASSIGNED_ONLY') {
+  if (pageViewModel.candidatePolicy !== 'SANDBOX_REBALANCE') {
     return {
       enabled: false,
       reasonCode: 'ROUTE_EXPANSION_CLIENT_CONTRACT_MISMATCH',
@@ -434,11 +434,15 @@ function buildExpansionReview(proposal, stopMap) {
   var addedRaw = proposal.addedStops || []
   var proposalStopMap = {}
   var addedKeySet = {}
+  var addedSourceLabelByKey = {}
   addedRaw.forEach(function (stop) {
     var key = resolveStopKey(stop)
     if (!key) return
     proposalStopMap[key] = stop
     addedKeySet[key] = true
+    addedSourceLabelByKey[key] = stop.sourceType === 'MOVABLE_SANDBOX_SUGGESTION'
+      ? ('来自' + (stop.sourceDriverName || ('司机 ' + stop.sourceDriverUserId)) + '沙箱路线')
+      : '来自未分配区域'
   })
   ;(proposal.notSelectedStops || []).forEach(function (stop) {
     var key = resolveStopKey(stop)
@@ -456,14 +460,15 @@ function buildExpansionReview(proposal, stopMap) {
     var key = resolveStopKey(stop)
     return Object.assign(resolveProposalStop(key, stopMap, proposalStopMap), stop, {
       stopKey: key,
-      seq: index + 1
+      seq: index + 1,
+      sourceLabel: addedSourceLabelByKey[key]
     })
   })
   var finalStops = (proposal.proposedStopKeys || []).map(function (stopKey, index) {
     return Object.assign(resolveProposalStop(stopKey, stopMap, proposalStopMap), {
       seq: index + 1,
       isAiAdded: !!addedKeySet[stopKey],
-      sourceLabel: addedKeySet[stopKey] ? 'AI新增' : '人工保留'
+      sourceLabel: addedKeySet[stopKey] ? addedSourceLabelByKey[stopKey] : '人工保留'
     })
   })
   var notSelectedStops = (proposal.notSelectedStops || []).map(function (stop, index) {
@@ -471,6 +476,18 @@ function buildExpansionReview(proposal, stopMap) {
     return Object.assign(resolveProposalStop(key, stopMap, proposalStopMap), stop, {
       stopKey: key || ('not-selected-' + index),
       reason: stop.reason || '当前方案未选择该客户'
+    })
+  })
+  var sourceRouteChanges = (proposal.sourceRouteChanges || []).map(function (route) {
+    var movedCount = Math.max(0,
+      Number(route.beforeStopCount || 0) - Number(route.afterStopCount || 0))
+    return Object.assign({}, route, {
+      driverLabel: route.driverName || ('司机 ' + route.driverUserId),
+      movedCount: movedCount,
+      changeLabel: movedCount + ' 家调入当前司机',
+      routeResultLabel: route.routeEmptied
+        ? '原沙箱建议路线已清空'
+        : ('剩余 ' + Number(route.afterStopCount || 0) + ' 家，路线已重新计算')
     })
   })
 
@@ -532,12 +549,12 @@ function buildExpansionReview(proposal, stopMap) {
     addedStopCount: proposal.addedStopCount != null ? proposal.addedStopCount : addedStops.length,
     summary: proposal.summary || (addedStops.length
       ? '已生成路线增补建议'
-      : '当前没有真正未分配且符合条件的饭店部门'),
+      : '当前没有未分配或可安全调入且符合条件的饭店部门'),
     emptyCandidateMessage: addedStops.length
       ? ''
-      : '当前没有真正未分配且符合条件的饭店部门',
+      : '当前没有未分配或可安全调入且符合条件的饭店部门',
     candidatePolicy: proposal.candidatePolicy,
-    candidatePolicyLabel: '当前仅从真正未分配的饭店部门中补充',
+    candidatePolicyLabel: '可从未分配区及其他司机未确认、未锁定的沙箱建议路线补充',
     routeEndLabel: proposal.routeEndLabel || '预计结束',
     routeEndType: proposal.routeEndType || '',
     routeEndPolicyLabel: proposal.routeEndType === 'RETURN_TO_DEPOT'
@@ -549,6 +566,8 @@ function buildExpansionReview(proposal, stopMap) {
     originalStops: originalStops,
     addedStops: addedStops,
     finalStops: finalStops,
+    sourceRouteChanges: sourceRouteChanges,
+    hasSourceRouteChanges: sourceRouteChanges.length > 0,
     notSelectedStops: notSelectedStops,
     metrics: metrics
   }
@@ -722,6 +741,12 @@ Page({
       requestPayload: Object.assign({}, this.data.requestPayload || {}, {
         previewToken: pageViewModel.previewToken || '',
         routeExpansionProposalId: '',
+        sandboxEditCredential: pageViewModel.sandboxEditCredential
+          || (this.data.requestPayload && this.data.requestPayload.sandboxEditCredential),
+        canonicalSandboxVersion: pageViewModel.canonicalSandboxVersion
+          || (this.data.requestPayload && this.data.requestPayload.canonicalSandboxVersion),
+        sandboxStateFingerprint: pageViewModel.sandboxStateFingerprint
+          || (this.data.requestPayload && this.data.requestPayload.sandboxStateFingerprint),
         routeDate: pageViewModel.routeDate || (this.data.requestPayload && this.data.requestPayload.routeDate),
         batchCode: pageViewModel.batchCode || (this.data.requestPayload && this.data.requestPayload.batchCode)
       })
@@ -807,6 +832,20 @@ Page({
     })
   },
 
+  refreshWholeSandboxPage: function () {
+    if (typeof getCurrentPages !== 'function') return
+    var pages = getCurrentPages() || []
+    var sandboxPage = pages.length > 1 ? pages[pages.length - 2] : null
+    if (!sandboxPage) return
+    if (typeof sandboxPage.bumpPanelLoad === 'function') {
+      sandboxPage.bumpPanelLoad()
+      return
+    }
+    if (typeof sandboxPage.loadPage === 'function') {
+      sandboxPage.loadPage()
+    }
+  },
+
   rollbackExpansionAdoption: function (rawFailure) {
     var rollback = this._expansionAdoptionRollback
     var failure = requestFailure(rawFailure, '建议采用失败')
@@ -887,6 +926,7 @@ Page({
       that.setData({ requestPayload: payload })
       if (options.expansionAdoption) {
         that._expansionAdoptionRollback = null
+        that.refreshWholeSandboxPage()
       }
       that.applyPageViewModel(res.result.data, {
         keepStopKeys: true
@@ -1255,7 +1295,7 @@ Page({
         return
       }
       var proposal = (res.result && res.result.data) || {}
-      if (proposal.candidatePolicy !== 'UNASSIGNED_ONLY') {
+      if (proposal.candidatePolicy !== 'SANDBOX_REBALANCE') {
         that.handleExpansionProposalFailure({
           statusCode: 409,
           errorCode: 'ROUTE_EXPANSION_CLIENT_CONTRACT_MISMATCH',
