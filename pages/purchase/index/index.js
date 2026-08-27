@@ -2422,7 +2422,7 @@ Component({
 
           wx.navigateToMiniProgram({
             appId: 'wx1ea78d3f33234284',
-            path: '/pages/txs/prepareBatch/prepareBatch?batchId=' + encodeURIComponent(res.result.data) +
+            path: '/pkgPurchase/pages/txs/prepareBatch/prepareBatch?batchId=' + encodeURIComponent(res.result.data) +
               '&retName=' + encodeURIComponent((that.data.disInfo && that.data.disInfo.nxDistributerName) || '') +
               '&disId=' + encodeURIComponent(that.data.disId) +
               '&purUserId=' + encodeURIComponent(that.data.userInfo.nxDistributerUserId) +
@@ -2458,7 +2458,7 @@ Component({
       console.log("toShareBatch batchId=" + id + "&retName=" + retName + "&disId=" + this.data.disId + "&purUserId=" + purUserId + "&fromBuyer=1&fromBoss=1")
       wx.navigateToMiniProgram({
         appId: 'wx1ea78d3f33234284',
-        path: '/pages/txs/disOrderBatch/disOrderBatch?batchId=' + encodeURIComponent(id) +
+        path: '/pkgPurchase/pages/txs/disOrderBatch/disOrderBatch?batchId=' + encodeURIComponent(id) +
           '&retName=' + encodeURIComponent(retName) +
           '&disId=' + encodeURIComponent(this.data.disId) +
           '&purUserId=' + encodeURIComponent(purUserId) +
