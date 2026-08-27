@@ -123,7 +123,7 @@ function pageInstance(config) {
   return page;
 }
 
-test('真实页面删除最后一家后preview和confirm都显式提交空stopKeys', async () => {
+test('真实页面删除最后一家使用明确删除命令，confirm仍提交空stopKeys', async () => {
   const { config, previewRequests, confirmRequests } = evaluateDriverRouteEditPage();
   const page = pageInstance(config);
   assert.deepEqual(jsonCopy(page.data.stopKeys), ['dep:1540'], '初始路线必须只有一个stopKey');
@@ -131,11 +131,15 @@ test('真实页面删除最后一家后preview和confirm都显式提交空stopKe
   page.onRemoveStop({ currentTarget: { dataset: { index: 0 } } });
   assert.deepEqual(jsonCopy(page.data.stopKeys), [], '删除最后一家后页面stopKeys必须为空数组');
 
-  page.previewPage({ silent: true });
+  await page.previewPage({ silent: true });
   assert.equal(previewRequests.length, 1, '必须实际进入preview请求');
   assert.ok(Object.hasOwn(previewRequests[0], 'stopKeys'), 'preview JSON必须包含stopKeys字段');
   assert.deepEqual(previewRequests[0].stopKeys, []);
   assert.match(JSON.stringify(previewRequests[0]), /"stopKeys":\[\]/);
+  assert.deepEqual(previewRequests[0].removedStopKeys, ['dep:1540'],
+    '只有明确点击删除才发送removedStopKeys');
+  assert.match(previewRequests[0].removalCommandId, /^owner-remove-/,
+    '明确删除必须携带独立命令标识');
 
   page.setData({ confirmReady: true, confirming: false });
   page.onBottomConfirm();
@@ -143,6 +147,9 @@ test('真实页面删除最后一家后preview和confirm都显式提交空stopKe
   assert.ok(Object.hasOwn(confirmRequests[0], 'stopKeys'), 'confirm JSON必须包含stopKeys字段');
   assert.deepEqual(confirmRequests[0].stopKeys, []);
   assert.match(JSON.stringify(confirmRequests[0]), /"stopKeys":\[\]/);
+  assert.equal(Object.hasOwn(confirmRequests[0], 'removedStopKeys'), false,
+    '删除证据由Server preview保存，confirm不得重复伪造');
+  assert.equal(Object.hasOwn(confirmRequests[0], 'removalCommandId'), false);
 
   await Promise.resolve();
 });

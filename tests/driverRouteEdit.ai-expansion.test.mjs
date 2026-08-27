@@ -481,6 +481,59 @@ test('29. 无候选时展示Server逐客户排除原因', async () => {
   assert.match(wxml, /未进入候选的原因/);
 });
 
+test('30. preview返回后只渲染Server完整路线，页面漏站不形成删除命令', async () => {
+  const fullVm = pageVm({
+    stopKeys: ['dep:1', 'dep:4'],
+    routeStops: [
+      { stopKey: 'dep:1', departmentId: 1, customerName: '原饭店1' },
+      { stopKey: 'dep:4', departmentId: 4, customerName: '原饭店4' }
+    ],
+    previewToken: 'preview-full'
+  });
+  const { page, calls } = loadPage({
+    vm: fullVm,
+    preview: () => Promise.resolve({
+      result: { code: 0, data: { pageViewModel: fullVm } }
+    })
+  });
+  page.data.stopKeys = ['dep:1'];
+  await page.previewPage({ silent: true });
+
+  assert.deepEqual(calls.preview[0].stopKeys, ['dep:1']);
+  assert.equal(Object.hasOwn(calls.preview[0], 'removedStopKeys'), false);
+  assert.equal(Object.hasOwn(calls.preview[0], 'removalCommandId'), false);
+  assert.deepEqual(page.data.stopKeys, ['dep:1', 'dep:4'],
+    '页面必须恢复Server返回的完整canonical骨架');
+
+  page.data.expansionForm = {
+    durationHours: '3', durationMinutes: '', latestFinishTime: '',
+    maxRoadDistanceKm: '', maxAddedStops: ''
+  };
+  await page.onGenerateExpansionSuggestion();
+  assert.equal(Object.hasOwn(calls.expansion[0], 'stopKeys'), false,
+    'AI请求不携带任何删除语义');
+  assert.equal(Object.hasOwn(calls.expansion[0], 'removedStopKeys'), false);
+});
+
+test('31. 只有点击删除才发送一次明确removedStopKeys和commandId', async () => {
+  const fullVm = pageVm({
+    stopKeys: ['dep:1', 'dep:4'],
+    routeStops: [
+      { stopKey: 'dep:1', departmentId: 1, customerName: '原饭店1' },
+      { stopKey: 'dep:4', departmentId: 4, customerName: '原饭店4', locked: false }
+    ]
+  });
+  const { page, calls } = loadPage({ vm: fullVm });
+  page.onRemoveStop({ currentTarget: { dataset: { index: 1 } } });
+  await page.previewPage({ silent: true });
+
+  assert.deepEqual(calls.preview[0].removedStopKeys, ['dep:4']);
+  assert.match(calls.preview[0].removalCommandId, /^owner-remove-/);
+  await page.previewPage({ silent: true });
+  assert.equal(Object.hasOwn(calls.preview[1], 'removedStopKeys'), false,
+    'Server已保存命令后，普通preview不得重复发送删除意图');
+});
+
 test('20. 普通路线编辑的人工增删、移动和确认保持不变', () => {
   for (const handler of ['onAddStop', 'onRemoveStop', 'onMoveStop', 'onBottomConfirm']) {
     assert.match(source, new RegExp(handler + ':\\s*function'));

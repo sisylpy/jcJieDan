@@ -30,6 +30,10 @@ function cloneJson(value) {
   return JSON.parse(JSON.stringify(value || {}))
 }
 
+function newRemovalCommandId() {
+  return 'owner-remove-' + Date.now() + '-' + Math.random().toString(36).slice(2, 12)
+}
+
 function normalizeInitialPagePayload(value) {
   var payload = cloneJson(value)
   if (Array.isArray(payload.stopKeys)) {
@@ -665,9 +669,18 @@ Page({
   },
 
   buildRequestPayload: function () {
-    return Object.assign({}, this.data.requestPayload || {}, {
+    var payload = Object.assign({}, this.data.requestPayload || {}, {
       stopKeys: (this.data.stopKeys || []).slice()
     })
+    // 页面 stopKeys 只表达当前显示/排序，不具有删除语义。
+    delete payload.removedStopKeys
+    delete payload.removalCommandId
+    if (Array.isArray(this._pendingRemovedStopKeys)
+        && this._pendingRemovedStopKeys.length) {
+      payload.removedStopKeys = this._pendingRemovedStopKeys.slice()
+      payload.removalCommandId = this._pendingRemovalCommandId
+    }
+    return payload
   },
 
   buildExpansionRequestPayload: function (constraints) {
@@ -953,9 +966,14 @@ Page({
         that._expansionAdoptionRollback = null
         that.refreshWholeSandboxPage()
       }
-      that.applyPageViewModel(res.result.data, {
-        keepStopKeys: true
-      })
+      // 成功后只渲染 Server 返回的完整权威路线；页面旧列表不能继续覆盖它。
+      that._pendingRemovedStopKeys = []
+      that._pendingRemovalCommandId = ''
+      var cleanPayload = Object.assign({}, payload)
+      delete cleanPayload.removedStopKeys
+      delete cleanPayload.removalCommandId
+      that.setData({ requestPayload: cleanPayload })
+      that.applyPageViewModel(res.result.data, { keepStopKeys: false })
     }).catch(function (error) {
       if (!options.silent) {
         load.hideLoading()
@@ -1057,7 +1075,17 @@ Page({
     if (index < 0 || index >= stopKeys.length) {
       return
     }
+    var removedStopKey = stopKeys[index]
     stopKeys.splice(index, 1)
+    if (!Array.isArray(this._pendingRemovedStopKeys)) {
+      this._pendingRemovedStopKeys = []
+    }
+    if (this._pendingRemovedStopKeys.indexOf(removedStopKey) < 0) {
+      this._pendingRemovedStopKeys.push(removedStopKey)
+    }
+    if (!this._pendingRemovalCommandId) {
+      this._pendingRemovalCommandId = newRemovalCommandId()
+    }
     var that = this
     this.setData({ stopKeys: stopKeys }, function () {
       that.rebuildLists()
@@ -1138,6 +1166,14 @@ Page({
       return
     }
     stopKeys.push(stopKey)
+    if (Array.isArray(this._pendingRemovedStopKeys)) {
+      this._pendingRemovedStopKeys = this._pendingRemovedStopKeys.filter(function (key) {
+        return key !== stopKey
+      })
+      if (!this._pendingRemovedStopKeys.length) {
+        this._pendingRemovalCommandId = ''
+      }
+    }
     var that = this
     this.setData({
       stopKeys: stopKeys,
