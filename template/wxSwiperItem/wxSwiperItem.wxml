@@ -184,7 +184,7 @@
                 <view class="flex-row-reverse p-30">
                   <text>元</text>
                   <text class="big">{{batch.nxDpbSellSubtotal}}</text>
-                  <text>(已收货)总计:</text>
+                  <text>(已确认供货)总计:</text>
                 </view>
                 <!-- <view class="flex-column p-20">
                   <view class="finish_btn" style="width: {{windowWidth - 120}}rpx;" bindtap="showFinish" data-item="{{batch}}">完成订货</view>
@@ -204,4 +204,3 @@
     </scroll-view>
   </swiper-item>
 </template>
-

@@ -2484,7 +2484,7 @@ Component({
         return;
       }
       wx.showModal({
-        title: '确认收货',
+        title: '确认供货信息',
         content: '确认供货商填写的数量、单价和总额无误，并完成本次订货吗？',
         confirmText: '确认完成',
         success: (modalRes) => {
