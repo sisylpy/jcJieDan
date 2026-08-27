@@ -233,6 +233,185 @@ function formatDuration(durationS) {
   return totalMinutes + '分钟'
 }
 
+function formatFinishTime(value) {
+  var raw = value == null ? '' : String(value).trim()
+  var match = raw.match(/T(\d{2}:\d{2})/)
+  return match ? match[1] : (raw || '—')
+}
+
+function routeEndPresentation(pageViewModel) {
+  pageViewModel = pageViewModel || {}
+  var returnToDepotRequired = pageViewModel.returnToDepotRequired
+  return {
+    endLabel: pageViewModel.routeEndLabel || '预计结束',
+    distanceScopeLabel: returnToDepotRequired === true
+      ? '往返'
+      : (returnToDepotRequired === false ? '全程' : '路线全程'),
+    policyLabel: pageViewModel.routeEndType === 'RETURN_TO_DEPOT'
+      ? '终点为仓库'
+      : (pageViewModel.routeEndType === 'END_AT_LAST_STOP'
+        ? '终点为最后一家饭店部门'
+        : '路线终点以服务端返回为准')
+  }
+}
+
+function expansionCapability(pageViewModel) {
+  pageViewModel = pageViewModel || {}
+  if (pageViewModel.candidatePolicy !== 'UNASSIGNED_ONLY') {
+    return {
+      enabled: false,
+      reasonCode: 'ROUTE_EXPANSION_CLIENT_CONTRACT_MISMATCH',
+      message: '路线增补合同已更新，请刷新页面或升级小程序'
+    }
+  }
+  if (pageViewModel.canExpandRoute !== true) {
+    return {
+      enabled: false,
+      reasonCode: pageViewModel.expandDisabledReasonCode || 'ROUTE_EXPANSION_NOT_ALLOWED',
+      message: pageViewModel.expandDisabledMessage || '当前路线不可执行 AI 增补'
+    }
+  }
+  return { enabled: true, reasonCode: '', message: '' }
+}
+
+function defaultExpansionForm(defaults) {
+  defaults = defaults || {}
+  var durationS = defaults.maxActiveRouteDurationS
+  var distanceM = defaults.maxRoadDistanceM
+  var finishAt = defaults.latestRouteFinishAt
+  var finishMatch = finishAt != null ? String(finishAt).match(/T(\d{2}:\d{2})/) : null
+  return {
+    durationHours: durationS != null ? String(Math.floor(Number(durationS) / 3600)) : '',
+    durationMinutes: durationS != null ? String(Math.floor((Number(durationS) % 3600) / 60)) : '',
+    latestFinishTime: finishMatch ? finishMatch[1] : '',
+    maxRoadDistanceKm: distanceM != null ? String(Number(distanceM) / 1000) : '',
+    maxAddedStops: defaults.maxAddedStops != null ? String(defaults.maxAddedStops) : ''
+  }
+}
+
+function isBlank(value) {
+  return value == null || String(value).trim() === ''
+}
+
+function parseWholeNumber(value, label, options) {
+  options = options || {}
+  if (isBlank(value)) return { empty: true }
+  var raw = String(value).trim()
+  if (!/^\d+$/.test(raw)) {
+    return { error: label + '必须是非负整数' }
+  }
+  var parsed = Number(raw)
+  if (!Number.isSafeInteger(parsed)) {
+    return { error: label + '超出允许范围' }
+  }
+  if (options.positive && parsed <= 0) {
+    return { error: label + '必须大于0' }
+  }
+  if (options.max != null && parsed > options.max) {
+    return { error: label + '不能超过' + options.max }
+  }
+  return { value: parsed }
+}
+
+function buildExpansionConstraintPayload(form, routeDate) {
+  form = form || {}
+  var hours = parseWholeNumber(form.durationHours, '工作时长小时', { max: 24 })
+  if (hours.error) return { error: hours.error }
+  var minutes = parseWholeNumber(form.durationMinutes, '工作时长分钟', { max: 59 })
+  if (minutes.error) return { error: minutes.error }
+  var durationConfigured = !hours.empty || !minutes.empty
+  var durationS = null
+  if (durationConfigured) {
+    durationS = Number(hours.value || 0) * 3600 + Number(minutes.value || 0) * 60
+    if (durationS <= 0) {
+      return { error: '可工作时长必须大于0' }
+    }
+    if (durationS > 24 * 3600) {
+      return { error: '可工作时长不能超过24小时' }
+    }
+  }
+
+  var latestFinishAt = null
+  if (!isBlank(form.latestFinishTime)) {
+    var finish = String(form.latestFinishTime).trim()
+    if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(finish)
+        || !/^\d{4}-\d{2}-\d{2}$/.test(String(routeDate || ''))) {
+      return { error: '最晚完成时间格式无效，请刷新路线日期后重试' }
+    }
+    latestFinishAt = String(routeDate) + 'T' + finish + ':00+08:00'
+  }
+
+  var maxRoadDistanceM = null
+  if (!isBlank(form.maxRoadDistanceKm)) {
+    var rawDistance = String(form.maxRoadDistanceKm).trim()
+    if (!/^\d+(?:\.\d{1,3})?$/.test(rawDistance)) {
+      return { error: '全程距离请填写最多三位小数的正数' }
+    }
+    var distanceKm = Number(rawDistance)
+    if (!(distanceKm > 0) || distanceKm > 2000) {
+      return { error: '全程距离必须大于0且不超过2000公里' }
+    }
+    maxRoadDistanceM = Math.round(distanceKm * 1000)
+    if (maxRoadDistanceM <= 0) {
+      return { error: '全程距离转换后必须大于0米' }
+    }
+  }
+
+  var maxAddedStops = parseWholeNumber(form.maxAddedStops, '最多新增饭店部门', {
+    positive: true,
+    max: 20
+  })
+  if (maxAddedStops.error) return { error: maxAddedStops.error }
+  if (durationS == null && latestFinishAt == null && maxRoadDistanceM == null) {
+    return { error: '可工作时长、最晚完成时间、全程距离上限至少填写一项' }
+  }
+
+  var payload = {}
+  if (durationS != null) payload.maxActiveRouteDurationS = durationS
+  if (latestFinishAt != null) payload.latestRouteFinishAt = latestFinishAt
+  if (maxRoadDistanceM != null) payload.maxRoadDistanceM = maxRoadDistanceM
+  if (!maxAddedStops.empty) payload.maxAddedStops = maxAddedStops.value
+  return { payload: payload }
+}
+
+function formatConstraintValue(key, value) {
+  if (value == null || value === '') return '未设置'
+  if (key === 'maxActiveRouteDurationS') return formatDuration(value)
+  if (key === 'maxRoadDistanceM') return formatRoadDistance(value)
+  if (key === 'latestRouteFinishAt') return formatFinishTime(value)
+  if (key === 'maxAddedStops') return String(value) + ' 家'
+  return String(value)
+}
+
+function expansionConstraintRows(proposal) {
+  proposal = proposal || {}
+  var constraints = proposal.constraints || {}
+  var effective = constraints.effective || constraints.requested || {}
+  return [
+    { key: 'maxActiveRouteDurationS', label: '最大工作时长', valueLabel: formatConstraintValue('maxActiveRouteDurationS', effective.maxActiveRouteDurationS) },
+    { key: 'latestRouteFinishAt', label: '最晚完成时间', valueLabel: formatConstraintValue('latestRouteFinishAt', effective.latestRouteFinishAt) },
+    { key: 'maxRoadDistanceM', label: '最大道路距离', valueLabel: formatConstraintValue('maxRoadDistanceM', effective.maxRoadDistanceM) },
+    { key: 'maxAddedStops', label: '最多新增', valueLabel: formatConstraintValue('maxAddedStops', effective.maxAddedStops) }
+  ]
+}
+
+function requestFailure(value, fallbackMessage) {
+  var result = value && value.result ? value.result : (value && value.body ? value.body : value)
+  result = result || {}
+  return {
+    statusCode: Number(value && value.statusCode || result.statusCode || result.code || 0),
+    errorCode: value && value.errorCode || result.errorCode || '',
+    provider: value && value.provider || result.provider || '',
+    message: value && value.message || result.msg || result.message || fallbackMessage
+  }
+}
+
+function isHuaweiRoadFailure(failure) {
+  failure = failure || {}
+  return String(failure.provider || '').toUpperCase() === 'HUAWEI'
+    || /HUAWEI|ROAD_SERVICE|MATRIX|ROUTING/.test(String(failure.errorCode || '').toUpperCase())
+}
+
 function formatMetricDelta(delta, formatter) {
   var value = Number(delta || 0)
   if (Math.abs(value) < 1) {
@@ -320,13 +499,20 @@ function buildExpansionReview(proposal, stopMap) {
     },
     {
       key: 'active',
-      label: '司机占用',
+      label: '全程 active time',
       beforeLabel: formatDuration(before.activeRouteDurationS),
       afterLabel: formatDuration(after.activeRouteDurationS),
       deltaLabel: formatMetricDelta(
         Number(after.activeRouteDurationS || 0) - Number(before.activeRouteDurationS || 0),
         formatDuration
       )
+    },
+    {
+      key: 'finish',
+      label: proposal.routeEndLabel || '预计结束',
+      beforeLabel: formatFinishTime(before.plannedRouteFinishAt),
+      afterLabel: formatFinishTime(after.plannedRouteFinishAt),
+      deltaLabel: '服务端试算'
     },
     {
       key: 'waiting',
@@ -343,7 +529,23 @@ function buildExpansionReview(proposal, stopMap) {
   return {
     proposalId: proposal.proposalId,
     hasAddedStops: addedStops.length > 0,
-    summary: proposal.summary || (addedStops.length ? '已生成路线增补建议' : '当前没有适合补充的客户'),
+    addedStopCount: proposal.addedStopCount != null ? proposal.addedStopCount : addedStops.length,
+    summary: proposal.summary || (addedStops.length
+      ? '已生成路线增补建议'
+      : '当前没有真正未分配且符合条件的饭店部门'),
+    emptyCandidateMessage: addedStops.length
+      ? ''
+      : '当前没有真正未分配且符合条件的饭店部门',
+    candidatePolicy: proposal.candidatePolicy,
+    candidatePolicyLabel: '当前仅从真正未分配的饭店部门中补充',
+    routeEndLabel: proposal.routeEndLabel || '预计结束',
+    routeEndType: proposal.routeEndType || '',
+    routeEndPolicyLabel: proposal.routeEndType === 'RETURN_TO_DEPOT'
+      ? '终点为仓库'
+      : (proposal.routeEndType === 'END_AT_LAST_STOP'
+        ? '终点为最后一家饭店部门'
+        : '路线终点以服务端策略为准'),
+    constraints: expansionConstraintRows(proposal),
     originalStops: originalStops,
     addedStops: addedStops,
     finalStops: finalStops,
@@ -384,6 +586,18 @@ Page({
     timeWindowPayload: null,
     planningLockSubmitting: false,
     expandingRoute: false,
+    adoptingExpansion: false,
+    expansionConditionsVisible: false,
+    expansionConstraintError: '',
+    expansionNeedsRefresh: false,
+    expansionCapability: {
+      enabled: false,
+      reasonCode: '',
+      message: ''
+    },
+    expansionForm: defaultExpansionForm(),
+    routeEndPresentation: routeEndPresentation(),
+    routeEndTimeLabel: '—',
     expansionProposal: null,
     expansionReviewVisible: false,
     expansionReview: null
@@ -410,6 +624,26 @@ Page({
     return Object.assign({}, this.data.requestPayload || {}, {
       stopKeys: (this.data.stopKeys || []).slice()
     })
+  },
+
+  buildExpansionRequestPayload: function (constraints) {
+    var source = this.data.requestPayload || {}
+    var pageViewModel = this.data.pageViewModel || {}
+    var payload = {
+      disId: source.disId,
+      routeDate: pageViewModel.routeDate || source.routeDate,
+      batchCode: pageViewModel.batchCode || source.batchCode,
+      driverUserId: source.driverUserId,
+      previewToken: pageViewModel.previewToken || source.previewToken,
+      routeResourceType: source.routeResourceType,
+      sandboxEditCredential: source.sandboxEditCredential,
+      canonicalSandboxVersion: source.canonicalSandboxVersion,
+      sandboxStateFingerprint: source.sandboxStateFingerprint
+    }
+    Object.keys(payload).forEach(function (key) {
+      if (payload[key] == null || payload[key] === '') delete payload[key]
+    })
+    return Object.assign(payload, constraints || {})
   },
 
   isLoadingRemoveMode: function () {
@@ -452,6 +686,13 @@ Page({
         Array.isArray(pageViewModel.stopKeys) ? pageViewModel.stopKeys : null,
         routeStopsFromVm
       )
+    var capability = expansionCapability(pageViewModel)
+    var endPresentation = routeEndPresentation(pageViewModel)
+    var expansionForm = this.data.expansionForm || defaultExpansionForm()
+    if (!this._expansionConstraintsInitialized) {
+      expansionForm = defaultExpansionForm(pageViewModel.expansionConstraintDefaults)
+      this._expansionConstraintsInitialized = true
+    }
     var that = this
     this._pageTimeline = pageViewModel.timeline || []
     this.setData({
@@ -467,6 +708,17 @@ Page({
       routeEstimateStatus: '路线已按当前门店顺序重新计算',
       loadError: '',
       pageTitle: pageViewModel.pageTitle || this.data.pageTitle,
+      expansionCapability: capability,
+      expansionForm: expansionForm,
+      expansionConstraintError: '',
+      expansionNeedsRefresh: false,
+      expansionProposal: null,
+      expansionReviewVisible: false,
+      expansionReview: null,
+      adoptingExpansion: false,
+      routeEndPresentation: endPresentation,
+      routeEndTimeLabel: (pageViewModel.driver && pageViewModel.driver.plannedReturnLabel)
+        || formatFinishTime(pageViewModel.currentRouteFinishAt),
       requestPayload: Object.assign({}, this.data.requestPayload || {}, {
         previewToken: pageViewModel.previewToken || '',
         routeExpansionProposalId: '',
@@ -555,6 +807,37 @@ Page({
     })
   },
 
+  rollbackExpansionAdoption: function (rawFailure) {
+    var rollback = this._expansionAdoptionRollback
+    var failure = requestFailure(rawFailure, '建议采用失败')
+    var stale = failure.statusCode === 409
+    this._expansionAdoptionRollback = null
+    if (!rollback) {
+      this.setData({ adoptingExpansion: false })
+      return failure
+    }
+    var that = this
+    this.setData({
+      stopMap: rollback.stopMap,
+      stopKeys: rollback.stopKeys,
+      requestPayload: rollback.requestPayload,
+      routeDirty: false,
+      hasUnsavedChanges: rollback.hasUnsavedChanges,
+      confirmReady: rollback.confirmReady,
+      previewing: false,
+      autoPreviewing: false,
+      adoptingExpansion: false,
+      expansionNeedsRefresh: stale,
+      expansionProposal: stale ? null : rollback.expansionProposal,
+      expansionReview: stale ? null : rollback.expansionReview,
+      expansionReviewVisible: stale ? false : true,
+      routeEstimateStatus: stale ? '建议已过期，请刷新路线后重新生成' : '建议未采用，原路线保持不变'
+    }, function () {
+      that.rebuildLists()
+    })
+    return failure
+  },
+
   previewPage: function (options) {
     options = options || {}
     var that = this
@@ -576,7 +859,7 @@ Page({
     if (!options.silent) {
       load.showLoading('重新试算')
     }
-    postDriverRouteEditPreview(payload).then(function (res) {
+    return postDriverRouteEditPreview(payload).then(function (res) {
       if (!options.silent) {
         load.hideLoading()
       }
@@ -586,6 +869,11 @@ Page({
         return
       }
       if (!res.result || res.result.code !== 0) {
+        if (options.expansionAdoption) {
+          var adoptionFailure = that.rollbackExpansionAdoption(res)
+          wx.showToast({ title: adoptionFailure.message, icon: 'none', duration: 2600 })
+          return
+        }
         that.setData({
           previewing: false,
           autoPreviewing: false,
@@ -597,12 +885,20 @@ Page({
         return
       }
       that.setData({ requestPayload: payload })
+      if (options.expansionAdoption) {
+        that._expansionAdoptionRollback = null
+      }
       that.applyPageViewModel(res.result.data, {
         keepStopKeys: true
       })
-    }).catch(function () {
+    }).catch(function (error) {
       if (!options.silent) {
         load.hideLoading()
+      }
+      if (options.expansionAdoption) {
+        var adoptionFailure = that.rollbackExpansionAdoption(error)
+        wx.showToast({ title: adoptionFailure.message, icon: 'none', duration: 2600 })
+        return
       }
       that.setData({
         previewing: false,
@@ -623,6 +919,9 @@ Page({
       routeDirty: true,
       hasUnsavedChanges: true,
       confirmReady: false,
+      expansionProposal: null,
+      expansionReviewVisible: false,
+      expansionReview: null,
       routeEstimateStatus: '路线内容已变化，等待后台重新试算'
     })
     this.scheduleAutoPreview()
@@ -829,38 +1128,150 @@ Page({
   },
 
   onAiExpandRoute: function () {
-    var that = this
+    var capability = this.data.expansionCapability || {}
+    if (!capability.enabled) {
+      wx.showToast({ title: capability.message || '当前路线不可执行 AI 增补', icon: 'none', duration: 2600 })
+      return
+    }
     if (this.data.routeDirty || this.data.previewing) {
       wx.showToast({ title: '请等待当前路线试算完成', icon: 'none' })
       return
     }
-    if (this.data.expandingRoute) return
-    var payload = this.buildRequestPayload()
+    this.setData({
+      expansionConditionsVisible: true,
+      expansionConstraintError: '',
+      expansionNeedsRefresh: false
+    })
+  },
+
+  onExpansionConstraintInput: function (e) {
+    var field = e && e.currentTarget && e.currentTarget.dataset && e.currentTarget.dataset.field
+    var allowed = {
+      durationHours: true,
+      durationMinutes: true,
+      maxRoadDistanceKm: true,
+      maxAddedStops: true
+    }
+    if (!allowed[field]) return
+    var form = Object.assign({}, this.data.expansionForm || {})
+    form[field] = e && e.detail ? e.detail.value : ''
+    this.setData({
+      expansionForm: form,
+      expansionConstraintError: '',
+      expansionProposal: null,
+      expansionReview: null,
+      expansionReviewVisible: false
+    })
+  },
+
+  onExpansionFinishChange: function (e) {
+    var form = Object.assign({}, this.data.expansionForm || {})
+    form.latestFinishTime = e && e.detail ? e.detail.value : ''
+    this.setData({
+      expansionForm: form,
+      expansionConstraintError: '',
+      expansionProposal: null,
+      expansionReview: null,
+      expansionReviewVisible: false
+    })
+  },
+
+  onClearExpansionFinish: function () {
+    var form = Object.assign({}, this.data.expansionForm || {})
+    form.latestFinishTime = ''
+    this.setData({ expansionForm: form, expansionConstraintError: '' })
+  },
+
+  onCancelExpansionConditions: function () {
+    if (this.data.expandingRoute || this.data.adoptingExpansion) return
+    this.setData({
+      expansionConditionsVisible: false,
+      expansionConstraintError: '',
+      expansionProposal: null,
+      expansionReview: null,
+      expansionReviewVisible: false
+    })
+  },
+
+  handleExpansionProposalFailure: function (rawFailure) {
+    var failure = requestFailure(rawFailure, 'AI 增补失败')
+    var stale = failure.statusCode === 409
+    var baselineExceeded = failure.statusCode === 422
+    var roadFailure = isHuaweiRoadFailure(failure)
+    var message = roadFailure
+      ? '道路服务暂不可用，请稍后重试'
+      : failure.message
+    this.setData({
+      expandingRoute: false,
+      expansionProposal: null,
+      expansionReview: null,
+      expansionReviewVisible: false,
+      expansionNeedsRefresh: stale,
+      expansionConstraintError: baselineExceeded ? message : ''
+    })
+    wx.showToast({ title: message, icon: 'none', duration: 2800 })
+  },
+
+  onGenerateExpansionSuggestion: function () {
+    var that = this
+    var capability = this.data.expansionCapability || {}
+    if (!capability.enabled) {
+      wx.showToast({ title: capability.message || '当前路线不可执行 AI 增补', icon: 'none' })
+      return
+    }
+    if (this.data.routeDirty || this.data.previewing) {
+      wx.showToast({ title: '请等待当前路线试算完成', icon: 'none' })
+      return
+    }
+    if (this.data.expandingRoute || this.data.adoptingExpansion) return
     var pageViewModel = this.data.pageViewModel || {}
-    payload.previewToken = pageViewModel.previewToken || payload.previewToken
+    var parsed = buildExpansionConstraintPayload(
+      this.data.expansionForm,
+      pageViewModel.routeDate || (this.data.requestPayload && this.data.requestPayload.routeDate)
+    )
+    if (parsed.error) {
+      this.setData({ expansionConstraintError: parsed.error })
+      wx.showToast({ title: parsed.error, icon: 'none' })
+      return
+    }
+    var payload = this.buildExpansionRequestPayload(parsed.payload)
     if (!payload.previewToken) {
       wx.showToast({ title: '请先重新计算当前路线', icon: 'none' })
       return
     }
-    this.setData({ expandingRoute: true })
-    load.showLoading('AI 正在补充客户')
-    postDriverRouteExpansionPreview(payload).then(function (res) {
+    this.setData({
+      expandingRoute: true,
+      expansionConstraintError: '',
+      expansionNeedsRefresh: false,
+      expansionProposal: null,
+      expansionReview: null,
+      expansionReviewVisible: false
+    })
+    load.showLoading('AI 正在补充饭店部门')
+    return postDriverRouteExpansionPreview(payload).then(function (res) {
       load.hideLoading()
-      that.setData({ expandingRoute: false })
       if (!res.result || res.result.code !== 0) {
-        wx.showToast({ title: (res.result && res.result.msg) || 'AI 增补失败', icon: 'none' })
+        that.handleExpansionProposalFailure(res)
         return
       }
       var proposal = (res.result && res.result.data) || {}
+      if (proposal.candidatePolicy !== 'UNASSIGNED_ONLY') {
+        that.handleExpansionProposalFailure({
+          statusCode: 409,
+          errorCode: 'ROUTE_EXPANSION_CLIENT_CONTRACT_MISMATCH',
+          message: '服务端候选策略已变化，请刷新或升级后重试'
+        })
+        return
+      }
       that.setData({
+        expandingRoute: false,
         expansionProposal: proposal,
         expansionReview: buildExpansionReview(proposal, that.data.stopMap || {}),
         expansionReviewVisible: true
       })
-    }).catch(function () {
+    }).catch(function (error) {
       load.hideLoading()
-      that.setData({ expandingRoute: false })
-      wx.showToast({ title: '网络异常，AI 增补失败', icon: 'none' })
+      that.handleExpansionProposalFailure(error)
     })
   },
 
@@ -874,10 +1285,11 @@ Page({
 
   onAdoptExpansionProposal: function () {
     var that = this
+    if (this.data.adoptingExpansion || this.data.previewing) return
     var proposal = this.data.expansionProposal || {}
     var review = this.data.expansionReview || {}
     if (!review.hasAddedStops) {
-      wx.showToast({ title: '当前没有可采用的新增客户', icon: 'none' })
+      wx.showToast({ title: '当前没有可采用的新增饭店部门', icon: 'none' })
       return
     }
     var proposedStopKeys = proposal.proposedStopKeys || []
@@ -886,9 +1298,20 @@ Page({
       return
     }
     var nextStopMap = mergeStopMap(this.data.stopMap, proposal.addedStops || [])
+    this._expansionAdoptionRollback = {
+      stopMap: this.data.stopMap,
+      stopKeys: (this.data.stopKeys || []).slice(),
+      requestPayload: cloneJson(this.data.requestPayload),
+      hasUnsavedChanges: this.data.hasUnsavedChanges,
+      confirmReady: this.data.confirmReady,
+      expansionProposal: proposal,
+      expansionReview: review
+    }
     this.setData({
       stopMap: nextStopMap,
       stopKeys: proposedStopKeys.slice(),
+      adoptingExpansion: true,
+      expansionConditionsVisible: false,
       expansionReviewVisible: false,
       expansionReview: null,
       requestPayload: Object.assign({}, this.data.requestPayload || {}, {
@@ -897,6 +1320,11 @@ Page({
     }, function () {
       that.rebuildLists()
       that.markRouteChanged()
+      if (that._autoPreviewTimer) {
+        clearTimeout(that._autoPreviewTimer)
+        that._autoPreviewTimer = null
+      }
+      that.previewPage({ silent: false, expansionAdoption: true })
     })
   },
 

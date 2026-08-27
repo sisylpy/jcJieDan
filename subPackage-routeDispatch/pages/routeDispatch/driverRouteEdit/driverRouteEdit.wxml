@@ -92,7 +92,7 @@
         </view>
         <view class="route-overview-divider"></view>
         <view class="route-overview-metric">
-          <text class="route-overview-label">往返距离</text>
+          <text class="route-overview-label">{{routeEndPresentation.distanceScopeLabel}}距离</text>
           <text class="route-overview-value">{{pageViewModel.driver.totalRoundTripDistanceText || '—'}}</text>
         </view>
         <view class="route-overview-divider"></view>
@@ -102,8 +102,8 @@
         </view>
         <view class="route-overview-divider"></view>
         <view class="route-overview-metric">
-          <text class="route-overview-label">预计返回</text>
-          <text class="route-overview-value">{{pageViewModel.driver.plannedReturnLabel || '—'}}</text>
+          <text class="route-overview-label">{{routeEndPresentation.endLabel}}时间</text>
+          <text class="route-overview-value">{{routeEndTimeLabel || '—'}}</text>
         </view>
       </view>
     </view>
@@ -191,15 +191,107 @@
       </text>
     </view>
 
-    <view class="route-expansion-card" wx:if="{{!pageViewModel.manualDispatchMode}}">
-      <view class="route-expansion-copy">
-        <text class="route-expansion-title">AI 补充客户</text>
-        <text class="route-expansion-subtitle">保留当前人工路线，只从未分配客户池寻找顺路客户</text>
+    <view class="route-expansion-card {{!expansionCapability.enabled ? 'is-disabled' : ''}}">
+      <view class="route-expansion-head">
+        <view class="route-expansion-copy">
+          <text class="route-expansion-title">AI补充饭店部门</text>
+          <text class="route-expansion-subtitle">保留当前人工路线，只从未分配客户池寻找顺路客户；相对站序不变。</text>
+          <text class="route-expansion-policy">当前仅从真正未分配的饭店部门中补充</text>
+          <text class="route-expansion-end-policy">{{routeEndPresentation.policyLabel}}；可工作时长包含驾驶、等待和服务，是否包含返仓由服务端路线策略决定。</text>
+        </view>
+        <view
+          class="route-expansion-action {{!expansionCapability.enabled || expandingRoute || adoptingExpansion || routeDirty || previewing ? 'is-disabled' : ''}}"
+          catchtap="onAiExpandRoute"
+        >设置条件</view>
       </view>
-      <view
-        class="route-expansion-action {{expandingRoute || routeDirty || previewing ? 'is-disabled' : ''}}"
-        catchtap="onAiExpandRoute"
-      >{{expandingRoute ? '计算中…' : '生成建议'}}</view>
+
+      <view class="route-expansion-disabled" wx:if="{{!expansionCapability.enabled}}">
+        {{expansionCapability.message}}
+      </view>
+      <view class="route-expansion-refresh" wx:if="{{expansionNeedsRefresh}}">
+        路线状态已变化，请先刷新页面再重新生成建议。
+      </view>
+
+      <view class="route-expansion-conditions" wx:if="{{expansionConditionsVisible && expansionCapability.enabled}}">
+        <view class="route-expansion-condition-title">AI补充条件</view>
+        <view class="route-expansion-condition-hint">以下都是整条路线的硬约束，同时填写时必须全部满足。</view>
+
+        <view class="route-expansion-field">
+          <text class="route-expansion-field-label">可工作时长</text>
+          <view class="route-expansion-duration-row">
+            <input
+              class="route-expansion-input route-expansion-input-short"
+              type="number"
+              value="{{expansionForm.durationHours}}"
+              placeholder="小时"
+              data-field="durationHours"
+              bindinput="onExpansionConstraintInput"
+            />
+            <text class="route-expansion-unit">小时</text>
+            <input
+              class="route-expansion-input route-expansion-input-short"
+              type="number"
+              value="{{expansionForm.durationMinutes}}"
+              placeholder="分钟"
+              data-field="durationMinutes"
+              bindinput="onExpansionConstraintInput"
+            />
+            <text class="route-expansion-unit">分钟</text>
+          </view>
+        </view>
+
+        <view class="route-expansion-field">
+          <text class="route-expansion-field-label">最晚完成时间</text>
+          <view class="route-expansion-time-row">
+            <picker mode="time" value="{{expansionForm.latestFinishTime}}" bindchange="onExpansionFinishChange">
+              <view class="route-expansion-picker {{expansionForm.latestFinishTime ? '' : 'is-placeholder'}}">
+                {{expansionForm.latestFinishTime || '选择时间'}}
+              </view>
+            </picker>
+            <text class="route-expansion-clear" wx:if="{{expansionForm.latestFinishTime}}" catchtap="onClearExpansionFinish">清除</text>
+          </view>
+        </view>
+
+        <view class="route-expansion-field">
+          <text class="route-expansion-field-label">全程距离上限</text>
+          <view class="route-expansion-value-row">
+            <input
+              class="route-expansion-input"
+              type="digit"
+              value="{{expansionForm.maxRoadDistanceKm}}"
+              placeholder="例如 30"
+              data-field="maxRoadDistanceKm"
+              bindinput="onExpansionConstraintInput"
+            />
+            <text class="route-expansion-unit">公里</text>
+          </view>
+        </view>
+
+        <view class="route-expansion-field">
+          <text class="route-expansion-field-label">最多新增饭店部门</text>
+          <view class="route-expansion-value-row">
+            <input
+              class="route-expansion-input"
+              type="number"
+              value="{{expansionForm.maxAddedStops}}"
+              placeholder="可不填"
+              data-field="maxAddedStops"
+              bindinput="onExpansionConstraintInput"
+            />
+            <text class="route-expansion-unit">家</text>
+          </view>
+        </view>
+
+        <view class="route-expansion-error" wx:if="{{expansionConstraintError}}">{{expansionConstraintError}}</view>
+        <view class="route-expansion-condition-actions">
+          <view class="route-expansion-condition-cancel" catchtap="onCancelExpansionConditions">取消</view>
+          <view
+            class="route-expansion-generate {{expandingRoute || adoptingExpansion || routeDirty || previewing ? 'is-disabled' : ''}}"
+            catchtap="onGenerateExpansionSuggestion"
+          >{{expandingRoute ? '生成中…' : '生成建议'}}</view>
+        </view>
+        <text class="route-expansion-safety">生成建议不会立即修改正式路线，采用后仍需预览并确认。</text>
+      </view>
     </view>
 
     <view class="route-edit-help-card">
@@ -241,11 +333,31 @@
           <text class="ai-review-eyebrow">AI 路线增补建议</text>
           <text class="ai-review-title">先看清变化，再决定是否采用</text>
           <text class="ai-review-summary">{{expansionReview.summary}}</text>
+          <text class="ai-review-policy">{{expansionReview.candidatePolicyLabel}}</text>
         </view>
         <view class="ai-review-close" catchtap="onCancelExpansionReview">×</view>
       </view>
 
       <scroll-view class="ai-review-body" scroll-y="true" enhanced="true" show-scrollbar="false">
+        <view class="ai-review-overview">
+          <view class="ai-review-overview-item">
+            <text class="ai-review-overview-value">{{expansionReview.addedStopCount}}</text>
+            <text class="ai-review-overview-label">新增饭店部门</text>
+          </view>
+          <view class="ai-review-overview-item">
+            <text class="ai-review-overview-value">{{expansionReview.originalStops.length}}</text>
+            <text class="ai-review-overview-label">原路线总数</text>
+          </view>
+          <view class="ai-review-overview-item">
+            <text class="ai-review-overview-value">{{expansionReview.finalStops.length}}</text>
+            <text class="ai-review-overview-label">建议路线总数</text>
+          </view>
+        </view>
+        <view class="ai-review-end-policy">
+          <text>{{expansionReview.routeEndPolicyLabel}}</text>
+          <text>· {{expansionReview.routeEndLabel}}以服务端试算为准</text>
+        </view>
+
         <view class="ai-review-section">
           <view class="ai-review-section-head">
             <text class="ai-review-section-title">原路线</text>
@@ -278,7 +390,7 @@
               <text class="ai-added-label">来自未分配池</text>
             </view>
           </view>
-          <view class="ai-added-empty" wx:else>当前能力范围内没有适合补充的客户</view>
+          <view class="ai-added-empty" wx:else>{{expansionReview.emptyCandidateMessage}}</view>
         </view>
 
         <view class="ai-review-section">
@@ -293,6 +405,19 @@
                 <text class="ai-final-stop-name">{{item.customerName}}</text>
                 <text class="ai-final-stop-source {{item.isAiAdded ? 'is-added' : ''}}">{{item.sourceLabel}}</text>
               </view>
+            </view>
+          </view>
+        </view>
+
+        <view class="ai-review-section">
+          <view class="ai-review-section-head">
+            <text class="ai-review-section-title">实际使用的硬约束</text>
+            <text class="ai-review-section-count">整条路线</text>
+          </view>
+          <view class="ai-constraint-list">
+            <view class="ai-constraint-item" wx:for="{{expansionReview.constraints}}" wx:key="key">
+              <text class="ai-constraint-label">{{item.label}}</text>
+              <text class="ai-constraint-value">{{item.valueLabel}}</text>
             </view>
           </view>
         </view>
@@ -332,16 +457,16 @@
         </view>
 
         <view class="ai-review-safety">
-          AI 只新增客户，不会删除、换司机或打乱人工路线。采用后仍需点击“确认这条路线”。
+          生成建议不会立即修改正式路线。AI 只新增饭店部门，不会删除、换司机或打乱人工路线；采用后仍需点击“确认这条路线”。
         </view>
       </scroll-view>
 
       <view class="ai-review-actions">
         <view class="ai-review-btn ai-review-btn-cancel" catchtap="onCancelExpansionReview">保持原路线</view>
         <view
-          class="ai-review-btn {{expansionReview.hasAddedStops ? 'ai-review-btn-adopt' : 'ai-review-btn-disabled'}}"
+          class="ai-review-btn {{expansionReview.hasAddedStops && !adoptingExpansion ? 'ai-review-btn-adopt' : 'ai-review-btn-disabled'}}"
           catchtap="onAdoptExpansionProposal"
-        >{{expansionReview.hasAddedStops ? '采用建议' : '暂无可采用客户'}}</view>
+        >{{adoptingExpansion ? '预览中…' : (expansionReview.hasAddedStops ? '采用并预览' : '暂无可采用饭店部门')}}</view>
       </view>
     </view>
   </view>
