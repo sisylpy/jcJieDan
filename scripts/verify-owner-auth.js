@@ -32,7 +32,7 @@ for (const file of walk(root).filter(file => file.endsWith('.js'))) {
 const ownerRequest = fs.readFileSync(path.join(root, 'lib', 'ownerRequest.js'), 'utf8')
 for (const required of [
   "X-NX-Owner-Token", "/api/owner/", "/owner/", "ownerAccessToken",
-  "ownerUploadFile", "ownerDownloadFile", "statusCode === 401"
+  "ownerUploadFile", "ownerDownloadFile", "statusCode === 401", "X-Request-Id"
 ]) {
   if (!ownerRequest.includes(required)) failures.push(`ownerRequest 缺少 ${required}`)
 }
