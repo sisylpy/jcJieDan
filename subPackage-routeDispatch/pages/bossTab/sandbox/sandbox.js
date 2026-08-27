@@ -238,12 +238,15 @@ Component({
 
   openDriverRouteEditFromAction: function (action) {
     action = action || {}
-    if (!action.payload || typeof action.payload !== 'object') {
-      wx.showToast({ title: '缺少 routeEditAction.payload', icon: 'none' })
+    if (action.enabled === false) {
+      wx.showToast({
+        title: action.editDisabledMessage || action.disabledReason || '当前不可编辑路线',
+        icon: 'none'
+      })
       return
     }
-    if (action.enabled === false) {
-      wx.showToast({ title: action.disabledReason || '当前不可编辑路线', icon: 'none' })
+    if (!action.payload || typeof action.payload !== 'object') {
+      wx.showToast({ title: '路线编辑参数缺失，请刷新后重试', icon: 'none' })
       return
     }
     wx.setStorageSync('routeDispatchDriverRouteEditPayload', action.payload)
@@ -375,12 +378,15 @@ Component({
 
   openDriverRouteEditFromAction: function (action) {
     action = action || {}
-    if (!action.payload || typeof action.payload !== 'object') {
-      wx.showToast({ title: '缺少 routeEditAction.payload', icon: 'none' })
+    if (action.enabled === false) {
+      wx.showToast({
+        title: action.editDisabledMessage || action.disabledReason || '当前不可编辑路线',
+        icon: 'none'
+      })
       return
     }
-    if (action.enabled === false) {
-      wx.showToast({ title: action.disabledReason || '当前不可编辑路线', icon: 'none' })
+    if (!action.payload || typeof action.payload !== 'object') {
+      wx.showToast({ title: '路线编辑参数缺失，请刷新后重试', icon: 'none' })
       return
     }
     wx.setStorageSync('routeDispatchDriverRouteEditPayload', action.payload)
