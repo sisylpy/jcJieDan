@@ -1104,25 +1104,37 @@ Page({
       this.submitLoadingRemoveStop(target)
       return
     }
-    var stopKeys = Array.isArray(this.data.stopKeys) ? this.data.stopKeys.slice() : []
-    if (index < 0 || index >= stopKeys.length) {
-      return
-    }
-    var removedStopKey = stopKeys[index]
-    stopKeys.splice(index, 1)
-    if (!Array.isArray(this._pendingRemovedStopKeys)) {
-      this._pendingRemovedStopKeys = []
-    }
-    if (this._pendingRemovedStopKeys.indexOf(removedStopKey) < 0) {
-      this._pendingRemovedStopKeys.push(removedStopKey)
-    }
-    if (!this._pendingRemovalCommandId) {
-      this._pendingRemovalCommandId = newRemovalCommandId()
-    }
     var that = this
-    this.setData({ stopKeys: stopKeys }, function () {
-      that.rebuildLists()
-      that.markRouteChanged()
+    wx.showModal({
+      title: target.removeConfirmTitle || '移回未分派',
+      content: target.removeConfirmMessage
+        || '该饭店部门将从当前路线移回未分派，可重新分配。是否确认？',
+      confirmText: '确认移回',
+      cancelText: '取消',
+      success: function (res) {
+        if (!res.confirm) {
+          return
+        }
+        var stopKeys = Array.isArray(that.data.stopKeys) ? that.data.stopKeys.slice() : []
+        if (index < 0 || index >= stopKeys.length) {
+          return
+        }
+        var removedStopKey = stopKeys[index]
+        stopKeys.splice(index, 1)
+        if (!Array.isArray(that._pendingRemovedStopKeys)) {
+          that._pendingRemovedStopKeys = []
+        }
+        if (that._pendingRemovedStopKeys.indexOf(removedStopKey) < 0) {
+          that._pendingRemovedStopKeys.push(removedStopKey)
+        }
+        if (!that._pendingRemovalCommandId) {
+          that._pendingRemovalCommandId = newRemovalCommandId()
+        }
+        that.setData({ stopKeys: stopKeys }, function () {
+          that.rebuildLists()
+          that.markRouteChanged()
+        })
+      }
     })
   },
 
@@ -1163,7 +1175,7 @@ Page({
           }, 400)
           return
         }
-        wx.showToast({ title: '已移除', icon: 'success' })
+        wx.showToast({ title: '已移回未分派', icon: 'success' })
         that.loadPage()
       }).catch(function () {
         load.hideLoading()
@@ -1172,9 +1184,10 @@ Page({
       })
     }
     wx.showModal({
-      title: stop.removeConfirmTitle || '移除门店',
-      content: stop.removeConfirmMessage || '移除后该店将从装车路线移除，是否确认？',
-      confirmText: '确认移除',
+      title: stop.removeConfirmTitle || '移回未分派',
+      content: stop.removeConfirmMessage
+        || '该饭店部门将从装车路线移回未分派，可重新分配。是否确认？',
+      confirmText: '确认移回',
       cancelText: '取消',
       success: function (res) {
         if (res.confirm) {

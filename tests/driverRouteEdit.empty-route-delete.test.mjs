@@ -21,6 +21,7 @@ function jsonCopy(value) {
 function evaluateDriverRouteEditPage() {
   const previewRequests = [];
   const confirmRequests = [];
+  const modalRequests = [];
   const runnableSource = pageSource.replace(
     /^import[\s\S]*?from\s+['"][^'"]+['"]\s*$/gm,
     ''
@@ -74,7 +75,16 @@ function evaluateDriverRouteEditPage() {
     resolveSession() { return { disId: 56, operatorUserId: 99 }; },
     wx: {
       showToast() {},
-      showModal() {},
+      showModal(options) {
+        modalRequests.push({
+          title: options.title,
+          content: options.content,
+          confirmText: options.confirmText
+        });
+        if (typeof options.success === 'function') {
+          options.success({ confirm: true, cancel: false });
+        }
+      },
       navigateBack() {},
       getStorageSync() { return null; },
       removeStorageSync() {}
@@ -82,7 +92,7 @@ function evaluateDriverRouteEditPage() {
   });
   new vm.Script(runnableSource, { filename: pageBase + '.js' }).runInContext(context);
   assert.ok(context.pageConfig, '路线编辑Page必须成功注册');
-  return { config: context.pageConfig, previewRequests, confirmRequests };
+  return { config: context.pageConfig, previewRequests, confirmRequests, modalRequests };
 }
 
 function pageInstance(config) {
@@ -124,11 +134,15 @@ function pageInstance(config) {
 }
 
 test('真实页面删除最后一家使用明确删除命令，confirm仍提交空stopKeys', async () => {
-  const { config, previewRequests, confirmRequests } = evaluateDriverRouteEditPage();
+  const { config, previewRequests, confirmRequests, modalRequests } =
+    evaluateDriverRouteEditPage();
   const page = pageInstance(config);
   assert.deepEqual(jsonCopy(page.data.stopKeys), ['dep:1540'], '初始路线必须只有一个stopKey');
 
   page.onRemoveStop({ currentTarget: { dataset: { index: 0 } } });
+  assert.equal(modalRequests.length, 1);
+  assert.match(modalRequests[0].content, /移回未分派/);
+  assert.match(modalRequests[0].confirmText, /移回/);
   assert.deepEqual(jsonCopy(page.data.stopKeys), [], '删除最后一家后页面stopKeys必须为空数组');
 
   await page.previewPage({ silent: true });

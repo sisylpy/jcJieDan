@@ -101,7 +101,9 @@ function pageVm(overrides = {}) {
 
 function loadPage(overrides = {}) {
   let registered;
-  const calls = { toast: [], expansion: [], preview: [], page: [], sandboxRefresh: 0 };
+  const calls = {
+    toast: [], expansion: [], preview: [], page: [], modal: [], sandboxRefresh: 0
+  };
   const expansionImpl = overrides.expansion || (payload => Promise.resolve({
     result: { code: 0, data: proposal() }
   }));
@@ -129,7 +131,16 @@ function loadPage(overrides = {}) {
     Page: config => { registered = config; },
     wx: {
       showToast(options) { calls.toast.push(options); },
-      showModal() {},
+      showModal(options) {
+        calls.modal.push({
+          title: options.title,
+          content: options.content,
+          confirmText: options.confirmText
+        });
+        if (typeof options.success === 'function') {
+          options.success({ confirm: true, cancel: false });
+        }
+      },
       navigateBack() {},
       getStorageSync() { return overrides.storagePayload || null; },
       removeStorageSync() {}
@@ -525,6 +536,8 @@ test('31. 只有点击删除才发送一次明确removedStopKeys和commandId', a
   });
   const { page, calls } = loadPage({ vm: fullVm });
   page.onRemoveStop({ currentTarget: { dataset: { index: 1 } } });
+  assert.equal(calls.modal.length, 1);
+  assert.match(calls.modal[0].content, /移回未分派/);
   await page.previewPage({ silent: true });
 
   assert.deepEqual(calls.preview[0].removedStopKeys, ['dep:4']);
