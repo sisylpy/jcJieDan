@@ -534,6 +534,54 @@ test('31. 只有点击删除才发送一次明确removedStopKeys和commandId', a
     'Server已保存命令后，普通preview不得重复发送删除意图');
 });
 
+test('32. 编辑期间旧路线响应仍推进previewToken，后续试算不重用过期令牌', async () => {
+  let resolveFirst;
+  let previewCall = 0;
+  const { page, calls } = loadPage({
+    preview: payload => {
+      previewCall += 1;
+      if (previewCall === 1) {
+        return new Promise(resolve => { resolveFirst = resolve; });
+      }
+      return Promise.resolve({
+        result: {
+          code: 0,
+          data: { pageViewModel: pageVm({
+            previewToken: 'preview-3',
+            stopKeys: payload.stopKeys
+          }) }
+        }
+      });
+    }
+  });
+
+  page._editRevision = 1;
+  const first = page.previewPage({ silent: true });
+  page._editRevision = 2;
+  page.data.stopKeys = ['dep:1', 'dep:2'];
+  page._previewQueued = true;
+  resolveFirst({
+    result: {
+      code: 0,
+      data: { pageViewModel: pageVm({
+        previewToken: 'preview-2',
+        stopKeys: ['dep:1']
+      }) }
+    }
+  });
+  await first;
+
+  assert.equal(page.data.requestPayload.previewToken, 'preview-2',
+    '即使路线响应已旧，也必须接住Server签发的新令牌');
+  assert.deepEqual(page.data.stopKeys, ['dep:1', 'dep:2'],
+    '旧响应不能覆盖请求期间产生的最新页面编辑');
+
+  await page.previewPage({ silent: true });
+  assert.equal(calls.preview[1].previewToken, 'preview-2',
+    '队列中的下一次试算必须使用前一成功响应的新令牌');
+  assert.deepEqual(calls.preview[1].stopKeys, ['dep:1', 'dep:2']);
+});
+
 test('20. 普通路线编辑的人工增删、移动和确认保持不变', () => {
   for (const handler of ['onAddStop', 'onRemoveStop', 'onMoveStop', 'onBottomConfirm']) {
     assert.match(source, new RegExp(handler + ':\\s*function'));

@@ -941,7 +941,40 @@ Page({
         load.hideLoading()
       }
       if (requestRevision !== (that._editRevision || 0)) {
-        that.setData({ previewing: false, autoPreviewing: false })
+        // Server has already replaced the old preview token even though this
+        // response's route body is older than the latest local edit. Keep the
+        // local stop list, but advance the authority fields so the queued
+        // preview does not submit an already-expired token.
+        var successorPage = getPageViewModel(res.result.data) || {}
+        var successorPayload = Object.assign({}, that.data.requestPayload || {})
+        if (successorPage.previewToken) {
+          successorPayload.previewToken = successorPage.previewToken
+        }
+        if (successorPage.sandboxEditCredential) {
+          successorPayload.sandboxEditCredential = successorPage.sandboxEditCredential
+        }
+        if (successorPage.canonicalSandboxVersion) {
+          successorPayload.canonicalSandboxVersion = successorPage.canonicalSandboxVersion
+        }
+        if (successorPage.sandboxStateFingerprint) {
+          successorPayload.sandboxStateFingerprint = successorPage.sandboxStateFingerprint
+        }
+        successorPayload.routeExpansionProposalId = ''
+
+        var submittedRemovals = Array.isArray(payload.removedStopKeys)
+          ? payload.removedStopKeys : []
+        if (submittedRemovals.length && Array.isArray(that._pendingRemovedStopKeys)) {
+          that._pendingRemovedStopKeys = that._pendingRemovedStopKeys.filter(function (stopKey) {
+            return submittedRemovals.indexOf(stopKey) < 0
+          })
+          that._pendingRemovalCommandId = that._pendingRemovedStopKeys.length
+            ? newRemovalCommandId() : ''
+        }
+        that.setData({
+          requestPayload: successorPayload,
+          previewing: false,
+          autoPreviewing: false
+        })
         that.scheduleAutoPreview()
         return
       }
