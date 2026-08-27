@@ -407,6 +407,21 @@
           <view class="ai-added-empty" wx:else>{{expansionReview.emptyCandidateMessage}}</view>
         </view>
 
+        <view class="ai-review-section" wx:if="{{expansionReview.hasCandidateExclusions}}">
+          <view class="ai-review-section-head">
+            <text class="ai-review-section-title">未进入候选的原因</text>
+            <text class="ai-review-section-count">{{expansionReview.candidateExclusions.length}} 家</text>
+          </view>
+          <view
+            class="ai-not-selected-item"
+            wx:for="{{expansionReview.candidateExclusions}}"
+            wx:key="stopKey"
+          >
+            <text class="ai-not-selected-name">{{item.customerName}}</text>
+            <text class="ai-not-selected-reason">{{item.reason}}</text>
+          </view>
+        </view>
+
         <view class="ai-review-section">
           <view class="ai-review-section-head">
             <text class="ai-review-section-title">最终建议路线</text>

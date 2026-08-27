@@ -30,6 +30,19 @@ function cloneJson(value) {
   return JSON.parse(JSON.stringify(value || {}))
 }
 
+function normalizeInitialPagePayload(value) {
+  var payload = cloneJson(value)
+  if (Array.isArray(payload.stopKeys)) {
+    // 首次打开只请求 Server canonical 路线。旧人工派单入口携带的站点只能表达
+    // “追加进入编辑页”，不能成为删除或重排 canonical 骨架的依据。
+    if (payload.manualDispatch === true && !Array.isArray(payload.initialAddStopKeys)) {
+      payload.initialAddStopKeys = payload.stopKeys.slice()
+    }
+    delete payload.stopKeys
+  }
+  return payload
+}
+
 function resolveStopKey(stop) {
   if (!stop) {
     return ''
@@ -478,6 +491,15 @@ function buildExpansionReview(proposal, stopMap) {
       reason: stop.reason || '当前方案未选择该客户'
     })
   })
+  var candidateExclusions = (proposal.candidateExclusions || []).map(function (item, index) {
+    item = item || {}
+    return {
+      stopKey: item.stopKey || ('excluded-' + index),
+      customerName: item.customerName || (item.departmentId != null
+        ? ('饭店部门 ' + item.departmentId) : '未知饭店部门'),
+      reason: item.reason || item.reasonCode || '服务端无法证明该饭店部门可安全移动'
+    }
+  })
   var sourceRouteChanges = (proposal.sourceRouteChanges || []).map(function (route) {
     var movedCount = Math.max(0,
       Number(route.beforeStopCount || 0) - Number(route.afterStopCount || 0))
@@ -569,6 +591,8 @@ function buildExpansionReview(proposal, stopMap) {
     sourceRouteChanges: sourceRouteChanges,
     hasSourceRouteChanges: sourceRouteChanges.length > 0,
     notSelectedStops: notSelectedStops,
+    candidateExclusions: candidateExclusions,
+    hasCandidateExclusions: candidateExclusions.length > 0,
     metrics: metrics
   }
 }
@@ -624,7 +648,8 @@ Page({
 
   onLoad: function () {
     var globalData = app.globalData
-    var payload = wx.getStorageSync(EDIT_PAYLOAD_STORAGE_KEY) || null
+    var storedPayload = wx.getStorageSync(EDIT_PAYLOAD_STORAGE_KEY) || null
+    var payload = storedPayload ? normalizeInitialPagePayload(storedPayload) : null
     wx.removeStorageSync(EDIT_PAYLOAD_STORAGE_KEY)
     this.setData({
       navBarHeight: globalData.navBarHeight * globalData.rpxR,

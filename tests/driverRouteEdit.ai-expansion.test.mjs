@@ -40,6 +40,7 @@ function proposal(overrides = {}) {
       driverUserId: 315, driverName: '来源司机', beforeStopCount: 2,
       afterStopCount: 1, routeEmptied: false
     }],
+    candidateExclusions: [],
     notSelectedStops: [],
     addedStopCount: 1,
     beforeMetrics: {
@@ -100,7 +101,7 @@ function pageVm(overrides = {}) {
 
 function loadPage(overrides = {}) {
   let registered;
-  const calls = { toast: [], expansion: [], preview: [], sandboxRefresh: 0 };
+  const calls = { toast: [], expansion: [], preview: [], page: [], sandboxRefresh: 0 };
   const expansionImpl = overrides.expansion || (payload => Promise.resolve({
     result: { code: 0, data: proposal() }
   }));
@@ -130,10 +131,13 @@ function loadPage(overrides = {}) {
       showToast(options) { calls.toast.push(options); },
       showModal() {},
       navigateBack() {},
-      getStorageSync() { return null; },
+      getStorageSync() { return overrides.storagePayload || null; },
       removeStorageSync() {}
     },
-    postDriverRouteEditPage: () => Promise.resolve({ result: { code: 0, data: { pageViewModel: pageVm() } } }),
+    postDriverRouteEditPage: payload => {
+      calls.page.push(clone(payload));
+      return Promise.resolve({ result: { code: 0, data: { pageViewModel: pageVm() } } });
+    },
     postDriverRouteEditPreview(payload) {
       calls.preview.push(clone(payload));
       return previewImpl(payload);
@@ -417,6 +421,64 @@ test('26. 页面明确说明会同步调整其他司机未确认沙箱路线', (
   assert.match(wxml, /同步调整其他司机尚未确认的沙箱建议路线/);
   assert.match(wxml, /来源司机路线调整/);
   assert.match(wxml, /原子更新整个受影响沙箱/);
+});
+
+test('27. 首次打开不把页面stopKeys当作删除或重排canonical路线', async () => {
+  const { page, calls } = loadPage({
+    storagePayload: {
+      disId: 56,
+      routeDate: '2026-08-27',
+      batchCode: 'MORNING',
+      driverUserId: 314,
+      routeResourceType: 'DISPATCH_SANDBOX',
+      stopKeys: ['dep:1525']
+    }
+  });
+  page.onLoad();
+  await Promise.resolve();
+  assert.equal(calls.page.length, 1);
+  assert.equal(Object.hasOwn(calls.page[0], 'stopKeys'), false);
+});
+
+test('28. 旧人工派单初始站点只转换为显式追加字段', async () => {
+  const { page, calls } = loadPage({
+    storagePayload: {
+      disId: 56,
+      routeDate: '2026-08-27',
+      batchCode: 'MORNING',
+      driverUserId: 314,
+      routeResourceType: 'DISPATCH_SANDBOX',
+      manualDispatch: true,
+      stopKeys: ['dep:1600']
+    }
+  });
+  page.onLoad();
+  await Promise.resolve();
+  assert.equal(Object.hasOwn(calls.page[0], 'stopKeys'), false);
+  assert.deepEqual(calls.page[0].initialAddStopKeys, ['dep:1600']);
+});
+
+test('29. 无候选时展示Server逐客户排除原因', async () => {
+  const emptyProposal = proposal({
+    proposedStopKeys: ['dep:1'],
+    addedStops: [],
+    addedStopCount: 0,
+    candidateExclusions: [{
+      stopKey: 'dep:2',
+      departmentId: 2,
+      customerName: '锁定饭店',
+      reasonCode: 'MANUAL_DRIVER_LOCK',
+      reason: '老板已明确锁定该饭店部门的司机'
+    }]
+  });
+  const { page } = loadPage({
+    expansion: () => Promise.resolve({ result: { code: 0, data: emptyProposal } })
+  });
+  page.data.expansionForm = { durationHours: '3', durationMinutes: '', latestFinishTime: '', maxRoadDistanceKm: '', maxAddedStops: '' };
+  await page.onGenerateExpansionSuggestion();
+  assert.equal(page.data.expansionReview.hasCandidateExclusions, true);
+  assert.equal(page.data.expansionReview.candidateExclusions[0].customerName, '锁定饭店');
+  assert.match(wxml, /未进入候选的原因/);
 });
 
 test('20. 普通路线编辑的人工增删、移动和确认保持不变', () => {
