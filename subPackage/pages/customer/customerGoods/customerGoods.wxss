@@ -262,9 +262,31 @@ page {
   white-space: nowrap;
 }
 
+.goods-relation-meta {
+  display: flex;
+  min-width: 0;
+  margin-top: 3rpx;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.department-tag {
+  max-width: 130rpx;
+  padding: 1rpx 8rpx;
+  overflow: hidden;
+  flex-shrink: 0;
+  border-radius: 6rpx;
+  color: #167c68;
+  background: #e8f5f2;
+  font-size: 19rpx;
+  line-height: 27rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .goods-spec {
   display: block;
-  margin-top: 3rpx;
+  min-width: 0;
   overflow: hidden;
   color: #747f79;
   font-size: 22rpx;

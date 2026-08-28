@@ -195,7 +195,8 @@ Page({
           item.goodsName,
           item.originalGoodsName,
           item.spec,
-          item.categoryName
+          item.categoryName,
+          item.customerName
         ].some(value => (value || '').toLowerCase().includes(keyword))
       })
       : allGoods

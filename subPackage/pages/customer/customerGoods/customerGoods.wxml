@@ -23,7 +23,7 @@
   <view wx:if="{{!loading}}" class="content">
     <view class="summary">
       <view class="summary-item">
-        <text class="summary-label">商品</text>
+        <text class="summary-label">部门商品</text>
         <view class="summary-value">{{stats.total}}<text>个</text></view>
       </view>
       <view class="summary-item">
@@ -75,7 +75,10 @@
 
           <view class="goods-main">
             <text class="goods-name">{{item.goodsName}}</text>
-            <text wx:if="{{item.spec}}" class="goods-spec">{{item.spec}}</text>
+            <view class="goods-relation-meta">
+              <text class="department-tag">{{item.customerName}}</text>
+              <text wx:if="{{item.spec}}" class="goods-spec">{{item.spec}}</text>
+            </view>
             <view wx:if="{{item.hasRequirement || item.imageCount > 0}}" class="goods-tags">
               <text
                 wx:if="{{item.hasRequirement}}"
