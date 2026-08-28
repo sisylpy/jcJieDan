@@ -23,7 +23,8 @@ import {
 import {
   getAvailableDrivers,
   driverCheckIn,
-  driverCheckOut
+  driverCheckOut,
+  updateDriverEmploymentType
 } from '../../../../lib/apiRouteDispatch.js'
 
 Page({
@@ -61,6 +62,7 @@ Page({
     admin: 0,
     showOperation: false,
     dutySubmitting: false,
+    employmentSubmitting: false,
 
   },
 
@@ -97,7 +99,11 @@ Page({
   var that = this
   getDisUsers(this.data.disId).then(res =>{
     if(res.result.code == 0){
-      var drivers = res.result.data.driver || []
+      var drivers = (res.result.data.driver || []).map(function (driver) {
+        return Object.assign({}, driver, {
+          employmentType: normalizeEmploymentType(driver.nxDiuDriverEmploymentType)
+        })
+      })
       var combinedStaff = []
         .concat(res.result.data.admins || [])
         .concat(res.result.data.clerks || [])
@@ -250,6 +256,65 @@ submitDriverDuty(action, driverUserId) {
       title: (error && error.message) || '操作失败，请检查登录状态',
       icon: 'none',
       duration: 3000
+    })
+    that._initData()
+  })
+},
+
+onDriverEmploymentTypeTap(e) {
+  var index = e.currentTarget.dataset.index
+  var employmentType = normalizeEmploymentType(e.currentTarget.dataset.type)
+  var driver = (this.data.driverUserArr || [])[index]
+  if (this.data.employmentSubmitting || !driver || !driver.nxDistributerUserId) {
+    return
+  }
+  if (normalizeEmploymentType(driver.employmentType) === employmentType) {
+    return
+  }
+  var driverName = driver.nxDiuWxNickName || '该司机'
+  var partTime = employmentType === 'PART_TIME'
+  var that = this
+  wx.showModal({
+    title: partTime ? '设为兼职司机' : '设为专职司机',
+    content: partTime
+      ? '「' + driverName + '」的新路线将在最后一家结束，不计算返仓；已经确认的装车路线保持原策略。'
+      : '「' + driverName + '」的新路线会包含返回仓库的路程；已经确认的装车路线保持原策略。',
+    success: function (res) {
+      if (res.confirm) {
+        that.submitDriverEmploymentType(driver.nxDistributerUserId, employmentType)
+      }
+    }
+  })
+},
+
+submitDriverEmploymentType(driverUserId, employmentType) {
+  var that = this
+  this.setData({ employmentSubmitting: true })
+  load.showLoading('保存中')
+  updateDriverEmploymentType({
+    disId: this.data.disId,
+    driverUserId: driverUserId,
+    operatorUserId: this.data.userId,
+    employmentType: employmentType
+  }).then(function (res) {
+    load.hideLoading()
+    that.setData({ employmentSubmitting: false })
+    if (!res.result || res.result.code !== 0) {
+      wx.showToast({ title: (res.result && res.result.msg) || '保存失败', icon: 'none' })
+      that._initData()
+      return
+    }
+    wx.showToast({
+      title: employmentType === 'PART_TIME' ? '已设为兼职' : '已设为专职',
+      icon: 'success'
+    })
+    that._initData()
+  }).catch(function (error) {
+    load.hideLoading()
+    that.setData({ employmentSubmitting: false })
+    wx.showToast({
+      title: (error && error.message) || '保存失败，请检查登录状态',
+      icon: 'none'
     })
     that._initData()
   })
@@ -516,11 +581,20 @@ function mergeDriverDutyState(driverUserArr, driverCards) {
   return (driverUserArr || []).map(function (user) {
     var card = cardById[user.nxDistributerUserId]
     var onDuty = card && card.dutyStatus !== 'OFF_DUTY'
+    var employmentType = normalizeEmploymentType(
+      card && card.employmentType ? card.employmentType : user.nxDiuDriverEmploymentType
+    )
     return Object.assign({}, user, {
       dutySwitchOn: onDuty,
       dutyStatusLabel: card && card.dutyStatusLabel ? card.dutyStatusLabel : (onDuty ? '可派' : '不可派'),
       dutyToggleDisabled: onDuty && card && card.canToggleDuty === false,
-      toggleDisabledReason: card ? card.toggleDisabledReason : null
+      toggleDisabledReason: card ? card.toggleDisabledReason : null,
+      employmentType: employmentType,
+      employmentTypeLabel: employmentType === 'PART_TIME' ? '兼职' : '专职'
     })
   })
+}
+
+function normalizeEmploymentType(value) {
+  return String(value || '').toUpperCase() === 'PART_TIME' ? 'PART_TIME' : 'FULL_TIME'
 }

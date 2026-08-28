@@ -30,6 +30,10 @@ button.group_btn::after {
   align-items: center;
 }
 
+.driver-staff-main {
+  min-width: 0;
+}
+
 .driver-duty-switch {
   transform: scale(0.82);
   margin-right: 8rpx;
@@ -54,6 +58,47 @@ button.group_btn::after {
 
 .duty-status-label-off {
   color: #999;
+}
+
+.driver-employment-row {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: 12rpx;
+}
+
+.driver-employment-label {
+  margin-bottom: 8rpx;
+  color: #7a8582;
+  font-size: 22rpx;
+}
+
+.driver-employment-options {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.driver-employment-option {
+  padding: 7rpx 14rpx;
+  color: #66736f;
+  background: #f1f4f3;
+  border: 1rpx solid #d9e1df;
+  border-radius: 10rpx;
+  font-size: 22rpx;
+  line-height: 1.35;
+  margin-right: 8rpx;
+  margin-bottom: 8rpx;
+}
+
+.driver-employment-option-active {
+  color: #008c7a;
+  background: #e6f5f2;
+  border-color: #83c7bd;
+  font-weight: 600;
+}
+
+.driver-employment-option-disabled {
+  opacity: 0.55;
 }
 
 .role-row {

@@ -96,7 +96,7 @@
       <view class="flex-row flex-1">
         <image src='{{url + item.nxDiuWxAvartraUrl}}' class="member_url mr-20"></image>
 
-        <view class="flex-column">
+        <view class="flex-column flex-1 driver-staff-main">
           <view class="flex-row align-center">
             <text class="font-md">{{item.nxDiuWxNickName}}</text>
             <text class="duty-self-tag" wx:if="{{item.nxDistributerUserId == userId}}">我</text>
@@ -106,6 +106,23 @@
           </view>
           <view class="flex-row" wx:if="{{item.dutyStatusLabel}}">
             <text class="font-sm duty-status-label duty-status-label-{{item.dutySwitchOn ? 'on' : 'off'}}">{{item.dutyStatusLabel}}</text>
+          </view>
+          <view class="driver-employment-row">
+            <text class="driver-employment-label">路线终点</text>
+            <view class="driver-employment-options">
+              <view
+                class="driver-employment-option {{item.employmentType === 'FULL_TIME' ? 'driver-employment-option-active' : ''}} {{employmentSubmitting ? 'driver-employment-option-disabled' : ''}}"
+                bindtap="onDriverEmploymentTypeTap"
+                data-index="{{driverIndex}}"
+                data-type="FULL_TIME"
+              >专职·回仓</view>
+              <view
+                class="driver-employment-option {{item.employmentType === 'PART_TIME' ? 'driver-employment-option-active' : ''}} {{employmentSubmitting ? 'driver-employment-option-disabled' : ''}}"
+                bindtap="onDriverEmploymentTypeTap"
+                data-index="{{driverIndex}}"
+                data-type="PART_TIME"
+              >兼职·末站结束</view>
+            </view>
           </view>
         </view>
 
