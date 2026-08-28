@@ -7,11 +7,13 @@ const source = readFileSync('pages/purchase/index/index.js', 'utf8');
 test('Boss创建采购批次进入精彩订货已注册的分包准备页', () => {
   assert.match(source, /path:\s*'\/pkgPurchase\/pages\/txs\/prepareBatch\/prepareBatch\?batchId='/);
   assert.doesNotMatch(source, /path:\s*'\/pages\/txs\/prepareBatch\/prepareBatch\?batchId='/);
+  assert.match(source, /'&fromBuyer=1&fromBoss=1'/);
 });
 
 test('Boss重新打开采购批次进入精彩订货已注册的分包详情页', () => {
   assert.match(source, /path:\s*'\/pkgPurchase\/pages\/txs\/disOrderBatch\/disOrderBatch\?batchId='/);
   assert.doesNotMatch(source, /path:\s*'\/pages\/txs\/disOrderBatch\/disOrderBatch\?batchId='/);
+  assert.doesNotMatch(source, /sourceEnv=boss/);
 });
 
 test('Boss采购页不再引用任何精彩订货旧txs主包路径', () => {

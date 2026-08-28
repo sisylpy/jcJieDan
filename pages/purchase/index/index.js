@@ -2426,7 +2426,7 @@ Component({
               '&retName=' + encodeURIComponent((that.data.disInfo && that.data.disInfo.nxDistributerName) || '') +
               '&disId=' + encodeURIComponent(that.data.disId) +
               '&purUserId=' + encodeURIComponent(that.data.userInfo.nxDistributerUserId) +
-              '&fromBuyer=1&fromBoss=1&sourceEnv=boss',
+              '&fromBuyer=1&fromBoss=1',
             envVersion: 'trial',
             success(res) {
               
@@ -2455,14 +2455,13 @@ Component({
       var id = e.currentTarget.dataset.id;
       var retName = (this.data.disInfo && this.data.disInfo.nxDistributerName) || '';
       var purUserId = this.data.userInfo && this.data.userInfo.nxDistributerUserId;
-      console.log("toShareBatch batchId=" + id + "&retName=" + retName + "&disId=" + this.data.disId + "&purUserId=" + purUserId + "&fromBuyer=1&fromBoss=1")
       wx.navigateToMiniProgram({
         appId: 'wx1ea78d3f33234284',
         path: '/pkgPurchase/pages/txs/disOrderBatch/disOrderBatch?batchId=' + encodeURIComponent(id) +
           '&retName=' + encodeURIComponent(retName) +
           '&disId=' + encodeURIComponent(this.data.disId) +
           '&purUserId=' + encodeURIComponent(purUserId) +
-          '&fromBuyer=1&fromBoss=1&sourceEnv=boss',
+          '&fromBuyer=1&fromBoss=1',
         envVersion: 'trial',
         success(res) {
 
