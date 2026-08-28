@@ -32,6 +32,32 @@
   line-height: 1.4;
 }
 
+.boss-timeline-stop-card-locked {
+  border: 2rpx solid #f0a020;
+  box-shadow: inset 8rpx 0 0 #f0a020, 0 6rpx 18rpx rgba(211, 126, 0, 0.12);
+}
+
+.boss-stop-driver-lock-badge {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 6rpx 14rpx;
+  border: 1rpx solid #e08a00;
+  border-radius: 999rpx;
+  background: #fff1cf;
+  color: #a85400;
+  font-size: 22rpx;
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.boss-stop-driver-lock-icon {
+  margin-right: 6rpx;
+  font-size: 21rpx;
+  line-height: 1;
+}
+
 .unassigned-customer-card .boss-timeline-stop-unit {
   display: block;
 }

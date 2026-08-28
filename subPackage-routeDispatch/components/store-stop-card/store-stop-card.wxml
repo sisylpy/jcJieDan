@@ -21,11 +21,15 @@
           <text class="boss-timeline-leg-chevron" wx:if="{{variant !== 'delivery'}}">›</text>
         </view>
       </view>
-      <view class="boss-timeline-stop-card">
+      <view class="boss-timeline-stop-card {{stop.driverLocked ? 'boss-timeline-stop-card-locked' : ''}}">
         <view class="boss-stop-head" catchtap="onHeadTap">
           <view class="boss-stop-head-main">
             <image class="boss-stop-pin" src="/images/app-shop.png" mode="aspectFit"></image>
             <text class="boss-stop-name">{{stop.customerName}}</text>
+            <view class="boss-stop-driver-lock-badge" wx:if="{{stop.driverLocked}}">
+              <text class="boss-stop-driver-lock-icon">🔒</text>
+              <text>{{stop.driverLockLabel || '已锁定司机'}}</text>
+            </view>
             <text class="route-stop-new-tag" wx:if="{{variant === 'edit' && showIncomingTag && stop.isIncomingStop}}">新店</text>
             <view class="boss-stop-require-badge {{stop.windowRequirementModified ? 'boss-stop-require-badge-modified' : ''}}" wx:if="{{stop.windowRequirementLabel}}">
               <text class="boss-stop-require-mark" wx:if="{{stop.windowRequirementModified}}">!</text>
@@ -112,11 +116,15 @@
         <image class="boss-timeline-leg-icon" src="/images/car.png" mode="aspectFit"></image>
         <text class="boss-timeline-leg-text">{{stop.legText}}</text>
       </view>
-      <view class="boss-timeline-stop-card">
+      <view class="boss-timeline-stop-card {{stop.driverLocked ? 'boss-timeline-stop-card-locked' : ''}}">
         <view class="boss-stop-head">
           <view class="boss-stop-head-main">
             <image class="boss-stop-pin" src="/images/app-shop.png" mode="aspectFit"></image>
             <text class="boss-stop-name">{{stop.customerName}}</text>
+            <view class="boss-stop-driver-lock-badge" wx:if="{{stop.driverLocked}}">
+              <text class="boss-stop-driver-lock-icon">🔒</text>
+              <text>{{stop.driverLockLabel || '已锁定司机'}}</text>
+            </view>
             <view class="boss-stop-require-badge {{stop.windowRequirementModified ? 'boss-stop-require-badge-modified' : ''}}" wx:if="{{stop.windowRequirementLabel}}">
               <text class="boss-stop-require-mark" wx:if="{{stop.windowRequirementModified}}">!</text>
               <text>{{stop.windowRequirementLabel}}</text>

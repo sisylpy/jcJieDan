@@ -11,6 +11,7 @@ import {
   pickSectionCard,
   pickTimelineNode
 } from '../../routeDispatch/_pageView.js'
+import { decoratePlanningLocks } from '../../routeDispatch/_planningLocks.js'
 import { normalizeMapOverview, resetMapViewport } from '../../routeDispatch/_mapOverview.js'
 
 var timeWindowModal = require('../../../utils/timeWindowModal.js')
@@ -27,6 +28,7 @@ function eventCardIndexes(e) {
 function applyPageViewModel(page, data) {
   var pageViewModel = getPageViewModel(data)
   if (pageViewModel) {
+    pageViewModel = decoratePlanningLocks(pageViewModel)
     var rawMapOverview = pageViewModel.mapOverview
     pageViewModel = Object.assign({}, pageViewModel, {
       mapOverview: rawMapOverview ? normalizeMapOverview(rawMapOverview) : null
