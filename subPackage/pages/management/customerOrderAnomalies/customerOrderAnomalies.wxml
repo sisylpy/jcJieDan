@@ -1,0 +1,133 @@
+<view class="page">
+  <back-navbar
+    style="height: {{navBarHeight}}rpx;"
+    title="全部客户订货异常"
+    avatar="/images/back-gray.png"
+    bindnavbuttontap="toBack"
+  ></back-navbar>
+
+  <view wx:if="{{!loading && !loadFailed}}" class="content" style="padding-top: {{navBarHeight + 18}}rpx;">
+    <view class="overview-card">
+      <view class="overview-head">
+        <view>
+          <text class="customer-name">配送商经营预警</text>
+          <text class="overview-desc">已分析 {{summary.customerCount}} 个客户</text>
+        </view>
+        <view class="overview-total">
+          <text class="overview-number">{{summary.totalCount}}</text>
+          <text class="overview-unit">项异常</text>
+        </view>
+      </view>
+      <view class="overview-grid">
+        <view class="overview-stat"><text>{{summary.suspectedStopCount}}</text><text>疑似停订</text></view>
+        <view class="overview-stat"><text>{{summary.declineCount}}</text><text>订货下降</text></view>
+        <view class="overview-stat"><text>{{summary.surgeCount}}</text><text>订货激增</text></view>
+      </view>
+      <view class="overview-foot">
+        <text>{{summary.affectedCustomerCount}} 个客户需关注</text>
+        <text>分析 {{summary.evaluatedGoodsCount}} 个部门商品</text>
+      </view>
+    </view>
+
+    <view class="notice">
+      <text class="notice-mark">!</text>
+      <text>异常只代表订货行为偏离历史规律，不等于质量事故。请结合价格、季节、经营和售后情况人工核实。</text>
+    </view>
+
+    <view class="search-box">
+      <text class="search-mark">⌕</text>
+      <input value="{{keyword}}" placeholder="搜索客户、部门或商品" bindinput="searchInput" />
+      <text wx:if="{{keyword}}" class="search-clear" bindtap="clearSearch">×</text>
+    </view>
+
+    <scroll-view class="filter-scroll" scroll-x enable-flex>
+      <view class="filters">
+        <view
+          class="filter {{activeFilter === item.key ? 'active' : ''}}"
+          wx:for="{{filters}}"
+          wx:key="key"
+          data-key="{{item.key}}"
+          bindtap="changeFilter"
+        ><text>{{item.label}}</text><text class="filter-count">{{item.count}}</text></view>
+      </view>
+    </scroll-view>
+
+    <view wx:if="{{displayedItems.length}}" class="anomaly-list">
+      <view
+        class="anomaly-item tone-{{item.typeTone}} {{item.severity === 'HIGH' ? 'is-high' : ''}}"
+        wx:for="{{displayedItems}}"
+        wx:key="relationId"
+      >
+        <view class="customer-strip">
+          <view>
+            <text class="item-customer-name">{{item.customerName}}</text>
+            <text class="item-department-name">{{item.departmentName}}</text>
+          </view>
+          <text class="customer-link" catchtap="toCustomerAnomalies" data-customer-id="{{item.customerId}}">查看客户全部异常 ›</text>
+        </view>
+        <view class="item-main" bindtap="toggleDetail" data-id="{{item.relationId}}">
+          <view class="goods-avatar">
+            <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill"></image>
+            <text wx:else>{{item.initials}}</text>
+          </view>
+          <view class="goods-info">
+            <view class="goods-title-line">
+              <text class="goods-name">{{item.goodsName}}</text>
+              <text class="type-tag">{{item.anomalyLabel}}</text>
+            </view>
+            <view class="goods-meta"><text wx:if="{{item.specification}}">{{item.specification}}</text></view>
+            <text class="reason">{{item.reason}}</text>
+          </view>
+          <view class="confidence"><text>{{item.confidencePercent}}%</text><text>可信度</text></view>
+          <text class="expand-arrow {{item.expanded ? 'expanded' : ''}}">⌄</text>
+        </view>
+
+        <view wx:if="{{item.expanded}}" class="detail">
+          <view class="detail-section">
+            <text class="detail-title">判断依据</text>
+            <view class="evidence-grid">
+              <view class="evidence-item"><text>{{item.averageCycleDays}}天</text><text>平时周期</text></view>
+              <view class="evidence-item"><text>{{item.daysSinceLast}}天</text><text>距上次订货</text></view>
+              <view class="evidence-item"><text>{{item.recentOrderDays14}}天</text><text>近14天订货</text></view>
+              <view class="evidence-item"><text>{{item.expectedOrderDays14}}天</text><text>正常约订货</text></view>
+            </view>
+            <view class="date-line"><text>上次 {{item.lastOrderDate}}</text><text>预计 {{item.expectedOrderDate}}</text></view>
+          </view>
+          <view wx:if="{{item.quantityVerified}}" class="detail-section">
+            <text class="detail-title">数量变化（{{item.quantityUnit}}）</text>
+            <view class="quantity-line">
+              <view><text>{{item.recentQuantity14}}</text><text>近14天</text></view>
+              <view><text>{{item.expectedQuantity14}}</text><text>正常约</text></view>
+              <view><text>{{item.quantityChangeText}}</text><text>变化</text></view>
+            </view>
+          </view>
+          <view class="detail-section">
+            <text class="detail-title">最近订货记录</text>
+            <scroll-view class="history-scroll" scroll-x enable-flex>
+              <view class="history-list">
+                <view class="history-point" wx:for="{{item.recentOrders}}" wx:key="orderDate">
+                  <text>{{item.orderDate}}</text><text>{{item.quantityText}}</text>
+                </view>
+              </view>
+            </scroll-view>
+            <text class="data-quality">{{item.dataQualityNote}}</text>
+          </view>
+          <view class="action-hint global-action-hint">{{item.actionHint}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{!displayedItems.length}}" class="empty-state">
+      <text class="empty-icon">✓</text>
+      <text class="empty-title">当前筛选暂无异常</text>
+      <text class="empty-desc">可以更换分类或清除搜索词</text>
+    </view>
+    <view class="algorithm-note"><text>统计日期：{{asOfBusinessDate}}</text><text>按每个部门商品独立计算</text></view>
+  </view>
+
+  <view wx:if="{{!loading && loadFailed}}" class="load-error" style="padding-top: {{navBarHeight + 220}}rpx;">
+    <text class="load-error-title">全部客户异常暂时无法读取</text>
+    <text class="load-error-desc">请检查登录状态或稍后重试</text>
+    <view class="retry-button" bindtap="retryLoad">重新加载</view>
+  </view>
+</view>

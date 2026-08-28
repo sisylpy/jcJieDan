@@ -69,6 +69,7 @@
       "pages/shelf/settlePage/settlePage",
 
       "pages/management/homePage/homePage",
+      "pages/management/customerOrderAnomalies/customerOrderAnomalies",
       "pages/management/homeEdit/homeEdit",
       "pages/management/userNameEdit/userNameEdit",
       "pages/management/myBills/myBills",

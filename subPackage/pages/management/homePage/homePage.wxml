@@ -223,6 +223,11 @@
       </view>
 
       <view class="analysis-grid">
+        <view class="analysis-card anomaly-analysis-card" bindtap="toCustomerOrderAnomalies" hover-class="hover">
+          <view class="analysis-icon anomaly-analysis-icon">异</view>
+          <text class="analysis-title">订货异常</text>
+          <text class="analysis-desc">查看全部客户停订、下降和激增</text>
+        </view>
         <view class="analysis-card" bindtap="toPurGoodsFenxi" hover-class="hover">
           <image src="/images/caigou2.png" class="analysis-icon"></image>
           <text class="analysis-title">采购分析</text>

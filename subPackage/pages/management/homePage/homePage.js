@@ -257,6 +257,12 @@ Page({
     })
   },
 
+  toCustomerOrderAnomalies(){
+    wx.navigateTo({
+      url: '../customerOrderAnomalies/customerOrderAnomalies',
+    })
+  },
+
 
   
   requestSubscribeMessageSimple() {

@@ -314,6 +314,22 @@
   line-height: 1;
 }
 
+.anomaly-analysis-card {
+  background: linear-gradient(145deg, #fff8f3, #ffffff);
+  border: 1rpx solid #f0dfd3;
+}
+
+.anomaly-analysis-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 30rpx;
+  font-weight: 800;
+  background: linear-gradient(135deg, #dc7f55, #cf5d4d);
+  border-radius: 18rpx;
+}
+
 .setting-icon {
   width: 42rpx;
   height: 42rpx;
