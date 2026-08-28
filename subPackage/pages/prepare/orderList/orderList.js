@@ -1,8 +1,10 @@
 var load = require('../../../../lib/load.js');
 
 import {
-  saveDisPurGoodsBatch,
-  saveDisPurGoodsBatchByDep,
+  saveBossCopiedPurchaseBatch,
+  saveBossPrintedPurchaseBatch,
+  saveBossCopiedDepartmentPurchaseBatch,
+  saveBossPrintedDepartmentPurchaseBatch,
   givePurGoodsQuantity,
   deleteDisBatch
 } from '../../../../lib/apiDepOrder'
@@ -366,7 +368,6 @@ Page({
       nxDpbDistributerId: this.data.disId,
       nxDPGEntities: this.data.purGoodsArr,
       nxDPBPurUserId: this.data.userInfo.nxDistributerUserId,
-      nxDpbPurchaseType: 1,
       nxDpbPasteContent: this.data.pasteContent, // 添加复制内容字段
     }
     
@@ -377,9 +378,9 @@ Page({
     
     load.showLoading("保存中");
     // 根据显示模式选择不同的接口
-    const saveApi = (this.data.printViewMode === 'department' && this.data.purchaseSelectedDepId) 
-      ? saveDisPurGoodsBatchByDep 
-      : saveDisPurGoodsBatch;
+    const saveApi = (this.data.printViewMode === 'department' && this.data.purchaseSelectedDepId)
+      ? saveBossCopiedDepartmentPurchaseBatch
+      : saveBossCopiedPurchaseBatch;
     
     saveApi(batch).then(res => {
       load.hideLoading();
@@ -1539,7 +1540,6 @@ Page({
       nxDpbDistributerId: this.data.disId,
       nxDPGEntities: this.data.purGoodsArr,
       nxDPBPurUserId: this.data.userInfo.nxDistributerUserId,
-      nxDpbPurchaseType: 2, // 打印类型
       nxDpbPasteContent: orderContent, // 打印内容
     }
     
@@ -1550,9 +1550,9 @@ Page({
   
     load.showLoading("保存打印批次中");
     // 根据显示模式选择不同的接口
-    const saveApi = (this.data.printViewMode === 'department' && this.data.purchaseSelectedDepId) 
-      ? saveDisPurGoodsBatchByDep 
-      : saveDisPurGoodsBatch;
+    const saveApi = (this.data.printViewMode === 'department' && this.data.purchaseSelectedDepId)
+      ? saveBossPrintedDepartmentPurchaseBatch
+      : saveBossPrintedPurchaseBatch;
     
     saveApi(batch).then(res => {
       load.hideLoading();

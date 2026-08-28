@@ -70,8 +70,8 @@
       <!-- 订单类型标签 -->
       <view class="bill-type-section">
         <view class="bill-type-tag">
-          <text class="bill-type-text tag-return" wx:if="{{item.nxDpbPurchaseType == 9}}">退货单</text>
-          <text class="bill-type-text tag-auto" wx:elif="{{item.nxDpbPurchaseType == 21}}">自动订货</text>
+          <text class="bill-type-text tag-return" wx:if="{{item.nxDpbBusinessEventType == 'RETURN'}}">退货单</text>
+          <text class="bill-type-text tag-auto" wx:elif="{{item.nxDpbProcurementMode == 'AUTO_SUPPLIER'}}">自动订货</text>
           <text class="bill-type-text tag-purchase" wx:else="">采购员订货</text>
         </view>
         <view class="bill-arrow-section">

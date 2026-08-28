@@ -13,8 +13,8 @@ import {
 
   disGetTypePrepareOutDepCata,
   disGetTypePrepareOutDepGoodsPage,
-  saveDisPurGoodsBatch,
-  saveDisPurGoodsBatchByDep,
+  saveBossPurchaseBatch,
+  saveBossDepartmentPurchaseBatch,
   deletePlanPurchase,
   disGetPurchasingBatch,
   deleteDisPurBatchItem,
@@ -2408,7 +2408,9 @@ Component({
       load.showLoading("保存订货");
       
       // 根据显示模式选择不同的接口
-      const saveApi = this.data.viewMode === 'department' ? saveDisPurGoodsBatchByDep : saveDisPurGoodsBatch;
+      const saveApi = this.data.viewMode === 'department'
+        ? saveBossDepartmentPurchaseBatch
+        : saveBossPurchaseBatch;
       
       saveApi(batch).then(res => {
         load.hideLoading();

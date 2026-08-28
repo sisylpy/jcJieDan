@@ -18,7 +18,7 @@
         <view class="flex-column p-20 bg-white " wx:for="{{batchArr}}" wx:for-item="batch" wx:for-index="batchIndex"
           wx:key="nxDistributerPurchaseBatchId">
 
-          <block wx:if="{{batch.nxDpbPurchaseType == 1}}">
+          <block wx:if="{{batch.nxDpbEntryChannel == 'COPY'}}">
             <view class="body" style="width:{{windowWidth - 60}}rpx;  ">
 
               <view class="copy-content-card">
@@ -176,7 +176,7 @@
             </view>
           </block>
 
-          <block wx:if="{{batch.nxDpbPurchaseType == 3 || batch.nxDpbPurchaseType == 2}}">
+          <block wx:if="{{batch.nxDpbEntryChannel == 'BOSS_MINI' || batch.nxDpbEntryChannel == 'PRINT'}}">
             <view class="body" style="width:{{windowWidth - 40}}rpx;  ">
               <view class="flex flex-row p-20 border-bottom font-xs" style="background-color: rgb(238, 238, 238);">
 
