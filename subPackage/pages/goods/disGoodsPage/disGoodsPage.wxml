@@ -308,7 +308,7 @@
             </view>
             </view>
 
-           <block wx:if="{{purGoods.nxDpgInputType == 1}}">
+           <block wx:if="{{purGoods.nxDpgDemandSource == 'ORDER_GENERATED'}}">
             <view class="flex-column-center" style="width: 100rpx;" >
             <image src="{{url + purGoods.sellerUserEntity.nxJrdhWxAvartraUrl}}" mode="aspectFill" class="url"/>
               <text >{{purGoods.sellerUserEntity.nxJrdhWxNickName}}</text>

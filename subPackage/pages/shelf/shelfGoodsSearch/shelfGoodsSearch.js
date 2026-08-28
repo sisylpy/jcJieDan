@@ -781,9 +781,7 @@ Page({
       nxDpgQuantity: plan,
       nxDpgStandard: standard,
       nxDpgDistributerId: this.data.disId,
-      nxDpgInputType: 1,
       nxDpgCostLevel: e.detail.priceLevel,
-      nxDpgPurchaseType: 10,
       nxDpgPurchaseDate: this.data.arriveDate,
       nxDpgStockRestWeight: usedStockWeight
     }
@@ -860,7 +858,6 @@ Page({
       nxDpgBuySubtotal: buySubtotal,
       nxDpgExpectPrice: expectPrice,
       nxDpgDistributerId: this.data.disId,
-      nxDpgInputType: 1,
       isShowTools: isShowTools,
       nxDpgPurUserId: this.data.userInfo ? this.data.userInfo.nxDistributerUserId : null
     };

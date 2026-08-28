@@ -1470,7 +1470,6 @@ Page({
       nxDpgBuySubtotal: buySubtotal, // 小计
       nxDpgExpectPrice: expectPrice, // 期望售价（用户输入的原始价格，后台会计算）
       nxDpgDistributerId: this.data.disId,
-      nxDpgInputType: 1,
       isShowTools: isShowTools, // 等待入库标识
       nxDpgPurUserId: this.data.userInfo ? this.data.userInfo.nxDistributerUserId : null
     }

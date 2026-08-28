@@ -2375,7 +2375,6 @@ Component({
     //     nxDpbDistributerId: this.data.disId,
     //     nxDPGEntities: arr,
     //     nxDPBPurUserId: this.data.userInfo.nxDistributerUserId,
-    //     nxDpbPurchaseType: 3,
     //   }
       
     //   // 如果是按客户模式，添加部门ID
@@ -2398,7 +2397,6 @@ Component({
         nxDpbDistributerId: this.data.disId,
         nxDPGEntities: arr,
         nxDpbPurUserId: this.data.userInfo.nxDistributerUserId,
-        nxDpbPurchaseType: 3,
       }
       
       // 如果是按客户模式，添加部门ID

@@ -27,7 +27,7 @@
         data-index="{{index}}">
         <view class="stock-row ">
           <view class="stock-col">
-            <text class="stock-label" wx:if="{{item.nxDistributerPurchaseGoodsEntity && item.nxDistributerPurchaseGoodsEntity.nxDpgPurchaseType == -1}}">录入员: <text class="stock-value">{{item.nxDistributerPurchaseGoodsEntity.nxPurchaserEntity.nxDiuWxNickName}}</text>
+            <text class="stock-label" wx:if="{{item.nxDistributerPurchaseGoodsEntity && item.nxDistributerPurchaseGoodsEntity.nxDpgBusinessEventType == 'DIRECT_STOCK_IN'}}">录入员: <text class="stock-value">{{item.nxDistributerPurchaseGoodsEntity.nxPurchaserEntity.nxDiuWxNickName}}</text>
             </text>
             <text class="stock-label" wx:elif="{{item.nxDistributerPurchaseGoodsEntity}}">采购员: <text class="stock-value">{{item.nxDistributerPurchaseGoodsEntity.nxPurchaserEntity.nxDiuWxNickName}}</text>
             </text>

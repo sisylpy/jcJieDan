@@ -1034,9 +1034,7 @@ Page({
       nxDpgQuantity: plan,
       nxDpgStandard: standard,
       nxDpgDistributerId: this.data.disId,
-      nxDpgInputType: 1,
       nxDpgCostLevel: e.detail.priceLevel,
-      nxDpgPurchaseType: 11,
       nxDpgPurchaseDate: this.data.arriveDate,
       nxDpgStockRestWeight: usedStockWeight
     }
@@ -1220,7 +1218,6 @@ Page({
       nxDpgBuySubtotal: buySubtotal, // 小计
       nxDpgExpectPrice: expectPrice, // 期望售价（用户输入的原始价格，后台会计算）
       nxDpgDistributerId: this.data.disId,
-      nxDpgInputType: 1,
       isShowTools: isShowTools, // 等待入库标识
       nxDpgPurUserId: this.data.userInfo ? this.data.userInfo.nxDistributerUserId : null
     }
@@ -1365,8 +1362,6 @@ Page({
       nxDpgBuySubtotal: buySubtotal, // 小计
       nxDpgExpectPrice: expectPrice, // 期望售价（用户输入的原始价格，后台会计算）
       nxDpgDistributerId: this.data.disId,
-      nxDpgInputType: 1,
-      nxDpgPurchaseType: -1,
       isShowTools: isShowTools, // 等待入库标识
       nxDpgPurUserId: this.data.userInfo ? this.data.userInfo.nxDistributerUserId : null
     }
@@ -1413,8 +1408,6 @@ Page({
       nxDpgDisGoodsGrandId: purGoods.nxDpgDisGoodsGrandId ? String(purGoods.nxDpgDisGoodsGrandId) : '',
       nxDpgExpectPrice: purGoods.nxDpgExpectPrice ? String(purGoods.nxDpgExpectPrice) : '',
       nxDpgPurUserId: purGoods.nxDpgPurUserId ? String(purGoods.nxDpgPurUserId) : '',
-      nxDpgInputType: purGoods.nxDpgInputType ? String(purGoods.nxDpgInputType) : '',
-      nxDpgPurchaseType: purGoods.nxDpgPurchaseType ? String(purGoods.nxDpgPurchaseType) : '',
       nxDpgStandard: purGoods.nxDpgStandard || '',
       nxDgssPriceCarton: purGoods.nxDgssPriceCarton ? String(purGoods.nxDgssPriceCarton) : '',
       nxDgssSellingPriceCarton: purGoods.nxDgssSellingPriceCarton ? String(purGoods.nxDgssSellingPriceCarton) : '',

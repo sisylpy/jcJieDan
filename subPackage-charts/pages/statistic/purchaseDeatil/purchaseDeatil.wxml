@@ -134,7 +134,7 @@
                   <view class="flex-row mr-20">
                     <view class="flex-column">
                       <view class="font-md flex-row">{{tool.transferDateString(pur.nxDpgPurchaseDate)}}</view>
-                      <text class="purchase-type">{{pur.nxDpgPurchaseType ==  10 ? '直接入库' : '订货'}}</text>
+                      <text class="purchase-type">{{pur.nxDpgBusinessEventType == 'DIRECT_STOCK_IN' ? '直接入库' : (pur.nxDpgDemandSource == 'SHELF_REPLENISHMENT' ? '备货采购' : '订单采购')}}</text>
                     </view>
                   </view>
                   <!-- 中间采购信息 -->
@@ -322,7 +322,7 @@
                   <view class="flex-row mr-20">
                     <view class="flex-column">
                       <view class="font-md flex-row">{{tool.transferDateString(pur.nxDpgPurchaseDate)}}</view>
-                      <text class="purchase-type">{{pur.nxDpgPurchaseType == 10 ? '自采' : '订货'}}</text>
+                      <text class="purchase-type">{{pur.nxDpgBusinessEventType == 'DIRECT_STOCK_IN' ? '直接入库' : (pur.nxDpgDemandSource == 'SHELF_REPLENISHMENT' ? '备货采购' : '订单采购')}}</text>
                     </view>
                   </view>
                   <!-- 中间采购信息 -->

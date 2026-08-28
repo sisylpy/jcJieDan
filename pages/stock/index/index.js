@@ -2612,8 +2612,6 @@ Component({
                 nxDpgPurUserId: this.data.userInfo.nxDistributerUserId,
                 nxDpgCostLevel: priceLeve,
                 nxDpgExpectPrice: costPrice,
-                nxDpgPurchaseType: 1,
-                nxDpgInputType: 1,
                 nxDpgStandard: standardName,
               };
               list.push(purGoods);

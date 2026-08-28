@@ -26,7 +26,7 @@
       <view class="stock-item" wx:for="{{stockList}}" wx:key="index" bindtap="selectStock" data-index="{{index}}">
         <view class="stock-content-row">
           <view class="stock-content-half">
-            <text class="stock-text" wx:if="{{item.nxDistributerPurchaseGoodsEntity.nxDpgPurchaseType == -1}}">录入员: <text class="stock-number">{{item.nxDistributerPurchaseGoodsEntity.nxPurchaserEntity.nxDiuWxNickName}}</text></text>
+            <text class="stock-text" wx:if="{{item.nxDistributerPurchaseGoodsEntity.nxDpgBusinessEventType == 'DIRECT_STOCK_IN'}}">录入员: <text class="stock-number">{{item.nxDistributerPurchaseGoodsEntity.nxPurchaserEntity.nxDiuWxNickName}}</text></text>
             <text class="stock-text" wx:else="">采购员: <text class="stock-number">{{item.nxDistributerPurchaseGoodsEntity.nxPurchaserEntity.nxDiuWxNickName}}</text></text>
           </view>
           <view class="stock-content-half">
