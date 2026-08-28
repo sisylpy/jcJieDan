@@ -40,6 +40,40 @@
       </view>
     </view>
 
+    <view
+      wx:if="{{anomalyAvailable}}"
+      class="anomaly-card {{anomalySummary.totalCount > 0 ? 'has-anomaly' : 'is-normal'}}"
+      bindtap="toOrderAnomalies"
+    >
+      <view class="anomaly-card-head">
+        <view>
+          <view class="anomaly-title-row">
+            <text class="anomaly-title">订货异常</text>
+            <text wx:if="{{anomalySummary.totalCount > 0}}" class="anomaly-total">{{anomalySummary.totalCount}}</text>
+          </view>
+          <text class="anomaly-subtitle">
+            {{anomalySummary.totalCount > 0 ? '根据该客户各部门商品自身历史识别' : '暂未发现明显订货偏离'}}
+          </text>
+        </view>
+        <text class="anomaly-link">查看分析 ›</text>
+      </view>
+      <view class="anomaly-types">
+        <view class="anomaly-type stop">
+          <text class="anomaly-type-count">{{anomalySummary.suspectedStopCount}}</text>
+          <text class="anomaly-type-label">疑似停订</text>
+        </view>
+        <view class="anomaly-type decline">
+          <text class="anomaly-type-count">{{anomalySummary.declineCount}}</text>
+          <text class="anomaly-type-label">订货下降</text>
+        </view>
+        <view class="anomaly-type surge">
+          <text class="anomaly-type-count">{{anomalySummary.surgeCount}}</text>
+          <text class="anomaly-type-label">订货激增</text>
+        </view>
+      </view>
+      <text class="anomaly-disclaimer">异常只代表订货行为变化，具体原因需要人工核实</text>
+    </view>
+
     <view wx:if="{{groupedGoods.length}}" class="sort-line">
       <text>按订货频次</text>
       <text class="sort-desc">频次从高到低</text>
@@ -96,6 +130,10 @@
                 <text>{{item.imageCount}}</text>
               </view>
             </view>
+            <text
+              wx:if="{{item.anomalyLabel}}"
+              class="goods-anomaly-tag anomaly-{{item.anomalyType}} {{item.anomalySeverity === 'HIGH' ? 'high' : ''}}"
+            >{{item.anomalyLabel}}</text>
           </view>
 
           <view class="frequency">

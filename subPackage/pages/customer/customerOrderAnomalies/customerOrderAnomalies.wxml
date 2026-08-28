@@ -1,0 +1,171 @@
+<view class="page">
+  <back-navbar
+    style="height: {{navBarHeight}}rpx;"
+    title="订货异常"
+    avatar="/images/back-gray.png"
+    bindnavbuttontap="toBack"
+  ></back-navbar>
+
+  <view wx:if="{{!loading && !loadFailed}}" class="content" style="padding-top: {{navBarHeight + 18}}rpx;">
+    <view class="overview-card">
+      <view class="overview-head">
+        <view>
+          <text class="customer-name">{{customerName}}</text>
+          <text class="overview-desc">部门商品订货行为分析</text>
+        </view>
+        <view class="overview-total">
+          <text class="overview-number">{{summary.totalCount}}</text>
+          <text class="overview-unit">项异常</text>
+        </view>
+      </view>
+      <view class="overview-grid">
+        <view class="overview-stat stop">
+          <text>{{summary.suspectedStopCount}}</text>
+          <text>疑似停订</text>
+        </view>
+        <view class="overview-stat decline">
+          <text>{{summary.declineCount}}</text>
+          <text>订货下降</text>
+        </view>
+        <view class="overview-stat surge">
+          <text>{{summary.surgeCount}}</text>
+          <text>订货激增</text>
+        </view>
+      </view>
+      <view class="overview-foot">
+        <text>已分析 {{summary.evaluatedGoodsCount}} 个部门商品</text>
+        <text wx:if="{{summary.insufficientDataCount > 0}}">{{summary.insufficientDataCount}} 个记录不足</text>
+      </view>
+    </view>
+
+    <view class="notice">
+      <text class="notice-mark">!</text>
+      <text>异常只代表订货行为偏离历史规律。质量、价格、季节等原因均需人工核实。</text>
+    </view>
+
+    <scroll-view class="filter-scroll" scroll-x enable-flex>
+      <view class="filters">
+        <view
+          class="filter {{activeFilter === item.key ? 'active' : ''}}"
+          wx:for="{{filters}}"
+          wx:key="key"
+          data-key="{{item.key}}"
+          bindtap="changeFilter"
+        >
+          <text>{{item.label}}</text>
+          <text class="filter-count">{{item.count}}</text>
+        </view>
+      </view>
+    </scroll-view>
+
+    <view wx:if="{{displayedItems.length}}" class="anomaly-list">
+      <view
+        class="anomaly-item tone-{{item.typeTone}} {{item.severity === 'HIGH' ? 'is-high' : ''}}"
+        wx:for="{{displayedItems}}"
+        wx:key="relationId"
+      >
+        <view class="item-main" bindtap="toggleDetail" data-id="{{item.relationId}}">
+          <view class="goods-avatar">
+            <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill"></image>
+            <text wx:else>{{item.initials}}</text>
+          </view>
+          <view class="goods-info">
+            <view class="goods-title-line">
+              <text class="goods-name">{{item.goodsName}}</text>
+              <text class="type-tag">{{item.anomalyLabel}}</text>
+            </view>
+            <view class="goods-meta">
+              <text class="department-tag">{{item.departmentName}}</text>
+              <text wx:if="{{item.specification}}">{{item.specification}}</text>
+            </view>
+            <text class="reason">{{item.reason}}</text>
+          </view>
+          <view class="confidence">
+            <text>{{item.confidencePercent}}%</text>
+            <text>可信度</text>
+          </view>
+          <text class="expand-arrow {{item.expanded ? 'expanded' : ''}}">⌄</text>
+        </view>
+
+        <view wx:if="{{item.expanded}}" class="detail">
+          <view class="detail-section">
+            <text class="detail-title">判断依据</text>
+            <view class="evidence-grid">
+              <view class="evidence-item">
+                <text>{{item.averageCycleDays}}天</text>
+                <text>平时订货周期</text>
+              </view>
+              <view class="evidence-item">
+                <text>{{item.daysSinceLast}}天</text>
+                <text>距上次订货</text>
+              </view>
+              <view class="evidence-item">
+                <text>{{item.recentOrderDays14}}天</text>
+                <text>近14天订货</text>
+              </view>
+              <view class="evidence-item">
+                <text>{{item.expectedOrderDays14}}天</text>
+                <text>正常约订货</text>
+              </view>
+            </view>
+            <view class="date-line">
+              <text>上次订货 {{item.lastOrderDate}}</text>
+              <text>按历史预计 {{item.expectedOrderDate}}</text>
+            </view>
+          </view>
+
+          <view wx:if="{{item.quantityVerified}}" class="detail-section">
+            <text class="detail-title">数量变化（{{item.quantityUnit}}）</text>
+            <view class="quantity-line">
+              <view><text>{{item.recentQuantity14}}</text><text>近14天</text></view>
+              <view><text>{{item.expectedQuantity14}}</text><text>正常约</text></view>
+              <view><text>{{item.quantityChangeText}}</text><text>变化</text></view>
+            </view>
+          </view>
+
+          <view class="detail-section">
+            <text class="detail-title">最近订货记录</text>
+            <scroll-view class="history-scroll" scroll-x enable-flex>
+              <view class="history-list">
+                <view class="history-point" wx:for="{{item.recentOrders}}" wx:key="orderDate">
+                  <text>{{item.orderDate}}</text>
+                  <text>{{item.quantityText}}</text>
+                </view>
+              </view>
+            </scroll-view>
+            <text class="data-quality">{{item.dataQualityNote}}</text>
+          </view>
+
+          <view class="detail-section cause-section">
+            <text class="detail-title">可能原因待确认</text>
+            <view class="cause-tags">
+              <text wx:for="{{causeHints}}" wx:key="*this">{{item}}</text>
+            </view>
+            <text class="action-hint">{{item.actionHint}}</text>
+          </view>
+
+          <view class="detail-action" catchtap="toCustomerGoodsPrice" data-id="{{item.relationId}}">
+            查看该部门商品详情
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{!displayedItems.length}}" class="empty-state">
+      <text class="empty-icon">✓</text>
+      <text class="empty-title">当前分类暂无异常</text>
+      <text class="empty-desc">系统会继续根据真实订货记录观察变化</text>
+    </view>
+
+    <view class="algorithm-note">
+      <text>统计日期：{{asOfBusinessDate}}</text>
+      <text>按部门商品分别计算，不合并不同部门</text>
+    </view>
+  </view>
+
+  <view wx:if="{{!loading && loadFailed}}" class="load-error" style="padding-top: {{navBarHeight + 220}}rpx;">
+    <text class="load-error-title">订货异常暂时无法读取</text>
+    <text class="load-error-desc">请检查登录状态或稍后重试</text>
+    <view class="retry-button" bindtap="retryLoad">重新加载</view>
+  </view>
+</view>

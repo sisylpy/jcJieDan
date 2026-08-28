@@ -27,6 +27,7 @@
       "pages/customer/jrdhGoodsStars/jrdhGoodsStars",
       "pages/customer/customerPage/customerPage",
       "pages/customer/customerGoods/customerGoods",
+      "pages/customer/customerOrderAnomalies/customerOrderAnomalies",
       "pages/customer/customerGoodsStandard/customerGoodsStandard",
       "pages/customer/customerGoodsStandardEdit/customerGoodsStandardEdit",
       "pages/customer/collNxDisGoodsPrice/collNxDisGoodsPrice",

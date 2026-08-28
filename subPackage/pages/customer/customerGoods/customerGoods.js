@@ -2,7 +2,8 @@ import apiUrl from '../../../../config.js'
 var load = require('../../../../lib/load.js')
 
 import {
-  disGetDepGoodsProfile
+  disGetDepGoodsProfile,
+  disGetDepOrderAnomalies
 } from '../../../../lib/apiDistributer'
 
 const FREQUENCY_GROUPS = [
@@ -53,6 +54,15 @@ Page({
       stable: 0,
       recent: 0
     },
+    anomalyAvailable: false,
+    anomalyAsOf: '',
+    anomalySummary: {
+      totalCount: 0,
+      suspectedStopCount: 0,
+      declineCount: 0,
+      surgeCount: 0,
+      highSeverityCount: 0
+    },
     loading: true
   },
 
@@ -94,8 +104,14 @@ Page({
 
     if (!fromPullDown) load.showLoading('获取数据')
 
-    disGetDepGoodsProfile(this.data.depFatherId)
-      .then(res => {
+    const anomalyRequest = disGetDepOrderAnomalies(this.data.depFatherId)
+      .catch(() => ({ result: { code: -1 } }))
+
+    Promise.all([
+      disGetDepGoodsProfile(this.data.depFatherId),
+      anomalyRequest
+    ])
+      .then(([res, anomalyRes]) => {
         const result = res && res.result ? res.result : {}
         if (result.code !== 0) {
           wx.showToast({
@@ -110,11 +126,16 @@ Page({
           return
         }
 
+        const anomalyReport = this._normalizeAnomalyReport(anomalyRes)
+        this._anomalyByRelation = anomalyReport.byRelation
         const allGoods = this._normalizeGoods(result.data || [])
         this._allGoods = allGoods
         this.setData({
           loading: false,
-          stats: this._buildStats(allGoods)
+          stats: this._buildStats(allGoods),
+          anomalyAvailable: anomalyReport.available,
+          anomalyAsOf: anomalyReport.asOfBusinessDate,
+          anomalySummary: anomalyReport.summary
         })
         this._applyFilter()
       })
@@ -142,6 +163,9 @@ Page({
       const requirementCount = this._toInteger(item.requirementCount)
       const imageCount = this._toInteger(item.standardImageCount)
       const customerGoodsName = this._text(item.goodsName) || '未命名商品'
+      const anomaly = this._anomalyByRelation
+        ? this._anomalyByRelation[Number(item.relationId)]
+        : null
 
       return {
         relationId: item.relationId,
@@ -164,7 +188,11 @@ Page({
         hasRequirement: requirementCount > 0,
         imageUrl: this._imageUrl(item.imagePath),
         imagePath: this._text(item.imagePath),
-        initials: customerGoodsName.slice(0, 1)
+        initials: customerGoodsName.slice(0, 1),
+        anomalyType: anomaly ? anomaly.anomalyType : '',
+        anomalyLabel: anomaly ? anomaly.anomalyLabel : '',
+        anomalySeverity: anomaly ? anomaly.severity : '',
+        anomalyReason: anomaly ? anomaly.reason : ''
       }
     })
 
@@ -186,6 +214,45 @@ Page({
     }
   },
 
+  _normalizeAnomalyReport(response) {
+    const result = response && response.result ? response.result : {}
+    const report = result.code === 0 && result.data ? result.data : null
+    const emptySummary = {
+      totalCount: 0,
+      suspectedStopCount: 0,
+      declineCount: 0,
+      surgeCount: 0,
+      highSeverityCount: 0
+    }
+    if (!report) {
+      return {
+        available: false,
+        asOfBusinessDate: '',
+        summary: emptySummary,
+        byRelation: {}
+      }
+    }
+
+    const byRelation = {}
+    ;(report.items || []).forEach(item => {
+      const relationId = Number(item.relationId)
+      if (Number.isFinite(relationId)) byRelation[relationId] = item
+    })
+    const summary = report.summary || {}
+    return {
+      available: true,
+      asOfBusinessDate: this._text(report.asOfBusinessDate),
+      summary: {
+        totalCount: this._toInteger(summary.totalCount),
+        suspectedStopCount: this._toInteger(summary.suspectedStopCount),
+        declineCount: this._toInteger(summary.declineCount),
+        surgeCount: this._toInteger(summary.surgeCount),
+        highSeverityCount: this._toInteger(summary.highSeverityCount)
+      },
+      byRelation
+    }
+  },
+
   _applyFilter() {
     const keyword = (this.data.searchKeyword || '').trim().toLowerCase()
     const allGoods = this._allGoods || []
@@ -196,7 +263,9 @@ Page({
           item.originalGoodsName,
           item.spec,
           item.categoryName,
-          item.customerName
+          item.customerName,
+          item.anomalyLabel,
+          item.anomalyReason
         ].some(value => (value || '').toLowerCase().includes(keyword))
       })
       : allGoods
@@ -238,6 +307,21 @@ Page({
   clearSearch() {
     this.setData({ searchKeyword: '' })
     this._applyFilter()
+  },
+
+  toOrderAnomalies() {
+    if (!this.data.anomalyAvailable) {
+      wx.showToast({
+        title: '异常分析暂不可用',
+        icon: 'none'
+      })
+      return
+    }
+    wx.navigateTo({
+      url: '../customerOrderAnomalies/customerOrderAnomalies' +
+        '?depFatherId=' + encodeURIComponent(this.data.depFatherId) +
+        '&customerName=' + encodeURIComponent(this.data.editDepAttrName || '')
+    })
   },
 
   toCustomerGoodsPrice(e) {

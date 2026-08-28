@@ -93,6 +93,113 @@ page {
   color: #d24c43;
 }
 
+.anomaly-card {
+  margin-top: 16rpx;
+  padding: 22rpx 24rpx 18rpx;
+  background: #fff;
+  border: 1rpx solid #e7ece9;
+  border-radius: 14rpx;
+  box-shadow: 0 6rpx 18rpx rgba(27, 53, 40, 0.04);
+}
+
+.anomaly-card.has-anomaly {
+  border-color: #f1d4ce;
+  background: linear-gradient(135deg, #fff 0%, #fff9f7 100%);
+}
+
+.anomaly-card-head,
+.anomaly-title-row,
+.anomaly-types {
+  display: flex;
+  align-items: center;
+}
+
+.anomaly-card-head {
+  justify-content: space-between;
+}
+
+.anomaly-title {
+  color: #243029;
+  font-size: 29rpx;
+  font-weight: 700;
+}
+
+.anomaly-total {
+  min-width: 31rpx;
+  margin-left: 10rpx;
+  padding: 2rpx 8rpx;
+  color: #fff;
+  font-size: 20rpx;
+  line-height: 27rpx;
+  text-align: center;
+  background: #d85c4b;
+  border-radius: 16rpx;
+}
+
+.anomaly-subtitle {
+  display: block;
+  margin-top: 5rpx;
+  color: #8a948f;
+  font-size: 21rpx;
+}
+
+.anomaly-link {
+  color: #168a62;
+  font-size: 23rpx;
+}
+
+.anomaly-types {
+  margin-top: 18rpx;
+  overflow: hidden;
+  background: #f7f8f7;
+  border-radius: 10rpx;
+}
+
+.anomaly-type {
+  flex: 1;
+  padding: 13rpx 8rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  border-right: 1rpx solid #e9ecea;
+}
+
+.anomaly-type:last-child {
+  border-right: 0;
+}
+
+.anomaly-type-count {
+  color: #35423b;
+  font-size: 27rpx;
+  font-weight: 700;
+}
+
+.anomaly-type-label {
+  color: #737e78;
+  font-size: 21rpx;
+}
+
+.anomaly-type.stop .anomaly-type-count {
+  color: #d24f43;
+}
+
+.anomaly-type.decline .anomaly-type-count {
+  color: #dd831f;
+}
+
+.anomaly-type.surge .anomaly-type-count {
+  color: #3976cd;
+}
+
+.anomaly-disclaimer {
+  display: block;
+  margin-top: 13rpx;
+  color: #9b817a;
+  font-size: 20rpx;
+  line-height: 28rpx;
+}
+
 .sort-line {
   height: 68rpx;
   padding: 0 4rpx;
@@ -321,6 +428,31 @@ page {
 
 .image-symbol {
   font-size: 22rpx;
+}
+
+.goods-anomaly-tag {
+  display: inline-block;
+  margin-top: 6rpx;
+  padding: 2rpx 8rpx;
+  color: #bd5a3f;
+  font-size: 19rpx;
+  line-height: 26rpx;
+  background: #fff1ed;
+  border-radius: 6rpx;
+}
+
+.goods-anomaly-tag.anomaly-ORDERING_DECLINE {
+  color: #bd741d;
+  background: #fff4e5;
+}
+
+.goods-anomaly-tag.anomaly-ORDERING_SURGE {
+  color: #3971bc;
+  background: #edf4ff;
+}
+
+.goods-anomaly-tag.high {
+  font-weight: 600;
 }
 
 .frequency,
