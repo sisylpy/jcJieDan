@@ -11,7 +11,6 @@
 .planning-card-head,
 .planning-target-row,
 .planning-head-actions,
-.desktop-login-entry,
 .planning-mode-group,
 .planning-input-wrap,
 .planning-lock-sheet-head,
@@ -22,22 +21,6 @@
 
 .planning-head-actions {
   gap: 12rpx;
-}
-
-.desktop-login-entry {
-  height: 54rpx;
-  padding: 0 16rpx;
-  border: 1rpx solid #99d4c0;
-  border-radius: 12rpx;
-  color: #087654;
-  background: #effaf6;
-  font-size: 22rpx;
-  font-weight: 700;
-}
-
-.desktop-login-icon {
-  margin-right: 7rpx;
-  font-size: 24rpx;
 }
 
 .planning-card-head,
