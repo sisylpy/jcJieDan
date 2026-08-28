@@ -6,6 +6,7 @@ page {
 .page {
   min-height: 100vh;
   padding-bottom: calc(36rpx + env(safe-area-inset-bottom));
+  font-size: 36rpx;
 }
 
 .content {
@@ -46,7 +47,7 @@ page {
 
 .customer-name {
   display: block;
-  font-size: 34rpx;
+  font-size: 38rpx;
   font-weight: 700;
 }
 
@@ -54,7 +55,7 @@ page {
   display: block;
   margin-top: 6rpx;
   color: rgba(255, 255, 255, 0.72);
-  font-size: 22rpx;
+  font-size: 26rpx;
 }
 
 .overview-total {
@@ -63,7 +64,7 @@ page {
 }
 
 .overview-number {
-  font-size: 54rpx;
+  font-size: 58rpx;
   font-weight: 750;
   line-height: 1;
 }
@@ -71,7 +72,7 @@ page {
 .overview-unit {
   margin-left: 6rpx;
   color: rgba(255, 255, 255, 0.78);
-  font-size: 21rpx;
+  font-size: 25rpx;
 }
 
 .overview-grid {
@@ -95,20 +96,20 @@ page {
 }
 
 .overview-stat text:first-child {
-  font-size: 30rpx;
+  font-size: 34rpx;
   font-weight: 700;
 }
 
 .overview-stat text:last-child {
   margin-top: 4rpx;
   color: rgba(255, 255, 255, 0.74);
-  font-size: 20rpx;
+  font-size: 24rpx;
 }
 
 .overview-foot {
   margin-top: 15rpx;
   color: rgba(255, 255, 255, 0.7);
-  font-size: 19rpx;
+  font-size: 23rpx;
 }
 
 .notice {
@@ -116,7 +117,7 @@ page {
   padding: 15rpx 18rpx;
   align-items: flex-start;
   color: #8d6355;
-  font-size: 21rpx;
+  font-size: 25rpx;
   line-height: 31rpx;
   background: #fff7f2;
   border: 1rpx solid #f0ded5;
@@ -150,7 +151,7 @@ page {
   display: inline-flex;
   align-items: center;
   color: #64716a;
-  font-size: 23rpx;
+  font-size: 27rpx;
   background: #fff;
   border: 1rpx solid #e3e8e5;
   border-radius: 26rpx;
@@ -205,7 +206,7 @@ page {
   overflow: hidden;
   flex-shrink: 0;
   color: #607168;
-  font-size: 27rpx;
+  font-size: 31rpx;
   font-weight: 700;
   background: #f0f4f2;
   border-radius: 11rpx;
@@ -230,7 +231,7 @@ page {
   max-width: 220rpx;
   overflow: hidden;
   color: #18221b;
-  font-size: 30rpx;
+  font-size: 34rpx;
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -240,7 +241,7 @@ page {
   margin-left: 10rpx;
   padding: 2rpx 8rpx;
   color: #bc5a42;
-  font-size: 19rpx;
+  font-size: 23rpx;
   background: #fff0ec;
   border-radius: 6rpx;
 }
@@ -259,7 +260,7 @@ page {
   margin-top: 5rpx;
   gap: 8rpx;
   color: #89928d;
-  font-size: 20rpx;
+  font-size: 24rpx;
 }
 
 .department-tag {
@@ -274,7 +275,7 @@ page {
   margin-top: 7rpx;
   overflow: hidden;
   color: #59665f;
-  font-size: 21rpx;
+  font-size: 25rpx;
   line-height: 30rpx;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -290,20 +291,20 @@ page {
 
 .confidence text:first-child {
   color: #24765f;
-  font-size: 25rpx;
+  font-size: 29rpx;
   font-weight: 700;
 }
 
 .confidence text:last-child {
   margin-top: 3rpx;
   color: #9aa29e;
-  font-size: 17rpx;
+  font-size: 21rpx;
 }
 
 .expand-arrow {
   margin-left: 5rpx;
   color: #9ca59f;
-  font-size: 28rpx;
+  font-size: 32rpx;
   transform: rotate(-90deg);
 }
 
@@ -325,7 +326,7 @@ page {
   display: block;
   margin-bottom: 14rpx;
   color: #354139;
-  font-size: 24rpx;
+  font-size: 28rpx;
   font-weight: 700;
 }
 
@@ -351,20 +352,20 @@ page {
 
 .evidence-item text:first-child {
   color: #213129;
-  font-size: 24rpx;
+  font-size: 28rpx;
   font-weight: 700;
 }
 
 .evidence-item text:last-child {
   margin-top: 5rpx;
   color: #8a948f;
-  font-size: 17rpx;
+  font-size: 21rpx;
 }
 
 .date-line {
   margin-top: 12rpx;
   color: #7b8680;
-  font-size: 19rpx;
+  font-size: 23rpx;
 }
 
 .quantity-line > view {
@@ -376,14 +377,14 @@ page {
 
 .quantity-line view text:first-child {
   color: #26342c;
-  font-size: 27rpx;
+  font-size: 31rpx;
   font-weight: 700;
 }
 
 .quantity-line view text:last-child {
   margin-top: 4rpx;
   color: #929b96;
-  font-size: 18rpx;
+  font-size: 22rpx;
 }
 
 .history-scroll {
@@ -406,13 +407,13 @@ page {
 
 .history-point text:first-child {
   color: #7c8781;
-  font-size: 18rpx;
+  font-size: 22rpx;
 }
 
 .history-point text:last-child {
   margin-top: 4rpx;
   color: #27342d;
-  font-size: 21rpx;
+  font-size: 25rpx;
   font-weight: 600;
 }
 
@@ -420,7 +421,7 @@ page {
   display: block;
   margin-top: 11rpx;
   color: #929b96;
-  font-size: 18rpx;
+  font-size: 22rpx;
 }
 
 .cause-tags {
@@ -431,7 +432,7 @@ page {
 .cause-tags text {
   padding: 5rpx 10rpx;
   color: #856d60;
-  font-size: 18rpx;
+  font-size: 22rpx;
   background: #faf3ef;
   border-radius: 7rpx;
 }
@@ -440,7 +441,7 @@ page {
   display: block;
   margin-top: 13rpx;
   color: #68756e;
-  font-size: 20rpx;
+  font-size: 24rpx;
   line-height: 30rpx;
 }
 
@@ -448,7 +449,7 @@ page {
   margin-top: 18rpx;
   height: 66rpx;
   color: #168360;
-  font-size: 23rpx;
+  font-size: 27rpx;
   line-height: 66rpx;
   text-align: center;
   background: #edf7f3;
@@ -470,7 +471,7 @@ page {
   width: 62rpx;
   height: 62rpx;
   color: #fff;
-  font-size: 32rpx;
+  font-size: 36rpx;
   line-height: 62rpx;
   text-align: center;
   background: #4ca87e;
@@ -481,7 +482,7 @@ page {
 .load-error-title {
   margin-top: 18rpx;
   color: #334038;
-  font-size: 27rpx;
+  font-size: 31rpx;
   font-weight: 650;
 }
 
@@ -489,7 +490,7 @@ page {
 .load-error-desc {
   margin-top: 9rpx;
   color: #929b96;
-  font-size: 21rpx;
+  font-size: 25rpx;
 }
 
 .algorithm-note {
@@ -498,7 +499,7 @@ page {
   flex-direction: column;
   align-items: center;
   color: #a0a8a4;
-  font-size: 18rpx;
+  font-size: 22rpx;
   line-height: 29rpx;
 }
 
@@ -506,7 +507,7 @@ page {
   margin-top: 24rpx;
   padding: 16rpx 50rpx;
   color: #fff;
-  font-size: 24rpx;
+  font-size: 28rpx;
   background: #178d68;
   border-radius: 10rpx;
 }

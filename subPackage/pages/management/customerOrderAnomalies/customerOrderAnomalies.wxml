@@ -59,11 +59,14 @@
         wx:key="relationId"
       >
         <view class="customer-strip">
-          <view>
+          <view class="customer-identity">
             <text class="item-customer-name">{{item.customerName}}</text>
             <text class="item-department-name">{{item.departmentName}}</text>
           </view>
-          <text class="customer-link" catchtap="toCustomerAnomalies" data-customer-id="{{item.customerId}}">查看客户全部异常 ›</text>
+          <view class="customer-strip-right">
+            <text class="last-order-date">上次订货 {{item.lastOrderDateLabel}}</text>
+            <text class="customer-link" catchtap="toCustomerAnomalies" data-customer-id="{{item.customerId}}">查看客户全部异常 ›</text>
+          </view>
         </view>
         <view class="item-main" bindtap="toggleDetail" data-id="{{item.relationId}}">
           <view class="goods-avatar">

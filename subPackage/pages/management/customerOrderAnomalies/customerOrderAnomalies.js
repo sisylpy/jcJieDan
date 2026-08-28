@@ -178,6 +178,7 @@ Page({
       averageCycleDays: this._text(item.averageCycleDays) || '—',
       daysSinceLast: this._toInteger(item.daysSinceLast),
       lastOrderDate: this._text(item.lastOrderDate),
+      lastOrderDateLabel: this._dateLabel(item.lastOrderDate),
       expectedOrderDate: this._text(item.expectedOrderDate),
       recentOrderDays14: this._toInteger(item.recentOrderDays14),
       expectedOrderDays14: this._text(item.expectedOrderDays14) || '—',
@@ -215,6 +216,13 @@ Page({
     if (!path) return ''
     if (/^https?:\/\//.test(path)) return path
     return apiUrl.server + path
+  },
+
+  _dateLabel(value) {
+    const text = this._text(value)
+    const matched = /^(\d{4})-(\d{1,2})-(\d{1,2})/.exec(text)
+    if (!matched) return text || '暂无日期'
+    return Number(matched[2]) + '月' + Number(matched[3]) + '日'
   },
 
   _toInteger(value) {
