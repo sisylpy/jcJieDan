@@ -40,6 +40,10 @@ Page({
     this.loadData(true)
   },
 
+  toBack: function () {
+    wx.navigateBack({ delta: 1 })
+  },
+
   onQuickRangeTap: function (e) {
     this.applyQuickRange(e.currentTarget.dataset.key, true)
   },

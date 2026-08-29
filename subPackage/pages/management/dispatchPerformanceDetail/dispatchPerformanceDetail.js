@@ -19,6 +19,10 @@ Page({
     this.loadDetail()
   },
 
+  toBack: function () {
+    wx.navigateBack({ delta: 1 })
+  },
+
   loadDetail: function () {
     if (!this.data.driverRouteId) {
       this.setData({ loading: false, errorMessage: '缺少路线编号' })

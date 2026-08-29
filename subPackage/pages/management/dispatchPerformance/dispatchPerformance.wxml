@@ -1,5 +1,5 @@
 <view class="performance-page">
-  <back-navbar style="height: {{navBarHeight}}rpx;" title="派单管理" avatar="/images/back-gray.png"></back-navbar>
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="派单管理" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
 
   <scroll-view scroll-y class="performance-scroll">
     <view class="filter-card">

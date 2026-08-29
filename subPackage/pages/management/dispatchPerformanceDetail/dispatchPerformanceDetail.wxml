@@ -1,5 +1,5 @@
 <view class="detail-page">
-  <back-navbar style="height: {{navBarHeight}}rpx;" title="路线详情" avatar="/images/back-gray.png"></back-navbar>
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="路线详情" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
 
   <scroll-view scroll-y class="detail-scroll">
     <view wx:if="{{loading}}" class="state-card">正在加载路线详情…</view>
