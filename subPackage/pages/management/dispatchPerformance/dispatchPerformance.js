@@ -181,7 +181,8 @@ function defaultSummary() {
     deliveredStopCount: 0,
     totalPlannedDistanceText: '0 米',
     completedPlannedDistanceText: '0 米',
-    totalPlannedDurationText: '0分钟'
+    totalPlannedDurationText: '0分钟',
+    totalActualDurationText: '0分钟'
   }
 }
 

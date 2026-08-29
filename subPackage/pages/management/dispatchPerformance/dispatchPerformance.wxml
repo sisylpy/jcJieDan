@@ -55,7 +55,7 @@
       <view class="summary-card">
         <text class="summary-label">参与司机</text>
         <text class="summary-value">{{summary.driverCount}} 人</text>
-        <text class="summary-foot">预计 {{summary.totalPlannedDurationText}}</text>
+        <text class="summary-foot">实际用时 {{summary.totalActualDurationText}}</text>
       </view>
     </view>
 
@@ -103,11 +103,11 @@
           <view class="route-metrics">
             <view><text class="metric-value">{{item.totalDistanceText}}</text><text class="metric-label">规划里程</text></view>
             <view><text class="metric-value">{{item.deliveredStopCount}} / {{item.totalStopCount}}</text><text class="metric-label">已送达 / 全部</text></view>
-            <view><text class="metric-value">{{item.totalDurationText}}</text><text class="metric-label">预计时长</text></view>
+            <view><text class="metric-value">{{item.actualDurationText}}</text><text class="metric-label">实际用时</text></view>
           </view>
           <view class="route-meta-row">
             <text>{{item.employmentTypeLabel}} · {{item.routeEndLabel}}</text>
-            <text>出发 {{item.actualDepartAt || item.plannedDepartAt || '—'}}</text>
+            <text>实际出发 {{item.actualDepartAt || '—'}}</text>
           </view>
           <view class="route-complete" wx:if="{{item.lastDeliveredAt}}">最后送达 {{item.lastDeliveredAt}}</view>
           <view class="route-detail-link">查看路线详情 <text>›</text></view>
