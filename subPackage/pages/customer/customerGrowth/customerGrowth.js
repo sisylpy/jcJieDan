@@ -77,6 +77,15 @@ Page({
     })
   },
 
+  openCustomerBills() {
+    const depId = this.data.customer.nxDepartmentId
+    if (!depId) return
+    wx.setStorageSync('depInfo', this.data.customer)
+    wx.navigateTo({
+      url: '../customerPage/customerPage?depId=' + depId
+    })
+  },
+
   _loadGrowth(fromPullDown) {
     const requestId = (this._requestId || 0) + 1
     this._requestId = requestId

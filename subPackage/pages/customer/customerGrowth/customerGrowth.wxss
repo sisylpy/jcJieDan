@@ -254,105 +254,61 @@ page {
   margin-top: 16rpx;
 }
 
-.info-grid {
+.delivery-summary {
   width: 100%;
-  padding: 26rpx 20rpx;
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 22rpx 26rpx 24rpx;
+  border-top: 1rpx solid #edf1ef;
   box-sizing: border-box;
-}
-
-.info-section {
-  min-width: 0;
-  padding: 0 14rpx;
-  overflow: hidden;
-  box-sizing: border-box;
-}
-
-.info-section.middle {
-  border-right: 1rpx solid #edf1ef;
-  border-left: 1rpx solid #edf1ef;
 }
 
 .section-heading {
-  margin-bottom: 20rpx;
+  margin-bottom: 14rpx;
   display: flex;
   align-items: center;
   color: #25322b;
-  font-size: 25rpx;
+  font-size: 30rpx;
   font-weight: 700;
 }
 
 .section-badge {
-  width: 36rpx;
-  height: 36rpx;
-  margin-right: 8rpx;
-  font-size: 18rpx;
-  border-radius: 9rpx;
+  width: 42rpx;
+  height: 42rpx;
+  margin-right: 12rpx;
+  font-size: 21rpx;
+  border-radius: 10rpx;
 }
 
 .section-badge.delivery { background: #58bb82; }
-.section-badge.operation { background: #62c69d; }
-.section-badge.status { background: #1bad67; }
 
 .info-row {
-  margin-top: 13rpx;
+  min-height: 42rpx;
+  margin-top: 8rpx;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
-  gap: 8rpx;
-  font-size: 21rpx;
-}
-
-.info-row.stacked {
-  flex-direction: column;
-  gap: 4rpx;
+  gap: 24rpx;
+  font-size: 26rpx;
 }
 
 .info-label {
-  flex: 0 0 auto;
-  color: #89938e;
+  width: 130rpx;
+  flex: 0 0 130rpx;
+  color: #77837c;
 }
 
 .info-value {
   min-width: 0;
-  overflow: hidden;
+  flex: 1;
   color: #38463e;
-  text-align: right;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-}
-
-.info-value.emphasis {
-  color: #098a50;
+  font-weight: 600;
+  text-align: left;
 }
 
 .info-address {
-  margin-top: 15rpx;
-  display: -webkit-box;
-  overflow: hidden;
-  color: #65716a;
-  font-size: 20rpx;
-  line-height: 1.5;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.status-line {
-  display: flex;
-  align-items: center;
-  color: #0a9a59;
-  font-size: 22rpx;
-  font-weight: 600;
-}
-
-.status-dot {
-  width: 18rpx;
-  height: 18rpx;
-  margin-right: 8rpx;
-  border: 5rpx solid #d8f4e5;
-  border-radius: 50%;
-  background: #16a962;
+  color: #59675f;
+  line-height: 1.45;
+  white-space: normal;
+  word-break: break-all;
 }
 
 .action-row {
@@ -390,6 +346,7 @@ page {
 
 .action-icon.coupon { background: #3888ed; }
 .action-icon.goods { background: #1bb7ae; }
+.action-icon.bill { background: #f0a33a; }
 
 .action-name {
   display: block;

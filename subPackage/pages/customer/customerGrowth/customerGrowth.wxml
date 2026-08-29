@@ -51,6 +51,25 @@
         </view>
       </view>
 
+      <view class="delivery-summary">
+        <view class="section-heading">
+          <text class="section-badge delivery">配</text>
+          <text>配送信息</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">配送方式</text>
+          <text class="info-value">{{customer.deliveryModeName}}</text>
+        </view>
+        <view class="info-row">
+          <text class="info-label">配送时间</text>
+          <text class="info-value">{{customer.deliveryTimeText}}</text>
+        </view>
+        <view class="info-row address-row">
+          <text class="info-label">配送地址</text>
+          <text class="info-value info-address">{{customer.addressText}}</text>
+        </view>
+      </view>
+
       <view class="metric-grid">
         <view class="metric-item">
           <text class="metric-icon green">单</text>
@@ -75,62 +94,6 @@
       </view>
     </view>
 
-    <view class="business-card info-grid">
-      <view class="info-section">
-        <view class="section-heading">
-          <text class="section-badge delivery">配</text>
-          <text>配送信息</text>
-        </view>
-        <view class="info-row">
-          <text class="info-label">配送方式</text>
-          <text class="info-value">{{customer.deliveryModeName}}</text>
-        </view>
-        <view class="info-row">
-          <text class="info-label">配送时间</text>
-          <text class="info-value">{{customer.deliveryTimeText}}</text>
-        </view>
-        <view class="info-address">{{customer.addressText}}</view>
-      </view>
-
-      <view class="info-section middle">
-        <view class="section-heading">
-          <text class="section-badge operation">营</text>
-          <text>经营信息</text>
-        </view>
-        <view class="info-row">
-          <text class="info-label">经营业态</text>
-          <text class="info-value emphasis">{{customer.businessTypeName}}</text>
-        </view>
-        <view class="info-row">
-          <text class="info-label">支付方式</text>
-          <text class="info-value emphasis">{{customer.settlementName}}</text>
-        </view>
-        <view class="info-row">
-          <text class="info-label">定价类型</text>
-          <text class="info-value emphasis">{{customer.pricingName}}</text>
-        </view>
-      </view>
-
-      <view class="info-section">
-        <view class="section-heading">
-          <text class="section-badge status">通</text>
-          <text>{{customer.nxDepartmentSettleType == 0 ? '开通状态' : '合作状态'}}</text>
-        </view>
-        <view class="status-line">
-          <text class="status-dot"></text>
-          <text class="status-name">{{customer.nxDepartmentSettleType == 0 ? customer.workingStatusName : stage.label}}</text>
-        </view>
-        <view class="info-row stacked">
-          <text class="info-label">合作开始</text>
-          <text class="info-value">{{metrics.cooperationSince || '暂无'}}</text>
-        </view>
-        <view class="info-row stacked">
-          <text class="info-label">合作时长</text>
-          <text class="info-value">{{metrics.cooperationDays}} 天</text>
-        </view>
-      </view>
-    </view>
-
     <view class="business-card action-row">
       <view class="action-title">
         <text class="action-icon coupon">券</text>
@@ -151,6 +114,17 @@
         <view>
           <text class="action-name">常购商品</text>
           <text class="action-hint">进入后按需查询，不占用本页加载时间</text>
+        </view>
+      </view>
+      <text class="action-link">查看 ›</text>
+    </view>
+
+    <view class="business-card action-row tappable" bindtap="openCustomerBills">
+      <view class="action-title">
+        <text class="action-icon bill">账</text>
+        <view>
+          <text class="action-name">客户账单</text>
+          <text class="action-hint">查看该客户的配送账单与结算记录</text>
         </view>
       </view>
       <text class="action-link">查看 ›</text>
