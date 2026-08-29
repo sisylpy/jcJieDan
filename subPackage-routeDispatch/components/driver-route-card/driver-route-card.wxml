@@ -34,10 +34,10 @@
     </view>
   </view>
 
-  <view class="driver-summary-metrics" wx:if="{{card.plannedDepartLabel || card.firstStopPlannedArrivalTimeLabel || card.plannedReturnLabel}}">
+  <view class="driver-summary-metrics" wx:if="{{card.actualDepartLabel || card.plannedDepartLabel || card.firstStopPlannedArrivalTimeLabel || card.plannedReturnLabel}}">
     <view class="driver-metric-col driver-metric-col-depart">
       <text class="driver-metric-label driver-metric-label-accent">{{variant === 'delivery' ? '实际出发' : '建议出发'}}</text>
-      <text class="driver-metric-time driver-metric-time-accent">{{card.plannedDepartLabel || '—'}}</text>
+      <text class="driver-metric-time driver-metric-time-accent">{{variant === 'delivery' ? (card.actualDepartLabel || '—') : (card.plannedDepartLabel || '—')}}</text>
       <view
         wx:if="{{variant === 'delivery' && card.actualDepartStatusLabel}}"
         class="driver-arrival-status-badge driver-arrival-status-{{card.actualDepartStatusTone || 'ok'}}"
