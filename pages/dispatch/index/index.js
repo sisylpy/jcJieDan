@@ -109,6 +109,17 @@ Page({
     }, this.bumpPanelLoad.bind(this))
   },
 
+  onSwitchLoading: function () {
+    if (this.data.innerCurrent === 1) {
+      this.bumpPanelLoad()
+      return
+    }
+    this._swiperChangeFromTab = true
+    this.setData({
+      innerCurrent: 1
+    }, this.bumpPanelLoad.bind(this))
+  },
+
   onPullDownRefresh: function () {
     var panelIds = ['sandbox-panel', 'loading-panel', 'delivery-panel']
     var panelId = panelIds[this.data.innerCurrent] || panelIds[0]

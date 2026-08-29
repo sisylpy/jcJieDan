@@ -35,3 +35,15 @@ test('路线编辑按钮优先展示Server禁用原因，再检查payload', () =
   }
   assert.equal(checked, 4)
 })
+
+test('分派页遇到已形成正式归属的路线时直接切换到装车页', () => {
+  const sandbox = fs.readFileSync(
+    'subPackage-routeDispatch/pages/bossTab/sandbox/sandbox.js', 'utf8')
+  const dispatchPage = fs.readFileSync('pages/dispatch/index/index.js', 'utf8')
+  const dispatchView = fs.readFileSync('pages/dispatch/index/index.wxml', 'utf8')
+
+  assert.match(sandbox,
+    /editDisabledReasonCode === 'ROUTE_EDIT_FORMAL_RESOURCE_REQUIRED'[\s\S]*triggerEvent\('switchloading'\)/)
+  assert.match(dispatchPage, /onSwitchLoading:\s*function[\s\S]*innerCurrent:\s*1/)
+  assert.match(dispatchView, /bind:switchloading="onSwitchLoading"/)
+})

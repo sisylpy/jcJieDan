@@ -14,7 +14,7 @@
 
   <swiper class="dispatch-swiper" style="height: {{contentHeight}}rpx;" current="{{innerCurrent}}" bindchange="onSwiperChange">
     <swiper-item class="dispatch-swiper-item">
-      <boss-tab-sandbox id="sandbox-panel" class="dispatch-panel" active="{{tabActive[0]}}" load-key="{{panelLoadKey}}"></boss-tab-sandbox>
+      <boss-tab-sandbox id="sandbox-panel" class="dispatch-panel" active="{{tabActive[0]}}" load-key="{{panelLoadKey}}" bind:switchloading="onSwitchLoading"></boss-tab-sandbox>
     </swiper-item>
     <swiper-item class="dispatch-swiper-item">
       <boss-tab-my-loading id="loading-panel" class="dispatch-panel" active="{{tabActive[1]}}" load-key="{{panelLoadKey}}"></boss-tab-my-loading>

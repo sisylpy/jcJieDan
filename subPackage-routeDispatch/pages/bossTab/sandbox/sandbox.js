@@ -240,6 +240,10 @@ Component({
 
   openDriverRouteEditFromAction: function (action) {
     action = action || {}
+    if (action.editDisabledReasonCode === 'ROUTE_EDIT_FORMAL_RESOURCE_REQUIRED') {
+      this.triggerEvent('switchloading')
+      return
+    }
     if (action.enabled === false) {
       wx.showToast({
         title: action.editDisabledMessage || action.disabledReason || '当前不可编辑路线',
