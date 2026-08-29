@@ -1,6 +1,7 @@
 page { background: #f4f7f6; }
-.detail-page { min-height: 100vh; color: #17332c; }
-.detail-scroll { height: calc(100vh - 150rpx); box-sizing: border-box; }
+.detail-page { height: 100vh; color: #17332c; overflow: hidden; }
+.detail-body { height: 100vh; box-sizing: border-box; }
+.detail-scroll { height: 100%; box-sizing: border-box; }
 .hero-card, .time-card, .stops-card { margin: 22rpx 24rpx 0; padding: 26rpx; background: #fff; border-radius: 24rpx; box-shadow: 0 8rpx 24rpx rgba(30, 69, 59, .06); box-sizing: border-box; }
 .hero-head { display: flex; justify-content: space-between; align-items: flex-start; }
 .driver-name { display: block; font-size: 34rpx; font-weight: 700; }

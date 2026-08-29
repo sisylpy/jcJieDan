@@ -1,6 +1,7 @@
 page { background: #f4f7f6; }
-.performance-page { min-height: 100vh; color: #17332c; }
-.performance-scroll { height: calc(100vh - 150rpx); box-sizing: border-box; }
+.performance-page { height: 100vh; color: #17332c; overflow: hidden; }
+.performance-body { height: 100vh; box-sizing: border-box; }
+.performance-scroll { height: 100%; box-sizing: border-box; }
 .filter-card, .section { margin: 22rpx 24rpx 0; background: #fff; border-radius: 24rpx; box-shadow: 0 8rpx 24rpx rgba(30, 69, 59, .06); }
 .filter-card { padding: 24rpx; }
 .range-tabs { display: flex; gap: 12rpx; }
