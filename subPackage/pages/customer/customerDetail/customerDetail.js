@@ -12,6 +12,7 @@ import {
 
   updateDepUserAdmin,
   updateGroupName,
+  updateCustomerImage,
   updateDeliverySettings,
 
   // 客户业态
@@ -43,12 +44,15 @@ Page({
     profileEditorVisible: false,
     tradeEditorVisible: false,
     profileSaving: false,
+    profileImageUploading: false,
+    customerImageSrc: '/images/customer.png',
     tradeSaving: false,
     profileDraft: {
       name: '',
       shortName: '',
       orderCode: '',
-      printName: 'ApplyHalfWholePanel'
+      printName: 'ApplyHalfWholePanel',
+      imagePreview: '/images/customer.png'
     },
     tradeDraft: {
       settleType: 0,
@@ -143,6 +147,7 @@ Page({
       }
       this.setData({
         depInfo: depInfoValue,
+        customerImageSrc: this.resolveCustomerImage(depInfoValue),
         depFatherId: depInfoValue.nxDepartmentId,
         settleType: depInfoValue.nxDepartmentSettleType,
         editDepName: depInfoValue.nxDepartmentName,
@@ -217,19 +222,21 @@ Page({
 
   showProfileEditor() {
     const depInfo = this.data.depInfo || {}
+    const imagePreview = this.resolveCustomerImage(depInfo)
     this.setData({
       profileEditorVisible: true,
       profileDraft: {
         name: depInfo.nxDepartmentName || '',
         shortName: depInfo.nxDepartmentAttrName || '',
         orderCode: depInfo.nxDepartmentOrderCode || '',
-        printName: depInfo.nxDepartmentPrintName || 'ApplyHalfWholePanel'
+        printName: depInfo.nxDepartmentPrintName || 'ApplyHalfWholePanel',
+        imagePreview
       }
     })
   },
 
   hideProfileEditor() {
-    if (this.data.profileSaving) return
+    if (this.data.profileSaving || this.data.profileImageUploading) return
     this.setData({
       profileEditorVisible: false
     })
@@ -252,6 +259,72 @@ Page({
       'profileDraft.orderCode': e.detail.value
     })
   },
+
+  resolveCustomerImage(depInfo) {
+    const customer = depInfo || {}
+    let path = customer.nxDepartmentFilePath || ''
+    if (!path && customer.nxDepartmentUserEntities && customer.nxDepartmentUserEntities.length > 0) {
+      path = customer.nxDepartmentUserEntities[0].nxDuWxAvartraUrl || ''
+    }
+    if (!path) return '/images/customer.png'
+    if (/^https?:\/\//i.test(path) || path.indexOf('wxfile://') === 0) return path
+    return apiUrl.server + path
+  },
+
+  chooseCustomerImage() {
+    if (this.data.profileImageUploading) return
+    const acceptImage = tempFilePath => {
+      if (!tempFilePath) return
+      const departmentId = this.data.depInfo && this.data.depInfo.nxDepartmentId
+      if (!departmentId) {
+        wx.showToast({ title: '客户信息无效，请刷新后重试', icon: 'none' })
+        return
+      }
+      this.setData({
+        profileImageUploading: true,
+        'profileDraft.imagePreview': tempFilePath
+      })
+      updateCustomerImage(tempFilePath, departmentId).then(res => {
+        const result = res && res.result || {}
+        if (result.code !== 0 || !result.data) {
+          throw new Error(result.msg || '客户图片保存失败')
+        }
+        const saved = result.data
+        const imageSrc = this.resolveCustomerImage(saved)
+        wx.setStorageSync('depInfo', saved)
+        this.setData({
+          depInfo: saved,
+          customerImageSrc: imageSrc,
+          'profileDraft.imagePreview': imageSrc,
+          profileImageUploading: false
+        })
+        wx.showToast({ title: '客户图片已更新', icon: 'success' })
+      }).catch(error => {
+        this.setData({
+          profileImageUploading: false,
+          'profileDraft.imagePreview': this.data.customerImageSrc || '/images/customer.png'
+        })
+        wx.showToast({ title: error && error.message || '客户图片保存失败', icon: 'none' })
+      })
+    }
+
+    if (typeof wx.chooseMedia === 'function') {
+      wx.chooseMedia({
+        count: 1,
+        mediaType: ['image'],
+        sourceType: ['album', 'camera'],
+        sizeType: ['compressed'],
+        success: res => acceptImage(res.tempFiles && res.tempFiles[0] && res.tempFiles[0].tempFilePath)
+      })
+      return
+    }
+    wx.chooseImage({
+      count: 1,
+      sizeType: ['compressed'],
+      sourceType: ['album', 'camera'],
+      success: res => acceptImage(res.tempFilePaths && res.tempFilePaths[0])
+    })
+  },
   radioChangePrint(e){
     const legacyPrintMap = {
       '0': 'ApplyPanel',
@@ -270,7 +343,7 @@ Page({
   },
 
   saveProfileInfo() {
-    if (this.data.profileSaving) return
+    if (this.data.profileSaving || this.data.profileImageUploading) return
     const draft = this.data.profileDraft || {}
     const name = (draft.name || '').trim()
     if (!name) {
@@ -290,6 +363,7 @@ Page({
         wx.setStorageSync('depInfo', payload)
         this.setData({
           depInfo: payload,
+          customerImageSrc: this.resolveCustomerImage(payload),
           editDepName: payload.nxDepartmentName,
           editDepAttrName: payload.nxDepartmentAttrName,
           editDepOrderCode: payload.nxDepartmentOrderCode,
@@ -1227,6 +1301,7 @@ Page({
         const latestTime = this.normalizeDeliveryTime(depInfo.nxDepartmentLatestDeliveryTime);
         this.setData({
           depInfo: depInfo,
+          customerImageSrc: this.resolveCustomerImage(depInfo),
           selectedLatitude: depInfo.nxDepartmentLat || '',
           selectedLongitude: depInfo.nxDepartmentLng || '',
           deliveryAddress: depInfo.nxDepartmentAddress || '',

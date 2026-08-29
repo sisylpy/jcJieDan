@@ -6,7 +6,7 @@
     <!-- 客户身份摘要 -->
     <view class="customer-header-card" bindtap="showProfileEditor">
       <view class="header-main">
-        <image class="header-avatar" src="{{depInfo.nxDepartmentUserEntities && depInfo.nxDepartmentUserEntities.length > 0 && depInfo.nxDepartmentUserEntities[0].nxDuWxAvartraUrl ? url + depInfo.nxDepartmentUserEntities[0].nxDuWxAvartraUrl : '/images/customer.png'}}" mode="aspectFill"></image>
+        <image class="header-avatar" src="{{customerImageSrc || '/images/customer.png'}}" mode="aspectFill"></image>
         <view class="header-info">
           <view class="header-name-row">
             <text class="header-name">{{depInfo.nxDepartmentName || '未命名客户'}}</text>
@@ -277,6 +277,14 @@
       <text class="modal-close" bindtap="hideProfileEditor">×</text>
     </view>
     <scroll-view scroll-y class="profile-form-scroll">
+      <view class="profile-image-editor">
+        <image class="profile-image-preview" src="{{profileDraft.imagePreview || customerImageSrc || '/images/customer.png'}}" mode="aspectFill"></image>
+        <view class="profile-image-copy">
+          <text class="profile-image-title">客户主图片</text>
+          <text class="profile-image-hint">辅助识别客户，不影响订货资料</text>
+        </view>
+        <button class="profile-image-button" loading="{{profileImageUploading}}" disabled="{{profileImageUploading}}" bindtap="chooseCustomerImage">更换图片</button>
+      </view>
       <view class="form-group">
         <text class="form-label">客户名称</text>
         <input class="form-input" value="{{profileDraft.name}}" bindinput="getDepName" placeholder="用于配送单打印" />
@@ -303,7 +311,7 @@
         </radio-group>
       </view>
     </scroll-view>
-    <view class="modal-actions"><button class="modal-button secondary" bindtap="hideProfileEditor">取消</button><button class="modal-button primary" loading="{{profileSaving}}" disabled="{{profileSaving}}" bindtap="saveProfileInfo">保存</button></view>
+    <view class="modal-actions"><button class="modal-button secondary" disabled="{{profileImageUploading}}" bindtap="hideProfileEditor">取消</button><button class="modal-button primary" loading="{{profileSaving}}" disabled="{{profileSaving || profileImageUploading}}" bindtap="saveProfileInfo">保存</button></view>
   </view>
 </view>
 
