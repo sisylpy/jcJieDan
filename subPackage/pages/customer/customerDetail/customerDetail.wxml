@@ -1,72 +1,75 @@
-<import src='../../../../template/resGoods/resGoods.wxml' />
-<import src='../../../../template/resGroup/resGroup.wxml' />
-
 <view class="page-container">
 
-  <back-navbar style="height: {{navBarHeight}}rpx;" title="{{editDepAttrName}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="客户资料" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
 
-  <!-- 头部客户卡片 -->
-  <view class="customer-header-card" bindtap="editGroupInfo" style="margin-top: 180rpx;">
-    <view class="header-main">
-      <image class="header-avatar" src="{{url + (depInfo.nxDepartmentUserEntities && depInfo.nxDepartmentUserEntities.length > 0 && depInfo.nxDepartmentUserEntities[0].nxDuWxAvartraUrl) || '/images/customer.png'}}" mode="aspectFill"></image>
-      <view class="header-info">
-        <view class="header-name-row">
-          <text class="header-name">{{depInfo.nxDepartmentName}}</text>
-          <!-- <view class="tag tag-primary">客户</view> -->
-        </view>
-        <view class="header-code-row">
-          <text class="header-code">对外订货：{{depInfo.nxDepartmentOrderCode}}</text>
-        </view>
-        <view class="header-status-row">
-          <text class="header-code">分组标签：</text>
-          <text class="label-pill" wx:for="{{depInfo.selectedLabels}}" wx:key="nxDistributerLabelId">{{item.nxDlName}}</text>
+  <view class="page-content" style="padding-top: {{navBarHeight + 20}}rpx;">
+    <!-- 客户身份摘要 -->
+    <view class="customer-header-card" bindtap="showProfileEditor">
+      <view class="header-main">
+        <image class="header-avatar" src="{{depInfo.nxDepartmentUserEntities && depInfo.nxDepartmentUserEntities.length > 0 && depInfo.nxDepartmentUserEntities[0].nxDuWxAvartraUrl ? url + depInfo.nxDepartmentUserEntities[0].nxDuWxAvartraUrl : '/images/customer.png'}}" mode="aspectFill"></image>
+        <view class="header-info">
+          <view class="header-name-row">
+            <text class="header-name">{{depInfo.nxDepartmentName || '未命名客户'}}</text>
+            <text class="header-status-chip {{depInfo.nxDepartmentWorkingStatus == 0 ? 'is-open' : 'is-closed'}}">
+              {{depInfo.nxDepartmentWorkingStatus == 0 ? '合作中' : '已关闭'}}
+            </text>
+          </view>
+          <text class="header-code">对外订货代号：{{depInfo.nxDepartmentOrderCode || '未设置'}}</text>
+          <text class="header-meta">{{depInfo.nxDepartmentSettleType == 0 ? '现金结算' : '记账结算'}} · {{depInfo.nxDepartmentDeliveryMode == 'SELF_PICKUP' ? '客户自提' : '配送到店'}}</text>
+          <view class="header-labels" wx:if="{{depInfo.selectedLabels && depInfo.selectedLabels.length}}">
+            <text class="label-pill" wx:for="{{depInfo.selectedLabels}}" wx:key="nxDistributerLabelId">{{item.nxDlName}}</text>
+          </view>
         </view>
       </view>
+      <view class="header-edit-cue">
+        <text>编辑</text>
+        <image class="icon" src="/images/arrow-right-3.png" mode="aspectFill"></image>
+      </view>
     </view>
-    <image class="icon" src="/images/arrow-right-3.png" mode="aspectFill"></image>
-  </view>
 
-  <!-- 基本信息 -->
-  <view class="section-card">
-    <view class="section-header">
-      <view class="section-icon icon-basic">基</view>
-      <text class="section-title">打印信息</text>
-    </view>
-    <view class="section-row" bindtap="editGroupInfo">
-      <text class="row-label">客户名称（配送单打印）</text>
-      <view class="row-value">
-        <text>{{depInfo.nxDepartmentName}}</text>
-        <image class="icon" src="/images/arrow-right-3.png" mode="aspectFill"></image>
+    <!-- 客户与打印 -->
+    <view class="section-card module-card">
+      <view class="section-header tappable" bindtap="showProfileEditor">
+        <view class="section-icon icon-basic">客</view>
+        <view class="section-heading-copy">
+          <text class="section-title">客户与打印</text>
+          <text class="section-subtitle">客户称呼、订货代号和打印格式</text>
+        </view>
+        <text class="module-action">修改</text>
+      </view>
+      <view class="section-row tappable" bindtap="showProfileEditor">
+        <text class="row-label">配送单名称</text>
+        <view class="row-value"><text>{{depInfo.nxDepartmentName || '未设置'}}</text><image class="icon" src="/images/arrow-right-3.png" mode="aspectFill"></image></view>
+      </view>
+      <view class="section-row tappable" bindtap="showProfileEditor">
+        <text class="row-label">标签简称</text>
+        <view class="row-value"><text>{{depInfo.nxDepartmentAttrName || '未设置'}}</text><image class="icon" src="/images/arrow-right-3.png" mode="aspectFill"></image></view>
+      </view>
+      <view class="section-row tappable" bindtap="showProfileEditor">
+        <text class="row-label">送货单格式</text>
+        <view class="row-value">
+          <text wx:if="{{depInfo.nxDepartmentPrintName == 'ApplyPanel'}}">一张一列</text>
+          <text wx:elif="{{depInfo.nxDepartmentPrintName == 'ApplyFiftyPanel'}}">一张两列</text>
+          <text wx:elif="{{depInfo.nxDepartmentPrintName == 'ApplyHalfWholePanel'}}">半张一列</text>
+          <text wx:elif="{{depInfo.nxDepartmentPrintName == 'ApplyHalfPanel'}}">半张两列</text>
+          <text wx:elif="{{depInfo.nxDepartmentPrintName == 'ApplyThirtyWholePanel'}}">三分之一张一列</text>
+          <text wx:elif="{{depInfo.nxDepartmentPrintName == 'ApplyThirtyPanel'}}">三分之一张两列</text>
+          <text wx:elif="{{depInfo.nxDepartmentPrintName == 'BlueToothPrint'}}">蓝牙打印机</text>
+          <text wx:elif="{{depInfo.nxDepartmentPrintName == 'feiEPrint'}}">飞鹅打印机</text>
+          <text wx:else>半张一列</text>
+          <image class="icon" src="/images/arrow-right-3.png" mode="aspectFill"></image>
+        </view>
       </view>
     </view>
-    <view class="section-row" bindtap="editGroupInfo">
-      <text class="row-label">简称名称（标签打印）</text>
-      <view class="row-value">
-        <text>{{depInfo.nxDepartmentAttrName}}</text>
-        <image class="icon" src="/images/arrow-right-3.png" mode="aspectFill"></image>
-      </view>
-    </view>
-    <view class="section-row" bindtap="editGroupInfo">
-      <text class="row-label">送货单尺寸格式</text>
-      <view class="row-value">
-        <block wx:if="{{depInfo.nxDepartmentPrintName == 'ApplyPanel'}}">一张一列</block>
-        <block wx:elif="{{depInfo.nxDepartmentPrintName == 'ApplyFiftyPanel'}}">一张二列</block>
-        <block wx:elif="{{depInfo.nxDepartmentPrintName == 'ApplyHalfWholePanel'}}">半张一列</block>
-        <block wx:elif="{{depInfo.nxDepartmentPrintName == 'ApplyHalfPanel'}}">半张两列</block>
-        <block wx:elif="{{depInfo.nxDepartmentPrintName == 'ApplyThirtyWholePanel'}}">三分之一张一列</block>
-        <block wx:elif="{{depInfo.nxDepartmentPrintName == 'ApplyThirtyPanel'}}">三分之一张两列</block>
-        <block wx:else>半张一列</block>
-        <image class="icon" src="/images/arrow-right-3.png" mode="aspectFill"></image>
-      </view>
-    </view>
-    
-  </view>
 
   <!-- 负责员工（业务员 / 录单员） -->
-  <view class="section-card" wx:if="{{depInfo.nxDepartmentIsGroupDep == 1}}">
+  <view class="section-card module-card" wx:if="{{depInfo.nxDepartmentIsGroupDep == 1}}">
     <view class="section-header">
       <view class="section-icon icon-staff">员</view>
-      <text class="section-title">负责员工</text>
+      <view class="section-heading-copy">
+        <text class="section-title">负责员工</text>
+        <text class="section-subtitle">分别指定业务跟进和订单录入人员</text>
+      </view>
     </view>
     <view class="section-row">
       <text class="row-label">负责业务员</text>
@@ -98,47 +101,25 @@
     </view>
   </view>
 
-  <!-- 开通状态（仅现金客户展示开通 / 关闭功能） -->
-  <view class="section-card" wx:if="{{depInfo.nxDepartmentSettleType == 0}}">
-    <view class="section-header">
-      <view class="section-icon icon-status">通</view>
-      <text class="section-title">开通状态</text>
-    </view>
-    <view class="section-row">
-      <text class="row-label">当前状态</text>
-      <text class="row-value {{depInfo.nxDepartmentWorkingStatus == 0 ? 'status-open' : 'status-closed'}}">
-        {{depInfo.nxDepartmentWorkingStatus == 0 ? '已开通' : '未开通'}}
-      </text>
-    </view>
-    <view class="section-row">
-      <text class="row-label"></text>
-      <view class="row-value">
-        <button class="staff-save-btn {{depInfo.nxDepartmentWorkingStatus == 0 ? 'btn-close' : ''}}" size="mini" disabled="{{workingStatusSaving}}" bindtap="toggleWorkingStatus">
-          {{depInfo.nxDepartmentWorkingStatus == 0 ? '关闭客户' : '开通客户'}}
-        </button>
-      </view>
-    </view>
-  </view>
-
-  <!-- 交易信息 -->
-  <view class="section-card">
-    <view class="section-header">
+    <!-- 交易规则 -->
+    <view class="section-card module-card">
+    <view class="section-header tappable" bindtap="showTradeSettingsEditor">
       <view class="section-icon icon-trade">交</view>
-      <text class="section-title">交易信息</text>
+      <view class="section-heading-copy">
+        <text class="section-title">交易规则</text>
+        <text class="section-subtitle">结算、定价和客户经营业态</text>
+      </view>
+      <text class="module-action">修改规则</text>
     </view>
-    <view class="section-row">
-      <text class="row-label">是否送货</text>
-      <text class="row-value">{{depInfo.nxDepartmentDeliveryMode  == 'SELF_PICKUP'  ?  '自提': '送货'}} </text>
-    </view>
-    <view class="section-row">
+    <view class="section-row tappable" bindtap="showTradeSettingsEditor">
       <text class="row-label">支付方式</text>
-      <text class="row-value">{{depInfo.nxDepartmentSettleType == 0 ? '现金' : '记账'}}</text>
+      <view class="row-value"><text>{{depInfo.nxDepartmentSettleType == 0 ? '现金' : '记账'}}</text><image class="icon" src="/images/arrow-right-3.png" mode="aspectFill"></image></view>
     </view>
-    <view class="section-row">
+    <view class="section-row tappable" bindtap="showTradeSettingsEditor">
       <text class="row-label">定价类型</text>
-      <text class="row-value">{{depInfo.nxDepartmentType == 'unFixed' ? '市场变动' : '固定'}}</text>
+      <view class="row-value"><text>{{depInfo.nxDepartmentType == 'unFixed' ? '市场变动' : '固定价格'}}</text><image class="icon" src="/images/arrow-right-3.png" mode="aspectFill"></image></view>
     </view>
-    <view class="section-row" bindtap="showBusinessTypeEditor">
+    <view class="section-row tappable" bindtap="showBusinessTypeEditor">
       <text class="row-label">经营业态</text>
       <view class="row-value">
         <text class="{{customerBusinessTypeName ? 'business-type-value' : 'text-secondary'}}">
@@ -150,11 +131,15 @@
     </view>
   </view>
 
-  <!-- 标签与分组 -->
-  <view class="section-card">
+    <!-- 标签与分组 -->
+    <view class="section-card module-card">
     <view class="section-header">
       <view class="section-icon icon-label">标</view>
-      <text class="section-title">标签与分组</text>
+      <view class="section-heading-copy">
+        <text class="section-title">标签与分组</text>
+        <text class="section-subtitle">用于客户筛选和经营分类</text>
+      </view>
+      <text class="module-action" bindtap="showLabelModal">管理标签</text>
     </view>
     <view class="section-row" bindtap="showLabelModal">
       <text class="row-label">客户标签</text>
@@ -172,24 +157,28 @@
     </view>
   </view>
 
-  <!-- 配送设置 -->
-  <view class="section-card">
-    <view class="section-header">
+    <!-- 路线配送 -->
+    <view class="section-card module-card">
+    <view class="section-header tappable" bindtap="showLocationTimeModal">
       <view class="section-icon icon-delivery">配</view>
-      <text class="section-title">配送设置</text>
+      <view class="section-heading-copy">
+        <text class="section-title">路线配送</text>
+        <text class="section-subtitle">位置、地址、配送时段和卸货要求</text>
+      </view>
+      <text class="module-action">修改配送</text>
     </view>
     <view class="section-row" bindtap="showLocationTimeModal">
-      <text class="row-label">配送位置</text>
+      <text class="row-label">地址与位置</text>
       <view class="row-value">
-        <text class="{{depInfo.nxDepartmentLat || depInfo.nxDepartmentAddress || formattedEarliestTime ? 'text-success' : 'text-danger'}}">
-          {{depInfo.nxDepartmentLat ? '已设置位置' : '未设置位置'}}、{{depInfo.nxDepartmentAddress ? '已设置地址' : '未设置地址'}}、{{formattedEarliestTime && formattedLatestTime ? '已设置时间' : '未设置时间'}}
+        <text class="delivery-summary-value {{depInfo.nxDepartmentLat && depInfo.nxDepartmentAddress ? 'text-success' : 'text-danger'}}">
+          {{depInfo.nxDepartmentAddress || (depInfo.nxDepartmentLat ? '已设置地图位置' : '未设置')}}
         </text>
         <image class="icon" src="/images/arrow-right-3.png" mode="aspectFill"></image>
       </view>
     </view>
     <view class="section-row">
-      <text class="row-label">配送时间信息</text>
-      <text class="row-value">{{(formattedEarliestTime && formattedLatestTime) ? formattedEarliestTime + ' - ' + formattedLatestTime : '-'}}</text>
+      <text class="row-label">配送时段</text>
+      <text class="row-value">{{(formattedEarliestTime && formattedLatestTime) ? formattedEarliestTime + ' - ' + formattedLatestTime : '未设置'}}</text>
     </view>
     <view class="section-row">
       <text class="row-label">卸货时间</text>
@@ -198,19 +187,22 @@
     
   </view>
 
-  <!-- 配送详情 -->
-  <view class="section-card">
+    <!-- 门店与部门 -->
+    <view class="section-card module-card">
     <view class="section-header">
       <view class="section-icon icon-address">门</view>
-      <text class="section-title">门店修改</text>
+      <view class="section-heading-copy">
+        <text class="section-title">门店与部门</text>
+        <text class="section-subtitle">调整客户归属或维护下级门店</text>
+      </view>
     </view>
     
     <view class="section-row" bindtap="trunasferDep">
-      <text class="row-label">转部门</text>
-      <image class="icon" src="/images/exchange.png" mode="aspectFill"></image>
+      <text class="row-label">调整客户归属</text>
+      <view class="row-value"><text>选择目标部门</text><image class="icon" src="/images/exchange.png" mode="aspectFill"></image></view>
     </view>
     <view class="section-row">
-      <text class="row-label">部门</text>
+      <text class="row-label">下级门店</text>
       <view class="row-value" bindtap="showSubDeps">
         <block wx:if="{{depInfo.nxDepartmentEntities && depInfo.nxDepartmentEntities.length > 0}}">
           <text class="text-wrap" wx:for="{{depInfo.nxDepartmentEntities}}" wx:key="nxDepartmentId">{{item.nxDepartmentName}}</text>
@@ -223,192 +215,133 @@
     </view>
   </view>
 
-  <!-- 订货与商品 -->
-  <view class="section-card">
+    <!-- 订货渠道；业务入口已移至客户业务流程页 -->
+    <view class="section-card module-card" wx:if="{{disInfo.nxDistributerAppId !== '-1'}}">
     <view class="section-header">
       <view class="section-icon icon-goods">订</view>
-      <text class="section-title">订货与商品</text>
+      <view class="section-heading-copy">
+        <text class="section-title">订货渠道</text>
+        <text class="section-subtitle">客户小程序账号与订货入口</text>
+      </view>
     </view>
-    <view class="section-row" bindtap="toDepGoods">
-      <text class="row-label">订货商品</text>
-      <image class="icon" src="/images/arrow-right-3.png" mode="aspectFill"></image>
-    </view>
-    <view class="section-row" bindtap="toCustomerBill">
-      <text class="row-label">客户账单</text>
-      <image class="icon" src="/images/arrow-right-3.png" mode="aspectFill"></image>
-    </view>
-    <view class="section-row" bindtap="toCustomerUser" wx:if="{{disInfo.nxDistributerAppId !== '-1'}}">
+    <view class="section-row tappable" bindtap="toCustomerUser">
       <text class="row-label">小程序用户</text>
       <view class="row-value">
-        <text class="text-secondary">未绑定</text>
+        <text>查看绑定用户</text>
         <image class="icon" src="/images/arrow-right-3.png" mode="aspectFill"></image>
       </view>
     </view>
-    <view class="section-row" wx:if="{{disInfo.nxDistributerAppId !== '-1'}}">
-      <text class="row-label">订货单</text>
-      <view class="row-value radio-group">
-        <view class="radio-item">
-          <image class="radio-icon" src="{{depInfo.nxDepartmentAppId == 'wx159c5a46d80e4500' ? '/images/selected-2.png' : '/images/radiobuttonunselect-2.png'}}" mode="aspectFill"></image>
-          <text>通用App</text>
-        </view>
-        <view class="radio-item">
-          <image class="radio-icon" src="{{depInfo.nxDepartmentAppId !== 'wx159c5a46d80e4500' ? '/images/selected-2.png' : '/images/radiobuttonunselect-2.png'}}" mode="aspectFill"></image>
-          <text>定制App</text>
-        </view>
+    <view class="section-row">
+      <text class="row-label">订货小程序</text>
+      <text class="row-value">{{depInfo.nxDepartmentAppId == 'wx159c5a46d80e4500' ? '通用订货' : '定制订货'}}</text>
+    </view>
+  </view>
+
+    <!-- 合作状态 -->
+    <view class="section-card module-card" wx:if="{{depInfo.nxDepartmentSettleType == 0}}">
+    <view class="section-header">
+      <view class="section-icon icon-status">通</view>
+      <view class="section-heading-copy">
+        <text class="section-title">合作状态</text>
+        <text class="section-subtitle">关闭后客户将不能继续下单</text>
       </view>
     </view>
-  </view>
-
-  <!-- 其他信息 -->
-  <view class="section-card">
-    <view class="section-header">
-      <view class="section-icon icon-other">其</view>
-      <text class="section-title">其他信息</text>
+    <view class="section-row">
+      <text class="row-label">当前状态</text>
+      <text class="row-value {{depInfo.nxDepartmentWorkingStatus == 0 ? 'status-open' : 'status-closed'}}">{{depInfo.nxDepartmentWorkingStatus == 0 ? '已开通' : '未开通'}}</text>
     </view>
     <view class="section-row">
-      <text class="row-label">配送单备注</text>
-      <text class="row-value text-success">点击添加</text>
-    </view>
-    <view class="section-row">
-      <text class="row-label">客户备注</text>
-      <text class="row-value text-success">点击添加</text>
-    </view>
-    <view class="section-row">
-      <text class="row-label">创建时间</text>
-      <text class="row-value">{{depInfo.nxDepartmentCreateTime || '2025-06-01 12:30'}}</text>
+      <text class="row-label">账号操作</text>
+      <view class="row-value"><button class="staff-save-btn {{depInfo.nxDepartmentWorkingStatus == 0 ? 'btn-close' : ''}}" size="mini" disabled="{{workingStatusSaving}}" bindtap="toggleWorkingStatus">{{depInfo.nxDepartmentWorkingStatus == 0 ? '关闭客户' : '开通客户'}}</button></view>
     </view>
   </view>
 
-  <!-- 删除客户 -->
-  <view class="delete-section" bindtap="deleteDep">
-    <text class="text-danger">删除客户</text>
+    <view class="archive-line" wx:if="{{depInfo.nxDepartmentCreateTime}}">客户创建于 {{depInfo.nxDepartmentCreateTime}}</view>
+
+    <view class="danger-zone">
+      <view>
+        <text class="danger-title">删除客户</text>
+        <text class="danger-desc">删除后客户相关记录不可恢复</text>
+      </view>
+      <button class="danger-button" size="mini" bindtap="deleteDep">删除</button>
+    </view>
   </view>
 
 </view>
 
-<!--  操作  -->
-<view class='overlay {{showOperation ? "show" : ""}}' catchtouchmove='ture' catchtap="{{!deleteShow && !editArrShow ? 'hideMask' : ''}}">
-
-  <view class="edit-popup bg-white p-20" wx:if="{{editArrShow}}">
-    <view class="flex-column">
-      <view class="flex-row p-10" style="margin-top: 30rpx;">
-        <text class="flex-fixed text-secondary">客户名称:</text>
-        <input class="nickInput"  value="{{editDepName}}" bindinput="getDepName"></input>
+<!-- 客户与打印弹窗：只修改本模块字段 -->
+<view class="overlay {{profileEditorVisible ? 'show' : ''}}" catchtouchmove="stopPropagation" catchtap="hideProfileEditor">
+  <view class="edit-popup profile-popup" catchtap="stopPropagation">
+    <view class="modal-header">
+      <view><text class="modal-title">客户与打印</text><text class="modal-subtitle">只修改客户称呼、订货代号和打印方式</text></view>
+      <text class="modal-close" bindtap="hideProfileEditor">×</text>
+    </view>
+    <scroll-view scroll-y class="profile-form-scroll">
+      <view class="form-group">
+        <text class="form-label">客户名称</text>
+        <input class="form-input" value="{{profileDraft.name}}" bindinput="getDepName" placeholder="用于配送单打印" />
       </view>
-      <view class="flex-row p-10">
-        <text  class="flex-fixed text-secondary" >简称(标签打印):</text>
-        <input class="nickInput"  value="{{editDepAttrName}}" bindinput="getDepAttrName"></input>
+      <view class="form-group">
+        <text class="form-label">简称（标签打印）</text>
+        <input class="form-input" value="{{profileDraft.shortName}}" bindinput="getDepAttrName" placeholder="用于商品标签" />
       </view>
-      <view class="flex-row p-10">
-        <text  class="flex-fixed text-secondary" >代号名称(对外订货):</text>
-        <input class="nickInput"  value="{{editDepOrderCode}}" bindinput="getDepOrderCode"></input>
+      <view class="form-group">
+        <text class="form-label">对外订货代号</text>
+        <input class="form-input" value="{{profileDraft.orderCode}}" bindinput="getDepOrderCode" placeholder="客户订货时显示" />
       </view>
-     
-
-      <view class="flex-row-default p-10">
-        <text class="flex-fixed text-secondary">支付方式:</text>
-        <radio-group class="radio-group flex-row"  bindchange="radioChange">
-          <label class="radio flex-row " style="margin-right: 20rpx;">
-            <radio value="0" checked="{{depInfo.nxDepartmentSettleType == 0 ? 'true' :''}}" />
-            <text class="">现金</text>
-          </label>
-
-          <label class="radio flex-row border-bottom ">
-            <radio value="1" checked="{{depInfo.nxDepartmentSettleType == 1 ? 'true' :''}}" />
-            <text class="">记账</text>
-          </label>
+      <view class="form-group print-group">
+        <text class="form-label">送货单与打印设备</text>
+        <radio-group class="print-options" bindchange="radioChangePrint">
+          <label class="choice-option"><radio value="ApplyPanel" checked="{{profileDraft.printName == 'ApplyPanel'}}" color="#0a8f61"/><text>一张一列</text></label>
+          <label class="choice-option"><radio value="ApplyFiftyPanel" checked="{{profileDraft.printName == 'ApplyFiftyPanel'}}" color="#0a8f61"/><text>一张两列</text></label>
+          <label class="choice-option"><radio value="ApplyHalfWholePanel" checked="{{profileDraft.printName == 'ApplyHalfWholePanel'}}" color="#0a8f61"/><text>半张一列</text></label>
+          <label class="choice-option"><radio value="ApplyHalfPanel" checked="{{profileDraft.printName == 'ApplyHalfPanel'}}" color="#0a8f61"/><text>半张两列</text></label>
+          <label class="choice-option"><radio value="ApplyThirtyWholePanel" checked="{{profileDraft.printName == 'ApplyThirtyWholePanel'}}" color="#0a8f61"/><text>三分之一张一列</text></label>
+          <label class="choice-option"><radio value="ApplyThirtyPanel" checked="{{profileDraft.printName == 'ApplyThirtyPanel'}}" color="#0a8f61"/><text>三分之一张两列</text></label>
+          <label class="choice-option"><radio value="BlueToothPrint" checked="{{profileDraft.printName == 'BlueToothPrint'}}" color="#0a8f61"/><text>蓝牙打印机</text></label>
+          <label class="choice-option"><radio value="feiEPrint" checked="{{profileDraft.printName == 'feiEPrint'}}" color="#0a8f61"/><text>飞鹅打印机</text></label>
         </radio-group>
-
       </view>
-      <view class="flex-row-default p-20">
-        <text class="flex-fixed text-secondary" >定价方式:</text>
-        <radio-group class="radio-group flex-row"  bindchange="radioChangeFixed">
-          <label class="radio flex-row " style="margin-right: 20rpx;">
-            <radio value="0" checked="{{depInfo.nxDepartmentType == 'unFixed' ? 'true' :''}}" />
-            <text class="">不定</text>
-          </label>
+    </scroll-view>
+    <view class="modal-actions"><button class="modal-button secondary" bindtap="hideProfileEditor">取消</button><button class="modal-button primary" loading="{{profileSaving}}" disabled="{{profileSaving}}" bindtap="saveProfileInfo">保存</button></view>
+  </view>
+</view>
 
-          <label class="radio flex-row border-bottom ">
-            <radio value="1" checked="{{depInfo.nxDepartmentType == 'fixed' ? 'true' :''}}" />
-            <text class="">固定</text>
-          </label>
+<!-- 交易规则弹窗：不混入打印或配送字段 -->
+<view class="overlay {{tradeEditorVisible ? 'show' : ''}}" catchtouchmove="stopPropagation" catchtap="hideTradeSettingsEditor">
+  <view class="edit-popup trade-popup" catchtap="stopPropagation">
+    <view class="modal-header">
+      <view><text class="modal-title">交易规则</text><text class="modal-subtitle">只修改结算方式和定价规则</text></view>
+      <text class="modal-close" bindtap="hideTradeSettingsEditor">×</text>
+    </view>
+    <view class="trade-form">
+      <view class="choice-group">
+        <text class="form-label">支付方式</text>
+        <radio-group class="choice-row" bindchange="radioChange">
+          <label class="choice-card"><radio value="0" checked="{{tradeDraft.settleType == 0}}" color="#0a8f61"/><view><text>现金</text><text>每单即时结算</text></view></label>
+          <label class="choice-card"><radio value="1" checked="{{tradeDraft.settleType == 1}}" color="#0a8f61"/><view><text>记账</text><text>按账期统一结算</text></view></label>
         </radio-group>
-
       </view>
-      <view class="flex-row-default p-10">
-        <text class="flex-fixed text-secondary p-10">打印格式:</text>
-        <radio-group class="radio-group flex-column" bindchange="radioChangePrint">
-          <label class="radio flex-row p-10">
-            <radio value="0" checked="{{depInfo.nxDepartmentPrintName == 'ApplyPanel' ? 'true' :''}}" />
-            <text class="">一张一列</text>
-          </label>
-
-          <label class="radio flex-row p-10">
-            <radio value="1" checked="{{depInfo.nxDepartmentPrintName == 'ApplyFiftyPanel' ? 'true' :''}}" />
-            <text class="">一张两列</text>
-          </label>
-          <label class="radio flex-row  p-10">
-            <radio value="2" checked="{{depInfo.nxDepartmentPrintName == 'ApplyHalfWholePanel' ? 'true' :''}}" />
-            <text class="">半张一列</text>
-          </label>
-
-          <label class="radio flex-row  p-10">
-            <radio value="3" checked="{{depInfo.nxDepartmentPrintName == 'ApplyHalfPanel' ? 'true' :''}}" />
-            <text class="">半张两列</text>
-          </label>
-          <label class="radio flex-row p-10">
-            <radio value="7" checked="{{depInfo.nxDepartmentPrintName == 'ApplyThirtyWholePanel' ? 'true' :''}}" />
-            <text class="">三分之一张一列</text>
-          </label>
-          <label class="radio flex-row  p-10">
-            <radio value="6" checked="{{depInfo.nxDepartmentPrintName == 'ApplyThirtyPanel' ? 'true' :''}}" />
-            <text class="">三分之一张两列</text>
-          </label>
-
-          <label class="radio flex-row  p-10" >
-            <radio value="4" checked="{{depInfo.nxDepartmentPrintName == 'BlueToothPrint' ? 'true' :''}}" />
-            <text class="">蓝牙打印机</text>
-          </label>
-          <label class="radio flex-row  p-10">
-            <radio value="5" checked="{{depInfo.nxDepartmentPrintName == 'feiEPrint' ? 'true' :''}}" />
-            <text class="">飞鹅打印机</text>
-          </label>
+      <view class="choice-group">
+        <text class="form-label">定价方式</text>
+        <radio-group class="choice-row" bindchange="radioChangeFixed">
+          <label class="choice-card"><radio value="unFixed" checked="{{tradeDraft.pricingType == 'unFixed'}}" color="#0a8f61"/><view><text>市场变动</text><text>订单价格可调整</text></view></label>
+          <label class="choice-card"><radio value="fixed" checked="{{tradeDraft.pricingType == 'fixed'}}" color="#0a8f61"/><view><text>固定价格</text><text>使用客户固定价</text></view></label>
         </radio-group>
-
       </view>
     </view>
-
-    <!-- <view class="flex-row p-20 border-bottom">
-      <text class="mr-10 text-secondary">订货单:</text>
-      <view class="flex-row">
-        <checkbox-group bindchange="changeAppId">
-          <label class="">
-            <checkbox checked="{{depInfo.nxDepartmentAppId == 'wx159c5a46d80e4500'}}" />
-            通用App
-          </label>
-          <label class="">
-            <checkbox checked="{{depInfo.nxDepartmentAppId !== 'wx159c5a46d80e4500'}}" />
-            定制App
-          </label>
-        </checkbox-group>
-      </view>
-    </view> -->
-
-    <view class="flex-row-between" style="padding: 30rpx 40rpx;">
-      <view class="p-10 third-row center-content hover" bindtap="closeEditGroupInfo">取消</view>
-      <view class="p-10 third-row center-content bg-success" bindtap="updateDepInfo">
-        确定
-      </view>
-    </view>
-
+    <view class="modal-actions"><button class="modal-button secondary" bindtap="hideTradeSettingsEditor">取消</button><button class="modal-button primary" loading="{{tradeSaving}}" disabled="{{tradeSaving}}" bindtap="saveTradeSettings">保存</button></view>
   </view>
 </view>
 
 <!-- 地理位置和配送时间设置弹窗 -->
 <view class='overlay {{showLocationTimeModal ? "show" : ""}}' catchtouchmove="stopPropagation" catchtap="hideLocationTimeModal">
-  <view class="edit-popup bg-white p-20" catchtap="stopPropagation">
+  <view class="edit-popup delivery-popup bg-white p-20" catchtap="stopPropagation">
     <view class="flex-column">
-      <view class="font-lg-2 center-content p-20 border-bottom">配送设置</view>
+      <view class="modal-header delivery-modal-header">
+        <view><text class="modal-title">路线配送</text><text class="modal-subtitle">只修改位置、地址、配送时段和卸货要求</text></view>
+        <text class="modal-close" bindtap="hideLocationTimeModal">×</text>
+      </view>
       
       <!-- 设置提示 -->
       <view class="flex-row p-10" style="background-color: #f0f8ff; border-radius: 8rpx; margin: 10rpx 0;">
@@ -511,39 +444,7 @@
 
 
 
-<!-- mask -->
-<view class='overlay {{showOperationPrice ? "show" : ""}}'>
-
-  <!-- + edit -->
-  <view class="popup">
-    <view class="p-20  flex-column">
-      <view class="flex-row big p-20">
-        <text class="mr-10">{{disGoods.nxDgGoodsName}}</text>
-        <text wx:if="{{disGoods.nxDgGoodsDetail != null && disGoods.nxDgGoodsDetail.length > 0}}"> {{disGoods.nxDgGoodsDetail}}</text>
-      </view>
-
-      <view class="flex-row p-20 font-lg">
-        <view class="mr-20shrink_fix">配送单价:</view>
-        <input type="digit" class="input shrink_change" bindinput="inputSellingPrice" value="{{sellingPrice}}" />元{{disGoods.nxDsStandardName}}
-      </view>
-    </view>
-
-    <view class="flex-row-between p-30">
-      <view class="p-20 bg-light" catchtap="hideMask">
-        <text class="bg-light"> 取消</text>
-      </view>
-      <view class="p-20 bg-success" catchtap="_updateDepGoods">
-        <text class="">保存</text>
-      </view>
-    </view>
-
-  </view>
-
-
-</view>
-
-
-<!-- 采购员链接打开页面之前判断是否有子部门 -->
+<!-- 调整客户归属前选择下级门店 -->
 <view class='overlay {{showChoice ? "show" : ""}}' catchtap="hideChoiceMask">
   <view class='popup' style="width:{{windowWidth/3 * 2}}rpx; ">
     <!-- 分店列表 -->

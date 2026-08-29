@@ -7,7 +7,6 @@ let itemWidth = 0;
 
 import {
   
-  updateDepGoodsSellingPrice,
   getDepInfo,
   deleteGroupDep,
 
@@ -41,6 +40,20 @@ from '../../../../lib/apiDistributer'
 Page({
 
   data: {
+    profileEditorVisible: false,
+    tradeEditorVisible: false,
+    profileSaving: false,
+    tradeSaving: false,
+    profileDraft: {
+      name: '',
+      shortName: '',
+      orderCode: '',
+      printName: 'ApplyHalfWholePanel'
+    },
+    tradeDraft: {
+      settleType: 0,
+      pricingType: 'unFixed'
+    },
     showLocationTimeModal: false,
     canSave: false,
     savingDeliverySettings: false,
@@ -202,158 +215,152 @@ Page({
   },
 
 
-  editGroupInfo(e) {
+  showProfileEditor() {
+    const depInfo = this.data.depInfo || {}
     this.setData({
-      showOperation: true,
-      editArrShow: true,
+      profileEditorVisible: true,
+      profileDraft: {
+        name: depInfo.nxDepartmentName || '',
+        shortName: depInfo.nxDepartmentAttrName || '',
+        orderCode: depInfo.nxDepartmentOrderCode || '',
+        printName: depInfo.nxDepartmentPrintName || 'ApplyHalfWholePanel'
+      }
     })
   },
 
-
-  closeEditGroupInfo() {
+  hideProfileEditor() {
+    if (this.data.profileSaving) return
     this.setData({
-      editArrShow: false,
-      showOperation: false
+      profileEditorVisible: false
     })
   },
-
 
   getDepName(e) {
-    var depInfoDepName = "depInfo.nxDepartmentName";
     this.setData({
-      editDepName: e.detail.value,
-      [depInfoDepName]: e.detail.value
+      'profileDraft.name': e.detail.value
     })
   },
 
   getDepAttrName(e) {
-    var depInfoDepAttrName = "depInfo.nxDepartmentAttrName";
     this.setData({
-      editDepAttrName: e.detail.value,
-      [depInfoDepAttrName]: e.detail.value
+      'profileDraft.shortName': e.detail.value
     })
   },
 
   getDepOrderCode(e) {
-    var depInfoDepOrderCode = "depInfo.nxDepartmentOrderCode";
     this.setData({
-      editDepOrderCode: e.detail.value,
-      [depInfoDepOrderCode]: e.detail.value
+      'profileDraft.orderCode': e.detail.value
     })
   },
-  getDepPickName(e) {
-    var depInfoDepPickName = "depInfo.nxDepartmentPickName";
-    this.setData({
-      editDepPickName: e.detail.value,
-      [depInfoDepPickName]: e.detail.value
-    })
-  },
-
-  getDepRecord(e) {
-    var depInfoDepPickName = "depInfo.nxDepartmentRecordMinutes";
-    this.setData({
-      editRecord: e.detail.value,
-      [depInfoDepPickName]: e.detail.value
-    })
-  },
-  radioChange(e){
-    console.log(e);
-    var depData = "depInfo.nxDepartmentSettleType"
-    this.setData({
-      [depData] : e.detail.value
-    })
-    
-  },
-
-  radioChangeFixed(e){
-    console.log(e);
-    var value = e.detail.value;
-    var depData = "depInfo.nxDepartmentType";
-    if(value == 0){
-      this.setData({
-        [depData] : "unFixed"
-      })
-    }
-    if(value == 1){
-      this.setData({
-        [depData] : "fixed"
-      })
-    }
-  },
-
   radioChangePrint(e){
-    var value = e.detail.value;
-    var depData = "depInfo.nxDepartmentPrintName";
-    if(value == 0){
-      this.setData({
-        [depData] : "ApplyPanel"
-      })
+    const legacyPrintMap = {
+      '0': 'ApplyPanel',
+      '1': 'ApplyFiftyPanel',
+      '2': 'ApplyHalfWholePanel',
+      '3': 'ApplyHalfPanel',
+      '4': 'BlueToothPrint',
+      '5': 'feiEPrint',
+      '6': 'ApplyThirtyPanel',
+      '7': 'ApplyThirtyWholePanel'
     }
-    if(value == 1){
-      this.setData({
-        [depData] : "ApplyFiftyPanel"
-      })
-    }
-    if(value == 2){
-      this.setData({
-        [depData] : "ApplyHalfWholePanel"
-      })
-    }
-    if(value == 3){
-      this.setData({
-        [depData] : "ApplyHalfPanel"
-      })
-    }
-    if(value == 4){
-      this.setData({
-        [depData] : "BlueToothPrint"
-      })
-    }
-    if(value == 5){
-      this.setData({
-        [depData] : "feiEPrint"
-      })
-    } if(value == 6){
-      this.setData({
-        [depData] : "ApplyThirtyPanel"
-      })
-    }
-    if(value == 7){
-      this.setData({
-        [depData] : "ApplyThirtyWholePanel"
-      })
-    }
-  },
-
-  updateDepInfo() {
-      updateGroupName(this.data.depInfo).then(res => {
-        if (res.result.code == 0) {
-          wx.showToast({
-            title: '修改成功',
-          })
-          this.setData({
-            editArrShow: false,
-            showOperation: false,
-          }) 
-        } else {
-          wx.showToast({
-            title: res.result.msg,
-            icon: 'none'
-          })
-        }
-      })  
-  },
-
-
-  toDepGoods(){
-    wx.navigateTo({
-      url: '../customerGoods/customerGoods',
+    const printName = legacyPrintMap[e.detail.value] || e.detail.value
+    this.setData({
+      'profileDraft.printName': printName
     })
   },
 
-  toCustomerBill() {
-    wx.navigateTo({
-      url: '../customerPage/customerPage?depId=' + this.data.depFatherId,
+  saveProfileInfo() {
+    if (this.data.profileSaving) return
+    const draft = this.data.profileDraft || {}
+    const name = (draft.name || '').trim()
+    if (!name) {
+      wx.showToast({ title: '请填写客户名称', icon: 'none' })
+      return
+    }
+    const payload = Object.assign({}, this.data.depInfo || {}, {
+      nxDepartmentName: name,
+      nxDepartmentAttrName: (draft.shortName || '').trim(),
+      nxDepartmentOrderCode: (draft.orderCode || '').trim(),
+      nxDepartmentPrintName: draft.printName || 'ApplyHalfWholePanel'
+    })
+    this.setData({ profileSaving: true })
+    updateGroupName(payload).then(res => {
+      const result = res && res.result || {}
+      if (result.code == 0) {
+        wx.setStorageSync('depInfo', payload)
+        this.setData({
+          depInfo: payload,
+          editDepName: payload.nxDepartmentName,
+          editDepAttrName: payload.nxDepartmentAttrName,
+          editDepOrderCode: payload.nxDepartmentOrderCode,
+          profileEditorVisible: false,
+          profileSaving: false
+        })
+        wx.showToast({ title: '客户与打印已保存', icon: 'success' })
+      } else {
+        this.setData({ profileSaving: false })
+        wx.showToast({ title: result.msg || '保存失败', icon: 'none' })
+      }
+    }).catch(() => {
+      this.setData({ profileSaving: false })
+      wx.showToast({ title: '网络错误，请重试', icon: 'none' })
+    })
+  },
+
+  showTradeSettingsEditor() {
+    const depInfo = this.data.depInfo || {}
+    this.setData({
+      tradeEditorVisible: true,
+      tradeDraft: {
+        settleType: Number(depInfo.nxDepartmentSettleType) === 1 ? 1 : 0,
+        pricingType: depInfo.nxDepartmentType === 'fixed' ? 'fixed' : 'unFixed'
+      }
+    })
+  },
+
+  hideTradeSettingsEditor() {
+    if (this.data.tradeSaving) return
+    this.setData({ tradeEditorVisible: false })
+  },
+
+  radioChange(e) {
+    this.setData({
+      'tradeDraft.settleType': Number(e.detail.value)
+    })
+  },
+
+  radioChangeFixed(e) {
+    this.setData({
+      'tradeDraft.pricingType': e.detail.value
+    })
+  },
+
+  saveTradeSettings() {
+    if (this.data.tradeSaving) return
+    const draft = this.data.tradeDraft || {}
+    const payload = Object.assign({}, this.data.depInfo || {}, {
+      nxDepartmentSettleType: Number(draft.settleType) === 1 ? 1 : 0,
+      nxDepartmentType: draft.pricingType === 'fixed' ? 'fixed' : 'unFixed'
+    })
+    this.setData({ tradeSaving: true })
+    updateGroupName(payload).then(res => {
+      const result = res && res.result || {}
+      if (result.code == 0) {
+        wx.setStorageSync('depInfo', payload)
+        this.setData({
+          depInfo: payload,
+          settleType: payload.nxDepartmentSettleType,
+          tradeEditorVisible: false,
+          tradeSaving: false
+        })
+        wx.showToast({ title: '交易规则已保存', icon: 'success' })
+      } else {
+        this.setData({ tradeSaving: false })
+        wx.showToast({ title: result.msg || '保存失败', icon: 'none' })
+      }
+    }).catch(() => {
+      this.setData({ tradeSaving: false })
+      wx.showToast({ title: '网络错误，请重试', icon: 'none' })
     })
   },
 
@@ -408,6 +415,10 @@ Page({
     wx.navigateTo({
       url: '../choiceDep/choiceDep?depName=' + depName,
     })
+  },
+
+  hideChoiceMask() {
+    this.setData({ showChoice: false })
   },
 
 
@@ -528,46 +539,6 @@ Page({
 
 
 
-
-
-  selDepartment(e){
-    var item = e.currentTarget.dataset.depgoods;
-     var disGoods = e.currentTarget.dataset.goods;
-    this.setData({
-      depGoodsId: item.nxDepartmentDisGoodsId,
-      showOperationPrice: true,
-      disGoods: disGoods,
-      sellingPrice: item.nxDdgOrderPrice,
-    })
-  },
-
-  inputSellingPrice(e){
-    console.log(e.detail.value)
-    this.setData({
-      sellingPrice: e.detail.value,
-    })
-
-  },
-
-  _updateDepGoods(){
-    var data = {
-      depGoodsId: this.data.depGoodsId,
-      sellingPrice: this.data.sellingPrice
-    }
-    updateDepGoodsSellingPrice(data).then(res =>{
-      if(res.result.code == 0){
-        this.setData({
-          showOperationPrice: false,
-          depGoodsId: "",
-          sellingPrice: ""
-        })
-        this._getResGoodsWithOrders();
-        this._openIndex();
-
-      }
-    })
-
-  },
 
 
   showSubDeps(){
