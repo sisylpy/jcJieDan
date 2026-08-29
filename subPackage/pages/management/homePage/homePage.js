@@ -518,6 +518,12 @@ Page({
     })
   },
 
+  toDispatchPerformance(){
+    wx.navigateTo({
+      url: '../dispatchPerformance/dispatchPerformance'
+    })
+  },
+
   toCoupon(){
     wx.navigateTo({
       url: '../distributerCoupon/distributerCoupon?disId=' + this.data.disId,

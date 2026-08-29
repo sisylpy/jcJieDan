@@ -69,6 +69,8 @@
       "pages/shelf/settlePage/settlePage",
 
       "pages/management/homePage/homePage",
+      "pages/management/dispatchPerformance/dispatchPerformance",
+      "pages/management/dispatchPerformanceDetail/dispatchPerformanceDetail",
       "pages/management/customerOrderAnomalies/customerOrderAnomalies",
       "pages/management/homeEdit/homeEdit",
       "pages/management/userNameEdit/userNameEdit",
@@ -105,6 +107,7 @@
       "pages/prepare/orderDepList/orderDepList",
       "pages/prepare/depOutOrder/depOutOrder",
       "pages/prepare/orderList/orderList",
+      "pages/prepare/selfPurchase/selfPurchase",
       "pages/prepare/printWeightOrders/printWeightOrders",
       "pages/goods/disGoodsDetail/disGoodsDetail",
       "pages/goods/disGoodsPage/disGoodsPage",

@@ -1,0 +1,58 @@
+<view class="detail-page">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="路线详情" avatar="/images/back-gray.png"></back-navbar>
+
+  <scroll-view scroll-y class="detail-scroll">
+    <view wx:if="{{loading}}" class="state-card">正在加载路线详情…</view>
+    <view wx:elif="{{errorMessage}}" class="state-card error-card">{{errorMessage}}</view>
+
+    <block wx:elif="{{route}}">
+      <view class="hero-card">
+        <view class="hero-head">
+          <view>
+            <text class="driver-name">{{route.driverName}}</text>
+            <text class="route-date">{{route.routeDate}} · {{route.dispatchBatchLabel}}</text>
+          </view>
+          <text class="status-badge {{route.routeStatusTone}}">{{route.routeStatusLabel}}</text>
+        </view>
+        <view class="hero-distance">
+          <text class="distance-value">{{route.totalDistanceText}}</text>
+          <text class="distance-label">规划道路里程</text>
+        </view>
+        <view class="hero-grid">
+          <view><text>{{route.deliveredStopCount}} / {{route.totalStopCount}}</text><text>已送达 / 全部</text></view>
+          <view><text>{{route.totalDurationText}}</text><text>预计时长</text></view>
+          <view><text>{{route.routeEndLabel}}</text><text>{{route.employmentTypeLabel}}路线</text></view>
+        </view>
+      </view>
+
+      <view class="time-card">
+        <view class="time-row"><text>预计出发</text><text>{{route.plannedDepartAt || '—'}}</text></view>
+        <view class="time-row"><text>实际出发</text><text>{{route.actualDepartAt || '—'}}</text></view>
+        <view class="time-row"><text>预计结束</text><text>{{route.plannedFinishAt || '—'}}</text></view>
+        <view class="time-row emphasis"><text>最后送达</text><text>{{route.lastDeliveredAt || '尚未全部送达'}}</text></view>
+      </view>
+
+      <view class="basis-note">里程来自路线确认时的华为道路规划，不代表手机 GPS 实际行驶里程。</view>
+
+      <view class="stops-card">
+        <view class="section-head"><text>配送站点</text><text>共 {{route.stops.length}} 家</text></view>
+        <view class="stop-row" wx:for="{{route.stops}}" wx:key="deliveryStopId">
+          <view class="stop-seq {{item.delivered ? 'done' : ''}}">{{item.displaySeq}}</view>
+          <view class="stop-main">
+            <view class="stop-head">
+              <text class="stop-name">{{item.departmentName}}</text>
+              <text class="stop-status {{item.delivered ? 'done-text' : ''}}">{{item.stopStatusLabel}}</text>
+            </view>
+            <text class="stop-leg">本段 {{item.legDistanceText}} · {{item.legDurationText}}</text>
+            <view class="stop-meta">
+              <text>预计 {{item.plannedArrivalAt || '—'}}</text>
+              <text wx:if="{{item.deliveredAt}}">送达 {{item.deliveredAt}}</text>
+            </view>
+            <text class="stop-orders">{{item.orderCount}} 单 · {{item.itemCount}} 项商品</text>
+          </view>
+        </view>
+      </view>
+      <view class="page-bottom"></view>
+    </block>
+  </scroll-view>
+</view>

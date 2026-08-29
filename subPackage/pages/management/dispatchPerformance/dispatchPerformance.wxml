@@ -1,0 +1,120 @@
+<view class="performance-page">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="派单管理" avatar="/images/back-gray.png"></back-navbar>
+
+  <scroll-view scroll-y class="performance-scroll">
+    <view class="filter-card">
+      <view class="range-tabs">
+        <view
+          wx:for="{{rangeOptions}}"
+          wx:key="key"
+          class="range-tab {{activeRange === item.key ? 'active' : ''}}"
+          data-key="{{item.key}}"
+          bindtap="onQuickRangeTap"
+        >{{item.label}}</view>
+      </view>
+
+      <view class="date-row">
+        <picker mode="date" value="{{startDate}}" bindchange="onStartDateChange">
+          <view class="date-picker"><text class="date-label">开始</text><text>{{startDate}}</text></view>
+        </picker>
+        <text class="date-separator">至</text>
+        <picker mode="date" value="{{endDate}}" bindchange="onEndDateChange">
+          <view class="date-picker"><text class="date-label">结束</text><text>{{endDate}}</text></view>
+        </picker>
+      </view>
+
+      <picker range="{{driverOptions}}" range-key="driverName" value="{{driverIndex}}" bindchange="onDriverChange">
+        <view class="driver-picker">
+          <text>司机</text>
+          <view><text>{{driverOptions[driverIndex].driverName}}</text><text class="picker-arrow">⌄</text></view>
+        </view>
+      </picker>
+    </view>
+
+    <view class="distance-note">
+      <text class="note-dot"></text>
+      <text>{{distanceBasisLabel}}</text>
+    </view>
+
+    <view class="summary-grid">
+      <view class="summary-card primary">
+        <text class="summary-label">已完成规划里程</text>
+        <text class="summary-value">{{summary.completedPlannedDistanceText}}</text>
+        <text class="summary-foot">全部路线 {{summary.totalPlannedDistanceText}}</text>
+      </view>
+      <view class="summary-card">
+        <text class="summary-label">路线</text>
+        <text class="summary-value">{{summary.completedRouteCount}} / {{summary.routeCount}}</text>
+        <text class="summary-foot">已完成 / 全部</text>
+      </view>
+      <view class="summary-card">
+        <text class="summary-label">饭店部门</text>
+        <text class="summary-value">{{summary.deliveredStopCount}} / {{summary.totalStopCount}}</text>
+        <text class="summary-foot">已送达 / 全部</text>
+      </view>
+      <view class="summary-card">
+        <text class="summary-label">参与司机</text>
+        <text class="summary-value">{{summary.driverCount}} 人</text>
+        <text class="summary-foot">预计 {{summary.totalPlannedDurationText}}</text>
+      </view>
+    </view>
+
+    <view class="section" wx:if="{{drivers.length}}">
+      <view class="section-head">
+        <text class="section-title">司机工作量</text>
+        <text class="section-hint">按已完成规划里程排序</text>
+      </view>
+      <scroll-view scroll-x class="driver-scroll" enable-flex>
+        <view class="driver-card" wx:for="{{drivers}}" wx:key="driverUserId">
+          <view class="driver-avatar">{{item.cardInitial}}</view>
+          <text class="driver-name">{{item.driverName}}</text>
+          <text class="driver-distance">{{item.completedPlannedDistanceText}}</text>
+          <text class="driver-meta">完成 {{item.completedRouteCount}} 趟 · {{item.deliveredStopCount}} 家</text>
+        </view>
+      </scroll-view>
+    </view>
+
+    <view class="section route-section">
+      <view class="section-head">
+        <text class="section-title">路线记录</text>
+        <text class="section-hint">共 {{routes.length}} 条正式路线</text>
+      </view>
+
+      <view wx:if="{{loading}}" class="state-card">正在加载派单记录…</view>
+      <view wx:elif="{{errorMessage}}" class="state-card error-card" bindtap="retryLoad">
+        <text>{{errorMessage}}</text>
+        <text class="retry-text">点击重试</text>
+      </view>
+      <view wx:elif="{{!routes.length}}" class="state-card empty-card">
+        <text class="empty-title">这段时间没有正式派送路线</text>
+        <text class="empty-desc">沙箱建议不会计入这里</text>
+      </view>
+
+      <block wx:for="{{routes}}" wx:key="driverRouteId">
+        <view class="date-heading" wx:if="{{item.showDateHeader}}">{{item.routeDate}}</view>
+        <view class="route-card" data-route-id="{{item.driverRouteId}}" bindtap="openRouteDetail">
+          <view class="route-card-head">
+            <view>
+              <text class="route-driver">{{item.driverName}}</text>
+              <text class="route-batch">{{item.dispatchBatchLabel}}</text>
+            </view>
+            <text class="status-badge {{item.routeStatusTone}}">{{item.routeStatusLabel}}</text>
+          </view>
+          <view class="route-metrics">
+            <view><text class="metric-value">{{item.totalDistanceText}}</text><text class="metric-label">规划里程</text></view>
+            <view><text class="metric-value">{{item.deliveredStopCount}} / {{item.totalStopCount}}</text><text class="metric-label">已送达 / 全部</text></view>
+            <view><text class="metric-value">{{item.totalDurationText}}</text><text class="metric-label">预计时长</text></view>
+          </view>
+          <view class="route-meta-row">
+            <text>{{item.employmentTypeLabel}} · {{item.routeEndLabel}}</text>
+            <text>出发 {{item.actualDepartAt || item.plannedDepartAt || '—'}}</text>
+          </view>
+          <view class="route-complete" wx:if="{{item.lastDeliveredAt}}">最后送达 {{item.lastDeliveredAt}}</view>
+          <view class="route-detail-link">查看路线详情 <text>›</text></view>
+        </view>
+      </block>
+    </view>
+
+    <view class="page-bottom"></view>
+  </scroll-view>
+</view>

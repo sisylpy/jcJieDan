@@ -154,6 +154,17 @@
         <image src="../../../../images/arrow-right-3.png" class="arrow-icon"></image>
       </view>
 
+      <view class="setting-row highlight" bindtap="toDispatchPerformance" hover-class="hover">
+        <view class="setting-icon-wrap cyan">
+          <image src="/images/car.png" class="setting-icon"></image>
+        </view>
+        <view class="setting-main">
+          <text class="setting-title">派单管理</text>
+          <text class="setting-desc">按日期查看司机路线、送达站点和规划里程</text>
+        </view>
+        <image src="../../../../images/arrow-right-3.png" class="arrow-icon"></image>
+      </view>
+
       <view class="setting-row highlight" bindtap="toCoupon" hover-class="hover">
         <view class="setting-icon-wrap green">
           <image src="/images/money-2.png" class="setting-icon"></image>
