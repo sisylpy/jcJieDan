@@ -61,11 +61,10 @@
         <view class="button-container mr-20" bindtap="editShelfState" data-type="sell">
           <image src="../../../../images/exchange.png" class="icon"></image>
         </view>
-
       
-        <!-- <view class="button-container mr-20" wx:if="{{disInfo.nxDistributerBusinessTypeId > 1}}" bindtap="toPurchase" data-type="sell">
+        <view class="button-container mr-20" wx:if="{{disInfo.nxDistributerBusinessTypeId > 1}}" bindtap="toPurchase" data-type="sell">
           <image src="../../../../images/jjdhn.png" class="icon"></image>
-        </view> -->
+        </view>
 
       </view>
     </view>
