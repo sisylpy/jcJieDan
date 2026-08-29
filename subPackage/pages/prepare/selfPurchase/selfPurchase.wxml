@@ -1,0 +1,65 @@
+<back-navbar style="height: {{navBarHeight}}rpx;" title="订单自采" avatar="/images/back-gray.png" button-text="返回" bindnavbuttontap="toBack"></back-navbar>
+
+<view class="self-page" style="padding-top: {{navBarHeight + 24}}rpx;">
+  <view class="page-intro">
+    <view class="intro-title">自己采购</view>
+    <view class="intro-text">填写实际采购数量和单价。订单销售价格不会被修改，订单成本由服务端统一计算。</view>
+  </view>
+
+  <view class="goods-card" wx:for="{{goods}}" wx:key="goodsKey" wx:for-item="item" wx:for-index="goodsIndex">
+    <view class="goods-head">
+      <view class="goods-title-row">
+        <text class="goods-index">{{goodsIndex + 1}}</text>
+        <text class="goods-name">{{item.nxDgGoodsName}}</text>
+        <text class="goods-standard">{{item.isCartonMode ? item.cartonUom : item.baseUom}}</text>
+      </view>
+      <view class="planned">订单合计 {{item.nxDpgQuantity}}{{item.nxDpgStandard}}</view>
+    </view>
+
+    <view class="unit-warning" wx:if="{{item.invalidUnit}}">订单单位与商品采购单位不一致，不能保存</view>
+
+    <view class="price-row">
+      <text class="field-label">采购单价</text>
+      <view class="input-wrap">
+        <input class="number-input" type="digit"
+          value="{{item.isCartonMode ? item.purchaseScalePrice : item.purchasePrice}}"
+          data-goods-index="{{goodsIndex}}" bindinput="onPriceInput" bindblur="closeKeyboard"
+          placeholder="请输入" />
+        <text class="input-unit">元/{{item.isCartonMode ? item.cartonUom : item.baseUom}}</text>
+      </view>
+    </view>
+
+    <view class="orders-title">客户订单</view>
+    <view class="order-row" wx:for="{{item.orders}}" wx:key="orderKey" wx:for-item="order" wx:for-index="orderIndex">
+      <view class="order-main">
+        <text class="customer-name">{{order.customerName}}</text>
+        <text class="ordered-quantity">订 {{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+        <text class="order-remark" wx:if="{{order.nxDoRemark && order.nxDoRemark !== 'null'}}">{{order.nxDoRemark}}</text>
+      </view>
+      <view class="actual-box">
+        <text class="actual-label">实采</text>
+        <input class="quantity-input" type="digit"
+          value="{{order.isCarton ? order.actualScaleQuantity : order.actualQuantity}}"
+          data-goods-index="{{goodsIndex}}" data-order-index="{{orderIndex}}"
+          bindinput="onQuantityInput" bindblur="closeKeyboard" />
+        <text class="quantity-unit">{{order.nxDoStandard}}</text>
+      </view>
+    </view>
+
+    <view class="goods-total">
+      <text>采购小计</text>
+      <text class="subtotal">¥{{item.estimatedSubtotal}}</text>
+    </view>
+  </view>
+
+  <view class="empty" wx:if="{{goods.length === 0}}">没有选择采购商品</view>
+  <view class="bottom-space"></view>
+</view>
+
+<view class="submit-bar" wx:if="{{goods.length > 0}}">
+  <view class="total-block">
+    <text class="total-label">预计采购</text>
+    <text class="total-value">¥{{totalAmount}}</text>
+  </view>
+  <button class="submit-button" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">完成自采</button>
+</view>

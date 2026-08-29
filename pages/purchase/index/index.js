@@ -2367,32 +2367,32 @@ Component({
       return temp;
     },
 
-
-
-    // saveBatchOrder(e) {
-    //   var arr = this._getSelectedArrPurData();
-    //   var batch = {
-    //     nxDpbDistributerId: this.data.disId,
-    //     nxDPGEntities: arr,
-    //     nxDPBPurUserId: this.data.userInfo.nxDistributerUserId,
-    //   }
-      
-    //   // 如果是按客户模式，添加部门ID
-    //   if (this.data.viewMode === 'department' && this.data.selectedDepId) {
-    //     batch.nxDpbNxDepartmentFatherId = this.data.selectedDepId;
-    //   }
-      
-    //   wx.setStorageSync('batch', batch); 
-    //   wx.navigateTo({
-    //     url: '/subPackage/pages/offerNx/offerNxDisOrder/offerNxDisOrder?disId=' + this.data.disId,
-    //   }) 
-    
-    // },
-
-  
+    toSelfPurchase() {
+      var selected = this.data.selectedPrintArr || [];
+      if (!selected.length) {
+        wx.showToast({ title: '请先选择采购商品', icon: 'none' });
+        return;
+      }
+      var seen = {};
+      var goods = selected.filter(function (item) {
+        var id = item && item.nxDistributerPurchaseGoodsId;
+        if (!id || seen[id]) return false;
+        seen[id] = true;
+        return true;
+      });
+      wx.setStorageSync('bossSelfPurchaseDraft', goods);
+      wx.navigateTo({
+        url: '/subPackage/pages/prepare/selfPurchase/selfPurchase'
+      });
+    },
 
     saveBatchOrder(e) {
+      if (this.data.isSavingBatch) return;
       var arr = this._getSelectedArrPurData();
+      if (!arr.length) {
+        wx.showToast({ title: '请先选择采购商品', icon: 'none' });
+        return;
+      }
       var batch = {
         nxDpbDistributerId: this.data.disId,
         nxDPGEntities: arr,
@@ -2404,6 +2404,9 @@ Component({
         batch.nxDpbNxDepartmentFatherId = this.data.selectedDepId;
       }
       
+      const idempotencyKey = this.data.batchSubmitKey || ('boss-batch-' +
+        Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 12));
+      this.setData({ isSavingBatch: true, batchSubmitKey: idempotencyKey });
       wx.setStorageSync('toOrderWx', true);
       load.showLoading("保存订货");
       
@@ -2412,11 +2415,13 @@ Component({
         ? saveBossDepartmentPurchaseBatch
         : saveBossPurchaseBatch;
       
-      saveApi(batch).then(res => {
+      saveApi(batch, idempotencyKey).then(res => {
         load.hideLoading();
+        this.setData({ isSavingBatch: false });
         var that = this;
         if (res.result.code == 0) {
           that.setData({
+            batchSubmitKey: '',
             selectedArr: []
           })
 
@@ -2442,11 +2447,14 @@ Component({
 
 
           } else {
+            this.setData({ batchSubmitKey: '' });
             wx.showToast({
               title: res.result.msg,
               icon: 'none'
             })
           }
+        }).catch(() => {
+          this.setData({ isSavingBatch: false });
         })
     },
 
@@ -2632,61 +2640,6 @@ Component({
       }, 1000);
     },
 
-    
-
-     // 打印采购单
-     toPrint() {
-       // 检查是否有选中的商品
-       const selectedArr = this.data.selectedArr;
-       if (!selectedArr || selectedArr.length === 0) {
-         wx.showToast({
-           title: '请先选择要打印的商品',
-           icon: 'none'
-         });
-         return;
-       }
-       
-       // 按照页面数据顺序排序选中的商品
-       var sortedPrintArr = this.data.selectedPrintArr.sort((a, b) => {
-         // 找到商品在purGoodsArr中的索引
-         var indexA = this.data.purGoodsArr.findIndex(item => item.nxDistributerPurchaseGoodsId === a.nxDistributerPurchaseGoodsId);
-         var indexB = this.data.purGoodsArr.findIndex(item => item.nxDistributerPurchaseGoodsId === b.nxDistributerPurchaseGoodsId);
-         return indexA - indexB; // 按照页面顺序排序
-       });
-       
-       // 设置打印标识和商品数据
-       wx.setStorageSync('toPrintWx', true);
-       wx.setStorageSync('selArr', sortedPrintArr);
-       
-       // 传递页面类型和显示模式，用于区分4种打印情况
-       // pageType: 'stock' 出库页面, 'purchase' 采购页面
-       // viewMode: 'category' 按商品显示, 'department' 按部门显示
-       wx.setStorageSync('printPageType', 'purchase');
-       wx.setStorageSync('printViewMode', this.data.viewMode);
-       
-       // 如果是按部门显示，传递部门信息
-       if (this.data.viewMode === 'department' && this.data.selectedDepId) {
-         var selectedDep = this.data.depArr.find(dep => dep.depId === this.data.selectedDepId);
-         if (selectedDep) {
-           wx.setStorageSync('printCustomerName', selectedDep.nxDepartmentOrderCode || selectedDep.depOrderCode || '');
-         }
-       }
-       
-       // 按商品显示时使用新精简字段，按部门显示时使用完整字段
-       wx.setStorageSync('printUseSimpleFields', this.data.viewMode === 'category');
-       
-       this.setData({
-         selectedArr: [],
-         selectedPrintArr: [],
-         hasMore: true,
-       })
-       
-       // 跳转到orderList页面
-       wx.navigateTo({
-         url: '../../../subPackage/pages/prepare/orderList/orderList',
-       })
-     },
-    
     onNavButtonTap() {
       this.setData({
         selectedArr: [],

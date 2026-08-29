@@ -291,39 +291,23 @@
 <view animation="{{buttonAnimation}}"
   class="flex flex-row bottom-button-container-pur {{selectedArr.length > 0 ? 'is-active' : ''}}"
   style="z-index: 100000;">
-  <view class="flex flex-row pt-10 font-xs" wx:if="{{userInfo.nxDiuPrintDeviceId !== '-1'}}">
-    <view class="third-row center-content" bindtap="showCar">
+  <view class="flex flex-row pt-10 font-xs purchase-action-row">
+    <view class="purchase-cart-action center-content" bindtap="showCar">
       <view class="dotPur" style="margin-left: {{windowWidth / 10}}rpx;">{{selectedArr.length}}</view>
       <image class="pur_icon" src="/images/a-gouwuchejinhuocaigouhuo.png"></image>
     </view>
-    <view class="stock_order_btn is-wx third-row mr-30" bindtap="toPrint">
-      打印采购单
+    <view class="stock_order_btn is-wx purchase-main-action mr-30" bindtap="toSelfPurchase">
+      自己采购
     </view>
-    <view class="stock_order_btn is-paste third-row mr-30" bindtap="toPaste">
+    <view class="stock_order_btn is-paste purchase-main-action mr-30" bindtap="toPaste">
       复制订货
     </view>
-    <view class="stock_order_btn is-wx third-row mr-30" bindtap="saveBatchOrder" wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+    <view class="stock_order_btn is-wx purchase-main-action mr-30" bindtap="saveBatchOrder" wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
       小程序订货
     </view>
     <!-- <view class="stock_order_btn is-wx third-row mr-30" bindtap="saveBatchOrder" wx:if="{{disType == 3}}">
       协作伙伴订货
     </view> -->
-
-  </view>
-
-  <view class="flex flex-row pt-10 font-xs">
-    <view class="third-row center-content" bindtap="showCar">
-      <view class="dotPur" style="margin-left: {{windowWidth / 10}}rpx;">{{selectedArr.length}}</view>
-      <image class="pur_icon" src="/images/a-gouwuchejinhuocaigouhuo.png"></image>
-    </view>
-
-    <view class="stock_order_btn is-paste half-row mr-30" bindtap="toPaste">
-      复制订货
-    </view>
-    <view class="stock_order_btn is-wx half-row mr-30" bindtap="saveBatchOrder" wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
-      小程序订货
-    </view>
-    
   </view>
 
 </view>

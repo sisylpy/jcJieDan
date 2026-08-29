@@ -375,6 +375,25 @@
   display: block;
 }
 
+.purchase-action-row {
+  width: 100%;
+  align-items: center;
+  box-sizing: border-box;
+  padding-left: 12rpx;
+  padding-right: 12rpx;
+}
+
+.purchase-cart-action {
+  position: relative;
+  width: 15%;
+  flex-shrink: 0;
+}
+
+.purchase-main-action {
+  width: 27%;
+  flex-shrink: 0;
+}
+
 .wx_order_btn{
   height: 90rpx;
   line-height: 90rpx;
