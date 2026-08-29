@@ -1,185 +1,239 @@
-<view class="flex flex-column">
+<view class="staff-page">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="账户管理" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
 
-  <back-navbar style="height: {{navBarHeight}}rpx;" title="账户管理" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
-
-  <view class="flex-column">
-
-    <!-- zero -->
-    <view class="flex-row-between p-20">
-      <text>老板、录单员和业务员</text>
-      <view class="flex-row  text-center">
-        <!-- <image src="../../../../images/adduser.png" class="icon mr-20"></image> -->
-        <button class="" open-type="share" disabled="{{!clerkInviteCode}}">邀请录单员</button>
-        <view class="mainBack_new_btn ml-20" bind:tap="toOpenSalesInvite">邀请业务员</view>
-      </view>
-    </view>
-    
-    <view class="flex-row-between border-bottom bg-white p-20" wx:for="{{zeroUserArr}}" wx:key="nxDistributerUserId">
-
-      <view class="flex-row">
-        <image src='{{url + item.nxDiuWxAvartraUrl}}' class="member_url mr-20"></image>
-
-        <view class="flex-column">
-          <view class="flex-row">
-            <text class="font-md">{{item.nxDiuWxNickName}}</text>
-            <text wx:if="{{item.nxDistributerUserId == userInfo.nxDistributerUserId}}">(你自己)</text>
-          </view>
-          <view class="flex-row">
-            <text class="font-md">{{item.nxDiuWxPhone}}</text>
-          </view>
-          
-          <view class="flex-row role-row">
-            <text class="mr-20">角色:</text>
-            <picker mode="selector" range="{{item.availableRoleNames}}" value="{{item.roleIndex}}" disabled="{{item.roleLocked}}"
-              bindchange="changeUserRole" data-item="{{item}}">
-              <view class="role-picker {{item.roleLocked ? 'locked' : ''}}">{{item.roleLabel}}{{item.roleLocked ? '' : ' ▾'}}</view>
-            </picker>
-          </view>
-          <view class="flex-row role-row" wx:if="{{item.nxDiuAdmin == 3}}">
-            <text class="mr-20">默认录单员:</text>
-            <picker mode="selector" range="{{item.defaultClerkOptions}}" range-key="nxDiuWxNickName"
-              value="{{item.defaultClerkIndex}}" bindchange="changeSalesDefaultClerk" data-item="{{item}}">
-              <view class="role-picker">{{item.defaultClerkOptions[item.defaultClerkIndex].nxDiuWxNickName}} ▾</view>
-            </picker>
-          </view>
+  <view class="staff-content">
+    <view class="staff-group-card">
+      <view class="staff-section-header">
+        <view class="staff-section-heading">
+          <text class="staff-section-title">老板小程序用户</text>
+          <text class="staff-section-subtitle">老板、录单员</text>
         </view>
-
+        <button class="staff-invite-button" open-type="share" disabled="{{!clerkInviteCode}}">邀请录单员</button>
       </view>
 
-      <view class="btnClick plr-20" bindtap="openOperation" data-id="{{item.nxDistributerUserId}}" hover-class="hover" data-type="dis" data-item="{{item}}">
-        <image src="../../../../images/points.png" class="icon"></image>
-      </view>
-
-    </view>
-
-    <view class="flex-row-between p-20">
-      <text>京采称重用户</text>
-      <view class="flex-row  text-center">
-        <!-- <button class=""  open-type="share"  data-admin="3">邀请称重员注册</button> -->
-        <view class="mainBack_new_btn" bind:tap="toOpenOrder">邀请称重员注册</view>
-      </view>
-    </view>
-    
-    <view class="flex-row-between border-bottom bg-white p-20" wx:for="{{oneUserArr}}" wx:key="nxDistributerUserId">
-
-      <view class="flex-row">
-        <image src='{{item.nxWuUrlChange == 1 ?  url + item.nxWuWxAvartraUrl : item.nxWuWxAvartraUrl}}' class="member_url mr-20"></image>
-
-        <view class="flex-column">
-          <view class="flex-row">
-            <text class="font-md">{{item.nxWuWxNickName}}</text>
-          </view>
-          <view class="flex-row">
-            <text class="font-lg">{{item.nxWuWxPhone}}</text>
-            <text class="font-md text-secondary">（登录手机号）</text>
-
-          </view>
-
-        </view>
-
-      </view>
-
-      <view class="btnClick plr-20" bindtap="openOperationWeight" data-id="{{item.nxWeightUserId}}" hover-class="hover"  data-item="{{item}}">
-        <image src="../../../../images/points.png" class="icon"></image>
-      </view>
-
-    </view>
-    <view class="flex-row-between p-20">
-      <text>京采司机用户</text>
-      <view class="flex-row  text-center">
-        <view class="mainBack_new_btn" bind:tap="toOpenDriver">邀请司机注册</view>
-      </view>
-    </view>
-
-    <view class="flex-row-between border-bottom bg-white p-20 driver-staff-row" wx:for="{{driverUserArr}}" wx:for-index="driverIndex" wx:key="nxDistributerUserId">
-
-      <view class="flex-row flex-1">
-        <image src='{{url + item.nxDiuWxAvartraUrl}}' class="member_url mr-20"></image>
-
-        <view class="flex-column flex-1 driver-staff-main">
-          <view class="flex-row align-center">
-            <text class="font-md">{{item.nxDiuWxNickName}}</text>
-            <text class="duty-self-tag" wx:if="{{item.nxDistributerUserId == userId}}">我</text>
-          </view>
-          <view class="flex-row" wx:if="{{item.nxDiuWxPhone}}">
-            <text class="font-md">{{item.nxDiuWxPhone}}</text>
-          </view>
-          <view class="flex-row" wx:if="{{item.dutyStatusLabel}}">
-            <text class="font-sm duty-status-label duty-status-label-{{item.dutySwitchOn ? 'on' : 'off'}}">{{item.dutyStatusLabel}}</text>
-          </view>
-          <view class="driver-employment-row">
-            <text class="driver-employment-label">路线终点</text>
-            <view class="driver-employment-options">
-              <view
-                class="driver-employment-option {{item.employmentType === 'FULL_TIME' ? 'driver-employment-option-active' : ''}} {{employmentSubmitting ? 'driver-employment-option-disabled' : ''}}"
-                bindtap="onDriverEmploymentTypeTap"
-                data-index="{{driverIndex}}"
-                data-type="FULL_TIME"
-              >专职·回仓</view>
-              <view
-                class="driver-employment-option {{item.employmentType === 'PART_TIME' ? 'driver-employment-option-active' : ''}} {{employmentSubmitting ? 'driver-employment-option-disabled' : ''}}"
-                bindtap="onDriverEmploymentTypeTap"
-                data-index="{{driverIndex}}"
-                data-type="PART_TIME"
-              >兼职·末站结束</view>
+      <view class="staff-user-row" wx:for="{{ownerUserArr}}" wx:key="nxDistributerUserId">
+        <view class="staff-person-main">
+          <image src="{{url + item.nxDiuWxAvartraUrl}}" class="member_url"></image>
+          <view class="staff-user-copy">
+            <view class="staff-user-name-row">
+              <text class="staff-user-name">{{item.nxDiuWxNickName || '未命名用户'}}</text>
+              <text class="self-tag" wx:if="{{item.nxDistributerUserId == userInfo.nxDistributerUserId}}">你自己</text>
+            </view>
+            <text class="staff-user-phone" wx:if="{{item.nxDiuWxPhone}}">{{item.nxDiuWxPhone}}</text>
+            <view class="role-row">
+              <text class="staff-field-label">角色</text>
+              <picker mode="selector" range="{{item.availableRoleNames}}" value="{{item.roleIndex}}" bindchange="changeUserRole" data-item="{{item}}">
+                <view class="role-picker">{{item.roleLabel}} <text class="picker-arrow">⌄</text></view>
+              </picker>
             </view>
           </view>
         </view>
 
-      </view>
-
-      <view class="flex-row align-center">
-        <switch
-          class="driver-duty-switch"
-          checked="{{item.dutySwitchOn}}"
-          disabled="{{item.dutyToggleDisabled}}"
-          bindchange="onDriverDutyChange"
-          data-index="{{driverIndex}}"
-          color="#008c7a"
-        />
-        <view class="btnClick plr-20" bindtap="openOperation" data-id="{{item.nxDistributerUserId}}" hover-class="hover" data-type="dis" data-item="{{item}}">
-          <image src="../../../../images/points.png" class="icon"></image>
+        <view class="staff-more-button" bindtap="openOperation" data-id="{{item.nxDistributerUserId}}" hover-class="staff-more-hover" data-type="dis" data-item="{{item}}">
+          <image src="../../../../images/points.png" class="staff-more-icon"></image>
         </view>
       </view>
 
+      <view class="staff-empty" wx:if="{{ownerUserArr.length == 0}}">暂无老板小程序用户</view>
     </view>
 
-    <view style="height: 100rpx;"></view>
+    <view class="staff-group-card">
+      <view class="staff-section-header">
+        <view class="staff-section-heading">
+          <text class="staff-section-title">业务员小程序用户</text>
+          <text class="staff-section-subtitle">独立业务员端账号</text>
+        </view>
+        <view class="staff-invite-ghost" bindtap="toOpenSalesInvite">邀请业务员</view>
+      </view>
 
+      <view class="staff-user-row staff-sales-row" wx:for="{{salesUserArr}}" wx:key="nxDistributerUserId">
+        <view class="staff-person-main staff-person-top">
+          <image src="{{url + item.nxDiuWxAvartraUrl}}" class="member_url"></image>
+          <view class="staff-user-copy">
+            <text class="staff-user-name">{{item.nxDiuWxNickName || '未命名业务员'}}</text>
+            <text class="staff-user-phone" wx:if="{{item.nxDiuWxPhone}}">{{item.nxDiuWxPhone}}</text>
+            <view class="role-row">
+              <text class="staff-field-label">角色</text>
+              <view class="role-picker locked">业务员</view>
+            </view>
+            <view class="role-row default-clerk-row">
+              <text class="staff-field-label">默认录单员</text>
+              <picker mode="selector" range="{{item.defaultClerkOptions}}" range-key="nxDiuWxNickName" value="{{item.defaultClerkIndex}}" bindchange="changeSalesDefaultClerk" data-item="{{item}}">
+                <view class="role-picker clerk-picker">{{item.defaultClerkOptions[item.defaultClerkIndex].nxDiuWxNickName}} <text class="picker-arrow">⌄</text></view>
+              </picker>
+            </view>
+          </view>
+        </view>
+
+        <view class="staff-more-button staff-more-top" bindtap="openOperation" data-id="{{item.nxDistributerUserId}}" hover-class="staff-more-hover" data-type="dis" data-item="{{item}}">
+          <image src="../../../../images/points.png" class="staff-more-icon"></image>
+        </view>
+      </view>
+
+      <view class="staff-empty" wx:if="{{salesUserArr.length == 0}}">暂无业务员小程序用户</view>
+    </view>
+
+    <view class="staff-group-card">
+      <view class="staff-section-header">
+        <view class="staff-section-heading">
+          <text class="staff-section-title">京采称重用户</text>
+          <text class="staff-section-subtitle">称重端独立账号</text>
+        </view>
+        <view class="staff-invite-ghost" bindtap="toOpenOrder">邀请称重员</view>
+      </view>
+
+      <view class="staff-user-row" wx:for="{{oneUserArr}}" wx:key="nxWeightUserId">
+        <view class="staff-person-main">
+          <image src="{{item.nxWuUrlChange == 1 ? url + item.nxWuWxAvartraUrl : item.nxWuWxAvartraUrl}}" class="member_url"></image>
+          <view class="staff-user-copy">
+            <text class="staff-user-name">{{item.nxWuWxNickName || '未命名称重员'}}</text>
+            <text class="staff-user-phone" wx:if="{{item.nxWuWxPhone}}">{{item.nxWuWxPhone}}（登录手机号）</text>
+            <text class="staff-role-caption">称重员</text>
+          </view>
+        </view>
+
+        <view class="staff-more-button" bindtap="openOperationWeight" data-id="{{item.nxWeightUserId}}" hover-class="staff-more-hover" data-item="{{item}}">
+          <image src="../../../../images/points.png" class="staff-more-icon"></image>
+        </view>
+      </view>
+
+      <view class="staff-empty" wx:if="{{oneUserArr.length == 0}}">暂无称重用户</view>
+    </view>
+
+    <view class="staff-group-card">
+      <view class="staff-section-header">
+        <view class="staff-section-heading">
+          <text class="staff-section-title">京采司机用户</text>
+          <text class="staff-section-subtitle">司机端独立账号</text>
+        </view>
+        <view class="staff-invite-ghost" bindtap="toOpenDriver">邀请司机</view>
+      </view>
+
+      <view class="staff-user-row driver-staff-row" wx:for="{{driverUserArr}}" wx:for-index="driverIndex" wx:key="nxDistributerUserId">
+        <view class="staff-person-main staff-person-top">
+          <image src="{{url + item.nxDiuWxAvartraUrl}}" class="member_url"></image>
+          <view class="staff-user-copy driver-staff-main">
+            <view class="staff-user-name-row">
+              <text class="staff-user-name">{{item.nxDiuWxNickName || '未命名司机'}}</text>
+              <text class="duty-self-tag" wx:if="{{item.nxDistributerUserId == userId}}">我</text>
+            </view>
+            <text class="staff-user-phone" wx:if="{{item.nxDiuWxPhone}}">{{item.nxDiuWxPhone}}</text>
+            <text class="duty-status-label duty-status-label-{{item.dutySwitchOn ? 'on' : 'off'}}" wx:if="{{item.dutyStatusLabel}}">{{item.dutyStatusLabel}}</text>
+            <view class="driver-employment-row">
+              <text class="driver-employment-label">路线终点</text>
+              <view class="driver-employment-options">
+                <view
+                  class="driver-employment-option {{item.employmentType === 'FULL_TIME' ? 'driver-employment-option-active' : ''}} {{employmentSubmitting ? 'driver-employment-option-disabled' : ''}}"
+                  bindtap="onDriverEmploymentTypeTap"
+                  data-index="{{driverIndex}}"
+                  data-type="FULL_TIME"
+                >专职·回仓</view>
+                <view
+                  class="driver-employment-option {{item.employmentType === 'PART_TIME' ? 'driver-employment-option-active' : ''}} {{employmentSubmitting ? 'driver-employment-option-disabled' : ''}}"
+                  bindtap="onDriverEmploymentTypeTap"
+                  data-index="{{driverIndex}}"
+                  data-type="PART_TIME"
+                >兼职·末站结束</view>
+              </view>
+            </view>
+          </view>
+        </view>
+
+        <view class="driver-actions">
+          <switch
+            class="driver-duty-switch"
+            checked="{{item.dutySwitchOn}}"
+            disabled="{{item.dutyToggleDisabled}}"
+            bindchange="onDriverDutyChange"
+            data-index="{{driverIndex}}"
+            color="#008c7a"
+          />
+          <view class="staff-more-button" bindtap="openOperation" data-id="{{item.nxDistributerUserId}}" hover-class="staff-more-hover" data-type="dis" data-item="{{item}}">
+            <image src="../../../../images/points.png" class="staff-more-icon"></image>
+          </view>
+        </view>
+      </view>
+
+      <view class="staff-empty" wx:if="{{driverUserArr.length == 0}}">暂无司机用户</view>
+    </view>
+
+    <view class="page-bottom"></view>
   </view>
-
 </view>
 
-
-<view class='overlay {{showOperation ? "show" : ""}}' catchtouchmove='ture' catchtap="hideMask">
-  <view class="flex-column nnn bg-white ">
-
-    <view  class="flex-row p-30" bindtap="editUser">
-      <image src="../../../../images/edit.png" class="icon ml-20 mr-20"></image>
-      <text class="">修改用户信息</text>
+<view class="overlay {{showOperation ? 'show' : ''}}" catchtouchmove="true" catchtap="hideMask">
+  <view class="operation-sheet" catchtap="stopPropagation">
+    <view class="operation-handle"></view>
+    <view class="operation-user-summary">
+      <image src="{{url + editUserItem.nxDiuWxAvartraUrl}}" class="operation-avatar"></image>
+      <view class="operation-user-copy">
+        <text class="operation-user-name">{{editUserItem.nxDiuWxNickName || '用户操作'}}</text>
+        <text class="operation-user-role">{{editUserItem.nxDiuAdmin == 3 ? '业务员' : (editUserItem.nxDiuAdmin == 1 ? '录单员' : (editUserItem.nxDiuAdmin == 5 ? '司机' : '老板'))}}</text>
+      </view>
     </view>
 
-    <view  class="flex-row p-30" bindtap="delUser">
-      <image src="../../../../images/del.png" class="icon ml-20 mr-20"></image>
-      <text class="">删除用户</text>
+    <view class="operation-menu">
+    <view class="operation-item" wx:if="{{editUserItem.nxDiuAdmin == 1 || editUserItem.nxDiuAdmin == 3}}" bindtap="toStaffCustomers" data-item="{{editUserItem}}">
+      <view class="operation-symbol customer-symbol">客</view>
+      <view class="operation-copy">
+        <text class="operation-title">查看负责客户</text>
+        <text class="operation-desc">查看客户并修正业务员、录单员</text>
+      </view>
+      <text class="operation-arrow">›</text>
     </view>
-    <view style="height: 40rpx;"></view>
+
+    <view class="operation-item" bindtap="editUser">
+      <view class="operation-symbol"><image src="../../../../images/edit.png" class="operation-icon"></image></view>
+      <view class="operation-copy">
+        <text class="operation-title">修改用户信息</text>
+        <text class="operation-desc">编辑昵称、手机号等账号资料</text>
+      </view>
+      <text class="operation-arrow">›</text>
+    </view>
+
+    <view class="operation-item danger" bindtap="delUser">
+      <view class="operation-symbol danger-symbol"><image src="../../../../images/del.png" class="operation-icon"></image></view>
+      <view class="operation-copy">
+        <text class="operation-title">删除用户</text>
+        <text class="operation-desc">删除前请确认该用户已无进行中的工作</text>
+      </view>
+    </view>
+    </view>
+
+    <view class="operation-cancel" bindtap="hideMask">取消</view>
   </view>
 </view>
 
-
-<view class='overlay {{showOperationWeight ? "show" : ""}}' catchtouchmove='ture' catchtap="hideMask">
-  <view class="flex-column nnn bg-white ">
-
-    <view  class="flex-row p-30" bindtap="editUserWeight">
-      <image src="../../../../images/edit.png" class="icon ml-20 mr-20"></image>
-      <text class="">修改用户信息</text>
+<view class="overlay {{showOperationWeight ? 'show' : ''}}" catchtouchmove="true" catchtap="hideMask">
+  <view class="operation-sheet" catchtap="stopPropagation">
+    <view class="operation-handle"></view>
+    <view class="operation-user-summary">
+      <image src="{{editUserItemWeight.nxWuUrlChange == 1 ? url + editUserItemWeight.nxWuWxAvartraUrl : editUserItemWeight.nxWuWxAvartraUrl}}" class="operation-avatar"></image>
+      <view class="operation-user-copy">
+        <text class="operation-user-name">{{editUserItemWeight.nxWuWxNickName || '称重员操作'}}</text>
+        <text class="operation-user-role">称重员</text>
+      </view>
     </view>
 
-    <view  class="flex-row p-30" bindtap="delUserWeight">
-      <image src="../../../../images/del.png" class="icon ml-20 mr-20"></image>
-      <text class="">删除用户</text>
+    <view class="operation-menu">
+    <view class="operation-item" bindtap="editUserWeight">
+      <view class="operation-symbol"><image src="../../../../images/edit.png" class="operation-icon"></image></view>
+      <view class="operation-copy">
+        <text class="operation-title">修改用户信息</text>
+        <text class="operation-desc">编辑称重员账号资料</text>
+      </view>
+      <text class="operation-arrow">›</text>
     </view>
-    <view style="height: 40rpx;"></view>
+
+    <view class="operation-item danger" bindtap="delUserWeight">
+      <view class="operation-symbol danger-symbol"><image src="../../../../images/del.png" class="operation-icon"></image></view>
+      <view class="operation-copy">
+        <text class="operation-title">删除用户</text>
+        <text class="operation-desc">删除后该账号将无法继续称重</text>
+      </view>
+    </view>
+    </view>
+
+    <view class="operation-cancel" bindtap="hideMask">取消</view>
   </view>
 </view>

@@ -80,6 +80,7 @@
       "pages/management/labelPrinter/labelPrinter",
 
       "pages/management/staff/staff",
+      "pages/management/staffCustomers/staffCustomers",
     
       "pages/management/payList/payList",
       "pages/management/disUserEdit/disUserEdit",

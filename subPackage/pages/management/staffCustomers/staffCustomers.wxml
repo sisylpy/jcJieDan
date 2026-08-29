@@ -1,0 +1,120 @@
+<view class="staff-customers-page">
+  <back-navbar
+    style="height: {{navBarHeight}}rpx;"
+    title="{{targetRoleLabel}}负责客户"
+    avatar="/images/back-gray.png"
+    bindnavbuttontap="toBack"
+  ></back-navbar>
+
+  <view class="staff-customers-body" style="padding-top: {{navBarHeight}}rpx;">
+    <scroll-view scroll-y class="staff-customers-scroll">
+      <view class="page-content">
+        <view class="staff-summary-card">
+          <view class="staff-avatar">{{targetInitial}}</view>
+          <view class="staff-summary-main">
+            <view class="staff-name-row">
+              <text class="staff-name">{{targetName || '未命名员工'}}</text>
+              <text class="staff-role-tag">{{targetRoleLabel}}</text>
+            </view>
+            <text class="staff-customer-count">当前负责 {{allCustomers.length}} 个客户</text>
+          </view>
+        </view>
+
+        <view class="assignment-note">
+          可同时修正客户的业务员和录单员。若将当前员工更换掉，保存后该客户会从本列表移除。
+        </view>
+
+        <view class="search-box">
+          <image src="/images/search.png" mode="aspectFit" class="search-icon"></image>
+          <input
+            class="search-input"
+            value="{{keyword}}"
+            bindinput="onKeywordInput"
+            placeholder="搜索客户名称、地址或负责人"
+            placeholder-class="search-placeholder"
+          />
+          <view class="search-clear" wx:if="{{keyword}}" bindtap="clearSearch">×</view>
+        </view>
+
+        <view class="state-card" wx:if="{{loading}}">正在加载负责客户…</view>
+        <view class="state-card error" wx:elif="{{errorMessage}}" bindtap="retryLoad">
+          <text>{{errorMessage}}</text>
+          <text class="retry-text">点击重试</text>
+        </view>
+
+        <view class="customer-list" wx:else>
+          <view class="customer-card" wx:for="{{customers}}" wx:key="nxDepartmentId">
+            <view class="customer-header">
+              <view class="customer-avatar">{{item.avatarText}}</view>
+              <view class="customer-main">
+                <text class="customer-name">{{item.nxDepartmentName || '未命名客户'}}</text>
+                <text class="customer-address">{{item.nxDepartmentAddress || '未填写地址'}}</text>
+                <text class="customer-departments">{{item.departmentCount ? item.departmentCount + ' 个下单部门' : '总部门直接下单'}}</text>
+              </view>
+            </view>
+
+            <view class="assignment-row">
+              <view class="assignment-label-wrap">
+                <text class="assignment-label">负责业务员</text>
+                <text class="assignment-hint">客户跟进</text>
+              </view>
+              <picker
+                mode="selector"
+                range="{{salesOptions}}"
+                range-key="name"
+                value="{{item.salesIndex}}"
+                bindchange="onSalesChange"
+                data-id="{{item.nxDepartmentId}}"
+              >
+                <view class="assignment-picker">
+                  <text>{{salesOptions[item.salesIndex].name}}</text>
+                  <text class="picker-arrow">⌄</text>
+                </view>
+              </picker>
+            </view>
+
+            <view class="assignment-row">
+              <view class="assignment-label-wrap">
+                <text class="assignment-label">负责录单员</text>
+                <text class="assignment-hint">订单录入</text>
+              </view>
+              <picker
+                mode="selector"
+                range="{{clerkOptions}}"
+                range-key="name"
+                value="{{item.clerkIndex}}"
+                bindchange="onClerkChange"
+                data-id="{{item.nxDepartmentId}}"
+              >
+                <view class="assignment-picker">
+                  <text>{{clerkOptions[item.clerkIndex].name}}</text>
+                  <text class="picker-arrow">⌄</text>
+                </view>
+              </picker>
+            </view>
+
+            <view class="customer-save-row">
+              <text class="change-status {{item.assignmentDirty ? 'changed' : ''}}">
+                {{item.assignmentDirty ? '负责人有修改，尚未保存' : '负责人分配已保存'}}
+              </text>
+              <button
+                class="save-assignment-button"
+                disabled="{{!item.assignmentDirty || savingCustomerId}}"
+                loading="{{savingCustomerId == item.nxDepartmentId}}"
+                bindtap="saveCustomerAssignment"
+                data-id="{{item.nxDepartmentId}}"
+              >保存修改</button>
+            </view>
+          </view>
+
+          <view class="state-card empty" wx:if="{{customers.length == 0}}">
+            <text class="empty-title">{{keyword ? '没有找到匹配客户' : '暂时没有负责的客户'}}</text>
+            <text class="empty-desc" wx:if="{{!keyword}}">可在其他员工的客户列表中重新分配</text>
+          </view>
+        </view>
+
+        <view class="page-bottom"></view>
+      </view>
+    </scroll-view>
+  </view>
+</view>

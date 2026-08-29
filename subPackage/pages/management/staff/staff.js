@@ -63,6 +63,10 @@ Page({
     showOperation: false,
     dutySubmitting: false,
     employmentSubmitting: false,
+    ownerUserArr: [],
+    salesUserArr: [],
+    oneUserArr: [],
+    driverUserArr: [],
 
   },
 
@@ -104,36 +108,44 @@ Page({
           employmentType: normalizeEmploymentType(driver.nxDiuDriverEmploymentType)
         })
       })
-      var combinedStaff = []
-        .concat(res.result.data.admins || [])
-        .concat(res.result.data.clerks || [])
-        .concat(res.result.data.sales || [])
-      var clerks = res.result.data.clerks || []
+      var legacyStaff = res.result.data.zero || []
+      var admins = res.result.data.admins || legacyStaff.filter(function (user) {
+        return user.nxDiuAdmin == 0
+      })
+      var clerks = res.result.data.clerks || legacyStaff.filter(function (user) {
+        return user.nxDiuAdmin == 1
+      })
+      var sales = res.result.data.sales || legacyStaff.filter(function (user) {
+        return user.nxDiuAdmin == 3
+      })
       var defaultClerkOptions = [{
         nxDistributerUserId: null,
         nxDiuWxNickName: '每次新增客户时选择'
       }].concat(clerks)
-      var staffUsers = combinedStaff.map(function (user) {
-        var isSales = user.nxDiuAdmin == 3
-        var availableRoleNames = isSales ? ['业务员'] : ['老板', '录单员']
-        var availableRoleValues = isSales ? [3] : [0, 1]
+      var ownerUsers = admins.concat(clerks).map(function (user) {
+        var availableRoleNames = ['老板', '录单员']
+        var availableRoleValues = [0, 1]
         var roleIndex = availableRoleValues.indexOf(user.nxDiuAdmin)
-        var defaultClerkIndex = isSales ? defaultClerkOptions.findIndex(function (clerk) {
-          return clerk.nxDistributerUserId == user.nxDiuDefaultClerkUserId
-        }) : 0
         return Object.assign({}, user, {
           roleIndex: roleIndex < 0 ? 1 : roleIndex,
           roleLabel: roleIndex < 0 ? '其他' : availableRoleNames[roleIndex],
           availableRoleNames: availableRoleNames,
-          availableRoleValues: availableRoleValues,
-          roleLocked: isSales,
+          availableRoleValues: availableRoleValues
+        })
+      })
+      var salesUsers = sales.map(function (user) {
+        var defaultClerkIndex = defaultClerkOptions.findIndex(function (clerk) {
+          return clerk.nxDistributerUserId == user.nxDiuDefaultClerkUserId
+        })
+        return Object.assign({}, user, {
           defaultClerkOptions: defaultClerkOptions,
           defaultClerkIndex: defaultClerkIndex < 0 ? 0 : defaultClerkIndex
         })
       })
       that.setData({
-        zeroUserArr: staffUsers,
-        oneUserArr: res.result.data.one,
+        ownerUserArr: ownerUsers,
+        salesUserArr: salesUsers,
+        oneUserArr: res.result.data.one || [],
         driverUserArr: drivers,
         editUser: false
       })
@@ -375,6 +387,23 @@ changeUserRole(e){
   })
 },
 
+toStaffCustomers(e) {
+  var user = (e.currentTarget.dataset && e.currentTarget.dataset.item)
+    || this.data.editUserItem
+    || {}
+  if (!user.nxDistributerUserId || (user.nxDiuAdmin != 1 && user.nxDiuAdmin != 3)) {
+    wx.showToast({ title: '员工信息无效', icon: 'none' })
+    return
+  }
+  this.setData({ showOperation: false })
+  wx.navigateTo({
+    url: '/subPackage/pages/management/staffCustomers/staffCustomers?disId=' + this.data.disId
+      + '&userId=' + user.nxDistributerUserId
+      + '&role=' + user.nxDiuAdmin
+      + '&name=' + encodeURIComponent(user.nxDiuWxNickName || '')
+  })
+},
+
 toOpenSalesInvite() {
   if (this.data.salesInviteLoading) return
   this.setData({ salesInviteLoading: true })
@@ -428,6 +457,7 @@ openOperationWeight(e){
    * 删除用户
    */
   delUser() {
+    this.setData({ showOperation: false })
     load.showLoading("删除用户")
     if(this.data.type == 'dis'){
       deleteDisUser(this.data.selectUserId).then(res => {
@@ -462,6 +492,7 @@ openOperationWeight(e){
 
 
   delUserWeight(){
+    this.setData({ showOperationWeight: false })
     load.showLoading("删除用户")
       deleteWeightUser(this.data.selectUserIdWeight).then(res => {
         if (res.result.code !== -1) {
@@ -481,7 +512,8 @@ openOperationWeight(e){
  
   editUser(e){
     this.setData({
-      editUser: true
+      editUser: true,
+      showOperation: false
     })
     wx.setStorageSync('editUserItem', this.data.editUserItem);
     wx.navigateTo({
@@ -513,6 +545,8 @@ openOperationWeight(e){
       
     })
   },
+
+  stopPropagation() {},
   
 
   toBack(){
