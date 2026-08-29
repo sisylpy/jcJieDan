@@ -90,7 +90,7 @@
                     <view class="flex-row wp-single-cost-row">
                       <view class="flex-row half-row">
                         <text class="text-secondary">进价:</text>
-                        <text>{{item.nxDoCostPrice}}</text>
+                        <text>{{tool.formatPriceTwoDecimals(item.nxDoCostPrice)}}</text>
                         <text>元/{{item.nxDoPrintStandard}}</text>
 
                       </view>
