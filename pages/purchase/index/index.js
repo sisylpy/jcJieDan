@@ -54,6 +54,7 @@ Component({
     categoryPositionsRetryCount: 0, // 位置计算重试次数
     scrollTimer: null, // 滚动防抖定时器
     isLoadingMoreForCategory: false, // 是否为分类加载更多数据
+    deletingBatchItem: false,
 },
 
 
@@ -2839,14 +2840,15 @@ Component({
 
     // 确认删除商品
     confirmDeleteBatchItem() {
-      if (!this.data.deleteGoodsId) {
+      if (!this.data.deleteGoodsId || this.data.deletingBatchItem) {
         return;
       }
-      
+      this.setData({ deletingBatchItem: true });
       load.showLoading("删除中");
       deleteDisPurBatchItem(this.data.deleteGoodsId)
         .then(res => {
           load.hideLoading();
+          this.setData({ deletingBatchItem: false });
           if (res.result.code == 0) {
             // 关闭确认弹窗
             this.setData({
@@ -2864,6 +2866,10 @@ Component({
             });
           }
         })
+        .catch(() => {
+          load.hideLoading();
+          this.setData({ deletingBatchItem: false });
+        })
         
     },
 
@@ -2872,7 +2878,8 @@ Component({
       this.setData({
         showDeleteConfirmModal: false,
         deleteGoodsId: null,
-        deleteGoodsName: ''
+        deleteGoodsName: '',
+        deletingBatchItem: false
       });
     },
      

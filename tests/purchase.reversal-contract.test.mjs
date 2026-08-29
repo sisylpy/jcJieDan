@@ -39,3 +39,9 @@ test('Owner统一请求层为写命令生成关联请求ID', () => {
   assert.match(ownerRequestSource, /function nextOwnerRequestId\(\)/);
   assert.match(purchasePageSource, /deleteDisPurBatchItem\(this\.data\.deleteGoodsId\)/);
 });
+
+test('批次商品撤销提交期间禁止重复点击', () => {
+  assert.match(purchasePageSource, /this\.data\.deletingBatchItem/);
+  assert.match(purchasePageSource, /this\.setData\(\{ deletingBatchItem: true \}\)/);
+  assert.match(purchasePageSource, /this\.setData\(\{ deletingBatchItem: false \}\)/);
+});
