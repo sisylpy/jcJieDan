@@ -137,6 +137,17 @@ Component({
    */
   methods: {
 
+    _hideKeyboard() {
+      if (typeof wx.hideKeyboard !== 'function') return;
+      wx.hideKeyboard({
+        fail: function() {}
+      });
+    },
+
+    hideKeyboard() {
+      this._hideKeyboard();
+    },
+
     _hasOuterCarton(disGoods) {
       if (!disGoods) return false;
       const u = disGoods.nxDgCartonUnit;
@@ -269,6 +280,7 @@ Component({
 
     /** 有外包装时点击单位：箱 ↔ 最小单位，并按每件/每箱数换算数量与单价 */
     togglePurchaseUnit() {
+      this._hideKeyboard();
       if (!this.data.hasPurchasableCarton) return;
       const disGoods = this.data.item.nxDistributerGoodsEntity;
       console.log('[inputPurStock] togglePurchaseUnit', {
@@ -356,12 +368,14 @@ Component({
     },
 
     clickMask() {
+      this._hideKeyboard();
       this.setData({
         show: false,
       })
     },
 
     cancle() {
+      this._hideKeyboard();
       this.setData({
         show: false,
         editApply: false,
@@ -371,6 +385,7 @@ Component({
     },
 
     finish(e){
+      this._hideKeyboard();
       this.setData({
         show: false,
         editApply: false,
@@ -492,6 +507,7 @@ Component({
 
     // 检查价格
     _checkPrice(e) {
+      this._hideKeyboard();
       var price = e.detail.value;
       if (price && (isNaN(price) || price < 0)) {
         wx.showToast({
@@ -503,6 +519,7 @@ Component({
 
     // 检查数量
     _checkQuantity(e) {
+      this._hideKeyboard();
       var quantity = e.detail.value;
       if (quantity && (isNaN(quantity) || quantity <= 0)) {
         wx.showToast({
@@ -519,6 +536,7 @@ Component({
 
     // 切换等待入库状态
     changeWait(e) {
+      this._hideKeyboard();
       const checked = e.detail.value;
       this.setData({
         'item.isShowTools': checked
@@ -527,6 +545,7 @@ Component({
 
     // 生产日期
     onProduceDateChange(e) {
+      this._hideKeyboard();
       const date = e.detail.value;
       this.setData({
         'item.nxDpgProduceDate': date
@@ -546,6 +565,7 @@ Component({
 
     // 保质期单位
     onShelfLifeUnitChange(e) {
+      this._hideKeyboard();
       const idx = parseInt(e.detail.value, 10);
       const unit = this.data.shelfLifeUnitOptions[idx].value;
       this.setData({
@@ -557,6 +577,7 @@ Component({
 
     // 过期日期（用户手动选择时使用，不传则后端自动计算）
     onExpiryDateChange(e) {
+      this._hideKeyboard();
       const date = e.detail.value;
       this.setData({
         'item.nxDpgExpiryDate': date
@@ -591,6 +612,7 @@ Component({
     },
 
     confirm(e) {
+        this._hideKeyboard();
         const disGoods = this.data.item.nxDistributerGoodsEntity;
         const qtyStr = this._quantityInputStr(this.data.item);
         this.data.item.nxDpgBuyQuantity = qtyStr;

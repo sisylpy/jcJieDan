@@ -29,7 +29,7 @@
           <text class="margin-l-right">采购数量:</text>
           <view class="flex-row">
             <view class="inputView" style="width: 200rpx; margin-right: 10rpx;">
-              <input class='input' type='digit' value="{{item.nxDpgBuyQuantity}}" bindinput="getPurchaseQuantity" bindblur="_checkQuantity" hold-keyboard='true'></input>
+              <input class='input' type='digit' value="{{item.nxDpgBuyQuantity}}" bindinput="getPurchaseQuantity" bindblur="_checkQuantity" bindconfirm="hideKeyboard" confirm-type="done"></input>
             </view>
             <text wx:if="{{hasPurchasableCarton}}" class="unit-switch" bindtap="togglePurchaseUnit">{{purchaseUseCartonUnit ? item.nxDistributerGoodsEntity.nxDgCartonUnit : item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
             <text wx:else>{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
@@ -40,7 +40,7 @@
           <text class="margin-l-right">采购单价:</text>
           <view class="flex-row">
             <view class="inputView" style="width: 200rpx; margin-right: 10rpx;">
-              <input class='input' type='digit' value="{{cartonBuyPrice || item.nxDpgBuyPrice}}" bindinput="getPurchasePrice" bindblur="_checkPrice" hold-keyboard='true'></input>
+              <input class='input' type='digit' value="{{cartonBuyPrice || item.nxDpgBuyPrice}}" bindinput="getPurchasePrice" bindblur="_checkPrice" bindconfirm="hideKeyboard" confirm-type="done"></input>
             </view>
             <text wx:if="{{hasPurchasableCarton}}" class="unit-switch" bindtap="togglePurchaseUnit">元/{{purchaseUseCartonUnit ? item.nxDistributerGoodsEntity.nxDgCartonUnit : item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
             <text wx:else>元/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
@@ -58,7 +58,7 @@
           <text class="margin-l-right">建议售价:</text>
           <view class="flex-row">
             <view class="inputView" style="width: 200rpx; margin-right: 10rpx;">
-              <input class='input' type='digit' value="{{cartonExpectPrice || item.nxDpgExpectPrice}}" bindinput="getPurchaseExpectPrice" bindblur="_checkPrice" hold-keyboard='true'></input>
+              <input class='input' type='digit' value="{{cartonExpectPrice || item.nxDpgExpectPrice}}" bindinput="getPurchaseExpectPrice" bindblur="_checkPrice" bindconfirm="hideKeyboard" confirm-type="done"></input>
             </view>
             <text wx:if="{{hasPurchasableCarton}}" class="unit-switch" bindtap="togglePurchaseUnit">元/{{purchaseUseCartonUnit ? item.nxDistributerGoodsEntity.nxDgCartonUnit : item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
             <text wx:else>元/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
@@ -82,8 +82,8 @@
         <!-- 生产日期 -->
         <view class="flex-row-between p-20">
           <text class="margin-l-right">生产日期:</text>
-          <picker mode="date" value="{{item.nxDpgProduceDate || ''}}" bindchange="onProduceDateChange">
-            <view class="inputView" style="width: 240rpx; padding: 15rpx 20rpx;">
+          <picker mode="date" value="{{item.nxDpgProduceDate || ''}}" bindtap="hideKeyboard" bindchange="onProduceDateChange">
+            <view class="inputView" style="width: 240rpx; padding: 10rpx 18rpx;">
               <text class="{{item.nxDpgProduceDate ? '' : 'gray'}}">{{item.nxDpgProduceDate || '请选择'}}</text>
             </view>
           </picker>
@@ -94,10 +94,10 @@
           <text class="margin-l-right">保质期:</text>
           <view class="flex-row">
             <view class="inputView" style="width: 120rpx; margin-right: 10rpx;">
-              <input class="input" type="number" value="{{item.nxDpgShelfLife}}" placeholder="数值" bindinput="onShelfLifeInput" hold-keyboard="true"></input>
+              <input class="input" type="number" value="{{item.nxDpgShelfLife}}" placeholder="数值" bindinput="onShelfLifeInput" bindblur="hideKeyboard" bindconfirm="hideKeyboard" confirm-type="done"></input>
             </view>
-            <picker mode="selector" range="{{shelfLifeUnitOptions}}" range-key="label" value="{{shelfLifeUnitIndex}}" bindchange="onShelfLifeUnitChange">
-              <view class="inputView" style="width: 120rpx; padding: 15rpx 20rpx;">
+            <picker mode="selector" range="{{shelfLifeUnitOptions}}" range-key="label" value="{{shelfLifeUnitIndex}}" bindtap="hideKeyboard" bindchange="onShelfLifeUnitChange">
+              <view class="inputView" style="width: 120rpx; padding: 10rpx 18rpx;">
                 <text class="{{item.nxDpgShelfLifeUnit ? '' : 'gray'}}">{{item.nxDpgShelfLifeUnit || '单位'}}</text>
               </view>
             </picker>
@@ -107,8 +107,8 @@
         <!-- 过期日期（可选，不填则根据生产日期+保质期自动计算） -->
         <view class="flex-row-between p-20">
           <text class="margin-l-right">过期日期:</text>
-          <picker mode="date" value="{{item.nxDpgExpiryDate || calculatedExpiryDate}}" bindchange="onExpiryDateChange">
-            <view class="inputView" style="width: 240rpx; padding: 15rpx 20rpx;">
+          <picker mode="date" value="{{item.nxDpgExpiryDate || calculatedExpiryDate}}" bindtap="hideKeyboard" bindchange="onExpiryDateChange">
+            <view class="inputView" style="width: 240rpx; padding: 10rpx 18rpx;">
               <text class="{{(item.nxDpgExpiryDate || calculatedExpiryDate) ? '' : 'gray'}}">{{item.nxDpgExpiryDate || calculatedExpiryDate || '自动计算'}}</text>
             </view>
           </picker>
