@@ -18,6 +18,9 @@ import { describeOwnerRequestError } from '../../lib/ownerRequest'
 Page({
 
   data: {
+    checkingLogin: true,
+    registrationReady: false,
+    loginFailed: false,
     canLogin: false,
     accept: false,
     agreeProtocol: false,  // 是否同意用户协议和隐私政策（符合平台规范3.4）
@@ -53,12 +56,6 @@ Page({
     console.log("登录页面 onLoad - environment:", this.data.environment);
     console.log("登录页面 onLoad - canLogin:", this.data.canLogin);
 
-    // 现有 Boss 用户（老板或文员）先用微信身份换取会话；邀请码只保护新用户注册。
-    this._login();
-
-    // 检查隐私授权状态（符合微信平台规范3.4）
-    this._checkPrivacyAuth();
-
     if(options.cityId == null){
       this.setData({
         cityId: -1, 
@@ -71,10 +68,38 @@ Page({
       })
     }
 
-    var data = {
-      cityId: this.data.cityId,
-      maId:  this.data.maId,
+    // 老客户优先恢复仍有效的Owner会话；没有可用会话时再用微信code静默登录。
+    // 注册表单只有在Server明确确认该微信身份尚未绑定后才允许显示。
+    if (!this._restoreCachedOwnerSession()) {
+      this._login();
     }
+  },
+
+  _restoreCachedOwnerSession() {
+    const userInfo = wx.getStorageSync('userInfo') || null;
+    const disInfo = wx.getStorageSync('disInfo') || null;
+    const role = Number(userInfo && userInfo.nxDiuAdmin);
+    const usable = app.hasUsableOwnerToken()
+      && userInfo && disInfo && disInfo.nxDistributerId
+      && (role === 0 || role === 1);
+    if (!usable) return false;
+
+    app.globalData.userInfo = userInfo;
+    wx.switchTab({
+      url: '../order/index/index',
+      fail: () => {
+        // 页面恢复失败不展示注册页，改用微信身份重新换取Owner会话。
+        this._login();
+      }
+    });
+    return true;
+  },
+
+  _loadRegistrationMarkets() {
+    const data = {
+      cityId: this.data.cityId,
+      maId: this.data.maId,
+    };
     jjshGetMarket(data).then(res => {
       if (res.result.code == 0) {
         const markets = Array.isArray(res.result.data) ? res.result.data : [];
@@ -83,12 +108,43 @@ Page({
             sysCityMarketId: 0,
             sysCmMarketName: '不在市场'
           }].concat(markets.filter(item => item.sysCityMarketId !== 0)),
-        })
+        });
       }
     }).catch(error => {
       // 市场接口不可用时仍可按默认的“不在市场”完成注册。
       console.warn('获取市场列表失败，使用默认选项“不在市场”', error);
-    })
+    });
+  },
+
+  _openRegistration() {
+    if (!this._requireInviteForRegistration()) return;
+    this.setData({
+      checkingLogin: false,
+      loginFailed: false,
+      registrationReady: true
+    });
+    this._checkPrivacyAuth();
+    this._loadRegistrationMarkets();
+    this._aaa();
+  },
+
+  _showLoginFailure(message) {
+    load.hideLoading();
+    this.setData({
+      checkingLogin: false,
+      registrationReady: false,
+      loginFailed: true
+    });
+    wx.showToast({
+      title: message || '自动登录失败，请重试',
+      icon: 'none',
+      duration: 3500
+    });
+  },
+
+  retryLogin() {
+    this.setData({ checkingLogin: true, loginFailed: false });
+    this._login();
   },
 
   _requireInviteForRegistration() {
@@ -130,7 +186,6 @@ Page({
   _aaa() {
     wx.login({
       success: (res) => {
-        console.log(res);
         this.setData({
           code: res.code
         })
@@ -459,6 +514,28 @@ Page({
 
   },
 
+  _completeOwnerLogin(data, loginType) {
+    const userInfo = data && data.userInfo;
+    const disInfo = data && data.disInfo;
+    if (!userInfo || !disInfo || !disInfo.nxDistributerId) {
+      this._showLoginFailure('登录数据不完整，请重试');
+      return;
+    }
+    wx.setStorageSync('userInfo', userInfo);
+    wx.setStorageSync('disInfo', disInfo);
+    if (loginType) wx.setStorageSync('loginType', loginType);
+    app.globalData.userInfo = userInfo;
+    this.setData({
+      checkingLogin: false,
+      registrationReady: false,
+      loginFailed: false
+    });
+    wx.switchTab({
+      url: '../order/index/index',
+      fail: () => this._showLoginFailure('进入首页失败，请重试')
+    });
+  },
+
   _login() {
     console.log("登录页面 _login - environment:", this.data.environment);
     load.showLoading("登录中");
@@ -480,21 +557,12 @@ Page({
                 if (res.result && res.result.code === 0
                     && res.result.data && res.result.data.userInfo) {
                   if (this._canLoginBoss(res.result.data.userInfo)) {
-                    //缓存用户信息
-                    wx.setStorageSync('userInfo', res.result.data.userInfo);
-                    wx.setStorageSync('disInfo', res.result.data.disInfo);
-                    wx.setStorageSync('loginType', 'wxwork'); // 存储登录类型
-                    wx.switchTab({
-                      url: '../order/index/index',
-                    })
+                    this._completeOwnerLogin(res.result.data, 'wxwork');
                   } else {
-                    wx.showToast({
-                      title: '当前账号不能登录 Boss 端',
-                      icon: 'none'
-                    })
+                    this._showLoginFailure('当前账号不能登录 Boss 端');
                   }
                 } else {
-                  if (!this._requireInviteForRegistration()) return;
+                  this._openRegistration();
                   wx.showToast({
                     title: (res.result && res.result.msg) || '企业微信身份未绑定 Boss 账号',
                     icon: 'none'
@@ -502,20 +570,15 @@ Page({
                 }
               })
               .catch((error) => {
-                load.hideLoading();
-                wx.showToast({
-                  title: describeOwnerRequestError(error, '企业微信登录失败'),
-                  icon: 'none'
-                })
+                this._showLoginFailure(
+                  describeOwnerRequestError(error, '企业微信登录失败'));
               })
+          } else {
+            this._showLoginFailure('企业微信未返回登录凭证');
           }
         },
         fail: (res) => {
-          load.hideLoading();
-          wx.showToast({
-            title: '企业微信登录失败',
-            icon: 'none'
-          })
+          this._showLoginFailure('企业微信登录失败');
         }
       })
     } else {
@@ -531,52 +594,32 @@ Page({
             if (res.result && res.result.code === 0
                 && res.result.data && res.result.data.userInfo) { // 登陆成功
               if (this._canLoginBoss(res.result.data.userInfo)) {
-                wx.setStorageSync('userInfo', res.result.data.userInfo);
-                wx.setStorageSync('disInfo', res.result.data.disInfo)
-                wx.switchTab({
-                  url: '../order/index/index',
-                })
+                this._completeOwnerLogin(res.result.data);
               } else {
-                wx.showToast({
-                  title: '当前账号不能登录 Boss 端',
-                  icon: 'none'
-                })
+                this._showLoginFailure('当前账号不能登录 Boss 端');
               }
             } else { // 登陆失败
-              if (!this._requireInviteForRegistration()) return;
+              this._openRegistration();
               wx.showToast({
                 title: (res.result && res.result.msg) || '微信身份未绑定 Boss 账号',
                 icon: 'none'
               })
-              this._aaa();
             }
           })
           .catch((error) => {
-            load.hideLoading();
-            wx.showToast({
-              title: describeOwnerRequestError(error, 'Boss 端登录失败'),
-              icon: 'none',
-              duration: 3500
-            })
+            this._showLoginFailure(
+              describeOwnerRequestError(error, 'Boss 端登录失败'));
           })
       },
       fail: (res => {
-        load.hideLoading();
-        wx.showToast({
-          title: (res && res.errMsg) || '微信登录失败，请重新操作',
-          icon: 'none',
-          duration: 3500,
-        })
+        this._showLoginFailure(
+          (res && res.errMsg) || '微信登录失败，请重新操作');
       })
     })
     } // 关闭 else 分支
     } catch (error) {
       console.error("登录过程中发生错误:", error);
-      load.hideLoading();
-      wx.showToast({
-        title: '登录失败，请重试',
-        icon: 'none'
-      })
+      this._showLoginFailure('登录失败，请重试');
     }
   },
 

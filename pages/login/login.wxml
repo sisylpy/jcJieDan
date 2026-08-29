@@ -1,4 +1,18 @@
-<!-- 隐私授权弹窗（符合平台规范3.4） -->
+<view wx:if="{{checkingLogin}}" class="login-gate">
+  <image src="/images/logo.jpg" class="login-gate-logo"></image>
+  <text class="login-gate-title">正在自动登录</text>
+  <text class="login-gate-desc">老客户将直接进入配送工作台</text>
+</view>
+
+<view wx:elif="{{loginFailed}}" class="login-gate">
+  <image src="/images/logo.jpg" class="login-gate-logo"></image>
+  <text class="login-gate-title">自动登录未完成</text>
+  <text class="login-gate-desc">请检查网络后重新尝试</text>
+  <button class="login-retry" bindtap="retryLogin">重新登录</button>
+</view>
+
+<block wx:if="{{registrationReady}}">
+<!-- 隐私授权弹窗（只在Server确认是新用户、准备注册时显示） -->
 <view class="privacy-mask" wx:if="{{showPrivacy}}">
   <view class="privacy-modal">
     <view class="privacy-title">用户协议与隐私政策</view>
@@ -192,3 +206,5 @@
   </view>
 
 </view>
+
+</block>

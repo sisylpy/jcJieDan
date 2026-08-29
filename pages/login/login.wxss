@@ -3,6 +3,50 @@ page{
   background-color: #fff;
 }
 
+.login-gate {
+  min-height: 100vh;
+  padding: 220rpx 60rpx 80rpx;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(180deg, #f4faf7 0%, #ffffff 52%);
+}
+
+.login-gate-logo {
+  width: 128rpx;
+  height: 128rpx;
+  border-radius: 32rpx;
+}
+
+.login-gate-title {
+  margin-top: 38rpx;
+  color: #1c3f36;
+  font-size: 36rpx;
+  font-weight: 700;
+}
+
+.login-gate-desc {
+  margin-top: 16rpx;
+  color: #7c8983;
+  font-size: 26rpx;
+}
+
+.login-retry {
+  width: 320rpx;
+  height: 84rpx;
+  margin-top: 46rpx;
+  color: #fff;
+  font-size: 29rpx;
+  line-height: 84rpx;
+  background: #234b50;
+  border-radius: 14rpx;
+}
+
+.login-retry::after {
+  border: 0;
+}
+
 .avatar-preview-wrap {
   margin-top: 20rpx;
   font-size: 34rpx;
