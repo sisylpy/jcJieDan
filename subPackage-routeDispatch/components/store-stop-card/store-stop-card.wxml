@@ -26,7 +26,19 @@
           <view class="boss-stop-head-main">
             <image class="boss-stop-pin" src="/images/app-shop.png" mode="aspectFit"></image>
             <text class="boss-stop-name">{{stop.customerName}}</text>
-            <view class="boss-stop-driver-lock-badge" wx:if="{{stop.driverLocked}}">
+            <text
+              class="boss-stop-return-name-tag"
+              wx:if="{{stop.isReturnPickup || stop.taskType === 'RETURN_PICKUP'}}"
+            >（退货）</text>
+            <view class="boss-stop-driver-lock-badge boss-stop-driver-lock-badge-today" wx:if="{{stop.todayDriverLocked}}">
+              <text class="boss-stop-driver-lock-icon">🔒</text>
+              <text>本次锁定：{{stop.todayDriverName || stop.lockedDriverName || '当前司机'}}</text>
+            </view>
+            <view class="boss-stop-driver-lock-badge boss-stop-driver-lock-badge-long-term" wx:if="{{stop.longTermDriverBound}}">
+              <text class="boss-stop-driver-lock-icon">◆</text>
+              <text>长期绑定：{{stop.longTermDriverName || '常送司机'}}</text>
+            </view>
+            <view class="boss-stop-driver-lock-badge" wx:if="{{stop.driverLocked && !stop.todayDriverLocked && !stop.longTermDriverBound}}">
               <text class="boss-stop-driver-lock-icon">🔒</text>
               <text>{{stop.driverLockLabel || '已锁定司机'}}</text>
             </view>
@@ -40,7 +52,7 @@
             wx:if="{{showPlanningLock && variant !== 'delivery'}}"
             class="planning-lock-btn {{stop.driverLocked ? 'planning-lock-btn-active' : ''}}"
             catchtap="onPlanningLockTap"
-          >{{stop.driverLocked ? '已锁' : '锁司机'}}</view>
+          >{{stop.todayDriverLocked && stop.longTermDriverBound ? '双重锁定' : (stop.todayDriverLocked ? '今天已锁定' : (stop.longTermDriverBound ? '长期已绑定' : '锁定司机'))}}</view>
           <view class="delivery-stop-actions" wx:if="{{variant === 'delivery' && (stop.showCancelDelivery || stop.showMarkException)}}">
             <view
               wx:if="{{stop.showCancelDelivery && stop.primaryAction && stop.primaryAction.label}}"
@@ -55,6 +67,13 @@
           </view>
           <text class="boss-stop-delivered-label" wx:elif="{{variant === 'delivery' && stop.statusLabel === '已送达'}}">{{stop.statusLabel}}</text>
           <text class="boss-stop-head-chevron" wx:elif="{{variant === 'edit' && stop.primaryAction}}">›</text>
+        </view>
+        <view
+          class="boss-stop-return-reminder"
+          wx:if="{{stop.isReturnPickup || stop.taskType === 'RETURN_PICKUP'}}"
+        >
+          <text class="boss-stop-return-reminder-title">↩ 退货取货</text>
+          <text class="boss-stop-return-reminder-copy">到店拿回商品，无需装货</text>
         </view>
         <text class="boss-stop-address" wx:if="{{variant === 'edit' && stop.address}}">{{stop.address}}</text>
         <view class="boss-stop-goods" wx:if="{{variant === 'edit' && stop.goodsSummary}}">{{stop.goodsSummary}}</view>
@@ -72,7 +91,7 @@
             </view>
           </view>
           <view class="boss-stop-time-col" wx:if="{{!(variant === 'delivery' && stop.stopDone)}}">
-            <text class="boss-stop-time-label">卸货时长</text>
+            <text class="boss-stop-time-label">{{stop.isReturnPickup || stop.taskType === 'RETURN_PICKUP' ? '取货时长' : '卸货时长'}}</text>
             <text class="boss-stop-time-val boss-stop-time-val-muted">{{stop.serviceDurationLabel || '—'}}</text>
           </view>
           <view class="boss-stop-time-col">
@@ -121,6 +140,10 @@
           <view class="boss-stop-head-main">
             <image class="boss-stop-pin" src="/images/app-shop.png" mode="aspectFit"></image>
             <text class="boss-stop-name">{{stop.customerName}}</text>
+            <text
+              class="boss-stop-return-name-tag"
+              wx:if="{{stop.isReturnPickup || stop.taskType === 'RETURN_PICKUP'}}"
+            >（退货）</text>
             <view class="boss-stop-driver-lock-badge" wx:if="{{stop.driverLocked}}">
               <text class="boss-stop-driver-lock-icon">🔒</text>
               <text>{{stop.driverLockLabel || '已锁定司机'}}</text>
@@ -136,6 +159,13 @@
             catchtap="onPrimaryAction"
           >{{primaryAction.label}}</view>
         </view>
+        <view
+          class="boss-stop-return-reminder"
+          wx:if="{{stop.isReturnPickup || stop.taskType === 'RETURN_PICKUP'}}"
+        >
+          <text class="boss-stop-return-reminder-title">↩ 退货取货</text>
+          <text class="boss-stop-return-reminder-copy">到店拿回商品，无需装货</text>
+        </view>
         <view class="boss-stop-divider"></view>
         <view class="timeline-stop-goods boss-stop-goods" wx:if="{{stop.goodsSummary}}">{{stop.goodsSummary}}</view>
         <view class="boss-stop-time-grid" wx:if="{{stop.plannedArrivalLabel || stop.plannedDepartureLabel || stop.serviceDurationLabel || stop.arrivalStatusLabel}}">
@@ -149,7 +179,7 @@
             </view>
           </view>
           <view class="boss-stop-time-col">
-            <text class="boss-stop-time-label">卸货时长</text>
+            <text class="boss-stop-time-label">{{stop.isReturnPickup || stop.taskType === 'RETURN_PICKUP' ? '取货时长' : '卸货时长'}}</text>
             <text class="boss-stop-time-val boss-stop-time-val-muted">{{stop.serviceDurationLabel || '—'}}</text>
           </view>
           <view class="boss-stop-time-col">

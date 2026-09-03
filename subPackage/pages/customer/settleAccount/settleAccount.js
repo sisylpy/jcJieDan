@@ -56,8 +56,18 @@ Page({
     disGetUnSettleAccountBills(this.data.depFatherId).then(res => {
       load.hideLoading();
       if (res.result.code == 0) {
+        var accountBillArr = (res.result.data || []).map(function (month) {
+          return Object.assign({}, month, {
+            arr: (month.arr || []).map(function (bill) {
+              return Object.assign({}, bill, { isSelect: false })
+            })
+          })
+        })
         this.setData({
-          accountBillArr: res.result.data,
+          accountBillArr: accountBillArr,
+          selectArr: [],
+          selAmount: 0,
+          total: 0,
         })
       }else{
         this.setData({
@@ -89,26 +99,36 @@ Page({
     var index = e.currentTarget.dataset.index;
     var monthIndex = e.currentTarget.dataset.monthindex;
     var isSelect = e.detail.value;
-    var itemBill = this.data.accountBillArr[monthIndex].arr[index];
-    var selectArr = this.data.selectArr;
+    var accountBillArr = this.data.accountBillArr || [];
+    var itemBill = accountBillArr[monthIndex].arr[index];
+    var linkedIds = {};
+    linkedIds[itemBill.nxDepartmentBillId] = true;
 
-    if (isSelect) {
-      console.log(isSelect)
-      console.log("tureetuutututututuut")
-      console.log(itemBill.nxDepartmentBillId)
-      selectArr.push(itemBill);
-      this.setData({
-        selectArr: selectArr
-      })
+    // 已出账退货必须与原销售账单成组结算，避免老板漏选负数冲减单而多收款。
+    if (itemBill.nxDbBillType === 'RETURN_CREDIT' && itemBill.nxDbOriginalBillId) {
+      linkedIds[itemBill.nxDbOriginalBillId] = true;
     } else {
-      console.log(isSelect)
-      console.log("fallssllslslsleekeke")
-      console.log(itemBill.nxDepartmentBillId)
-      selectArr.splice(selectArr.findIndex(item => item.nxDepartmentBillId === itemBill.nxDepartmentBillId), 1);
-      this.setData({
-        selectArr: selectArr
+      accountBillArr.forEach(function (month) {
+        (month.arr || []).forEach(function (bill) {
+          if (bill.nxDbBillType === 'RETURN_CREDIT' &&
+            Number(bill.nxDbOriginalBillId) === Number(itemBill.nxDepartmentBillId)) {
+            linkedIds[bill.nxDepartmentBillId] = true;
+          }
+        })
       })
     }
+
+    var selectArr = [];
+    accountBillArr = accountBillArr.map(function (month) {
+      var rows = (month.arr || []).map(function (bill) {
+        var selected = linkedIds[bill.nxDepartmentBillId] ? !!isSelect : !!bill.isSelect;
+        var row = Object.assign({}, bill, { isSelect: selected });
+        if (selected) selectArr.push(row);
+        return row;
+      })
+      return Object.assign({}, month, { arr: rows })
+    })
+    this.setData({ accountBillArr: accountBillArr, selectArr: selectArr })
     this._countTotal();
   },
 

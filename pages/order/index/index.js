@@ -1,5 +1,6 @@
 var load = require('../../../lib/load.js');
 var platformDisplay = require('../../../utils/platformOrderDisplay.js');
+var salesReturnDisplay = require('../../../utils/salesReturnDisplay.js');
 
 import apiUrl from '../../../config.js'
 
@@ -9,7 +10,7 @@ import {
   getPlatformCustomersToday,
 } from '../../../lib/apiDepOrder.js'
 
-import { getDepInfo } from '../../../lib/apiDistributer'
+import { getDepInfo, getSalesReturnList } from '../../../lib/apiDistributer'
 
 Page({
   data: {
@@ -20,6 +21,7 @@ Page({
     useGroupedCustomers: false,
     platformCustomers: [],
     platformUnDoTotal: 0,
+    salesReturnOrders: [],
   },
 
  
@@ -179,15 +181,27 @@ Page({
       load.showLoading("获取今日订单");
     }
     console.log('[index] 请求今日客户 disId:', disId);
+    var userInfo = this.data.userInfo || wx.getStorageSync('userInfo') || {};
+    var salesReturnPromise = getSalesReturnList({
+      distributerId: Number(disId),
+      operatorUserId: Number(userInfo.nxDistributerUserId),
+      activeOnly: 1,
+      limit: 50
+    }).catch(function (err) {
+      console.warn('[index] getSalesReturnList 请求失败，不影响普通订单:', err);
+      return { result: { code: -1, data: [] } };
+    });
     return Promise.all([
       disGetTodayOrderCustomer(disId),
       getPlatformCustomersToday(disId),
-    ]).then(([res, platformRes]) => {
+      salesReturnPromise,
+    ]).then(([res, platformRes, salesReturnRes]) => {
       if (!silent) {
         load.hideLoading();
       }
       console.log('[index] disGetTodayOrderCustomer 完整返回:', res.result);
       console.log('[index] getPlatformCustomersToday 完整返回:', platformRes.result);
+      console.log('[index] getSalesReturnList 完整返回:', salesReturnRes.result);
       if (res.result.code == 0) {
         const taskArr = Array.isArray(res.result.data.taskArr) ? res.result.data.taskArr : [];
         const deps = res.result.data.deps || {};
@@ -216,6 +230,14 @@ Page({
         } else {
           console.warn('[index] getPlatformCustomersToday 失败或非0:', platformRes.result);
         }
+        var salesReturnOrders = this.data.salesReturnOrders || [];
+        if (salesReturnRes.result && salesReturnRes.result.code == 0) {
+          salesReturnOrders = salesReturnDisplay.buildActiveSalesReturnOrders(
+            salesReturnRes.result.data || []
+          );
+        } else {
+          console.warn('[index] getSalesReturnList 失败或非0:', salesReturnRes.result);
+        }
         console.log('[index] customerSections:', customerGroups.sections);
         console.log('[index] useGroupedCustomers:', customerGroups.useGrouped);
         this.setData({
@@ -224,6 +246,7 @@ Page({
           useGroupedCustomers: customerGroups.useGrouped,
           platformCustomers: platformCustomers,
           platformUnDoTotal: platformUnDoTotal,
+          salesReturnOrders: salesReturnOrders,
           gbDisArrApp: deps.gbDisArrApp || [],
           unSettleTotal: res.result.data.unSettleTotal,
           disInfo: res.result.data.disInfo,
@@ -281,6 +304,18 @@ Page({
         })
       }
     })
+  },
+
+  toSalesReturnDetail(e) {
+    var item = e.currentTarget.dataset.item;
+    if (!item || !item.nxDsrAfterSalesId) {
+      wx.showToast({ title: '退货单缺少售后关联', icon: 'none' });
+      return;
+    }
+    wx.navigateTo({
+      url: '/subPackage-charts/pages/afterSales/detail/detail?afterSalesId=' + item.nxDsrAfterSalesId +
+        '&customerName=' + encodeURIComponent(item.customerName || '')
+    });
   },
 
  

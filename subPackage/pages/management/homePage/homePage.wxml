@@ -225,26 +225,36 @@
       </view>
     </view>
 
-    <view class="section-card" wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+    <view class="section-card" wx:if="{{canViewSalesAnalysis || canViewSmartReplenishment || disInfo.nxDistributerBusinessTypeId > 2}}">
       <view class="section-title-row">
         <view>
           <text class="section-title">经营分析</text>
-          <text class="section-subtitle">看采购效率和商品成本</text>
+          <text class="section-subtitle">看销售结构、客户贡献和采购成本</text>
         </view>
       </view>
 
       <view class="analysis-grid">
-        <view class="analysis-card anomaly-analysis-card" bindtap="toCustomerOrderAnomalies" hover-class="hover">
+        <view wx:if="{{canViewSmartReplenishment}}" class="analysis-card smart-replenishment-card" bindtap="toSmartReplenishment" hover-class="hover">
+          <view class="analysis-icon smart-replenishment-icon">备</view>
+          <text class="analysis-title">智能备货</text>
+          <text class="analysis-desc">按客户和日期查看可信采购建议</text>
+        </view>
+        <view wx:if="{{canViewSalesAnalysis}}" class="analysis-card sales-analysis-card" bindtap="toSalesAnalysis" hover-class="hover">
+          <view class="analysis-icon sales-analysis-icon">销</view>
+          <text class="analysis-title">销售分析</text>
+          <text class="analysis-desc">看商品分布和每种商品的重要客户</text>
+        </view>
+        <view wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}" class="analysis-card anomaly-analysis-card" bindtap="toCustomerOrderAnomalies" hover-class="hover">
           <view class="analysis-icon anomaly-analysis-icon">异</view>
           <text class="analysis-title">订货异常</text>
           <text class="analysis-desc">查看全部客户停订、下降和激增</text>
         </view>
-        <view class="analysis-card" bindtap="toPurGoodsFenxi" hover-class="hover">
+        <view wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}" class="analysis-card" bindtap="toPurGoodsFenxi" hover-class="hover">
           <image src="/images/caigou2.png" class="analysis-icon"></image>
           <text class="analysis-title">采购分析</text>
           <text class="analysis-desc">按商品查看采购走势</text>
         </view>
-        <view class="analysis-card" bindtap="toCostGoodsFenxi" hover-class="hover">
+        <view wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}" class="analysis-card" bindtap="toCostGoodsFenxi" hover-class="hover">
           <image src="/images/money-2.png" class="analysis-icon"></image>
           <text class="analysis-title">成本分析</text>
           <text class="analysis-desc">跟踪商品成本变化</text>

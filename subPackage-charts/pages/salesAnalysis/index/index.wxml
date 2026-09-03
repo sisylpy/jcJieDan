@@ -1,0 +1,235 @@
+<wxs src="../../../../utils/fn.wxs" module="tool" />
+<view class="page">
+  <back-navbar
+    style="height: {{navBarHeight}}rpx;"
+    title="销售分析"
+    avatar="/images/back-gray.png"
+    bindnavbuttontap="toBack"
+  ></back-navbar>
+
+  <scroll-view
+    scroll-y="true"
+    class="page-scroll"
+    style="margin-top: {{navBarHeight}}rpx; height: {{contentHeight}}rpx;"
+  >
+    <view class="flex-row-between pl-20 pr-20 border-bottom bg-white">
+      <view class="flex-row date-bar" bindtap="toDatePage">
+        <view class="p-20">
+          <image src="/images/calender.png" class="icon"></image>
+        </view>
+        <view class="flex-column pt-10 font-xs">
+          <view class="font-yuan">{{hanzi}}</view>
+          <view class="flex-row" wx:if="{{startDate == stopDate}}">
+            <view wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
+          </view>
+          <view class="flex-row" wx:else>
+            <view wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
+            <text class="plr-10">-</text>
+            <view wx:if="{{stopDate}}">{{tool.transferDateString(stopDate)}}</view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <view wx:if="{{loading}}" class="page-state">
+      <view class="state-icon">析</view>
+      <text class="state-title">正在统计历史销售数据</text>
+      <text class="state-desc">只读取已经完成的配送订单</text>
+    </view>
+
+    <view wx:elif="{{pageError}}" class="page-state error-state">
+      <view class="state-icon">!</view>
+      <text class="state-title">{{pageError}}</text>
+      <view class="retry-button" bindtap="refreshReport">重新加载</view>
+    </view>
+
+    <view wx:else class="report">
+      <view class="summary-grid">
+        <view class="summary-card money-card">
+          <text>成交销售额</text>
+          <strong>{{summary.salesAmountText}}</strong>
+          <small>已完成历史订单</small>
+        </view>
+        <view class="summary-card">
+          <text>使用客户</text>
+          <strong>{{summary.customerCount}}家</strong>
+          <small>按父客户去重</small>
+        </view>
+        <view class="summary-card">
+          <text>成交商品</text>
+          <strong>{{summary.goodsCount}}种</strong>
+          <small>覆盖{{summary.subcategoryCount}}个小类</small>
+        </view>
+        <view class="summary-card">
+          <text>主要销售数量</text>
+          <strong>{{summary.quantityText}}</strong>
+          <small>{{summary.quantityNote}}</small>
+        </view>
+      </view>
+
+      <view class="panel category-panel">
+        <view class="panel-heading">
+          <view><strong>配送商品分布</strong><text>金额占比，点击大类继续下钻</text></view>
+          <text>{{categories.length}}个大类</text>
+        </view>
+        <view wx:if="{{categories.length}}" class="category-list">
+          <view
+            wx:for="{{categories}}"
+            wx:key="id"
+            class="category-card {{selectedCategoryId == item.id ? 'selected' : ''}}"
+            bindtap="selectCategory"
+            data-id="{{item.id}}"
+          >
+            <view class="category-main">
+              <strong>{{item.name}}</strong>
+              <text>{{item.amountText}} · {{item.shareText}}</text>
+            </view>
+            <view class="category-meta">
+              <text>{{item.customerCount}}家客户</text>
+              <text>{{item.goodsCount}}种商品</text>
+            </view>
+            <view class="bar-track"><view class="bar-fill" style="width: {{item.shareWidth}}%;"></view></view>
+          </view>
+        </view>
+        <view wx:else class="panel-empty">当前范围暂无有效销售额</view>
+      </view>
+
+      <view class="panel customer-panel">
+        <view class="panel-heading">
+          <view><strong>{{selectedCategoryName}} · 客户贡献</strong><text>按成交销售额排序</text></view>
+          <text>Top 5</text>
+        </view>
+        <view wx:if="{{topCustomers.length}}" class="customer-bars">
+          <view wx:for="{{topCustomers}}" wx:key="customerId" class="customer-bar-row">
+            <view class="customer-bar-head">
+              <strong>{{item.customerName}}</strong>
+              <text>{{item.amountText}} · {{item.shareText}}</text>
+            </view>
+            <view class="bar-track"><view class="bar-fill" style="width: {{item.barWidth}}%;"></view></view>
+            <text class="customer-caption">使用{{item.goodsCount}}种商品 · {{item.categoryCount}}个大类</text>
+          </view>
+        </view>
+        <view wx:else class="panel-empty">暂无客户贡献数据</view>
+      </view>
+
+      <view wx:if="{{detailError}}" class="inline-error">{{detailError}}</view>
+
+      <view class="panel subcategory-panel">
+        <view class="panel-heading">
+          <view><strong>{{selectedCategoryName}} · 小类</strong><text>金额、数量和使用客户</text></view>
+          <text>{{subcategories.length}}类</text>
+        </view>
+        <scroll-view wx:if="{{subcategories.length}}" scroll-x="true" class="subcategory-scroll">
+          <view class="subcategory-row">
+            <view
+              wx:for="{{subcategories}}"
+              wx:key="id"
+              class="subcategory-card {{selectedSubcategoryId == item.id ? 'selected' : ''}}"
+              bindtap="selectSubcategory"
+              data-id="{{item.id}}"
+            >
+              <strong>{{item.name}}</strong>
+              <text class="subcategory-money">{{item.amountText}}</text>
+              <text>{{item.quantityText}}</text>
+              <text>{{item.customerText}}</text>
+            </view>
+          </view>
+        </scroll-view>
+        <view wx:elif="{{detailLoading}}" class="panel-empty">正在加载小类…</view>
+        <view wx:else class="panel-empty">当前大类暂无小类</view>
+      </view>
+
+      <view class="panel product-panel">
+        <view class="panel-heading product-heading">
+          <view><strong>{{selectedSubcategoryName}} · 商品明细</strong><text>点击商品查看每个客户的使用情况</text></view>
+        </view>
+        <view class="product-search">
+          <image src="/images/search-3.png" mode="aspectFit"></image>
+          <input value="{{keyword}}" placeholder="搜索商品名称、规格" bindinput="onSearchInput"></input>
+          <text wx:if="{{keyword}}" bindtap="clearSearch">×</text>
+        </view>
+        <view wx:if="{{detailLoading}}" class="panel-empty large">正在加载商品明细…</view>
+        <view wx:elif="{{visibleProducts.length}}" class="product-list">
+          <view
+            wx:for="{{visibleProducts}}"
+            wx:key="goodsId"
+            class="product-row"
+            bindtap="openProduct"
+            data-id="{{item.goodsId}}"
+          >
+            <view class="product-title">
+              <image src="{{item.goodsImageUrl}}" mode="aspectFill" class="product-image"></image>
+              <view class="product-title-copy"><strong>{{item.goodsName}}</strong><text>{{item.goodsStandard || '未标规格'}}</text></view>
+              <text class="row-arrow">›</text>
+            </view>
+            <view class="product-metrics">
+              <view><text>成交销售额</text><strong class="money">{{item.amountText}}</strong></view>
+              <view><text>销售数量</text><strong>{{item.quantityText}}</strong></view>
+              <view><text>加权平均价</text><strong>{{item.averagePriceText}}</strong></view>
+              <view><text>使用客户</text><strong>{{item.customerCountText}}</strong></view>
+            </view>
+            <text class="top-customer">重要客户：{{item.topCustomerText}}</text>
+          </view>
+        </view>
+        <view wx:else class="panel-empty large">没有符合条件的商品</view>
+      </view>
+
+      <view class="data-note">
+        <text>数据只来自已完成历史订单</text>
+        <text>数量和平均价按原交易单位分别统计</text>
+        <text wx:if="{{qualityIssueCount > 0}}">有{{qualityIssueCount}}条数据需要核对</text>
+        <text wx:else>有效成交行的数据质量检查通过</text>
+      </view>
+    </view>
+  </scroll-view>
+
+  <view wx:if="{{drawerOpen}}" class="drawer-mask" catchtap="closeDrawer">
+    <view class="drawer" catchtap="stopTap">
+      <view class="drawer-handle"></view>
+      <view class="drawer-heading">
+        <view class="drawer-product">
+          <image src="{{selectedProduct.goodsImageUrl}}" mode="aspectFill" class="drawer-product-image"></image>
+          <view class="drawer-product-copy">
+            <text class="drawer-eyebrow">商品客户分布</text>
+            <strong>{{selectedProduct.goodsName}}</strong>
+            <text>{{selectedProduct.goodsStandard || '未标规格'}}</text>
+          </view>
+        </view>
+        <view class="drawer-close" bindtap="closeDrawer">×</view>
+      </view>
+
+      <view class="drawer-summary">
+        <view><text>成交销售额</text><strong>{{selectedProduct.amountText}}</strong></view>
+        <view><text>使用客户</text><strong>{{selectedProduct.customerCountText}}</strong></view>
+        <view><text>销售数量</text><strong>{{selectedProduct.quantityText}}</strong></view>
+        <view><text>加权平均价</text><strong>{{selectedProduct.averagePriceText}}</strong></view>
+      </view>
+
+      <view wx:if="{{productLoading}}" class="drawer-state">正在读取客户分布…</view>
+      <view wx:elif="{{productError}}" class="drawer-state error-text">{{productError}}</view>
+      <scroll-view wx:else scroll-y="true" class="drawer-customers">
+        <view wx:for="{{productCustomers}}" wx:key="customerId" class="drawer-customer">
+          <view class="drawer-customer-head">
+            <strong>{{item.customerName}}</strong>
+            <text>{{item.amountText}} · {{item.shareText}}</text>
+          </view>
+          <view class="bar-track"><view class="bar-fill" style="width: {{item.barWidth}}%;"></view></view>
+          <view class="drawer-customer-meta">
+            <text>{{item.quantityText}}</text>
+            <text>{{item.averagePriceText}}</text>
+            <text>{{item.orderDaysText}}</text>
+            <text>最近 {{item.lastOrderText}}</text>
+          </view>
+        </view>
+        <view wx:if="{{productOthers}}" class="drawer-customer others">
+          <view class="drawer-customer-head">
+            <strong>{{productOthers.customerName}}</strong>
+            <text>{{productOthers.amountText}} · {{productOthers.shareText}}</text>
+          </view>
+          <view class="drawer-customer-meta"><text>{{productOthers.quantityText}}</text></view>
+        </view>
+        <view wx:if="{{!productCustomers.length && !productOthers}}" class="drawer-state">暂无客户使用数据</view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

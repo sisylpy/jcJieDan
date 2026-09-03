@@ -30,6 +30,15 @@
     </view>
   </view>
 
+  <view wx:if="{{disGoods}}" class="purchase-product-overview">
+    <image src="{{disGoods.goodsImageUrl}}" mode="aspectFill" class="purchase-product-image"></image>
+    <view class="purchase-product-main">
+      <strong>{{disGoods.nxDgGoodsName || disGoods.gbDgGoodsName}}</strong>
+      <text>{{disGoods.goodsSpecificationText}}</text>
+      <view class="purchase-product-tag">采购商品明细</view>
+    </view>
+  </view>
+
 
   <view class="flex-column" wx:if="{{arr.length > 0}}">
  
@@ -211,5 +220,4 @@
     </view>
   </view>
 </view>
-
 

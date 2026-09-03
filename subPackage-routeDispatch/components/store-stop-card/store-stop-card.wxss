@@ -52,10 +52,47 @@
   white-space: nowrap;
 }
 
+.boss-stop-driver-lock-badge-long-term {
+  border-color: #62b39a;
+  background: #eaf8f3;
+  color: #16745e;
+}
+
 .boss-stop-driver-lock-icon {
   margin-right: 6rpx;
   font-size: 21rpx;
   line-height: 1;
+}
+
+.boss-stop-return-name-tag {
+  flex-shrink: 0;
+  color: #d84b3e;
+  font-size: 25rpx;
+  font-weight: 800;
+}
+
+.boss-stop-return-reminder {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin: 12rpx 20rpx 0;
+  padding: 12rpx 16rpx;
+  border: 2rpx solid #f1b5ad;
+  border-radius: 12rpx;
+  background: #fff1ef;
+}
+
+.boss-stop-return-reminder-title {
+  flex-shrink: 0;
+  color: #c63f33;
+  font-size: 22rpx;
+  font-weight: 800;
+}
+
+.boss-stop-return-reminder-copy {
+  color: #8d514b;
+  font-size: 21rpx;
+  font-weight: 600;
 }
 
 .unassigned-customer-card .boss-timeline-stop-unit {

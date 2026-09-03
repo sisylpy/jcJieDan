@@ -162,8 +162,8 @@
 			</view>
 
       <view class="flex-row-between" wx:if="{{toReturnSubtotal > 0}}">
-        <view class="red" >退货商品:{{returnCount}}个</view>
-        <view class="section_head" bindtap="toReturnPage">开退货单{{toReturnSubtotal}}</view>
+        <view class="red">检测到 {{returnCount}} 条旧版未完成退货记录（¥{{toReturnSubtotal}}）</view>
+        <view class="section_head" bindtap="explainLegacyReturn">处理说明</view>
 
       </view>
 
@@ -191,9 +191,9 @@
       <text class="font-md">修改单据数量</text>
     </view>
 
-    <view class="p-20 flex-row {{item.afterSalesEntryVisible ? 'border-bottom' : ''}}" wx:if="{{bill.nxDbStatus == 0}}" bindtap="addReturn">
+    <view class="p-20 flex-row {{item.afterSalesEntryVisible ? 'border-bottom' : ''}}" wx:if="{{item.afterSalesEntryVisible}}" bindtap="addReturn">
       <image src="../../../../images/BusinessIcons_DocPaper-.png" class="icon mr-20 ml-20"></image>
-      <text class="font-md {{item.nxDoReturnStatus == null || item.nxDoReturnStatus == 0 ? '' : 'text-secondary'}}">添加退货</text>
+      <text class="font-md">发起退货申请</text>
     </view>
 
     <view class="p-20 flex-row" wx:if="{{item.afterSalesEntryVisible}}" bindtap="createAfterSalesFromOperation">
@@ -212,7 +212,3 @@
 
 <editBillOrder show="{{show}}" bindconfirm="confirm" bindcancle="cancle"  	item="{{item}}" maskHeight="{{maskHeight > windowHeight ? maskHeight : windowHeight}}"
 	scrollViewTop="{{scrollViewTop}}" applyNumber="{{applyNumber}}" applyPrice = "{{applyPrice}}" applySubtotal= "{{applySubtotal}}" />
-
-
-<addReturnOrder show="{{showReturn}}" bindconfirm="confirmReturn" bindcancle="cancle"  	item="{{item}}" maskHeight="{{maskHeight > windowHeight ? maskHeight : windowHeight}}"
-	scrollViewTop="{{scrollViewTop}}" applyNumber="{{applyNumber}}" returnSubtotal= "{{returnSubtotal}}" />

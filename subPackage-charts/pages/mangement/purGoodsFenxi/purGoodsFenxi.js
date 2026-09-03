@@ -4,6 +4,7 @@ var dateUtils = require('../../../../utils/dateUtil');
 import * as echarts from '../../../ec-canvas/echarts';
 
 import apiUrl from '../../../../config.js'
+import { decorateGoodsVisual } from '../../../../utils/goodsImageView.js'
 
 import {
   getNxPurGoodsStatisticsForDis,
@@ -153,11 +154,14 @@ Page({
             purTotal: data.purTotal || "0",
             purUserData: Array.isArray(data.purUserData) ? data.purUserData : [],
             supplierData: Array.isArray(data.supplierData) ? data.supplierData : [],
-            topTimesGoods: Array.isArray(data.topTimesGoods) ? data.topTimesGoods : [],
-            topSubtotalGoods: Array.isArray(data.topSubtotalGoods) ? data.topSubtotalGoods : [],
+            topTimesGoods: Array.isArray(data.topTimesGoods)
+              ? data.topTimesGoods.map(item => decorateGoodsVisual(item, apiUrl.server)) : [],
+            topSubtotalGoods: Array.isArray(data.topSubtotalGoods)
+              ? data.topSubtotalGoods.map(item => decorateGoodsVisual(item, apiUrl.server)) : [],
             topSubtotalGoodsSubtotal: data.topSubtotalGoodsSubtotal || "0",
             topSubtotalGoodsPercent: data.topSubtotalGoodsPercent || "0",
-            topGoodsPrice: Array.isArray(data.topGoodsPrice) ? data.topGoodsPrice : [],
+            topGoodsPrice: Array.isArray(data.topGoodsPrice)
+              ? data.topGoodsPrice.map(item => decorateGoodsVisual(item, apiUrl.server)) : [],
             arr: data.arr || [],
             mapEveryDay: data, // 用于判断是否有数据
           }, () => {

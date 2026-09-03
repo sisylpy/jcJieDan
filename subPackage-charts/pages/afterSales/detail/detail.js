@@ -16,7 +16,10 @@ import {
   finishAfterSalesReplenishment,
   getAfterSalesAnnouncement,
   publishAfterSalesAnnouncement,
-  withdrawAfterSalesAnnouncement
+  withdrawAfterSalesAnnouncement,
+  approveSalesReturn,
+  rejectSalesReturn,
+  receiveSalesReturn
 } from '../../../../lib/apiDistributer'
 import { getDrivers } from '../../../../lib/apiRouteDispatch'
 
@@ -72,6 +75,7 @@ Page({
     financialAdjustments: [],
     feedbackHistory: [],
     replenishments: [],
+    salesReturns: [],
     severityMap: {}, issueTypeMap: {}, statusMap: {}, actionTypeMap: {}, confirmMap: {}, actionStatusMap: {},
     communicationChannelMap: {}, communicationResultMap: {},
     actionOptions: [],
@@ -83,12 +87,18 @@ Page({
     dimensionOptions: [],
     importanceOptions: ['1 普通', '2 注意', '3 重要', '4 重点', '5 关键'],
     showActionForm: false, showFinancialForm: false, showFeedbackForm: false,
+    showReturnApprovalForm: false, showReturnReceiveForm: false,
+    activeReturnId: null, returnPickupRequired: true, returnRouteDate: '',
+    returnApprovalRemark: '', returnApprovalItems: [], returnReceiveRemark: '', returnReceiveItems: [],
+    financialSalesReturnId: null,
+    returnDispositionOptions: ['返库', '报损', '退供应商'],
     showDeliveryForm: false, showOutcomeForm: false, showAnnouncementForm: false,
     actionType: 'COMMUNICATION', actionStatus: 'COMPLETED', actionRemark: '', actionResult: '',
     actionMethodCode: 'PHONE', actionResultCode: 'AGREED', actionContactName: '',
     actionCommitmentPlan: '', actionOccurredAt: inputDateTime(), actionExpectedAt: '',
     otherTitle: '', otherPlan: '', otherResponsibleIndex: 0,
-    financialTypeIndex: 0, financialAmount: '', financialReason: '', financialResultNote: '', financialIdempotencyKey: '',
+    financialTypeIndex: 0, financialAmount: '', financialReason: '', financialResultNote: '',
+    financialExternalRefundNo: '', financialIdempotencyKey: '',
     showReplenishmentForm: false,
     replenishmentItemIndex: 0, replenishmentQuantity: '', replenishmentUnit: '斤', replenishmentStandard: '斤',
     replenishmentExpectedAt: '', replenishmentNote: '', replenishmentIdempotencyKey: '', driverIndex: 0,
@@ -271,6 +281,7 @@ Page({
       return Object.assign({}, row, {
         amountText: '¥' + row.nxDasfaAmount,
         typeLabel: ({ ACCOUNT_OFFSET: '账款冲减', UNBILLED_REDUCTION: '未出账减免', OFFLINE_REFUND: '线下退款' })[row.nxDasfaAdjustmentType] || row.nxDasfaAdjustmentType,
+        postingLabel: ({ POSTED: '已冲减入账', OPEN: '待后续账单抵扣', REFUNDED: '已线下退款' })[row.nxDasfaPostingStatus] || row.nxDasfaPostingStatus,
         processedText: formatTime(row.nxDasfaProcessedAt)
       })
     })
@@ -292,6 +303,27 @@ Page({
         unitText: row.nxDasrUnit || row.nxDasrStandard,
         expectedText: formatTime(row.nxDasrExpectedAt),
         statusLabel: ({ ASSIGNED: '已派单', DELIVERED: '已送达', FAILED: '已失败', CANCELLED: '已取消', CREATING: '创建中' })[row.nxDasrStatus] || row.nxDasrStatus
+      })
+    })
+    var returnStatusLabels = {
+      SUBMITTED: '待审核', APPROVED: '已审核', PROCESSING: '处理中', WAIT_FINANCIAL: '待财务处理',
+      WAIT_CONFIRM: '待客户确认', COMPLETED: '已完成', REJECTED: '已驳回', CANCELLED: '已取消'
+    }
+    var logisticsLabels = {
+      WAIT_APPROVAL: '待审核', WAIT_ASSIGN: '待路线分派', ASSIGNED: '已分派司机', IN_TRANSIT: '运输回仓',
+      RECEIVED: '仓库已收货', NOT_REQUIRED: '无需物流'
+    }
+    var salesReturns = (raw.salesReturns || []).map(function (row) {
+      return Object.assign({}, row, {
+        id: row.nxDsrId, returnNo: row.nxDsrNo,
+        statusLabel: returnStatusLabels[row.nxDsrBusinessStatus] || row.nxDsrBusinessStatus,
+        logisticsLabel: logisticsLabels[row.nxDsrLogisticsStatus] || row.nxDsrLogisticsStatus,
+        amountText: '¥' + (row.nxDsrActualCreditAmount || row.nxDsrEstimatedCreditAmount || '0'),
+        items: (row.items || []).map(function (item) {
+          return Object.assign({}, item, { id: item.nxDsriId, goodsName: item.nxDsriGoodsName,
+            requestedQuantity: item.nxDsriRequestedQuantity, approvedQuantity: item.nxDsriApprovedQuantity,
+            pickedQuantity: item.nxDsriPickedQuantity })
+        })
       })
     })
     var status = raw.nxDasStatus
@@ -320,10 +352,11 @@ Page({
       processImages: images.filter(function (image) { return image.stage === 'PROCESS' }),
       resultImages: images.filter(function (image) { return image.stage === 'REPLENISHMENT_RESULT' }),
       actions: actions, financialAdjustments: financialAdjustments,
-      feedbackHistory: feedbackHistory, replenishments: replenishments,
-      actionOptions: issueScope === 'ORDER'
-        ? allActionOptions.filter(function (item) { return item.code !== 'REPLENISHMENT' })
-        : allActionOptions,
+      feedbackHistory: feedbackHistory, replenishments: replenishments, salesReturns: salesReturns,
+      actionOptions: allActionOptions.filter(function (item) {
+        if (item.code === 'RETURN') return false
+        return issueScope !== 'ORDER' || item.code !== 'REPLENISHMENT'
+      }),
       writebackItemIndex: writtenBackItemIndex >= 0 ? writtenBackItemIndex : 0,
       hasWrittenBack: images.some(function (image) { return image.converted }) || this.data.hasWrittenBack
     })
@@ -397,6 +430,10 @@ Page({
   openActionByType(e) {
     var type = e.currentTarget.dataset.code
     if (!type) return
+    if (type === 'RETURN') {
+      wx.showToast({ title: this.data.salesReturns.length ? '退货进度请在上方退货单中处理' : '请从客户送货单发起退货', icon: 'none' })
+      return
+    }
     if (type === 'REPLENISHMENT') {
       if (!this.data.items.length) {
         wx.showToast({ title: '整单问题不能按商品补货', icon: 'none' })
@@ -413,6 +450,7 @@ Page({
       this.setData({
         actionType: type, showActionForm: false, showFinancialForm: true,
         showReplenishmentForm: false, showCompensationForm: false,
+        financialSalesReturnId: null,
         financialIdempotencyKey: requestKey('financial')
       })
       return
@@ -440,7 +478,9 @@ Page({
     this.setData({
       showActionForm: false, showFinancialForm: false, showReplenishmentForm: false,
       showCompensationForm: false, showWritebackForm: false, showFeedbackForm: false,
-      showDeliveryForm: false, showOutcomeForm: false, showAnnouncementForm: false
+      showDeliveryForm: false, showOutcomeForm: false, showAnnouncementForm: false,
+      showReturnApprovalForm: false, showReturnReceiveForm: false,
+      financialSalesReturnId: null
     })
   },
   selectActionType(e) {
@@ -497,19 +537,86 @@ Page({
   onFinancialAmountInput(e) { this.setData({ financialAmount: e.detail.value }) },
   onFinancialReasonInput(e) { this.setData({ financialReason: e.detail.value }) },
   onFinancialResultInput(e) { this.setData({ financialResultNote: e.detail.value }) },
+  onFinancialExternalRefundNoInput(e) { this.setData({ financialExternalRefundNo: e.detail.value }) },
   saveFinancialAdjustment() {
     if (this.data.submitting) return
     var type = this.data.financialTypes[this.data.financialTypeIndex]
     if (!type || !this.data.financialAmount.trim() || !this.data.financialReason.trim() || !this.data.financialResultNote.trim()) {
       wx.showToast({ title: '请完整填写方式、金额、原因和结果', icon: 'none' }); return
     }
+    if (type.code === 'OFFLINE_REFUND' && !this.data.financialExternalRefundNo.trim()) {
+      wx.showToast({ title: '请填写线下退款凭证号', icon: 'none' }); return
+    }
     this.submit(createAfterSalesFinancialAdjustment(this.data.afterSalesId, Object.assign(this.scope(), {
       adjustmentType: type.code, amount: this.data.financialAmount.trim(), currency: 'CNY',
       reason: this.data.financialReason.trim(), resultNote: this.data.financialResultNote.trim(),
-      idempotencyKey: this.data.financialIdempotencyKey
+      externalRefundNo: type.code === 'OFFLINE_REFUND' ? this.data.financialExternalRefundNo.trim() : null,
+      idempotencyKey: this.data.financialIdempotencyKey,
+      salesReturnId: this.data.financialSalesReturnId || null
     })), '财务处理已记录', () => this.setData({
-      showFinancialForm: false, financialAmount: '', financialReason: '', financialResultNote: ''
+      showFinancialForm: false, financialAmount: '', financialReason: '', financialResultNote: '',
+      financialExternalRefundNo: '', financialSalesReturnId: null
     }))
+  },
+
+  openReturnApproval(e) {
+    var row = this.data.salesReturns.filter(function (item) { return item.id === Number(e.currentTarget.dataset.id) })[0]
+    if (!row) return
+    this.setData({ showReturnApprovalForm: true, activeReturnId: row.id,
+      returnPickupRequired: true, returnRouteDate: row.nxDsrRouteDate || inputDateTime().slice(0, 10),
+      returnApprovalRemark: '', returnApprovalItems: row.items.map(function (item) {
+        return { id: item.id, goodsName: item.goodsName, requestedQuantity: item.requestedQuantity,
+          approvedQuantity: String(item.requestedQuantity || '') }
+      }) })
+  },
+  onReturnPickupChange(e) { this.setData({ returnPickupRequired: !!e.detail.value }) },
+  onReturnRouteDateChange(e) { this.setData({ returnRouteDate: e.detail.value }) },
+  onReturnApprovalRemarkInput(e) { this.setData({ returnApprovalRemark: e.detail.value }) },
+  onReturnApprovedQuantityInput(e) { this.setData({ ['returnApprovalItems[' + Number(e.currentTarget.dataset.index) + '].approvedQuantity']: e.detail.value }) },
+  saveReturnApproval() {
+    this.submit(approveSalesReturn(this.data.activeReturnId, Object.assign(this.scope(), {
+      pickupRequired: this.data.returnPickupRequired,
+      routeDate: this.data.returnPickupRequired ? this.data.returnRouteDate : null,
+      approvalRemark: this.data.returnApprovalRemark,
+      items: this.data.returnApprovalItems.map(function (item) { return { returnItemId: item.id, approvedQuantity: item.approvedQuantity } })
+    })), this.data.returnPickupRequired ? '已审核，取货任务已进入路线分派' : '已审核，等待仓库收货',
+    () => this.setData({ showReturnApprovalForm: false, activeReturnId: null }))
+  },
+  rejectReturn(e) {
+    var id = Number(e.currentTarget.dataset.id)
+    wx.showModal({ title: '驳回退货申请', editable: true, placeholderText: '请输入驳回原因', success: (res) => {
+      if (!res.confirm || !(res.content || '').trim()) return
+      this.submit(rejectSalesReturn(id, Object.assign(this.scope(), { reason: res.content.trim() })), '退货申请已驳回')
+    } })
+  },
+  openReturnReceive(e) {
+    var row = this.data.salesReturns.filter(function (item) { return item.id === Number(e.currentTarget.dataset.id) })[0]
+    if (!row) return
+    this.setData({ showReturnReceiveForm: true, activeReturnId: row.id, returnReceiveRemark: '',
+      returnReceiveItems: row.items.map(function (item) {
+        var ceiling = item.pickedQuantity || item.approvedQuantity || item.requestedQuantity || ''
+        return { id: item.id, goodsName: item.goodsName, ceiling: ceiling, receivedQuantity: String(ceiling),
+          acceptedQuantity: String(ceiling), conditionCode: 'NORMAL', dispositionCode: 'RESTOCK', temperature: '' }
+      }) })
+  },
+  onReturnReceiveInput(e) { var index = Number(e.currentTarget.dataset.index), field = e.currentTarget.dataset.field; this.setData({ ['returnReceiveItems[' + index + '].' + field]: e.detail.value }) },
+  onReturnDispositionChange(e) { this.setData({ ['returnReceiveItems[' + Number(e.currentTarget.dataset.index) + '].dispositionCode']: ['RESTOCK', 'SCRAP', 'RETURN_TO_SUPPLIER'][Number(e.detail.value)] }) },
+  onReturnReceiveRemarkInput(e) { this.setData({ returnReceiveRemark: e.detail.value }) },
+  saveReturnReceive() {
+    this.submit(receiveSalesReturn(this.data.activeReturnId, Object.assign(this.scope(), {
+      remark: this.data.returnReceiveRemark,
+      items: this.data.returnReceiveItems.map(function (item) { return { returnItemId: item.id,
+        receivedQuantity: item.receivedQuantity, acceptedQuantity: item.acceptedQuantity,
+        conditionCode: item.conditionCode, dispositionCode: item.dispositionCode, temperature: item.temperature || null } })
+    })), '退货验收已完成', () => this.setData({ showReturnReceiveForm: false, activeReturnId: null }))
+  },
+  openReturnFinancial(e) {
+    var row = this.data.salesReturns.filter(function (item) { return item.id === Number(e.currentTarget.dataset.id) })[0]
+    if (!row) return
+    this.setData({ showFinancialForm: true, financialSalesReturnId: row.id,
+      financialAmount: String(row.nxDsrActualCreditAmount || ''), financialReason: '客户退货验收冲减',
+      financialResultNote: '', financialExternalRefundNo: '',
+      financialIdempotencyKey: requestKey('return-financial') })
   },
 
   onReplenishmentItemChange(e) { this.setData({ replenishmentItemIndex: Number(e.detail.value) }) },

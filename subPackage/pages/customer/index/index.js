@@ -21,6 +21,9 @@ Page({
     showInvite: true,
     labelList: [],          // 配送商全部标签
     selectedLabelId: null, // 当前选中的标签ID，null表示全部
+    myCustomerArrOne: [],
+    myCustomerArrTwo: [],
+    yifaArr: [],
   },
 
 
@@ -254,16 +257,77 @@ toConectRestraunt() {
   toYifaPage(e){
     var nxDisBusiness  = e.currentTarget.dataset.item;
     wx.setStorageSync('nxDisBusiness', nxDisBusiness);
-    if (nxDisBusiness.nxDgdFromNxDepId && nxDisBusiness.nxDgdFromNxDepId > 0) {
-      wx.navigateTo({
-        url: '../customerPage/customerPage?depId=' + nxDisBusiness.nxDgdFromNxDepId,
-      })
+    var customer = this._resolveJrdhCustomer(nxDisBusiness)
+    if (customer) {
+      this._openCustomerGrowth(customer)
       return;
     }
-    wx.navigateTo({
-      url: '../customerPageGb/customerPageGb?gbDisId=' + nxDisBusiness.nxDgdGbDistributerId,
+
+    load.showLoading('同步客户详情')
+    disGetAllCustomer(this.data.disId).then(res => {
+      load.hideLoading()
+      if (!res.result || res.result.code != 0) {
+        wx.showToast({
+          title: (res.result && res.result.msg) || '客户详情同步失败',
+          icon: 'none'
+        })
+        return
+      }
+      var customerData = res.result.data || {}
+      this.setData({
+        myCustomerArrOne: customerData.settleTypeOne || [],
+        myCustomerArrTwo: customerData.settleTypeTwo || []
+      })
+      var syncedCustomer = this._resolveJrdhCustomer(nxDisBusiness)
+      if (!syncedCustomer) {
+        wx.showToast({
+          title: '该客户资料正在同步，请稍后重试',
+          icon: 'none'
+        })
+        return
+      }
+      this._openCustomerGrowth(syncedCustomer)
+    }).catch(() => {
+      load.hideLoading()
+      wx.showToast({
+        title: '客户详情同步失败，请检查网络',
+        icon: 'none'
+      })
     })
-   
+  },
+
+  _resolveJrdhCustomer(nxDisBusiness) {
+    var business = nxDisBusiness || {}
+    var embeddedCustomer = business.fromNxDepartment || {}
+    var linkedDepartmentId = this._positiveId(business.nxDgdFromNxDepId)
+      || this._positiveId(embeddedCustomer.nxDepartmentId)
+    if (linkedDepartmentId) {
+      return Object.assign({}, embeddedCustomer, {
+        nxDepartmentId: linkedDepartmentId
+      })
+    }
+
+    var gbDistributerId = this._positiveId(business.nxDgdGbDistributerId)
+    if (!gbDistributerId) return null
+    var localCustomers = (this.data.myCustomerArrOne || [])
+      .concat(this.data.myCustomerArrTwo || [])
+    return localCustomers.find(function (item) {
+      return Number(item.nxDepartmentGbDistributerId) === gbDistributerId
+    }) || null
+  },
+
+  _openCustomerGrowth(customer) {
+    var departmentId = this._positiveId(customer && customer.nxDepartmentId)
+    if (!departmentId) return
+    wx.setStorageSync('depInfo', customer)
+    wx.navigateTo({
+      url: '../customerGrowth/customerGrowth?depId=' + departmentId
+    })
+  },
+
+  _positiveId(value) {
+    var id = Number(value)
+    return Number.isFinite(id) && id > 0 ? id : null
   },
 
   toInviteGb(){

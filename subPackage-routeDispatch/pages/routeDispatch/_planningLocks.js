@@ -10,7 +10,10 @@ function lockLabel(lock) {
   var driverName = lock && lock.driverName != null
     ? String(lock.driverName).trim()
     : ''
-  return driverName ? '已锁定给 ' + driverName : '已锁定司机'
+  if (lock && (lock.longTerm === true || lock.lockType === 'LONG_TERM')) {
+    return driverName ? '长期绑定：' + driverName : '已长期绑定'
+  }
+  return driverName ? '本次锁定：' + driverName : '本次已锁定'
 }
 
 function decorateStop(stop, lockByDepartmentId) {
@@ -22,6 +25,7 @@ function decorateStop(stop, lockByDepartmentId) {
   if (!lock) return stop
   return Object.assign({}, stop, {
     driverLocked: true,
+    longTermDriverBound: lock.longTerm === true || lock.lockType === 'LONG_TERM',
     lockedDriverUserId: lock.driverUserId,
     lockedDriverName: lock.driverName || '',
     driverLockLabel: lockLabel(lock),

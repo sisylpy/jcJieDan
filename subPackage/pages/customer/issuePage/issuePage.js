@@ -7,7 +7,6 @@ var app = getApp()
 import {
  
   getBillApplys,
-  updateOrderReturn,
   updateBillOrders,
 } from '../../../../lib/apiDepOrder'
 import { getDispatchDeliveryToday } from '../../../../lib/apiRouteDispatch'
@@ -218,7 +217,7 @@ Page({
     this._openAfterSalesCreate(selected);
   },
 
-  _openAfterSalesCreate(selected) {
+  _openAfterSalesCreate(selected, resolutionIntent) {
     var taskId = selected.afterSalesContext && selected.afterSalesContext.deliveryStopId;
     var selectedDepartmentId = selected.nxDoDepartmentId;
     var candidates = this._allBillOrders().filter(function (item) {
@@ -247,6 +246,7 @@ Page({
       anchorHistoryOrderId: selected.nxDepartmentOrdersId,
       routeDate: (selected.afterSalesContext && selected.afterSalesContext.routeDate) || '',
       customerName: (selected.afterSalesContext && selected.afterSalesContext.customerName) || this.data.depName || '',
+      resolutionIntent: resolutionIntent || 'AFTER_SALES',
       orders: candidates,
       createdAt: Date.now()
     });
@@ -359,27 +359,14 @@ Page({
   },
 
   addReturn(e){
-    if(this.data.item.nxDoReturnStatus == null || this.data.item.nxDoReturnStatus == 0){
-      this.setData({
-        showOperation: false,
-        showReturn: true, 
-       
-      })
-      if( this.data.item.nxDoReturnStatus == 0){
-        this.setData({
-          applyNumber: this.data.item.nxDoReturnWeight
-        })
-
-      }
-     
-    }else{
-      wx.showToast({
-        title: '不能重复退货',
-        icon: 'none'
-      })
-
+    var selected = this.data.item
+    this.setData({ showOperation: false })
+    this.hideModal()
+    if (!selected || !selected.nxDepartmentOrdersId || !selected.nxDoDepDisGoodsId) {
+      wx.showToast({ title: '原订单信息不完整，不能申请退货', icon: 'none' })
+      return
     }
-   
+    this._openAfterSalesCreate(selected, 'RETURN')
   },
 
   /**
@@ -504,58 +491,12 @@ Page({
 
   
 
-  toReturnPage(){
-    console.log(this.data.billId)
-    wx.navigateTo({
-      url: '../returnPage/returnPage?billId=' + this.data.billId
-      + '&depName=' + this.data.depName + '&depFatherId=' + this.data.depFatherId 
-      +'&disId=' + this.data.disId,  
+  explainLegacyReturn(){
+    wx.showModal({
+      title: '旧版退货记录',
+      content: '旧记录没有审批、司机取货和仓库验收状态，不能直接生成退货单。请在对应商品的操作菜单中点击“发起退货申请”，重新进入完整退货流程。',
+      showCancel: false
     })
-  },
-
-  
-  /**
-   * 修改配送申请
-   * @param {} e 
-   */
-  confirmReturn(e) {
-  
-    var dg = {
-      nxDepartmentOrdersId: this.data.item.nxDepartmentOrdersId,
-      nxDoReturnWeight: e.detail.applyNumber,
-      nxDoReturnSubtotal: (Number(e.detail.applyNumber) * Number(this.data.item.nxDoPrice)).toFixed(1),
-      nxDoReturnStatus: 0,
-      
-    };
-    
-    var dg = {
-      id: this.data.item.nxDepartmentOrdersId,
-      weight: e.detail.applyNumber,
-      subtotal:(Number(e.detail.applyNumber) * Number(this.data.item.nxDoPrice)).toFixed(1),
-      
-    };
-    console.log("dat", dg);
-
-    updateOrderReturn(dg).then(res => {
-      load.showLoading("添加退货商品")
-        if (res.result.code == 0) {
-          load.hideLoading();
-          this._getAccountBillApplys();
-          
-        }else{
-          load.hideLoading();
-          wx.showToast({
-            title: res.result.msg,
-            icon: "none"
-          })
-        }
-      
-    })
-  },
-
-
-  saveReturnBill(){
-
   },
  toBack(){
    console.log("backk")

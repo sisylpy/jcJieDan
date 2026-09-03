@@ -6,6 +6,14 @@ import {
   disGetDepOrderAnomalies
 } from '../../../../lib/apiDistributer'
 
+import {
+  CUSTOMER_GOODS_AMOUNT_GROUPS,
+  CUSTOMER_GOODS_AMOUNT_WINDOWS,
+  buildCustomerGoodsAmountRows,
+  resolveCustomerGoodsAverageQuantity,
+  summarizeCustomerGoodsAmountRows
+} from '../../../../utils/customerGoodsAmount'
+
 const FREQUENCY_GROUPS = [
   {
     key: 'high',
@@ -47,12 +55,21 @@ Page({
     depFatherId: null,
     editDepAttrName: '',
     searchKeyword: '',
+    viewMode: 'frequency',
+    amountWindows: CUSTOMER_GOODS_AMOUNT_WINDOWS,
+    amountWindowIndex: 1,
+    amountWindowLabel: CUSTOMER_GOODS_AMOUNT_WINDOWS[1].label,
     groupedGoods: [],
     stats: {
       total: 0,
       requirement: 0,
       stable: 0,
       recent: 0
+    },
+    amountStats: {
+      totalAmountText: '¥0',
+      core: 0,
+      withAmount: 0
     },
     anomalyAvailable: false,
     anomalyAsOf: '',
@@ -183,6 +200,15 @@ Page({
         lastOrderDays: lastOrder.days,
         orderDayCount: this._toInteger(item.orderDayCount),
         ordersLast30Days: this._toInteger(item.ordersLast30Days),
+        orderAmount30Days: this._toAmount(item.orderAmount30Days),
+        orderAmount90Days: this._toAmount(item.orderAmount90Days),
+        orderAmount365Days: this._toAmount(item.orderAmount365Days),
+        orderAmountAll: this._toAmount(item.orderAmountAll),
+        averageOrderQuantity30Days: this._toAmount(item.averageOrderQuantity30Days),
+        averageOrderQuantity90Days: this._toAmount(item.averageOrderQuantity90Days),
+        averageOrderQuantity365Days: this._toAmount(item.averageOrderQuantity365Days),
+        averageOrderQuantityAll: this._toAmount(item.averageOrderQuantityAll),
+        averageOrderQuantityUnit: this._text(item.averageOrderQuantityUnit),
         requirementCount,
         imageCount,
         hasRequirement: requirementCount > 0,
@@ -255,9 +281,15 @@ Page({
 
   _applyFilter() {
     const keyword = (this.data.searchKeyword || '').trim().toLowerCase()
-    const allGoods = this._allGoods || []
-    const goods = keyword
-      ? allGoods.filter(item => {
+    const amountMode = this.data.viewMode === 'amount'
+    const amountWindow = CUSTOMER_GOODS_AMOUNT_WINDOWS[this.data.amountWindowIndex]
+      || CUSTOMER_GOODS_AMOUNT_WINDOWS[1]
+    const source = amountMode
+      ? buildCustomerGoodsAmountRows(this._allGoods || [], amountWindow.field)
+      : (this._allGoods || [])
+    const amountSummary = summarizeCustomerGoodsAmountRows(source)
+    const goods = (keyword
+      ? source.filter(item => {
         return [
           item.goodsName,
           item.originalGoodsName,
@@ -268,18 +300,57 @@ Page({
           item.anomalyReason
         ].some(value => (value || '').toLowerCase().includes(keyword))
       })
-      : allGoods
+      : source).map(item => this._decorateGoodsForView(item, amountWindow))
 
-    const groupedGoods = FREQUENCY_GROUPS.map(group => {
-      const items = goods.filter(item => item.frequencyKey === group.key)
+    const groups = amountMode ? CUSTOMER_GOODS_AMOUNT_GROUPS : FREQUENCY_GROUPS
+    const groupedGoods = groups.map(group => {
+      const items = goods.filter(item => amountMode
+        ? item.amountKey === group.key
+        : item.frequencyKey === group.key)
+      const collapseKey = this.data.viewMode + ':' + group.key
       return Object.assign({}, group, {
         count: items.length,
-        collapsed: !!(this._collapsedMap && this._collapsedMap[group.key]),
+        collapsed: !!(this._collapsedMap && this._collapsedMap[collapseKey]),
         items
       })
     }).filter(group => group.count > 0)
 
-    this.setData({ groupedGoods })
+    this.setData({
+      groupedGoods,
+      amountWindowLabel: amountWindow.label,
+      amountStats: {
+        totalAmountText: this._formatMoney(amountSummary.totalAmount),
+        core: amountSummary.core,
+        withAmount: amountSummary.withAmount
+      }
+    })
+  },
+
+  _decorateGoodsForView(item, amountWindow) {
+    const average = resolveCustomerGoodsAverageQuantity(item, this.data.viewMode, amountWindow)
+    return Object.assign({}, item, {
+      averageQuantityText: average.value === null
+        ? '暂无数据'
+        : '约 ' + this._formatNumber(average.value) + (average.unit || ''),
+      amountText: this._formatMoney(item.amountValue || 0),
+      amountShareText: this._formatNumber(item.amountShare || 0) + '%',
+      cadenceText: item.intervalDays === null
+        ? '暂未形成周期'
+        : '约 ' + item.intervalText + '天一次'
+    })
+  },
+
+  setViewMode(e) {
+    const mode = e.currentTarget.dataset.mode
+    if (mode !== 'frequency' && mode !== 'amount') return
+    this.setData({ viewMode: mode })
+    this._applyFilter()
+  },
+
+  onAmountWindowChange(e) {
+    const index = Number(e.detail.value)
+    this.setData({ amountWindowIndex: Number.isFinite(index) ? index : 1 })
+    this._applyFilter()
   },
 
   toggleGroup(e) {
@@ -290,7 +361,7 @@ Page({
       if (group.key !== key) return group
       const collapsed = !group.collapsed
       this._collapsedMap = this._collapsedMap || {}
-      this._collapsedMap[key] = collapsed
+      this._collapsedMap[this.data.viewMode + ':' + key] = collapsed
       return Object.assign({}, group, { collapsed })
     })
 
@@ -413,6 +484,18 @@ Page({
   _formatNumber(value) {
     if (Number.isInteger(value)) return String(value)
     return value.toFixed(1).replace(/\.0$/, '')
+  },
+
+  _formatMoney(value) {
+    const amount = Number(value)
+    const safe = Number.isFinite(amount) ? amount : 0
+    const fixed = safe.toFixed(2).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1')
+    return '¥' + fixed.replace(/\B(?=(\d{3})+(?!\d))/g, ',')
+  },
+
+  _toAmount(value) {
+    const number = Number(value)
+    return Number.isFinite(number) && number > 0 ? number : 0
   },
 
   _toNumber(value) {

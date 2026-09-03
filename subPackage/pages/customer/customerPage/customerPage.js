@@ -320,7 +320,14 @@ openAccountBill(e){
 
 
 openAccountReturnBill(e){
- 
+  var bill = this.data.billItem || {}
+  if (bill.nxDbBillType === 'RETURN_CREDIT' && bill.nxDbAfterSalesId) {
+    wx.navigateTo({
+      url: '/subPackage-charts/pages/afterSales/detail/detail?afterSalesId=' + bill.nxDbAfterSalesId
+        + '&customerName=' + encodeURIComponent(this.data.depInfo.nxDepartmentName || '')
+    })
+    return
+  }
   wx.navigateTo({
     url: '../issueReturnPage/issueReturnPage?billId=' + this.data.id
     + '&depName=' + this.data.depInfo.nxDepartmentName + '&depFatherId='

@@ -213,11 +213,12 @@ Page({
 
   _normalizeOrderPageData(data) {
     if (!data || !data.arr) return data;
+    var page = this;
     if (this.data.depHasSubs > 0) {
       data.arr.forEach(function (dep) {
         if (dep.depOrders && dep.depOrders.length) {
           dep.depOrders = dep.depOrders.map(function (order) {
-            return platformDisplay.normalizeOrder(order);
+            return page._decorateCustomerStandards(platformDisplay.normalizeOrder(order));
           });
           var platformCount = dep.depOrders.filter(function (o) { return o.isPlatformOrder === 1; }).length;
           console.log('[platformOrder] #' + dep.depName + ' 平台行:', platformCount, '/', dep.depOrders.length);
@@ -225,12 +226,79 @@ Page({
       });
     } else {
       data.arr = data.arr.map(function (order) {
-        return platformDisplay.normalizeOrder(order);
+        return page._decorateCustomerStandards(platformDisplay.normalizeOrder(order));
       });
       var platformCount = data.arr.filter(function (o) { return o.isPlatformOrder === 1; }).length;
       console.log('[platformOrder] 平台行:', platformCount, '/', data.arr.length);
     }
     return this._decorateJczbBatchGroups(data);
+  },
+
+  _decorateCustomerStandards(order) {
+    if (!order) return order;
+    var relation = order.nxDepartmentDisGoodsEntity || {};
+    var dimensionLabels = {
+      SIZE: '大小',
+      COLOR: '颜色',
+      FRESHNESS: '新鲜度',
+      ROOT: '根部',
+      PACKAGING: '包装',
+      SUBSTITUTE: '替代',
+      OTHER: '其他'
+    };
+    var standardItems = relation.nxDepartmentDisGoodsStandardItems
+      || order.customerStandardItems
+      || [];
+    var displayItems = standardItems
+      .filter(function (item) {
+        return item && (!item.nxDdgsiStatus || item.nxDdgsiStatus === 'ACTIVE')
+          && String(item.nxDdgsiRequirementText || '').trim();
+      })
+      .map(function (item) {
+        var importance = Number(item.nxDdgsiImportanceLevel || 1);
+        importance = isNaN(importance) ? 1 : Math.max(1, Math.min(5, Math.round(importance)));
+        var code = item.nxDdgsiDimensionCode || 'OTHER';
+        return {
+          id: item.nxDdgsiId,
+          label: (code === 'OTHER' && item.nxDdgsiDimensionName)
+            ? item.nxDdgsiDimensionName
+            : (dimensionLabels[code] || item.nxDdgsiDimensionName || '其他'),
+          text: String(item.nxDdgsiRequirementText || '').trim(),
+          importance: importance
+        };
+      });
+
+    var knownTexts = {};
+    displayItems.forEach(function (item) { knownTexts[item.text] = true; });
+    [
+      { label: '分拣', text: relation.nxDdgPickDetail },
+      { label: '商品', text: relation.nxDdgDepGoodsDetail },
+      { label: '备注', text: relation.nxDdgOrderRemark }
+    ].forEach(function (legacy) {
+      var text = String(legacy.text || '').trim();
+      if (text && text !== 'null' && !knownTexts[text]) {
+        displayItems.push({
+          id: 'legacy-' + legacy.label,
+          label: legacy.label,
+          text: text,
+          importance: 3
+        });
+        knownTexts[text] = true;
+      }
+    });
+
+    displayItems.forEach(function (item) {
+      var importance = Number(item.importance || 1);
+      importance = isNaN(importance) ? 1 : Math.max(1, Math.min(5, Math.round(importance)));
+      item.importance = importance;
+      item.importanceStars = [1, 2, 3, 4, 5].map(function (level) {
+        return { level: level };
+      });
+    });
+
+    order._customerStandardItems = displayItems;
+    order._hasCustomerStandards = displayItems.length > 0;
+    return order;
   },
 
   /**
@@ -575,7 +643,7 @@ Page({
 
     wx.navigateToMiniProgram({
       appId: appId,
-      path: '/pages/ai/customer/chefOrder/chefOrder?depFatherId=' + this.data.depFatherId + '&disId=' + this.data.disId,
+      path: '/pages/ai/customer/chefOrder/chefOrder?depFatherId=' + this.data.depFatherId + '&disId=' + this.data.disId + '&entry=boss',
       envVersion: 'trial', //release develop trial
       success(res) {
         // that.setData({

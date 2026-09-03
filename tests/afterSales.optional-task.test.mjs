@@ -7,10 +7,10 @@ import { fileURLToPath } from 'node:url';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const issuePagePath = path.join(root, 'subPackage/pages/customer/issuePage/issuePage.js');
 const issuePageWxmlPath = path.join(root, 'subPackage/pages/customer/issuePage/issuePage.wxml');
-const createPagePath = path.join(root, 'subPackage/pages/afterSales/create/create.js');
-const createPageWxmlPath = path.join(root, 'subPackage/pages/afterSales/create/create.wxml');
-const detailPagePath = path.join(root, 'subPackage/pages/afterSales/detail/detail.js');
-const detailPageWxmlPath = path.join(root, 'subPackage/pages/afterSales/detail/detail.wxml');
+const createPagePath = path.join(root, 'subPackage-charts/pages/afterSales/create/create.js');
+const createPageWxmlPath = path.join(root, 'subPackage-charts/pages/afterSales/create/create.wxml');
+const detailPagePath = path.join(root, 'subPackage-charts/pages/afterSales/detail/detail.js');
+const detailPageWxmlPath = path.join(root, 'subPackage-charts/pages/afterSales/detail/detail.wxml');
 const storage = new Map();
 let pageConfig = null;
 let navigatedUrl = '';
@@ -120,7 +120,7 @@ issuePage.hideModal = () => {};
 issuePage.createAfterSalesFromOperation();
 await Promise.resolve();
 
-assert.equal(navigatedUrl, '../../afterSales/create/create', '未派单订单也应进入售后创建页');
+assert.equal(navigatedUrl, '/subPackage-charts/pages/afterSales/create/create', '未派单订单也应进入售后创建页');
 const draft = storage.get('afterSalesCreateDraft');
 assert.equal(draft.originalShipmentTaskId, null, '未派单订单的草稿应明确不带配送任务');
 assert.equal(draft.anchorHistoryOrderId, 501);
@@ -170,6 +170,7 @@ const createConfig = await evaluatePage(createPagePath, [
         items: request.items.length ? [{ nxDasiId: 2 }] : []
       } } };
     },
+    createSalesReturnWithAfterSales: async request => ({ result: { code: 0, data: request } }),
     uploadDepartmentAfterSalesImage: async () => ({ result: { code: 0 } })
   }]
 ]);

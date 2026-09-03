@@ -629,7 +629,7 @@ Page({
 
     wx.navigateToMiniProgram({
       appId: appId,
-      path: '/pages/ai/customer/chefOrder/chefOrder?depFatherId=' + this.data.depFatherId + '&disId=' + this.data.disId,
+      path: '/pages/ai/customer/chefOrder/chefOrder?depFatherId=' + this.data.depFatherId + '&disId=' + this.data.disId + '&entry=boss',
       envVersion: 'trial', //release develop trial
       success(res) {
         // that.setData({

@@ -1,9 +1,6 @@
 {
   "usingComponents": {
     "editBillOrder": "/components/editBillOrder/editBillOrder",
-    "addReturnOrder": "/components/addReturnOrder/addReturnOrder",
     "back-navbar": "/components/back-navbar/back-navbar"
-
-    
   }
 }

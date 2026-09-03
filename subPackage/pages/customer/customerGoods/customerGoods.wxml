@@ -21,7 +21,24 @@
   </view>
 
   <view wx:if="{{!loading}}" class="content">
-    <view class="summary">
+    <view class="view-toolbar">
+      <view class="view-switch">
+        <view class="view-option {{viewMode === 'frequency' ? 'active' : ''}}" bindtap="setViewMode" data-mode="frequency">订货频率</view>
+        <view class="view-option {{viewMode === 'amount' ? 'active' : ''}}" bindtap="setViewMode" data-mode="amount">订货金额</view>
+      </view>
+      <picker
+        wx:if="{{viewMode === 'amount'}}"
+        mode="selector"
+        range="{{amountWindows}}"
+        range-key="label"
+        value="{{amountWindowIndex}}"
+        bindchange="onAmountWindowChange"
+      >
+        <view class="amount-window">{{amountWindowLabel}}⌄</view>
+      </picker>
+    </view>
+
+    <view wx:if="{{viewMode === 'frequency'}}" class="summary">
       <view class="summary-item">
         <text class="summary-label">部门商品</text>
         <view class="summary-value">{{stats.total}}<text>个</text></view>
@@ -37,6 +54,25 @@
       <view class="summary-item">
         <text class="summary-label">近7天订货</text>
         <view class="summary-value">{{stats.recent}}<text>个</text></view>
+      </view>
+    </view>
+
+    <view wx:else class="summary amount-summary">
+      <view class="summary-item">
+        <text class="summary-label">统计范围</text>
+        <view class="summary-value compact">{{amountWindowLabel}}</view>
+      </view>
+      <view class="summary-item">
+        <text class="summary-label">订货总额</text>
+        <view class="summary-value money">{{amountStats.totalAmountText}}</view>
+      </view>
+      <view class="summary-item">
+        <text class="summary-label">核心商品</text>
+        <view class="summary-value">{{amountStats.core}}<text>个</text></view>
+      </view>
+      <view class="summary-item">
+        <text class="summary-label">有金额</text>
+        <view class="summary-value">{{amountStats.withAmount}}<text>个</text></view>
       </view>
     </view>
 
@@ -75,8 +111,8 @@
     </view>
 
     <view wx:if="{{groupedGoods.length}}" class="sort-line">
-      <text>按订货频次</text>
-      <text class="sort-desc">频次从高到低</text>
+      <text>{{viewMode === 'amount' ? '按订货金额' : '按订货频次'}}</text>
+      <text class="sort-desc">{{viewMode === 'amount' ? amountWindowLabel + ' · 金额从高到低' : '频次从高到低'}}</text>
     </view>
 
     <block wx:for="{{groupedGoods}}" wx:key="key" wx:for-item="group">
@@ -136,9 +172,16 @@
             >{{item.anomalyLabel}}</text>
           </view>
 
-          <view class="frequency">
-            <text class="frequency-value">{{item.intervalText}}</text>
-            <text class="frequency-unit">天/次</text>
+          <view class="primary-metric {{viewMode === 'amount' ? 'amount-metric' : ''}}">
+            <text class="metric-label">{{viewMode === 'amount' ? '订货金额' : '订货频率'}}</text>
+            <text class="metric-value">{{viewMode === 'amount' ? item.amountText : item.intervalText}}</text>
+            <text class="metric-note">{{viewMode === 'amount' ? '占总额 ' + item.amountShareText : '天/次'}}</text>
+          </view>
+
+          <view class="order-habit">
+            <text class="metric-label">平均每次</text>
+            <text class="habit-value">{{item.averageQuantityText}}</text>
+            <text wx:if="{{viewMode === 'amount'}}" class="habit-cadence">{{item.cadenceText}}</text>
           </view>
 
           <view class="last-order">

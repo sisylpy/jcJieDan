@@ -142,3 +142,196 @@
   border-radius: 6rpx;
   flex-shrink: 0;
 }
+
+.sales-return-section-header {
+  padding: 18rpx 20rpx 12rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff4ea;
+  border-top: 1rpx solid #f5dfcc;
+  border-bottom: 1rpx solid #f5dfcc;
+}
+
+.sales-return-section-title {
+  display: flex;
+  align-items: center;
+  color: #8f481d;
+  font-size: 28rpx;
+  font-weight: 600;
+}
+
+.sales-return-count {
+  min-width: 34rpx;
+  height: 34rpx;
+  margin-left: 10rpx;
+  padding: 0 8rpx;
+  box-sizing: border-box;
+  color: #fff;
+  background: #d66b2c;
+  border-radius: 17rpx;
+  font-size: 22rpx;
+  line-height: 34rpx;
+  text-align: center;
+}
+
+.sales-return-section-tip {
+  color: #9c765e;
+  font-size: 22rpx;
+}
+
+.sales-return-card {
+  margin: 14rpx 20rpx;
+  padding: 18rpx 20rpx 14rpx;
+  background: #fff;
+  border: 1rpx solid #ecd9ca;
+  border-left: 7rpx solid #d66b2c;
+  border-radius: 12rpx;
+  box-shadow: 0 3rpx 12rpx rgba(102, 57, 26, 0.06);
+}
+
+.sales-return-card-hover {
+  background: #fffaf6;
+}
+
+.sales-return-card-head,
+.sales-return-customer-line,
+.sales-return-no-line,
+.sales-return-goods,
+.sales-return-meta,
+.sales-return-action-line {
+  display: flex;
+  align-items: center;
+}
+
+.sales-return-card-head,
+.sales-return-no-line,
+.sales-return-goods,
+.sales-return-meta,
+.sales-return-action-line {
+  justify-content: space-between;
+}
+
+.sales-return-customer-line {
+  min-width: 0;
+  flex: 1;
+}
+
+.sales-return-index {
+  margin-right: 4rpx;
+  color: #9a9a9a;
+  font-size: 28rpx;
+}
+
+.sales-return-customer {
+  max-width: 330rpx;
+  overflow: hidden;
+  color: #2f2f2f;
+  font-size: 31rpx;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sales-return-tag {
+  margin-left: 12rpx;
+  padding: 2rpx 10rpx;
+  color: #b64f21;
+  background: #fff0e4;
+  border: 1rpx solid #efc9ad;
+  border-radius: 6rpx;
+  font-size: 21rpx;
+}
+
+.sales-return-status {
+  flex-shrink: 0;
+  margin-left: 12rpx;
+  padding: 5rpx 12rpx;
+  border-radius: 20rpx;
+  font-size: 22rpx;
+}
+
+.status-tone-pending {
+  color: #a54b1c;
+  background: #fff0e4;
+}
+
+.status-tone-assigned,
+.status-tone-transit {
+  color: #176a60;
+  background: #e6f5f2;
+}
+
+.status-tone-financial,
+.status-tone-confirm {
+  color: #7a5a12;
+  background: #fff7d8;
+}
+
+.status-tone-received,
+.status-tone-processing {
+  color: #52606d;
+  background: #eef2f5;
+}
+
+.sales-return-no-line {
+  margin-top: 8rpx;
+  color: #929292;
+  font-size: 21rpx;
+}
+
+.sales-return-goods {
+  margin-top: 13rpx;
+  padding: 10rpx 12rpx;
+  color: #4a4a4a;
+  background: #faf7f4;
+  border-radius: 6rpx;
+  font-size: 25rpx;
+}
+
+.sales-return-goods-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sales-return-quantity {
+  flex-shrink: 0;
+  margin-left: 20rpx;
+  color: #b64f21;
+  font-weight: 600;
+}
+
+.sales-return-meta {
+  margin-top: 14rpx;
+  color: #333;
+  font-size: 24rpx;
+}
+
+.sales-return-meta-item {
+  display: flex;
+  align-items: center;
+}
+
+.sales-return-meta-label {
+  margin-right: 10rpx;
+  color: #888;
+}
+
+.sales-return-money {
+  color: #b64f21;
+  font-weight: 600;
+}
+
+.sales-return-action-line {
+  margin-top: 13rpx;
+  padding-top: 12rpx;
+  color: #7b6a60;
+  border-top: 1rpx solid #f0e7e0;
+  font-size: 22rpx;
+}
+
+.sales-return-arrow {
+  width: 28rpx;
+  height: 28rpx;
+}

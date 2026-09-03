@@ -47,6 +47,55 @@ page {
   box-sizing: border-box;
 }
 
+.view-toolbar {
+  margin-bottom: 14rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+}
+
+.view-switch {
+  display: flex;
+  padding: 4rpx;
+  background: #e9efec;
+  border-radius: 12rpx;
+}
+
+.view-option {
+  min-width: 142rpx;
+  height: 60rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6f7b75;
+  font-size: 25rpx;
+  font-weight: 700;
+  border-radius: 9rpx;
+}
+
+.view-option.active {
+  color: #fff;
+  background: #169b59;
+  box-shadow: 0 4rpx 12rpx rgba(22, 155, 89, 0.18);
+}
+
+.amount-window {
+  min-width: 132rpx;
+  height: 60rpx;
+  padding: 0 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  color: #314039;
+  font-size: 24rpx;
+  font-weight: 650;
+  background: #fff;
+  border: 1rpx solid #dce6e1;
+  border-radius: 11rpx;
+}
+
 .summary {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -91,6 +140,24 @@ page {
 
 .summary-value.emphasis {
   color: #d24c43;
+}
+
+.summary-value.compact {
+  font-size: 26rpx;
+}
+
+.summary-value.money {
+  color: #0c9254;
+  font-size: 29rpx;
+}
+
+.amount-summary {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  row-gap: 20rpx;
+}
+
+.amount-summary .summary-item:nth-child(2) {
+  border-right: 0;
 }
 
 .anomaly-card {
@@ -325,11 +392,11 @@ page {
 }
 
 .goods-row {
-  min-height: 112rpx;
-  padding: 14rpx 16rpx;
+  min-height: 152rpx;
+  padding: 18rpx 16rpx;
   display: grid;
-  grid-template-columns: 64rpx minmax(0, 1fr) 112rpx 112rpx 18rpx;
-  gap: 14rpx;
+  grid-template-columns: 64rpx minmax(0, 1fr) 116rpx 130rpx 104rpx 18rpx;
+  gap: 10rpx;
   align-items: center;
   border-top: 1rpx solid #edf0ee;
 }
@@ -455,26 +522,53 @@ page {
   font-weight: 600;
 }
 
-.frequency,
+.primary-metric,
+.order-habit,
 .last-order {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
 
-.frequency-value {
+.metric-label {
+  color: #89938e;
+  font-size: 18rpx;
+  line-height: 23rpx;
+}
+
+.metric-value {
+  margin-top: 5rpx;
   color: #168f55;
-  font-size: 29rpx;
+  font-size: 27rpx;
   font-weight: 700;
   line-height: 34rpx;
 }
 
-.frequency-unit,
+.metric-note,
 .last-label {
   margin-top: 4rpx;
   color: #89938e;
-  font-size: 19rpx;
+  font-size: 18rpx;
   line-height: 24rpx;
+}
+
+.amount-metric .metric-value {
+  font-size: 23rpx;
+}
+
+.habit-value {
+  margin-top: 5rpx;
+  color: #26342d;
+  font-size: 21rpx;
+  font-weight: 650;
+  line-height: 29rpx;
+}
+
+.habit-cadence {
+  margin-top: 4rpx;
+  color: #7b8781;
+  font-size: 17rpx;
+  line-height: 23rpx;
 }
 
 .last-value {

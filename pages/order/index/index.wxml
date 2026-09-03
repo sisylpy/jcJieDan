@@ -31,7 +31,7 @@
       <view class="flex flex-row p-20" style="height: {{viewBarHeight}}rpx; ">
 
         <view class=" button-container mr-40" bindtap="addSearchOrder" data-type="buyingPrice"
-          wx:if="{{nxDepArr.length  > 0  || returnList.length > 0 || gbDisArrApp.length > 0 || platformCustomers.length > 0}}">
+          wx:if="{{nxDepArr.length  > 0  || returnList.length > 0 || gbDisArrApp.length > 0 || platformCustomers.length > 0 || salesReturnOrders.length > 0}}">
           <image src="/images/search-active.png" class="icon"></image>
         </view>
 
@@ -130,7 +130,7 @@
     </view>
     <!-- subPackage/pages/offerNx/nxDisBills/nxDisBills -->
     <view
-      class="{{nxDepArr.length == 0  && returnList.length == 0 && gbDisArrApp.length == 0 && taskArr.length == 0 && requestArr.length == 0 && platformCustomers.length == 0 ? 'show' : 'hide'}} ">
+      class="{{nxDepArr.length == 0  && returnList.length == 0 && gbDisArrApp.length == 0 && taskArr.length == 0 && requestArr.length == 0 && platformCustomers.length == 0 && salesReturnOrders.length == 0 ? 'show' : 'hide'}} ">
       <view class="flex-column center-content" style="height: {{windowHeight - 500}}rpx;">
         <image class="empty_image" src="../../../images/xiuxi.png"></image>
         <text class="font-xl p-20">暂时无客户下单</text>
@@ -139,7 +139,7 @@
     </view>
 
     <view
-      wx:if="{{nxDepArr.length  > 0  || returnList.length > 0 || gbDisArrApp.length > 0 || taskArr.length > 0 || requestArr.length > 0 || platformCustomers.length > 0}}"
+      wx:if="{{nxDepArr.length  > 0  || returnList.length > 0 || gbDisArrApp.length > 0 || taskArr.length > 0 || requestArr.length > 0 || platformCustomers.length > 0 || salesReturnOrders.length > 0}}"
       class="flex-1">
       <scroll-view scroll-y="true" class="scroll-content" style="height: 100%;" show-scrollbar="true"
         enhanced="{{true}}" bounces="{{true}}">
@@ -253,6 +253,46 @@
             </view>
           </view>
         </view>
+
+        <!-- 新退货闭环：与普通销售订单分开展示，不计入销售金额和出库数量 -->
+        <block wx:if="{{salesReturnOrders.length > 0}}">
+          <view class="sales-return-section-header">
+            <view class="sales-return-section-title">
+              <text>退货取货</text>
+              <text class="sales-return-count">{{salesReturnOrders.length}}</text>
+            </view>
+            <text class="sales-return-section-tip">审核、派车、取货、验收</text>
+          </view>
+          <view
+            class="sales-return-card"
+            wx:for="{{salesReturnOrders}}" wx:for-item="item" wx:key="_rowKey"
+            bindtap="toSalesReturnDetail" data-item="{{item}}" hover-class="sales-return-card-hover">
+            <view class="sales-return-card-head">
+              <view class="sales-return-customer-line">
+                <text class="sales-return-index">{{index + 1}}.</text>
+                <text class="sales-return-customer">{{item.customerName || '未命名客户'}}</text>
+                <text class="sales-return-tag">退货</text>
+              </view>
+              <text class="sales-return-status status-tone-{{item.statusTone}}">{{item.displayStatus}}</text>
+            </view>
+            <view class="sales-return-no-line">
+              <text>{{item.nxDsrNo}}</text>
+              <text wx:if="{{item.nxDsrShipmentTaskId}}">取货任务 #{{item.nxDsrShipmentTaskId}}</text>
+            </view>
+            <view class="sales-return-goods" wx:for="{{item.displayItems}}" wx:for-item="goods" wx:key="id">
+              <text class="sales-return-goods-name">{{goods.goodsName}}</text>
+              <text class="sales-return-quantity">{{goods.quantityText}}{{goods.unit}}</text>
+            </view>
+            <view class="sales-return-meta">
+              <view class="sales-return-meta-item"><text class="sales-return-meta-label">取货日期</text><text>{{item.routeDateText}}</text></view>
+              <view class="sales-return-meta-item"><text class="sales-return-meta-label">预计冲减</text><text class="sales-return-money">¥{{item.estimatedCreditText}}</text></view>
+            </view>
+            <view class="sales-return-action-line">
+              <text>{{item.actionHint}}</text>
+              <image src="../../../images/arrow-right-3.png" class="sales-return-arrow"></image>
+            </view>
+          </view>
+        </block>
 
         <!-- 平台客户（独立接口） -->
         <block wx:if="{{platformCustomers.length > 0}}">

@@ -8,8 +8,11 @@ import {
   postDriverRouteEditConfirm,
   returnSandboxStopToSandbox,
   overrideSandboxStopTimeWindow,
+  getDrivers,
   lockDispatchStopDriver,
-  unlockDispatchStopDriver
+  unlockDispatchStopDriver,
+  bindCustomerLongTermDriver,
+  unbindCustomerLongTermDriver
 } from '../../../../lib/apiRouteDispatch.js'
 import { getPageViewModel } from '../_pageView.js'
 import { normalizeMapOverview } from '../_mapOverview.js'
@@ -30,6 +33,33 @@ function cloneJson(value) {
   return JSON.parse(JSON.stringify(value || {}))
 }
 
+function normalizeBindingDriver(raw) {
+  raw = raw || {}
+  var driverUserId = raw.driverUserId != null
+    ? raw.driverUserId
+    : raw.nxDistributerUserId
+  var driverName = raw.driverName || raw.nxDiuWxNickName || raw.nxDIUWxNickName || ''
+  return {
+    driverUserId: driverUserId,
+    driverName: driverName || ('司机 ' + driverUserId)
+  }
+}
+
+function isLongTermPlanningLock(lock) {
+  return !!lock && (lock.longTerm === true || lock.lockType === 'LONG_TERM')
+}
+
+function defaultDriverLockMode(todayLock, longTermBinding) {
+  if (todayLock) return 'TODAY'
+  if (longTermBinding) return 'LONG_TERM'
+  return ''
+}
+
+function upgradesTodayLockToLongTerm(target, driver, unbind) {
+  return !unbind && !!target && !!target.todayLock && !!driver
+    && String(target.todayLock.driverUserId) === String(driver.driverUserId)
+}
+
 function newRemovalCommandId() {
   return 'owner-remove-' + Date.now() + '-' + Math.random().toString(36).slice(2, 12)
 }
@@ -45,6 +75,40 @@ function normalizeInitialPagePayload(value) {
     delete payload.stopKeys
   }
   return payload
+}
+
+function findDriverRouteEditRefreshPayload(data, driverUserId) {
+  var pageViewModel = getPageViewModel(data)
+  if (!pageViewModel || driverUserId == null) {
+    return null
+  }
+  var sections = Array.isArray(pageViewModel.sections) ? pageViewModel.sections : []
+  for (var sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
+    var cards = sections[sectionIndex] && Array.isArray(sections[sectionIndex].cards)
+      ? sections[sectionIndex].cards : []
+    for (var cardIndex = 0; cardIndex < cards.length; cardIndex++) {
+      var card = cards[cardIndex] || {}
+      var action = card.routeEditAction || {}
+      if (card.cardType === 'DRIVER_ROUTE'
+          && String(card.driverUserId) === String(driverUserId)
+          && action.enabled !== false
+          && action.payload && typeof action.payload === 'object') {
+        return normalizeInitialPagePayload(action.payload)
+      }
+    }
+  }
+  var availableDrivers = Array.isArray(pageViewModel.availableDrivers)
+    ? pageViewModel.availableDrivers : []
+  for (var driverIndex = 0; driverIndex < availableDrivers.length; driverIndex++) {
+    var driver = availableDrivers[driverIndex] || {}
+    var driverAction = driver.routeEditAction || {}
+    if (String(driver.driverUserId) === String(driverUserId)
+        && driverAction.enabled !== false
+        && driverAction.payload && typeof driverAction.payload === 'object') {
+      return normalizeInitialPagePayload(driverAction.payload)
+    }
+  }
+  return null
 }
 
 function resolveStopKey(stop) {
@@ -75,6 +139,28 @@ function ensureStopKeys(stopKeys, routeStops) {
     })
   }
   return extractStopKeys(routeStops)
+}
+
+function sameStopKeySequence(left, right) {
+  left = Array.isArray(left) ? left : []
+  right = Array.isArray(right) ? right : []
+  if (left.length !== right.length) return false
+  for (var i = 0; i < left.length; i++) {
+    if (String(left[i]) !== String(right[i])) return false
+  }
+  return true
+}
+
+function collectRemovedStopKeys(canonicalStopKeys, displayedStopKeys) {
+  canonicalStopKeys = Array.isArray(canonicalStopKeys) ? canonicalStopKeys : []
+  displayedStopKeys = Array.isArray(displayedStopKeys) ? displayedStopKeys : []
+  var displayed = {}
+  displayedStopKeys.forEach(function (stopKey) {
+    if (stopKey) displayed[String(stopKey)] = true
+  })
+  return canonicalStopKeys.filter(function (stopKey) {
+    return !!stopKey && !displayed[String(stopKey)]
+  })
 }
 
 function normalizeStopList(stops) {
@@ -144,6 +230,11 @@ function resolveTimelineStopKey(node, stop) {
   return ''
 }
 
+function isReturnPickupStop(stop, node) {
+  return !!((stop && (stop.isReturnPickup === true || stop.taskType === 'RETURN_PICKUP'))
+    || (node && (node.isReturnPickup === true || node.taskType === 'RETURN_PICKUP')))
+}
+
 function buildTimelineStopLookup(timeline) {
   var lookup = {}
   ;(timeline || []).forEach(function (node) {
@@ -202,12 +293,22 @@ function buildEditTimeline(timeline, routeStops) {
       address: stop.address || node.address,
       goodsSummary: stop.goodsSummary || node.goodsSummary,
       constraintHint: stop.constraintHint || node.constraintHint,
+      taskType: stop.taskType || node.taskType || '',
+      isReturnPickup: isReturnPickupStop(stop, node),
+      businessTypeLabel: stop.businessTypeLabel || node.businessTypeLabel || '',
       departmentId: stop.departmentId || node.departmentId || node.depFatherId,
       depFatherId: stop.departmentId || node.depFatherId || node.departmentId,
       driverLocked: !!stop.driverLocked,
+      todayDriverLocked: !!stop.todayDriverLocked,
+      longTermDriverBound: !!stop.longTermDriverBound,
       lockedDriverName: stop.lockedDriverName || '',
+      todayDriverName: stop.todayDriverName || '',
+      longTermDriverName: stop.longTermDriverName || '',
+      driverLockLabel: stop.driverLockLabel || '',
       lockWarning: stop.lockWarning || '',
       planningLock: stop.planningLock || null,
+      todayLock: stop.todayLock || null,
+      longTermBinding: stop.longTermBinding || null,
       windowRequirementLabel: node.windowRequirementLabel || stop.windowRequirementLabel,
       windowRequirementModified: node.windowRequirementModified != null
         ? node.windowRequirementModified
@@ -631,7 +732,11 @@ Page({
     timeWindowModalVisible: false,
     timeWindowSubmitting: false,
     timeWindowPayload: null,
-    planningLockSubmitting: false,
+    longTermBindingSubmitting: false,
+    longTermBindingPickerVisible: false,
+    longTermBindingDrivers: [],
+    longTermBindingTarget: null,
+    driverLockMode: '',
     expandingRoute: false,
     adoptingExpansion: false,
     expansionConditionsVisible: false,
@@ -790,6 +895,9 @@ Page({
       })
     }, function () {
       that.rebuildLists()
+      if (typeof options.afterApply === 'function') {
+        options.afterApply(pageViewModel)
+      }
     })
   },
 
@@ -803,10 +911,18 @@ Page({
     var pageViewModel = this.data.pageViewModel || {}
     var driver = pageViewModel.driver || {}
     var planningLocks = (pageViewModel.planning && pageViewModel.planning.stopLocks) || []
+    var customerDriverBindings = (pageViewModel.planning
+      && pageViewModel.planning.customerDriverBindings) || []
     var lockByDep = {}
+    var bindingByDep = {}
     planningLocks.forEach(function (lock) {
       if (lock && lock.depFatherId != null) {
         lockByDep[String(lock.depFatherId)] = lock
+      }
+    })
+    customerDriverBindings.forEach(function (binding) {
+      if (binding && binding.depFatherId != null) {
+        bindingByDep[String(binding.depFatherId)] = binding
       }
     })
     var routeStops = stopKeys.map(function (stopKey, index) {
@@ -814,13 +930,27 @@ Page({
       var stop = stopMap[stopKey] || { stopKey: stopKey }
       var depId = stop.departmentId || stop.depFatherId
       var planningLock = depId != null ? lockByDep[String(depId)] : null
+      var longTermBinding = depId != null ? bindingByDep[String(depId)] : null
+      var todayLock = planningLock && !isLongTermPlanningLock(planningLock)
+        ? planningLock : null
       return Object.assign({}, stop, {
         stopKey: stopKey,
         seq: index + 1,
         isIncomingStop: incomingDepId != null && stop.departmentId === incomingDepId,
         planningLock: planningLock,
+        todayLock: todayLock,
+        longTermBinding: longTermBinding,
         driverLocked: !!planningLock,
+        todayDriverLocked: !!todayLock,
+        longTermDriverBound: !!longTermBinding,
         lockedDriverName: planningLock && planningLock.driverName || '',
+        todayDriverName: todayLock && todayLock.driverName || '',
+        longTermDriverName: longTermBinding && longTermBinding.driverName || '',
+        driverLockLabel: todayLock
+          ? ('本次锁定：' + (todayLock.driverName || '当前司机'))
+          : (longTermBinding
+            ? ('长期绑定：' + (longTermBinding.driverName || '常送司机'))
+            : ''),
         lockWarning: planningLock && planningLock.warning || '',
         lockedToCurrentDriver: !!planningLock
           && String(planningLock.driverUserId) === String(driver.driverUserId)
@@ -939,6 +1069,11 @@ Page({
     return postDriverRouteEditPreview(payload).then(function (res) {
       if (!options.silent) {
         load.hideLoading()
+      }
+      if (requestRevision < (that._discardPreviewBeforeRevision || 0)) {
+        // 锁定操作已经换发了新的沙箱凭据；更早发出的试算响应不得覆盖当前路线和新凭据。
+        that.setData({ previewing: false, autoPreviewing: false })
+        return
       }
       if (requestRevision !== (that._editRevision || 0)) {
         // Server has already replaced the old preview token even though this
@@ -1624,54 +1759,393 @@ Page({
       wx.showToast({ title: '客户或司机信息不完整', icon: 'none' })
       return
     }
-    if (this.data.planningLockSubmitting) return
-    var currentLock = node.planningLock || null
-    var lockedToCurrent = currentLock
-      && String(currentLock.driverUserId) === String(driver.driverUserId)
+    if (this.data.routeDirty || this.data.hasUnsavedChanges) {
+      wx.showToast({ title: '请先确认或恢复当前路线调整', icon: 'none' })
+      return
+    }
+    if (this.data.longTermBindingSubmitting) return
+    var that = this
+    this.setData({ longTermBindingSubmitting: true })
+    load.showLoading('加载司机中')
+    getDrivers({ disId: resolveSession().disId }).then(function (res) {
+      load.hideLoading()
+      if (!res.result || res.result.code !== 0) {
+        that.setData({ longTermBindingSubmitting: false })
+        wx.showToast({ title: res.result && res.result.msg || '司机列表加载失败', icon: 'none' })
+        return
+      }
+      var rows = res && res.result && res.result.data
+      var drivers = (Array.isArray(rows) ? rows : []).map(normalizeBindingDriver).filter(function (item) {
+        return item.driverUserId != null
+      })
+      var todayLock = node.todayLock
+        || (node.planningLock && !isLongTermPlanningLock(node.planningLock)
+          ? node.planningLock : null)
+      var longTermBinding = node.longTermBinding || null
+      that.setData({
+        longTermBindingSubmitting: false,
+        longTermBindingPickerVisible: true,
+        longTermBindingDrivers: drivers,
+        driverLockMode: defaultDriverLockMode(todayLock, longTermBinding),
+        longTermBindingTarget: {
+          depFatherId: depFatherId,
+          customerName: node.customerName || '当前客户',
+          currentRouteDriverUserId: driver.driverUserId,
+          currentRouteDriverName: driver.driverName || ('司机 ' + driver.driverUserId),
+          todayLock: todayLock,
+          binding: longTermBinding
+        }
+      })
+    }).catch(function (error) {
+      load.hideLoading()
+      that.setData({ longTermBindingSubmitting: false })
+      wx.showToast({ title: error && error.message || '司机列表加载失败', icon: 'none' })
+    })
+  },
+
+  closeLongTermBindingPicker: function () {
+    if (this.data.longTermBindingSubmitting) return
+    this.setData({
+      longTermBindingPickerVisible: false,
+      longTermBindingDrivers: [],
+      longTermBindingTarget: null,
+      driverLockMode: ''
+    })
+  },
+
+  stopLongTermBindingPickerTap: function () {},
+
+  onDriverLockModeTap: function (e) {
+    if (this.data.longTermBindingSubmitting) return
+    var mode = e.currentTarget && e.currentTarget.dataset
+      && e.currentTarget.dataset.mode
+    if (mode !== 'TODAY' && mode !== 'LONG_TERM') return
+    this.setData({ driverLockMode: mode })
+  },
+
+  onConfirmTodayDriverLock: function () {
+    if (this.data.longTermBindingSubmitting) return
+    var target = this.data.longTermBindingTarget
+    if (!target) return
+    var drivers = this.data.longTermBindingDrivers || []
+    var driver = null
+    for (var index = 0; index < drivers.length; index++) {
+      if (String(drivers[index].driverUserId) === String(target.currentRouteDriverUserId)) {
+        driver = drivers[index]
+        break
+      }
+    }
+    if (!driver) {
+      driver = {
+        driverUserId: target.currentRouteDriverUserId,
+        driverName: target.currentRouteDriverName
+      }
+    }
+    this.confirmTodayDriverLock(target, driver)
+  },
+
+  confirmTodayDriverLock: function (target, driver) {
+    var todayLock = target.todayLock
+    if (todayLock && String(todayLock.driverUserId) === String(driver.driverUserId)) {
+      wx.showToast({ title: '今天已经锁定给该司机', icon: 'none' })
+      return
+    }
     var that = this
     wx.showModal({
-      title: lockedToCurrent ? '解除固定司机？' : '固定给当前司机？',
-      content: lockedToCurrent
-        ? (node.customerName + ' 将恢复自动分派。')
-        : (node.customerName + ' 本批次固定由 ' + driver.driverName + ' 配送。'),
-      confirmText: lockedToCurrent ? '解除固定' : '确认固定',
+      title: todayLock ? '确认修改今天锁定？' : '确认仅今天锁定？',
+      content: target.customerName + ' 仅在今天当前配送批次固定给 '
+        + driver.driverName + '，不会改变常送司机。',
+      confirmText: todayLock ? '确认修改' : '锁定今天',
       cancelText: '取消',
       success: function (res) {
-        if (!res.confirm) return
-        that.submitCurrentDriverLock(node, driver, currentLock, lockedToCurrent)
+        if (res.confirm) that.submitTodayDriverLock(target, driver, false)
+      },
+      fail: function () {
+        wx.showToast({ title: '确认弹窗打开失败，请重试', icon: 'none' })
       }
     })
   },
 
-  submitCurrentDriverLock: function (node, driver, currentLock, unlock) {
+  onDriverLockDriverTap: function (e) {
+    if (this.data.longTermBindingSubmitting) return
+    var index = Number(e.currentTarget.dataset.index)
+    var driver = (this.data.longTermBindingDrivers || [])[index]
+    var target = this.data.longTermBindingTarget
+    if (!driver || !target) return
+    if (this.data.driverLockMode === 'TODAY') {
+      if (String(driver.driverUserId) !== String(target.currentRouteDriverUserId)) {
+        wx.showToast({ title: '今天锁定请选择当前路线司机', icon: 'none' })
+        return
+      }
+      this.confirmTodayDriverLock(target, driver)
+      return
+    }
+    if (this.data.driverLockMode !== 'LONG_TERM') {
+      wx.showToast({ title: '请先选择锁定方式', icon: 'none' })
+      return
+    }
+    var current = target.binding
+    if (current && String(current.driverUserId) === String(driver.driverUserId)) {
+      wx.showToast({ title: '已经是该客户的常送司机', icon: 'none' })
+      return
+    }
+    var promotesTodayLock = upgradesTodayLockToLongTerm(target, driver, false)
+    var that = this
+    wx.showModal({
+      title: current ? '确认改绑常送司机？' : '确认长期绑定？',
+      content: target.customerName + (current
+        ? (' 将从 ' + (current.driverName || '原司机') + ' 改绑给 ' + driver.driverName + '。')
+        : (' 将长期优先安排给 ' + driver.driverName + '。'))
+        + (promotesTodayLock ? ' 现有今天锁定会自动升级为长期锁定。' : '')
+        + ' 司机未上岗时，系统仍会按当天效率临时改派。',
+      confirmText: current ? '确认改绑' : '确认绑定',
+      cancelText: '取消',
+      success: function (res) {
+        if (res.confirm) that.submitLongTermBinding(target, driver, false)
+      }
+    })
+  },
+
+  onCancelTodayDriverLock: function () {
+    if (this.data.longTermBindingSubmitting) return
+    var target = this.data.longTermBindingTarget
+    var current = target && target.todayLock
+    if (!target || !current) return
+    var that = this
+    wx.showModal({
+      title: '取消今天锁定？',
+      content: target.customerName + ' 将恢复按当天路线自动优化；常送司机关系不会改变。',
+      confirmText: '解除锁定',
+      confirmColor: '#d14343',
+      cancelText: '返回',
+      success: function (res) {
+        if (res.confirm) that.submitTodayDriverLock(target, null, true)
+      },
+      fail: function () {
+        wx.showToast({ title: '确认弹窗打开失败，请重试', icon: 'none' })
+      }
+    })
+  },
+
+  onCancelLongTermBinding: function () {
+    if (this.data.longTermBindingSubmitting) return
+    var target = this.data.longTermBindingTarget
+    var current = target && target.binding
+    if (!target || !current) return
+    var that = this
+    wx.showModal({
+      title: '取消长期绑定？',
+      content: target.customerName + ' 将不再固定常送司机，以后由当天路线自动优化分派。历史操作记录仍会保留。',
+      confirmText: '取消绑定',
+      confirmColor: '#d14343',
+      cancelText: '返回',
+      success: function (res) {
+        if (res.confirm) that.submitLongTermBinding(target, null, true)
+      }
+    })
+  },
+
+  submitTodayDriverLock: function (target, driver, unlock) {
     var that = this
     var session = resolveSession()
     var pageViewModel = this.data.pageViewModel || {}
+    var current = target.todayLock || null
     var request = {
       disId: session.disId,
       routeDate: pageViewModel.routeDate,
       batchCode: pageViewModel.batchCode || 'MORNING',
-      depFatherId: node.depFatherId || node.departmentId,
-      expectedVersion: currentLock && currentLock.version || 0,
+      depFatherId: target.depFatherId,
+      expectedVersion: current && current.version || 0,
       operatorUserId: session.operatorUserId
     }
     if (!unlock) request.driverUserId = driver.driverUserId
-    this.setData({ planningLockSubmitting: true })
-    load.showLoading(unlock ? '解除固定中' : '固定司机中')
-    var task = unlock ? unlockDispatchStopDriver(request) : lockDispatchStopDriver(request)
+    this.setData({ longTermBindingSubmitting: true })
+    load.showLoading(unlock ? '取消今天锁定中' : '今天锁定中')
+    var task = unlock
+      ? unlockDispatchStopDriver(request)
+      : lockDispatchStopDriver(request)
     task.then(function (res) {
       load.hideLoading()
-      that.setData({ planningLockSubmitting: false })
       if (!res.result || res.result.code !== 0) {
+        that.setData({ longTermBindingSubmitting: false })
         wx.showToast({ title: res.result && res.result.msg || '操作失败', icon: 'none' })
         return
       }
-      wx.showToast({ title: unlock ? '已解除固定' : '已固定司机', icon: 'success' })
-      that.loadPage()
+      var successMessage = unlock ? '已取消今天锁定' : '今天司机已锁定'
+      var routeOwnerChanged = !unlock
+        && String(driver.driverUserId) !== String(target.currentRouteDriverUserId)
+      that.refreshAfterDriverLockChange(
+        res.result.data, successMessage, routeOwnerChanged)
     }).catch(function (error) {
       load.hideLoading()
-      that.setData({ planningLockSubmitting: false })
+      that.setData({ longTermBindingSubmitting: false })
       wx.showToast({ title: error && error.message || '操作失败', icon: 'none' })
+    })
+  },
+
+  submitLongTermBinding: function (target, driver, unbind) {
+    var that = this
+    var session = resolveSession()
+    var pageViewModel = this.data.pageViewModel || {}
+    var current = target.binding || null
+    var request = {
+      disId: session.disId,
+      routeDate: pageViewModel.routeDate,
+      batchCode: pageViewModel.batchCode || 'MORNING',
+      depFatherId: target.depFatherId,
+      expectedVersion: current && current.version || 0,
+      operatorUserId: session.operatorUserId
+    }
+    if (!unbind) request.driverUserId = driver.driverUserId
+    this.setData({ longTermBindingSubmitting: true })
+    load.showLoading(unbind ? '取消绑定中' : (current ? '改绑中' : '绑定中'))
+    var task = unbind
+      ? unbindCustomerLongTermDriver(request)
+      : bindCustomerLongTermDriver(request)
+    task.then(function (res) {
+      if (!res.result || res.result.code !== 0) {
+        load.hideLoading()
+        that.setData({ longTermBindingSubmitting: false })
+        wx.showToast({ title: res.result && res.result.msg || '操作失败', icon: 'none' })
+        return
+      }
+      var successMessage = unbind
+        ? '已取消长期绑定'
+        : (current ? '已改绑常送司机' : '已设置常送司机')
+      var routeOwnerChanged = !unbind
+        && String(driver.driverUserId) !== String(target.currentRouteDriverUserId)
+      if (!upgradesTodayLockToLongTerm(target, driver, unbind)) {
+        load.hideLoading()
+        that.refreshAfterDriverLockChange(
+          res.result.data, successMessage, routeOwnerChanged)
+        return
+      }
+      var todayUnlockRequest = {
+        disId: session.disId,
+        routeDate: pageViewModel.routeDate,
+        batchCode: pageViewModel.batchCode || 'MORNING',
+        depFatherId: target.depFatherId,
+        expectedVersion: target.todayLock.version || 0,
+        operatorUserId: session.operatorUserId
+      }
+      unlockDispatchStopDriver(todayUnlockRequest).then(function (unlockRes) {
+        load.hideLoading()
+        if (unlockRes.result && unlockRes.result.code === 0) {
+          that.refreshAfterDriverLockChange(
+            unlockRes.result.data, '已升级为长期锁定', routeOwnerChanged)
+          return
+        }
+        that.refreshAfterDriverLockChange(
+          res.result.data, '长期已绑定，今天锁定仍保留', routeOwnerChanged)
+      }).catch(function () {
+        load.hideLoading()
+        that.refreshAfterDriverLockChange(
+          res.result.data, '长期已绑定，今天锁定仍保留', routeOwnerChanged)
+      })
+    }).catch(function (error) {
+      load.hideLoading()
+      that.setData({ longTermBindingSubmitting: false })
+      wx.showToast({ title: error && error.message || '操作失败', icon: 'none' })
+    })
+  },
+
+  refreshAfterDriverLockChange: function (dispatchData, successMessage, routeOwnerChanged) {
+    var that = this
+    var displayedRouteSnapshot = {
+      stopKeys: Array.isArray(this.data.stopKeys) ? this.data.stopKeys.slice() : [],
+      stopMap: Object.assign({}, this.data.stopMap || {})
+    }
+    var currentDriverUserId = this.data.pageViewModel
+      && this.data.pageViewModel.driver
+      && this.data.pageViewModel.driver.driverUserId
+    if (currentDriverUserId == null) {
+      currentDriverUserId = this.data.requestPayload && this.data.requestPayload.driverUserId
+    }
+    var freshPayload = findDriverRouteEditRefreshPayload(dispatchData, currentDriverUserId)
+    this.refreshWholeSandboxPage()
+    if (this._autoPreviewTimer) {
+      clearTimeout(this._autoPreviewTimer)
+      this._autoPreviewTimer = null
+    }
+    this._previewQueued = false
+    this._editRevision = (this._editRevision || 0) + 1
+    this._discardPreviewBeforeRevision = this._editRevision
+
+    if (routeOwnerChanged || !freshPayload) {
+      this._pendingRemovedStopKeys = []
+      this._pendingRemovalCommandId = ''
+      this.setData({
+        longTermBindingSubmitting: false,
+        longTermBindingPickerVisible: false,
+        longTermBindingDrivers: [],
+        longTermBindingTarget: null,
+        driverLockMode: ''
+      })
+      wx.showToast({ title: successMessage + '，路线已更新', icon: 'success' })
+      setTimeout(function () {
+        wx.navigateBack()
+      }, 450)
+      return Promise.resolve()
+    }
+
+    var nextPayload = cloneJson(freshPayload)
+    this.setData({
+      loading: true,
+      longTermBindingSubmitting: false,
+      longTermBindingPickerVisible: false,
+      longTermBindingDrivers: [],
+      longTermBindingTarget: null,
+      driverLockMode: '',
+      initialPayload: cloneJson(nextPayload),
+      requestPayload: cloneJson(nextPayload)
+    })
+    load.showLoading('刷新最新路线')
+    return postDriverRouteEditPage(nextPayload).then(function (res) {
+      load.hideLoading()
+      if (!res.result || res.result.code !== 0) {
+        wx.showToast({ title: successMessage + '，路线已更新', icon: 'success' })
+        setTimeout(function () { wx.navigateBack() }, 450)
+        return
+      }
+      var freshPage = getPageViewModel(res.result.data) || {}
+      var canonicalStopKeys = ensureStopKeys(
+        Array.isArray(freshPage.stopKeys) ? freshPage.stopKeys : null,
+        freshPage.routeStops || []
+      )
+      var preserveDisplayedRoute = !sameStopKeySequence(
+        canonicalStopKeys, displayedRouteSnapshot.stopKeys)
+      if (!preserveDisplayedRoute) {
+        that._pendingRemovedStopKeys = []
+        that._pendingRemovalCommandId = ''
+        that.setData({ stopMap: {} })
+        that.applyPageViewModel(res.result.data, {
+          afterApply: function () {
+            wx.showToast({ title: successMessage, icon: 'success' })
+          }
+        })
+        return
+      }
+
+      that._pendingRemovedStopKeys = collectRemovedStopKeys(
+        canonicalStopKeys, displayedRouteSnapshot.stopKeys)
+      that._pendingRemovalCommandId = that._pendingRemovedStopKeys.length
+        ? newRemovalCommandId() : ''
+      that.setData({
+        stopMap: displayedRouteSnapshot.stopMap,
+        stopKeys: displayedRouteSnapshot.stopKeys.slice()
+      }, function () {
+        that.applyPageViewModel(res.result.data, {
+          keepStopKeys: true,
+          afterApply: function () {
+            that.markRouteChanged()
+            wx.showToast({ title: successMessage + '，已保留当前路线', icon: 'success' })
+          }
+        })
+      })
+    }).catch(function () {
+      load.hideLoading()
+      wx.showToast({ title: successMessage + '，路线已更新', icon: 'success' })
+      setTimeout(function () { wx.navigateBack() }, 450)
     })
   },
 

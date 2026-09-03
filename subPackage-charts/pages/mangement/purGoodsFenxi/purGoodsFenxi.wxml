@@ -48,101 +48,55 @@
 
 
 
-<!-- topFloat -->
-<view class="flex-column bg-white p-20 border radius-10 mt-30 mb-30">
-      <view class="flex-column font-sm mb-20 p-20">
-      <view>单价波动排名前10商品</view>
-      
+    <view class="analysis-section">
+      <view class="analysis-title-row">
+        <view><strong>单价波动商品</strong><text>优先关注进价变化较大的商品</text></view>
+        <text class="section-count">前 10</text>
       </view>
-      <view class="flex-row-between p-20 border-bottom" wx:for="{{topGoodsPrice}}" wx:key="index" wx:if="{{index < (showAllPriceGoods ? 10 : 4)}}" data-id="{{item.nxDistributerGoodsId}}" bind:tap="toGoodsPage" data-goods="{{item}}" hover-class="hover">
-        <view class="flex-row">
-        <image wx:if="{{item.nxDgGoodsFile && item.nxDgGoodsFile !== ''}}" src="{{url + item.nxDgGoodsFile}}" mode="aspectFill" class="goods_item_lg mr-10"/>
-        <image wx:else src="/images/photozhaoxiang.png" mode="aspectFill" class="goods_item_lg mr-10"/>
-        <text>{{item.nxDgGoodsName}}</text>
-       </view>
-        <view class="flex-column">
-          <view class="flex-row font-sm">
-          <text class="mr-10">波动率:{{item.goodsPriceFluctuation}}%</text>
+      <view class="analysis-goods-card" wx:for="{{topGoodsPrice}}" wx:key="nxDistributerGoodsId" wx:if="{{index < (showAllPriceGoods ? 10 : 4)}}" data-id="{{item.nxDistributerGoodsId}}" bind:tap="toGoodsPage" data-goods="{{item}}" hover-class="analysis-card-hover">
+        <image src="{{item.goodsImageUrl}}" mode="aspectFill" class="analysis-goods-image"></image>
+        <view class="analysis-goods-main">
+          <strong>{{item.nxDgGoodsName}}</strong>
+          <text>{{item.goodsSpecificationText}}</text>
+          <view class="price-range">
+            <text>最低 ¥{{item.nxDgGoodsLowestPrice}}</text>
+            <text>最高 ¥{{item.nxDgGoodsHighestPrice}}</text>
+          </view>
         </view>
-        <view class="flex-row font-sm">
-          <text>差价:{{item.goodsPriceDiff}}元</text>
-        </view>
-        
-          <view class="flex-row font-sm">
-          <text class="mr-20">最低:{{item.nxDgGoodsLowestPrice}}元/<block wx:if="{{item.nxDgCartonUnit && item.nxDgCartonUnit !== '' && item.nxDgCartonUnit !== 'null' && item.nxDgItemsPerCarton > 0}}">{{item.nxDgCartonUnit}}</block><block wx:else>{{item.nxDgGoodsStandardname}}</block></text>
-      
-        </view>
-
-        <view class="flex-row font-sm">
-          
-        <text>最高:{{item.nxDgGoodsHighestPrice}}元/<block wx:if="{{item.nxDgCartonUnit && item.nxDgCartonUnit !== '' && item.nxDgCartonUnit !== 'null' && item.nxDgItemsPerCarton > 0}}">{{item.nxDgCartonUnit}}</block><block wx:else>{{item.nxDgGoodsStandardname}}</block></text>
-        </view>
-        
-       
-        </view>
-
-
-        <!-- 3ge -->
-
-        <!-- ../3ge -->
-    
-       
+        <view class="analysis-metric warning"><strong>{{item.goodsPriceFluctuation}}%</strong><text>波动率</text><small>差价 ¥{{item.goodsPriceDiff}}</small></view>
       </view>
-      
-      <!-- 展开/收起按钮 -->
-      <view class="flex-column-center mt-30 mb-30 " wx:if="{{topGoodsPrice.length > 4}}">
-        <view class="button-container-white" hover-class="hover" bind:tap="togglePriceGoodsList" >
-          <image class="expand-btn" src="/images/arrow-down-3.png" data-rotate="{{showAllPriceGoods ? '180' : '0'}}"></image>
-        </view>
-        
+      <view class="expand-link" wx:if="{{topGoodsPrice.length > 4}}" bind:tap="togglePriceGoodsList">
+        <text>{{showAllPriceGoods ? '收起商品' : '展开更多商品'}}</text><image class="expand-btn {{showAllPriceGoods ? 'expanded' : ''}}" src="/images/arrow-down-3.png"></image>
       </view>
     </view>
 
-
-    <!-- top -->
-    <view class="flex-column bg-white p-20 border radius-10 mt-30 mb-30">
-      <view class="font-sm mb-20 p-20">采购次数排名</view>
-      <view class="flex-row-between p-20 border-bottom" wx:for="{{topTimesGoods}}" wx:key="index" wx:if="{{index < (showAllGoods ? 10 : 4)}}" data-id="{{item.nxDistributerGoodsId}}" bind:tap="toGoodsPage" data-goods="{{item}}"  hover-class="hover">
-        <view class="flex-row">
-        <image wx:if="{{item.nxDgGoodsFile && item.nxDgGoodsFile !== ''}}" src="{{url + item.nxDgGoodsFile}}" mode="aspectFill" class="goods_item_lg mr-10"/>
-        <image wx:else src="/images/photozhaoxiang.png" mode="aspectFill" class="goods_item_lg mr-10"/>
-        <text>{{item.nxDgGoodsName}}</text>
-       </view>
-        <text>{{item.nxDgQuantityDays}}次</text>
+    <view class="analysis-section">
+      <view class="analysis-title-row">
+        <view><strong>采购次数排名</strong><text>一眼看清最常采购的商品</text></view>
+        <text class="section-count">前 10</text>
       </view>
-      
-      <!-- 展开/收起按钮 -->
-      <view class="flex-column-center mt-30 mb-30" wx:if="{{topTimesGoods.length > 4}}">
-        <view class="button-container-white" hover-class="hover"  bind:tap="toggleGoodsList">
-         <image class="expand-btn" src="/images/arrow-down-3.png" data-rotate="{{showAllGoods ? '180' : '0'}}"></image>
-     </view>
-       
+      <view class="analysis-goods-card" wx:for="{{topTimesGoods}}" wx:key="nxDistributerGoodsId" wx:if="{{index < (showAllGoods ? 10 : 4)}}" data-id="{{item.nxDistributerGoodsId}}" bind:tap="toGoodsPage" data-goods="{{item}}" hover-class="analysis-card-hover">
+        <image src="{{item.goodsImageUrl}}" mode="aspectFill" class="analysis-goods-image"></image>
+        <view class="analysis-goods-main"><strong>{{item.nxDgGoodsName}}</strong><text>{{item.goodsSpecificationText}}</text><small>点击查看采购明细</small></view>
+        <view class="analysis-metric"><strong>{{item.nxDgQuantityDays}}</strong><text>次采购</text></view>
+      </view>
+      <view class="expand-link" wx:if="{{topTimesGoods.length > 4}}" bind:tap="toggleGoodsList">
+        <text>{{showAllGoods ? '收起商品' : '展开更多商品'}}</text><image class="expand-btn {{showAllGoods ? 'expanded' : ''}}" src="/images/arrow-down-3.png"></image>
       </view>
     </view>
 
-    <!-- top -->
-    <view class="flex-column bg-white p-20 border radius-10 mt-30 mb-30">
-      <view class="flex-column font-sm mb-20 p-20">
-      <view>采购金额排名前10商品{{topSubtotalGoodsSubtotal}}元</view>
-      <view>占全部采购总额{{purTotal}}元的{{topSubtotalGoodsPercent}}%</view>
-      
+    <view class="analysis-section">
+      <view class="analysis-title-row">
+        <view><strong>采购金额排名</strong><text>前 10 商品合计 ¥{{topSubtotalGoodsSubtotal}}，占总额 {{topSubtotalGoodsPercent}}%</text></view>
+        <text class="section-total">总额 ¥{{purTotal}}</text>
       </view>
-      <view class="flex-row-between p-20 border-bottom" wx:for="{{topSubtotalGoods}}" wx:key="index" wx:if="{{index < (showAllSubtotalGoods ? 10 : 4)}}" data-id="{{item.nxDistributerGoodsId}}" bind:tap="toGoodsPage" data-goods="{{item}}"  hover-class="hover">
-       <view class="flex-row">
-        <image wx:if="{{item.nxDgGoodsFile && item.nxDgGoodsFile !== ''}}" src="{{url + item.nxDgGoodsFile}}" mode="aspectFill" class="goods_item_lg mr-10"/>
-        <image wx:else src="/images/photozhaoxiang.png" mode="aspectFill" class="goods_item_lg mr-10"/>
-        <text>{{item.nxDgGoodsName}}</text>
-       </view>
-        
-        <text>{{item.goodsPurTotalSubtotal}}元</text>
+      <view class="analysis-goods-card" wx:for="{{topSubtotalGoods}}" wx:key="nxDistributerGoodsId" wx:if="{{index < (showAllSubtotalGoods ? 10 : 4)}}" data-id="{{item.nxDistributerGoodsId}}" bind:tap="toGoodsPage" data-goods="{{item}}" hover-class="analysis-card-hover">
+        <image src="{{item.goodsImageUrl}}" mode="aspectFill" class="analysis-goods-image"></image>
+        <view class="analysis-goods-main"><strong>{{item.nxDgGoodsName}}</strong><text>{{item.goodsSpecificationText}}</text><small>点击查看采购明细</small></view>
+        <view class="analysis-metric amount"><strong>¥{{item.goodsPurTotalSubtotal}}</strong><text>采购金额</text></view>
       </view>
-      
-      <!-- 展开/收起按钮 -->
-      <view class="flex-column-center mt-30 mb-30 " wx:if="{{topSubtotalGoods.length > 4}}">
-        <view class="button-container-white" hover-class="hover" bind:tap="toggleSubtotalGoodsList" >
-          <image class="expand-btn" src="/images/arrow-down-3.png" data-rotate="{{showAllSubtotalGoods ? '180' : '0'}}"></image>
-        </view>
-        
+      <view class="expand-link" wx:if="{{topSubtotalGoods.length > 4}}" bind:tap="toggleSubtotalGoodsList">
+        <text>{{showAllSubtotalGoods ? '收起商品' : '展开更多商品'}}</text><image class="expand-btn {{showAllSubtotalGoods ? 'expanded' : ''}}" src="/images/arrow-down-3.png"></image>
       </view>
     </view>
 
@@ -224,4 +178,3 @@
 
   </view>
 </view>
-

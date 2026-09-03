@@ -189,6 +189,20 @@
                   <text class="text-danger font-sl" wx:if="{{order.nxDoRemark !== null  && order.nxDoRemark.length > 0}}">({{order.nxDoRemark}})</text>
                 </view>
 
+                <view wx:if="{{order._hasCustomerStandards}}" class="customer-standard-line">
+                  <view class="customer-standard-content">
+                    <view wx:for="{{order._customerStandardItems}}" wx:key="id" class="customer-standard-item">
+                      <view class="customer-standard-item-head">
+                        <text class="customer-standard-label">{{item.label}}</text>
+                        <view class="customer-standard-stars" aria-label="重要要求">
+                          <text wx:for="{{item.importanceStars}}" wx:for-item="star" wx:key="level"
+                            class="customer-standard-star customer-standard-star-active">★</text>
+                        </view>
+                      </view>
+                      <text class="customer-standard-text">{{item.text}}</text>
+                    </view>
+                  </view>
+                </view>
 
                 <view class="flex flex-row font-sl">
                   <view class="third-row">
@@ -289,6 +303,20 @@
                   <text class="mr-20" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname !== order.nxDoPrintStandard}}">({{order.nxDoPrintStandard}})</text>
                     <text class="">订:{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
                     <text class="text-danger font-sl" wx:if="{{order.nxDoRemark !== null  && order.nxDoRemark.length > 0}}">({{order.nxDoRemark}})</text>
+                  </view>
+                  <view wx:if="{{order._hasCustomerStandards}}" class="customer-standard-line">
+                    <view class="customer-standard-content">
+                      <view wx:for="{{order._customerStandardItems}}" wx:key="id" class="customer-standard-item">
+                        <view class="customer-standard-item-head">
+                          <text class="customer-standard-label">{{item.label}}</text>
+                          <view class="customer-standard-stars" aria-label="重要要求">
+                            <text wx:for="{{item.importanceStars}}" wx:for-item="star" wx:key="level"
+                              class="customer-standard-star customer-standard-star-active">★</text>
+                          </view>
+                        </view>
+                        <text class="customer-standard-text">{{item.text}}</text>
+                      </view>
+                    </view>
                   </view>
                   <!-- <block wx:if="{{order.purchaseGoodsEntity !== null && order.purchaseGoodsEntity.nxDpgBatchId !== null}}">
                     <view class="flex-row font-xs">

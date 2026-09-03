@@ -37,6 +37,21 @@
     </view>
 
     <view class="module-label">二、处理结果</view>
+    <view class="section-card" wx:if="{{salesReturns.length}}">
+      <view class="section-title">退货进度</view>
+      <view class="return-card" wx:for="{{salesReturns}}" wx:key="id">
+        <view class="section-title-row"><text class="return-no">{{item.returnNo}}</text><text class="status-chip">{{item.statusLabel}}</text></view>
+        <text class="subtle-text">物流：{{item.logisticsLabel}}{{item.nxDsrRouteDate ? ' · ' + item.nxDsrRouteDate : ''}}</text>
+        <view class="return-item" wx:for="{{item.items}}" wx:for-item="goods" wx:key="id"><text>{{goods.goodsName}}</text><text>申请 {{goods.requestedQuantity}} {{goods.nxDsriUnit}}</text></view>
+        <view class="section-title-row return-amount"><text>预计/实际冲减</text><text class="money-text">{{item.amountText}}</text></view>
+        <view class="inline-actions" wx:if="{{item.nxDsrBusinessStatus === 'SUBMITTED'}}">
+          <button bindtap="openReturnApproval" data-id="{{item.id}}">审核</button><button class="minor-button" bindtap="rejectReturn" data-id="{{item.id}}">驳回</button>
+        </view>
+        <view class="inline-actions" wx:if="{{item.nxDsrLogisticsStatus === 'IN_TRANSIT'}}"><button bindtap="openReturnReceive" data-id="{{item.id}}">仓库验收</button></view>
+        <view class="inline-actions" wx:if="{{item.nxDsrBusinessStatus === 'WAIT_FINANCIAL'}}"><button bindtap="openReturnFinancial" data-id="{{item.id}}">退款 / 账款冲减</button></view>
+        <text class="route-tip" wx:if="{{item.nxDsrLogisticsStatus === 'WAIT_ASSIGN' || item.nxDsrLogisticsStatus === 'ASSIGNED'}}">取货任务已进入司机路线分派</text>
+      </view>
+    </view>
     <view class="section-card" wx:if="{{replenishments.length}}">
       <view class="section-title">补货进度</view>
       <view class="replenishment-card" wx:for="{{replenishments}}" wx:key="id">
@@ -94,6 +109,8 @@
       <view class="section-title">退款 / 账款冲减记录</view>
       <view class="financial-row" wx:for="{{financialAdjustments}}" wx:key="nxDasfaId">
         <view class="section-title-row"><text>{{item.typeLabel}}</text><text class="money-text">{{item.amountText}}</text></view>
+        <text wx:if="{{item.nxDasfaAdjustmentNo}}">冲减单号：{{item.nxDasfaAdjustmentNo}}</text>
+        <text wx:if="{{item.nxDasfaCreditBillId}}">账单凭证：#{{item.nxDasfaCreditBillId}} · {{item.postingLabel}}</text>
         <text>原因：{{item.nxDasfaReason}}</text>
         <text>处理结果：{{item.nxDasfaResultNote}}</text>
         <text class="subtle-text">{{item.processedText}} · {{item.nxDasfaStatus}}</text>
@@ -137,7 +154,27 @@
       <button class="standard-link" wx:if="{{hasWrittenBack}}" bindtap="viewCustomerStandard">查看客户标准 ></button>
     </view>
 
-    <view class="sheet-mask" wx:if="{{showActionForm || showFinancialForm || showReplenishmentForm || showCompensationForm || showWritebackForm || showFeedbackForm || showDeliveryForm || showOutcomeForm || showAnnouncementForm}}" bindtap="closeForms"></view>
+    <view class="sheet-mask" wx:if="{{showActionForm || showFinancialForm || showReplenishmentForm || showCompensationForm || showWritebackForm || showFeedbackForm || showDeliveryForm || showOutcomeForm || showAnnouncementForm || showReturnApprovalForm || showReturnReceiveForm}}" bindtap="closeForms"></view>
+    <view class="bottom-sheet" wx:if="{{showReturnApprovalForm}}">
+      <view class="sheet-title">审核退货申请</view>
+      <view class="return-form-item" wx:for="{{returnApprovalItems}}" wx:key="id"><text>{{item.goodsName}} · 申请 {{item.requestedQuantity}}</text><input type="digit" value="{{item.approvedQuantity}}" data-index="{{index}}" bindinput="onReturnApprovedQuantityInput" placeholder="核准数量" /></view>
+      <view class="pickup-switch"><text>安排司机上门取货</text><switch checked="{{returnPickupRequired}}" bindchange="onReturnPickupChange" color="#315f62" /></view>
+      <picker mode="date" value="{{returnRouteDate}}" bindchange="onReturnRouteDateChange" wx:if="{{returnPickupRequired}}"><view class="picker-field">计划取货日期：{{returnRouteDate}}</view></picker>
+      <textarea placeholder="审核备注（可选）" value="{{returnApprovalRemark}}" bindinput="onReturnApprovalRemarkInput"></textarea>
+      <button class="sheet-primary" bindtap="saveReturnApproval">审核通过</button>
+    </view>
+    <view class="bottom-sheet" wx:if="{{showReturnReceiveForm}}">
+      <view class="sheet-title">仓库退货验收</view>
+      <view class="warning-banner">请按实收和可冲减数量验收；“返库”会恢复原出库批次库存。</view>
+      <view class="return-form-item" wx:for="{{returnReceiveItems}}" wx:key="id">
+        <text>{{item.goodsName}} · 最多 {{item.ceiling}}</text>
+        <view class="quantity-row"><input type="digit" value="{{item.receivedQuantity}}" data-index="{{index}}" data-field="receivedQuantity" bindinput="onReturnReceiveInput" placeholder="实收数量"/><input type="digit" value="{{item.acceptedQuantity}}" data-index="{{index}}" data-field="acceptedQuantity" bindinput="onReturnReceiveInput" placeholder="验收通过"/></view>
+        <picker range="{{returnDispositionOptions}}" value="{{item.dispositionCode === 'SCRAP' ? 1 : item.dispositionCode === 'RETURN_TO_SUPPLIER' ? 2 : 0}}" data-index="{{index}}" bindchange="onReturnDispositionChange"><view class="picker-field">库存处置：{{item.dispositionCode === 'SCRAP' ? '报损' : item.dispositionCode === 'RETURN_TO_SUPPLIER' ? '退供应商' : '返库'}}</view></picker>
+        <input type="digit" value="{{item.temperature}}" data-index="{{index}}" data-field="temperature" bindinput="onReturnReceiveInput" placeholder="收货温度 ℃（可选）"/>
+      </view>
+      <textarea placeholder="验收备注（可选）" value="{{returnReceiveRemark}}" bindinput="onReturnReceiveRemarkInput"></textarea>
+      <button class="sheet-primary" bindtap="saveReturnReceive">确认验收</button>
+    </view>
     <view class="bottom-sheet" wx:if="{{showActionForm}}">
       <view class="sheet-title">{{actionType === 'COMMUNICATION' ? '解释 / 沟通' : '其它处理'}}</view>
       <block wx:if="{{actionType === 'COMMUNICATION'}}">
@@ -165,6 +202,7 @@
       <picker range="{{financialTypes}}" range-key="label" value="{{financialTypeIndex}}" bindchange="onFinancialTypeChange"><view class="picker-field">处理方式：{{financialTypes[financialTypeIndex].label}}</view></picker>
       <view class="money-input"><text>¥</text><input type="digit" placeholder="金额（必填）" value="{{financialAmount}}" bindinput="onFinancialAmountInput" /></view>
       <textarea placeholder="处理原因（必填）" value="{{financialReason}}" bindinput="onFinancialReasonInput"></textarea>
+      <input wx:if="{{financialTypes[financialTypeIndex].code === 'OFFLINE_REFUND'}}" placeholder="线下退款凭证号（必填）" value="{{financialExternalRefundNo}}" bindinput="onFinancialExternalRefundNoInput" />
       <textarea placeholder="处理说明与结果（必填）" value="{{financialResultNote}}" bindinput="onFinancialResultInput"></textarea>
       <view class="warning-banner">线下退款只记录真实线下结果，不会伪装成原路退款。</view>
       <button class="sheet-primary" bindtap="saveFinancialAdjustment">确认处理</button>

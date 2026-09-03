@@ -1,0 +1,27 @@
+page { background: #f3f7f5; color: #223129; }
+.page { min-height: 100vh; background: #f3f7f5; }
+.picker-body { display: flex; flex-direction: column; box-sizing: border-box; }
+.search-box { height: 82rpx; display: flex; align-items: center; gap: 15rpx; margin: 20rpx 22rpx; padding: 0 22rpx; border: 1rpx solid #d8e5de; border-radius: 20rpx; background: #fff; box-sizing: border-box; }
+.search-box image { width: 31rpx; height: 31rpx; opacity: .7; }
+.search-box input { min-width: 0; flex: 1; font-size: 27rpx; }
+.search-box > text { padding: 10rpx; color: #7b8981; font-size: 32rpx; }
+.customer-scroll { min-height: 0; flex: 1; padding: 0 22rpx; box-sizing: border-box; }
+.all-customer, .customer-row { display: flex; align-items: center; gap: 18rpx; padding: 22rpx; border-bottom: 1rpx solid #edf1ef; background: #fff; box-sizing: border-box; }
+.all-customer { border: 1rpx solid #d8e7df; border-radius: 22rpx; }
+.customer-row:first-of-type { border-radius: 22rpx 22rpx 0 0; }
+.customer-row:last-of-type { border-bottom: 0; border-radius: 0 0 22rpx 22rpx; }
+.all-customer.selected, .customer-row.selected { background: #ecf8f2; }
+.customer-avatar { width: 66rpx; height: 66rpx; flex: none; display: flex; align-items: center; justify-content: center; border-radius: 19rpx; background: #e4f4eb; color: #0b8650; font-size: 27rpx; font-weight: 850; }
+.all-avatar { background: #11945a; color: #fff; }
+.customer-text { min-width: 0; flex: 1; }
+.customer-text strong, .customer-text text { display: block; }
+.customer-text strong { overflow: hidden; font-size: 29rpx; text-overflow: ellipsis; white-space: nowrap; }
+.customer-text text { margin-top: 6rpx; overflow: hidden; color: #839087; font-size: 21rpx; text-overflow: ellipsis; white-space: nowrap; }
+.selected-check { width: 42rpx; height: 42rpx; flex: none; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #11945a; color: #fff; font-size: 23rpx; font-weight: 850; }
+.row-arrow { color: #97a29b; font-size: 35rpx; }
+.list-caption { padding: 28rpx 6rpx 14rpx; color: #718078; font-size: 23rpx; font-weight: 750; }
+.page-state { flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #849188; font-size: 26rpx; }
+.error-state text { color: #a74f4a; }
+.error-state view { margin-top: 22rpx; padding: 15rpx 26rpx; border-radius: 15rpx; background: #11945a; color: #fff; }
+.empty-list { padding: 90rpx 20rpx; color: #87938c; font-size: 25rpx; text-align: center; }
+.safe-bottom { height: calc(env(safe-area-inset-bottom) + 30rpx); }

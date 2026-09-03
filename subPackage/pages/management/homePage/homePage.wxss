@@ -408,6 +408,38 @@
   box-sizing: border-box;
 }
 
+.sales-analysis-card {
+  background: linear-gradient(145deg, #edf9f3, #f8fcfa);
+  border: 1rpx solid #cfe9da;
+}
+
+.smart-replenishment-card {
+  background: linear-gradient(145deg, #eaf8f1, #f8fcfa);
+  border: 1rpx solid #c5e7d5;
+}
+
+.smart-replenishment-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: 850;
+  background: #0b8d52;
+  border-radius: 13rpx;
+}
+
+.sales-analysis-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 24rpx;
+  font-weight: 850;
+  background: #109c5c;
+  border-radius: 13rpx;
+}
+
 .analysis-icon {
   width: 48rpx;
   height: 48rpx;

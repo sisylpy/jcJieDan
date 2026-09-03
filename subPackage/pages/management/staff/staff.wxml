@@ -1,7 +1,7 @@
 <view class="staff-page">
   <back-navbar style="height: {{navBarHeight}}rpx;" title="账户管理" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
 
-  <view class="staff-content">
+  <view class="staff-content" style="padding-top: {{navBarHeight + 18}}rpx;">
     <view class="staff-group-card">
       <view class="staff-section-header">
         <view class="staff-section-heading">

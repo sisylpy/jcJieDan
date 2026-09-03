@@ -1668,3 +1668,275 @@
   background: #e5ebe9;
   color: #9aa5a1;
 }
+
+.long-term-binding-mask {
+  position: fixed;
+  z-index: 2200;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(20, 36, 31, 0.46);
+}
+
+.long-term-binding-sheet {
+  width: 100%;
+  max-height: 78vh;
+  overflow: hidden;
+  padding: 12rpx 26rpx calc(24rpx + env(safe-area-inset-bottom));
+  border-radius: 30rpx 30rpx 0 0;
+  background: #fff;
+  box-shadow: 0 -12rpx 36rpx rgba(16, 46, 37, 0.16);
+  box-sizing: border-box;
+}
+
+.long-term-binding-handle {
+  width: 72rpx;
+  height: 8rpx;
+  margin: 0 auto 20rpx;
+  border-radius: 999rpx;
+  background: #d7dfdc;
+}
+
+.long-term-binding-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.long-term-binding-eyebrow,
+.long-term-binding-title {
+  display: block;
+}
+
+.long-term-binding-eyebrow {
+  color: #16876d;
+  font-size: 21rpx;
+  font-weight: 700;
+  letter-spacing: 2rpx;
+}
+
+.long-term-binding-title {
+  margin-top: 6rpx;
+  color: #173f33;
+  font-size: 32rpx;
+  font-weight: 750;
+}
+
+.long-term-binding-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 58rpx;
+  height: 58rpx;
+  border-radius: 50%;
+  background: #f0f4f2;
+  color: #65756f;
+  font-size: 38rpx;
+}
+
+.driver-lock-mode-grid {
+  display: flex;
+  gap: 14rpx;
+  margin-top: 20rpx;
+}
+
+.driver-lock-mode-card {
+  flex: 1;
+  min-width: 0;
+  padding: 18rpx;
+  border: 2rpx solid #dbe6e2;
+  border-radius: 18rpx;
+  background: #f8faf9;
+  box-sizing: border-box;
+}
+
+.driver-lock-mode-card.is-selected {
+  border-color: #159274;
+  background: #edf8f4;
+  box-shadow: 0 6rpx 18rpx rgba(21, 146, 116, 0.12);
+}
+
+.driver-lock-mode-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10rpx;
+}
+
+.driver-lock-mode-title {
+  color: #24463c;
+  font-size: 25rpx;
+  font-weight: 750;
+}
+
+.driver-lock-mode-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34rpx;
+  height: 34rpx;
+  border-radius: 50%;
+  background: #159274;
+  color: #fff;
+  font-size: 20rpx;
+  font-weight: 700;
+}
+
+.driver-lock-mode-help,
+.driver-lock-mode-current {
+  display: block;
+  margin-top: 8rpx;
+  color: #71847e;
+  font-size: 20rpx;
+  line-height: 1.45;
+}
+
+.driver-lock-mode-current {
+  color: #11816a;
+  font-weight: 650;
+}
+
+.driver-lock-mode-tip {
+  margin-top: 18rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 16rpx;
+  background: #f4f7f6;
+  color: #72827d;
+  font-size: 22rpx;
+  text-align: center;
+}
+
+.driver-lock-primary,
+.driver-lock-current-status {
+  margin-top: 18rpx;
+  padding: 22rpx 18rpx;
+  border-radius: 16rpx;
+  font-size: 25rpx;
+  font-weight: 700;
+  text-align: center;
+}
+
+.driver-lock-primary {
+  background: #159274;
+  color: #fff;
+  box-shadow: 0 7rpx 18rpx rgba(21, 146, 116, 0.2);
+}
+
+.driver-lock-current-status {
+  border: 2rpx solid #a9d8ca;
+  background: #eff9f5;
+  color: #18755f;
+}
+
+.long-term-binding-explain {
+  margin-top: 20rpx;
+  padding: 18rpx 20rpx;
+  border-radius: 16rpx;
+  background: #edf7f3;
+  color: #55736a;
+  font-size: 22rpx;
+  line-height: 1.55;
+}
+
+.long-term-binding-list {
+  max-height: 34vh;
+  margin-top: 18rpx;
+}
+
+.long-term-binding-driver {
+  display: flex;
+  align-items: center;
+  min-height: 94rpx;
+  padding: 12rpx 16rpx;
+  border: 2rpx solid transparent;
+  border-radius: 18rpx;
+  box-sizing: border-box;
+}
+
+.long-term-binding-driver + .long-term-binding-driver {
+  margin-top: 8rpx;
+}
+
+.long-term-binding-driver.is-bound {
+  border-color: #86ccb8;
+  background: #eff9f5;
+}
+
+.long-term-binding-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 58rpx;
+  height: 58rpx;
+  margin-right: 18rpx;
+  border-radius: 50%;
+  background: #dcebe6;
+  color: #28725e;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.long-term-binding-driver-copy {
+  flex: 1;
+  min-width: 0;
+}
+
+.long-term-binding-driver-name,
+.long-term-binding-driver-status {
+  display: block;
+}
+
+.long-term-binding-driver-name {
+  overflow: hidden;
+  color: #27463d;
+  font-size: 26rpx;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.long-term-binding-driver-status {
+  margin-top: 5rpx;
+  color: #16876d;
+  font-size: 20rpx;
+}
+
+.long-term-binding-check,
+.long-term-binding-arrow {
+  margin-left: 16rpx;
+  color: #159274;
+  font-size: 30rpx;
+  font-weight: 700;
+}
+
+.long-term-binding-arrow {
+  color: #a1ada9;
+  font-weight: 400;
+}
+
+.long-term-binding-empty {
+  padding: 44rpx 0;
+  color: #929f9b;
+  font-size: 23rpx;
+  text-align: center;
+}
+
+.long-term-binding-unbind,
+.long-term-binding-cancel {
+  margin-top: 16rpx;
+  padding: 20rpx 16rpx;
+  border-radius: 16rpx;
+  font-size: 25rpx;
+  font-weight: 650;
+  text-align: center;
+}
+
+.long-term-binding-unbind {
+  background: #fff0f0;
+  color: #c43f3f;
+}
+
+.long-term-binding-cancel {
+  background: #edf2f0;
+  color: #52635e;
+}

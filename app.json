@@ -149,6 +149,9 @@
     "name": "charts",
     "pages": [
      
+      "pages/smartReplenishment/index/index",
+      "pages/smartReplenishment/customerPicker/customerPicker",
+      "pages/salesAnalysis/index/index",
       "pages/statistic/index/index",
       "pages/statistic/indexRetail/indexRetail",
       "pages/statistic/costGoodsByDate/costGoodsByDate",

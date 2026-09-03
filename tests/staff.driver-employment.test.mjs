@@ -51,6 +51,10 @@ test('账户列表使用分组卡片和统一底部操作菜单', () => {
   assert.match(js, /stopPropagation\(\) \{\}/)
 })
 
+test('账户列表为固定顶部导航预留完整高度', () => {
+  assert.match(wxml, /class="staff-content" style="padding-top: \{\{navBarHeight \+ 18\}\}rpx;"/)
+})
+
 test('账户管理页面标签完整闭合', () => {
   for (const tag of ['view', 'text', 'picker', 'button']) {
     const opens = (wxml.match(new RegExp('<' + tag + '\\b', 'g')) || []).length

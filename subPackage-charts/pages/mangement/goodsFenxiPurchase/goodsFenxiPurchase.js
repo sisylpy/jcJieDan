@@ -4,6 +4,7 @@ var dateUtils = require('../../../../utils/dateUtil');
 import * as echarts from '../../../ec-canvas/echarts';
 
 import apiUrl from '../../../../config.js'
+import { decorateGoodsVisual } from '../../../../utils/goodsImageView.js'
 
 import {
   getNxPurGoodsDetailList
@@ -89,7 +90,7 @@ Page({
     var disGoods = wx.getStorageSync('disGoods');
     if(disGoods){
           this.setData({
-        disGoods: disGoods
+        disGoods: decorateGoodsVisual(disGoods, apiUrl.server)
       })
       }
 

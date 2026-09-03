@@ -1,4 +1,62 @@
 /* 统计卡片容器 */
+.purchase-product-overview {
+  display: flex;
+  align-items: center;
+  gap: 22rpx;
+  margin: 22rpx 24rpx 0;
+  padding: 22rpx;
+  border: 1rpx solid #dfe8e3;
+  border-radius: 24rpx;
+  background: #fffdf9;
+  box-shadow: 0 8rpx 24rpx rgba(37, 72, 54, .06);
+}
+
+.purchase-product-image {
+  width: 132rpx;
+  height: 132rpx;
+  flex: none;
+  border: 1rpx solid #e2e8e4;
+  border-radius: 24rpx;
+  background: #f5f7f6;
+}
+
+.purchase-product-main {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.purchase-product-main > strong {
+  overflow: hidden;
+  max-width: 100%;
+  color: #213129;
+  font-size: 32rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.purchase-product-main > text {
+  overflow: hidden;
+  max-width: 100%;
+  margin-top: 8rpx;
+  color: #7e8b84;
+  font-size: 22rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.purchase-product-tag {
+  margin-top: 14rpx;
+  padding: 7rpx 14rpx;
+  border-radius: 999rpx;
+  background: #e8f6ef;
+  color: #0c8650;
+  font-size: 20rpx;
+  font-weight: 700;
+}
+
 .stats-container {
   display: flex;
   justify-content: space-between;

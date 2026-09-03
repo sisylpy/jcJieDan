@@ -28,6 +28,14 @@ page { background: #f5f5f2; color: #273230; }
 .image-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12rpx; margin-top: 16rpx; }
 .image-grid image { width: 100%; height: 190rpx; border-radius: 13rpx; }
 .replenishment-card { margin-top: 16rpx; padding: 20rpx; border-radius: 15rpx; background: #f7f5ef; display: flex; flex-direction: column; gap: 10rpx; }
+.return-card { margin-top: 16rpx; padding: 20rpx; border: 1rpx solid #d9e6e2; border-radius: 15rpx; background: #f5faf8; display: flex; flex-direction: column; gap: 10rpx; }
+.return-no { color: #245f57; font-weight: 700; }
+.return-item { display: flex; justify-content: space-between; color: #53625e; font-size: 24rpx; }
+.return-amount { margin-top: 6rpx; }
+.route-tip { color: #2563a6; font-size: 23rpx; }
+.return-form-item { margin-top: 16rpx; padding: 18rpx; border-radius: 14rpx; background: #f6f8f7; }
+.return-form-item > text { display: block; color: #4e5d59; font-size: 24rpx; }
+.pickup-switch { display: flex; align-items: center; justify-content: space-between; margin-top: 18rpx; }
 .replenishment-head text:first-child { color: #b0642a; font-weight: 700; }
 .free-tip, .free-banner { color: #9a612c; font-size: 23rpx; }
 .inline-actions { display: flex; justify-content: flex-end; }
@@ -78,13 +86,17 @@ page { background: #f5f5f2; color: #273230; }
 .action-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12rpx; }
 .action-option { background: #f2f3f1; border-radius: 13rpx; padding: 17rpx; text-align: center; }
 .action-option.selected { background: #315f62; color: #fff; }
-.bottom-sheet textarea, .bottom-sheet input, .picker-field { box-sizing: border-box; width: 100%; background: #f5f6f4; border-radius: 14rpx; padding: 18rpx; margin-top: 16rpx; font-size: 27rpx; }
-.bottom-sheet textarea { height: 120rpx; }
+.bottom-sheet input,
+.bottom-sheet textarea,
+.picker-field { box-sizing: border-box; width: 100%; margin-top: 16rpx; border-radius: 14rpx; background: #f5f6f4; color: #273230; font-size: 27rpx; }
+.bottom-sheet input { height: 88rpx; min-height: 88rpx; padding: 0 20rpx; line-height: 88rpx; }
+.picker-field { min-height: 88rpx; padding: 0 20rpx; display: flex; align-items: center; line-height: 1.4; }
+.bottom-sheet textarea { height: 144rpx; min-height: 144rpx; padding: 20rpx; line-height: 1.5; }
 .sheet-primary { margin-top: 22rpx; background: #315f62; color: #fff; }
 .free-banner { background: #fff2df; padding: 16rpx; border-radius: 12rpx; }
 .warning-banner { margin-top: 16rpx; padding: 16rpx; border-radius: 12rpx; background: #fff2df; color: #925e2c; font-size: 23rpx; line-height: 1.5; }
 .money-input { display: flex; align-items: center; margin-top: 16rpx; padding-left: 18rpx; border-radius: 14rpx; background: #f5f6f4; color: #bf512f; font-size: 34rpx; }
-.money-input input { margin-top: 0; }
+.money-input input { margin-top: 0; background: transparent; }
 .audience-title { margin-top: 20rpx; color: #5d6966; font-size: 25rpx; }
 .audience-option { display: flex; align-items: center; gap: 12rpx; margin-top: 12rpx; padding: 16rpx; border: 1rpx solid #e1e6e3; border-radius: 13rpx; color: #57625f; }
 .audience-option.selected { border-color: #39766e; background: #edf6f2; color: #28665c; }
@@ -94,7 +106,8 @@ page { background: #f5f5f2; color: #273230; }
 .compensation-meta { display: flex; gap: 12rpx; margin-top: 14rpx; }
 .compensation-meta text { padding: 6rpx 12rpx; border-radius: 14rpx; background: #f3f2ed; color: #6e7673; font-size: 22rpx; }
 .compensation-primary { background: #9a6b22; }
-.quantity-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12rpx; }
+.quantity-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12rpx; margin-top: 16rpx; }
+.quantity-row input { min-width: 0; margin-top: 0; }
 .writeback-image { display: flex; align-items: center; gap: 14rpx; margin-top: 14rpx; padding: 12rpx; background: #f5f6f4; border-radius: 14rpx; }
 .writeback-image image { width: 100rpx; height: 100rpx; border-radius: 10rpx; }
 .writeback-image-text { flex: 1; font-size: 24rpx; }

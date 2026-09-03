@@ -30,7 +30,9 @@ Page({
               : []
           }),
           disId: res.result.data.nxDistributerEntity.nxDistributerId,
-          isPlaceholderStoreImg: isPlaceholderStoreImg
+          isPlaceholderStoreImg: isPlaceholderStoreImg,
+          canViewSalesAnalysis: Number(res.result.data.nxDiuAdmin) === 0,
+          canViewSmartReplenishment: Number(res.result.data.nxDiuAdmin) === 0
         })
         wx.setStorageSync('disInfo', res.result.data.nxDistributerEntity);
         wx.setStorageSync('userInfo', res.result.data);
@@ -49,6 +51,8 @@ Page({
     editUser: false,
     yuyin: 0,
     isPlaceholderStoreImg: false,
+    canViewSalesAnalysis: false,
+    canViewSmartReplenishment: false,
     userInfo: {
       nxDistributerEntity: {
         nxDistributerName: '',
@@ -89,6 +93,8 @@ Page({
       sysDeviceId: globalData.sysDeviceId,
       url: apiUrl.server,
       userInfo: Object.assign({}, this.data.userInfo, cachedUser),
+      canViewSalesAnalysis: Number(cachedUser.nxDiuAdmin) === 0,
+      canViewSmartReplenishment: Number(cachedUser.nxDiuAdmin) === 0,
       disInfo: Object.assign({}, this.data.disInfo, cachedDis, {
         machinePayList: (cachedDis && cachedDis.machinePayList) ? cachedDis.machinePayList : []
       })
@@ -596,6 +602,26 @@ toPurGoodsFenxi(){
 toCostGoodsFenxi(){
   wx.navigateTo({
     url: '../../../../subPackage-charts/pages/mangement/costGoodsFenxi/costGoodsFenxi?disId=' + this.data.disId,
+  })
+},
+
+toSalesAnalysis(){
+  if (!this.data.canViewSalesAnalysis) {
+    wx.showToast({ title: '只有老板账号可以查看', icon: 'none' })
+    return
+  }
+  wx.navigateTo({
+    url: '/subPackage-charts/pages/salesAnalysis/index/index',
+  })
+},
+
+toSmartReplenishment(){
+  if (!this.data.canViewSmartReplenishment) {
+    wx.showToast({ title: '只有老板账号可以查看', icon: 'none' })
+    return
+  }
+  wx.navigateTo({
+    url: '/subPackage-charts/pages/smartReplenishment/index/index',
   })
 },
 

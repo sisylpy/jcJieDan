@@ -38,6 +38,7 @@ Page({
       startDate: options.startDate,
       stopDate: options.stopDate,
       dateType: options.dateType,
+      selectedDateName: options.dateName || '',
 
     })
     var datetype = this.data.dateType;
@@ -169,6 +170,7 @@ Page({
         update: true,
         updateMyDate: false,
         dateType: dateType,
+        dateName: dateName,
         startDate: startDate,
         stopDate: stopDate,
       })
@@ -541,6 +543,7 @@ Page({
       startDate: this.data.startDate,
       stopDate: this.data.stopDate,
       dateType: "customer",
+      dateName: "custom",
       update: true,
     })
     

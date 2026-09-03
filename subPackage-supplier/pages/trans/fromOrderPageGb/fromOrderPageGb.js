@@ -16,6 +16,8 @@ Page({
     batchStatus: null,
     pageLoading: true,
     pageError: '',
+    isSaving: false,
+    isNavigatingHome: false,
   },
 
   onShow(){
@@ -143,6 +145,11 @@ Page({
             pageLoading: false,
             pageError: '',
           })
+          // 自动转单或此前已手动转单时，旧分享链接仍可能落到本页。
+          // 此时不要再次展示“转订单”，直接回到精彩接单主页。
+          if (this._isBatchTransferred(batch)) {
+            this._goOrderHome()
+          }
         } else {
           var message = (res.result && res.result.msg) || '获取订货单失败';
           this.setData({
@@ -160,6 +167,68 @@ Page({
         console.error('[精彩账本转配送] getJczbBatchForNx 失败:', error);
         this.setData({ pageLoading: false, pageError: '无法连接配送服务，请重试' })
         wx.showToast({ title: '无法连接配送服务', icon: 'none' })
+      })
+  },
+
+  _isBatchTransferred(batch) {
+    const goodsList = batch && batch.gbDPGEntities ? batch.gbDPGEntities : []
+    let orderCount = 0
+    for (const goods of goodsList) {
+      const orders = goods && goods.gbDepartmentOrdersEntities
+        ? goods.gbDepartmentOrdersEntities
+        : []
+      for (const order of orders) {
+        orderCount += 1
+        const linkedOrderId = Number(order && order.gbDoNxDepartmentOrderId || 0)
+        const linkedDisId = Number(order && order.gbDoNxDistributerId || 0)
+        if (linkedOrderId <= 0) return false
+        if (linkedDisId > 0 && this.data.disId > 0 && linkedDisId !== Number(this.data.disId)) {
+          return false
+        }
+      }
+    }
+    return orderCount > 0
+  },
+
+  _goOrderHome() {
+    if (this.data.isNavigatingHome) return
+    this.setData({ isNavigatingHome: true, isSaving: false })
+    wx.switchTab({
+      url: '/pages/order/index/index',
+      fail: () => {
+        wx.reLaunch({
+          url: '/pages/order/index/index',
+          complete: () => this.setData({ isNavigatingHome: false })
+        })
+      }
+    })
+  },
+
+  _verifyTransferThenOpenHome(failureMessage) {
+    const requestData = {
+      batchId: this.data.batchId,
+      nxDisId: this.data.disId,
+    }
+    load.showLoading('确认转单结果')
+    return getJczbBatchForNx(requestData)
+      .then(res => {
+        load.hideLoading()
+        const result = res && res.result ? res.result : {}
+        const batch = result.code == 0 ? result.data : null
+        if (batch && this._isBatchTransferred(batch)) {
+          this._goOrderHome()
+          return true
+        }
+        this.setData({ isSaving: false })
+        wx.showToast({ title: failureMessage || result.msg || '转单失败', icon: 'none' })
+        return false
+      })
+      .catch(error => {
+        load.hideLoading()
+        console.error('[精彩账本转配送] 确认转单结果失败:', error)
+        this.setData({ isSaving: false })
+        wx.showToast({ title: failureMessage || '无法确认转单结果，请稍后重试', icon: 'none' })
+        return false
       })
   },
 
@@ -190,42 +259,25 @@ Page({
     nxDisImportJczbBatch(data).then(res =>{
       load.hideLoading();
       console.log('[精彩账本转配送] nxDisImportJczbBatch 返回:', res.result);
-      if(res.result.code == 0){
-        if (res.result.syncPending) {
-          wx.showToast({
-            title: res.result.msg || '订单已创建，关联同步中',
-            icon: 'none',
-            duration: 1800,
-          })
-          setTimeout(() => {
-            wx.switchTab({
-              url: '../../../../pages/order/index/index',
-            })
-          }, 900)
-        } else {
-          wx.switchTab({
-            url: '../../../../pages/order/index/index',
-          })
-        }
+      const result = res && res.result ? res.result : {}
+      if(Number(result.code) === 0){
+        // 包括首次创建、重复点击的 ALREADY_LINKED 以及回写稍有延迟的情况，
+        // 配送订单已经可处理，都直接进入精彩接单主页。
+        this._goOrderHome()
       } else {
-        this.setData({ isSaving: false })
-        wx.showToast({
-          title: res.result.msg || '转单失败',
-          icon: 'none'
-        })
+        // 网络/跨服务回写可能发生“配送订单已落库但响应失败”。
+        // 先读取精彩账本关联确认，避免把实际成功误报成失败。
+        this._verifyTransferThenOpenHome(result.msg || '转单失败')
       }
     }).catch(error => {
       load.hideLoading()
       console.error('[精彩账本转配送] nxDisImportJczbBatch 失败:', error);
-      this.setData({ isSaving: false })
-      wx.showToast({ title: '无法连接配送服务', icon: 'none' })
+      this._verifyTransferThenOpenHome('无法连接配送服务')
     })
   },
 
   toBack() {
-    wx.switchTab({
-      url: '../../../../pages/order/index/index',
-    })
+    this._goOrderHome()
   },
 
 

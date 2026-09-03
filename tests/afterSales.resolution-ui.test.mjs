@@ -4,9 +4,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const detailJs = fs.readFileSync(path.join(root, 'subPackage/pages/afterSales/detail/detail.js'), 'utf8');
-const detailWxml = fs.readFileSync(path.join(root, 'subPackage/pages/afterSales/detail/detail.wxml'), 'utf8');
-const createJs = fs.readFileSync(path.join(root, 'subPackage/pages/afterSales/create/create.js'), 'utf8');
+const detailJs = fs.readFileSync(path.join(root, 'subPackage-charts/pages/afterSales/detail/detail.js'), 'utf8');
+const detailWxml = fs.readFileSync(path.join(root, 'subPackage-charts/pages/afterSales/detail/detail.wxml'), 'utf8');
+const createJs = fs.readFileSync(path.join(root, 'subPackage-charts/pages/afterSales/create/create.js'), 'utf8');
 
 assert.match(detailWxml, /一、问题事实/);
 assert.match(detailWxml, /二、处理结果/);

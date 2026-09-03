@@ -1,6 +1,7 @@
 import {
   getAfterSalesDictionaries,
   createDepartmentAfterSales,
+  createSalesReturnWithAfterSales,
   uploadDepartmentAfterSalesImage
 } from '../../../../lib/apiDistributer'
 
@@ -22,7 +23,9 @@ Page({
     photoTargetOptions: [{ label: '整张售后', departmentDisGoodsId: null }],
     photoTargetIndex: 0,
     saving: false,
-    loading: true
+    loading: true,
+    isReturn: false,
+    returnSourceType: 'POST_DELIVERY'
   },
 
   onLoad() {
@@ -40,7 +43,10 @@ Page({
       distributerId: dis.nxDistributerId,
       operatorUserId: user.nxDistributerUserId,
       draft: draft,
-      orders: draft.orders,
+      orders: draft.orders.map(function (item) {
+        return Object.assign({}, item, { returnQuantity: item.quantity || '' })
+      }),
+      isReturn: draft.resolutionIntent === 'RETURN',
       photoTargetOptions: this.buildPhotoTargets(draft.orders),
       photoTargetIndex: this.buildPhotoTargets(draft.orders).length === 2 ? 1 : 0
     })
@@ -55,7 +61,7 @@ Page({
         severityOptions: data.severities || [],
         issueTypeOptions: issueTypeOptions,
         issueScopeMode: scopeMode,
-        issueScope: scopeMode === 'ORDER' ? 'ORDER' : 'ITEM'
+        issueScope: this.data.isReturn ? 'ITEM' : (scopeMode === 'ORDER' ? 'ORDER' : 'ITEM')
       })
     }).catch((error) => {
       this.setData({ loading: false })
@@ -95,6 +101,7 @@ Page({
   },
   selectIssueScope(e) { this.setData({ issueScope: e.currentTarget.dataset.scope }) },
   onDescriptionInput(e) { this.setData({ description: e.detail.value }) },
+  onReturnQuantityInput(e) { this.setData({ ['orders[' + Number(e.currentTarget.dataset.index) + '].returnQuantity']: e.detail.value }) },
 
   choosePhotos() {
     var remaining = 20 - this.data.photos.length
@@ -158,6 +165,16 @@ Page({
       wx.showToast({ title: '请填写问题说明', icon: 'none' })
       return
     }
+    if (this.data.isReturn) {
+      for (var ri = 0; ri < selected.length; ri++) {
+        var requested = Number(selected[ri].returnQuantity)
+        var maximum = Number(selected[ri].quantity)
+        if (!requested || requested <= 0 || (maximum > 0 && requested > maximum)) {
+          wx.showToast({ title: '请正确填写退货数量，不能超过原配送数量', icon: 'none' })
+          return
+        }
+      }
+    }
     var anchorId = this.data.draft.anchorHistoryOrderId
     var anchor = this.data.orders.filter(function (item) {
       return String(item.historyOrderId) === String(anchorId)
@@ -187,10 +204,23 @@ Page({
       request.originalShipmentTaskId = this.data.draft.originalShipmentTaskId
     }
     this.setData({ saving: true })
-    wx.showLoading({ title: '创建售后' })
-    createDepartmentAfterSales(request).then((res) => {
+    wx.showLoading({ title: this.data.isReturn ? '提交退货申请' : '创建售后' })
+    var createPromise = this.data.isReturn
+      ? createSalesReturnWithAfterSales({
+        afterSales: request,
+        sourceType: this.data.returnSourceType,
+        reason: this.data.description.trim(),
+        requestKey: 'RETURN-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10),
+        items: selected.map(function (item) {
+          return { originalHistoryOrderId: item.historyOrderId,
+            requestedQuantity: String(item.returnQuantity || ''), reason: request.issueDescription }
+        })
+      })
+      : createDepartmentAfterSales(request)
+    createPromise.then((res) => {
       if (!res.result || res.result.code !== 0) throw new Error((res.result && res.result.msg) || '创建售后失败')
-      var detail = res.result.data || {}
+      var payload = res.result.data || {}
+      var detail = this.data.isReturn ? (payload.afterSales || {}) : payload
       var afterSalesId = detail.nxDasId
       if (!afterSalesId) throw new Error('后台未返回售后单ID')
       if (!this.data.photos.length) return { afterSalesId: afterSalesId, failed: 0 }
@@ -205,7 +235,7 @@ Page({
       wx.setStorageSync('afterSalesCustomerNames', nameCache)
       wx.removeStorageSync('afterSalesCreateDraft')
       if (result.failed) wx.showToast({ title: result.failed + '张照片上传失败，可在详情补传', icon: 'none' })
-      else wx.showToast({ title: '售后已创建', icon: 'success' })
+      else wx.showToast({ title: this.data.isReturn ? '退货申请已提交' : '售后已创建', icon: 'success' })
       setTimeout(function () {
         wx.redirectTo({ url: '../detail/detail?afterSalesId=' + result.afterSalesId })
       }, result.failed ? 1500 : 500)

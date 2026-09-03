@@ -23,6 +23,7 @@
 					<view class="flex-row">
 						<text class="mr-20">{{item.nxDbDate}}</text>
 						<text>{{item.nxDbWeek}}</text>
+						<text wx:if="{{item.nxDbBillType === 'RETURN_CREDIT' || item.nxDbTotal < 0}}" class="text-danger ml-10">退货冲减单</text>
 					</view>
 					<view class="flex-row font-xs text-secondary">
 						<text>单号:</text>
@@ -31,6 +32,9 @@
 					<view class="flex-row font-xs text-secondary">
 						<text>打印:</text>
 						<text>{{item.nxDbTime}}</text>
+					</view>
+					<view wx:if="{{item.nxDbOriginalBillId}}" class="flex-row font-xs text-secondary">
+						<text>冲减原账单 #{{item.nxDbOriginalBillId}}</text>
 					</view>
 				</view>
 			</view>
@@ -59,8 +63,8 @@
 			</view>
 
 			<view class="flex-column-center sentence">
-			   <text class="font-xs">客户已完成付款，结账确认以后</text>
-					<text class="font-lg">订单状态不可修改！</text>
+				   <text class="font-xs">结账金额已经包含所选退货冲减单</text>
+					<text class="font-lg">确认本次净结算金额</text>
 			</view>
 				<view class="p-20 flex-row-between "  style="width:{{windowWidth - 200}}rpx; " >
 				  <view class="third-row center-content p-10 hover">

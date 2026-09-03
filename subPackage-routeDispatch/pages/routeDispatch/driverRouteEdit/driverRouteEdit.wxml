@@ -500,6 +500,121 @@
     </view>
   </view>
 
+  <view
+    class="long-term-binding-mask"
+    wx:if="{{longTermBindingPickerVisible}}"
+    catchtap="closeLongTermBindingPicker"
+  >
+    <view class="long-term-binding-sheet" catchtap="stopLongTermBindingPickerTap">
+      <view class="long-term-binding-handle"></view>
+      <view class="long-term-binding-head">
+        <view>
+          <text class="long-term-binding-eyebrow">锁定司机</text>
+          <text class="long-term-binding-title">{{longTermBindingTarget.customerName}}</text>
+        </view>
+        <view class="long-term-binding-close" catchtap="closeLongTermBindingPicker">×</view>
+      </view>
+      <view class="driver-lock-mode-grid">
+        <view
+          class="driver-lock-mode-card {{driverLockMode === 'TODAY' ? 'is-selected' : ''}}"
+          data-mode="TODAY"
+          catchtap="onDriverLockModeTap"
+        >
+          <view class="driver-lock-mode-head">
+            <text class="driver-lock-mode-title">仅今天锁定</text>
+            <text class="driver-lock-mode-check" wx:if="{{driverLockMode === 'TODAY'}}">✓</text>
+          </view>
+          <text class="driver-lock-mode-help">
+            {{longTermBindingTarget.todayLock ? '查看或取消今天的临时锁定' : '只影响今天当前配送批次，明天自动恢复'}}
+          </text>
+          <text class="driver-lock-mode-current" wx:if="{{longTermBindingTarget.todayLock}}">
+            当前：{{longTermBindingTarget.todayLock.driverName}}
+          </text>
+        </view>
+        <view
+          class="driver-lock-mode-card {{driverLockMode === 'LONG_TERM' ? 'is-selected' : ''}}"
+          data-mode="LONG_TERM"
+          catchtap="onDriverLockModeTap"
+        >
+          <view class="driver-lock-mode-head">
+            <text class="driver-lock-mode-title">长期锁定</text>
+            <text class="driver-lock-mode-check" wx:if="{{driverLockMode === 'LONG_TERM'}}">✓</text>
+          </view>
+          <text class="driver-lock-mode-help">
+            {{longTermBindingTarget.binding ? '查看、改绑或取消常送司机' : '设为常送司机，以后默认优先安排'}}
+          </text>
+          <text class="driver-lock-mode-current" wx:if="{{longTermBindingTarget.binding}}">
+            当前：{{longTermBindingTarget.binding.driverName}}
+          </text>
+        </view>
+      </view>
+      <view class="long-term-binding-explain" wx:if="{{driverLockMode === 'TODAY'}}">
+        今天锁定只固定当前路线司机；即使另有常送司机，也只临时覆盖今天，长期关系不会改变。
+      </view>
+      <view class="long-term-binding-explain" wx:elif="{{driverLockMode === 'LONG_TERM'}}">
+        点击下方司机可以改绑；底部可以取消长期锁定。司机未上岗时，本次配送仍可临时改派。
+      </view>
+      <view class="driver-lock-mode-tip" wx:else>请先选择本次锁定，还是长期锁定。</view>
+      <view
+        class="driver-lock-primary"
+        wx:if="{{driverLockMode === 'TODAY' && !longTermBindingTarget.todayLock}}"
+        catchtap="onConfirmTodayDriverLock"
+      >确认今天锁定给 {{longTermBindingTarget.currentRouteDriverName}}</view>
+      <view
+        class="driver-lock-current-status"
+        wx:if="{{driverLockMode === 'TODAY' && longTermBindingTarget.todayLock}}"
+      >今天已锁定给 {{longTermBindingTarget.todayLock.driverName}}</view>
+      <scroll-view class="long-term-binding-list" wx:if="{{driverLockMode === 'LONG_TERM'}}" scroll-y="true" show-scrollbar="false">
+        <block wx:for="{{longTermBindingDrivers}}" wx:key="driverUserId">
+          <view
+            wx:if="{{driverLockMode === 'LONG_TERM' || longTermBindingTarget.currentRouteDriverUserId == item.driverUserId}}"
+            class="long-term-binding-driver {{driverLockMode === 'TODAY' && longTermBindingTarget.todayLock && longTermBindingTarget.todayLock.driverUserId == item.driverUserId ? 'is-bound' : ''}} {{driverLockMode === 'LONG_TERM' && longTermBindingTarget.binding && longTermBindingTarget.binding.driverUserId == item.driverUserId ? 'is-bound' : ''}}"
+            data-index="{{index}}"
+            catchtap="onDriverLockDriverTap"
+          >
+            <view class="long-term-binding-avatar">司</view>
+            <view class="long-term-binding-driver-copy">
+              <text class="long-term-binding-driver-name">{{item.driverName}}</text>
+              <text
+                class="long-term-binding-driver-status"
+                wx:if="{{driverLockMode === 'TODAY' && longTermBindingTarget.todayLock && longTermBindingTarget.todayLock.driverUserId == item.driverUserId}}"
+              >今天已锁定</text>
+              <text
+                class="long-term-binding-driver-status"
+                wx:elif="{{driverLockMode === 'LONG_TERM' && longTermBindingTarget.binding && longTermBindingTarget.binding.driverUserId == item.driverUserId}}"
+              >当前长期绑定</text>
+              <text
+                class="long-term-binding-driver-status"
+                wx:elif="{{longTermBindingTarget.currentRouteDriverUserId == item.driverUserId}}"
+              >当前路线司机</text>
+            </view>
+            <text
+              class="long-term-binding-check"
+              wx:if="{{driverLockMode === 'TODAY' && longTermBindingTarget.todayLock && longTermBindingTarget.todayLock.driverUserId == item.driverUserId}}"
+            >✓</text>
+            <text
+              class="long-term-binding-check"
+              wx:elif="{{driverLockMode === 'LONG_TERM' && longTermBindingTarget.binding && longTermBindingTarget.binding.driverUserId == item.driverUserId}}"
+            >✓</text>
+            <text class="long-term-binding-arrow" wx:else>›</text>
+          </view>
+        </block>
+        <view class="long-term-binding-empty" wx:if="{{!longTermBindingDrivers.length}}">没有可选择的司机</view>
+      </scroll-view>
+      <view
+        class="long-term-binding-unbind"
+        wx:if="{{driverLockMode === 'TODAY' && longTermBindingTarget.todayLock}}"
+        catchtap="onCancelTodayDriverLock"
+      >取消今天锁定</view>
+      <view
+        class="long-term-binding-unbind"
+        wx:if="{{driverLockMode === 'LONG_TERM' && longTermBindingTarget.binding}}"
+        catchtap="onCancelLongTermBinding"
+      >取消长期绑定</view>
+      <view class="long-term-binding-cancel" catchtap="closeLongTermBindingPicker">返回路线</view>
+    </view>
+  </view>
+
   <time-window-editor
     visible="{{timeWindowModalVisible}}"
     submitting="{{timeWindowSubmitting}}"

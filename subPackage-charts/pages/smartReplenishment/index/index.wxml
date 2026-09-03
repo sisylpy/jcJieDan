@@ -1,0 +1,176 @@
+<view class="page">
+  <back-navbar
+    style="height: {{navBarHeight}}rpx;"
+    title="智能备货"
+    avatar="/images/back-gray.png"
+    bindnavbuttontap="toBack"
+  ></back-navbar>
+
+  <scroll-view
+    scroll-y="true"
+    class="page-scroll"
+    style="margin-top: {{navBarHeight}}rpx; height: {{contentHeight}}rpx;"
+  >
+    <view class="customer-card" bindtap="toCustomerPicker" hover-class="card-hover">
+      <view class="customer-icon">客</view>
+      <view class="customer-main">
+        <text class="eyebrow">预测客户</text>
+        <strong>{{selectedDepartmentName}}</strong>
+        <text>{{selectedDepartmentHistory}}</text>
+      </view>
+      <view class="customer-action">选择客户 ›</view>
+    </view>
+
+    <view class="date-panel">
+      <view class="panel-title-row">
+        <view>
+          <strong>备货日期</strong>
+          <text>{{dateModeLabel}} · {{startDate}}{{startDate == endDate ? '' : ' 至 ' + endDate}}</text>
+        </view>
+        <view class="refresh-link" bindtap="refreshPage">刷新</view>
+      </view>
+      <view class="date-tabs">
+        <view class="date-tab {{dateMode == 'TODAY' ? 'active' : ''}}" data-mode="TODAY" bindtap="selectDateMode">今天</view>
+        <view class="date-tab {{dateMode == 'TOMORROW' ? 'active' : ''}}" data-mode="TOMORROW" bindtap="selectDateMode">明天</view>
+        <view class="date-tab {{dateMode == 'NEXT_7' ? 'active' : ''}}" data-mode="NEXT_7" bindtap="selectDateMode">未来7天</view>
+        <view class="date-tab {{dateMode == 'CUSTOM' ? 'active' : ''}}" data-mode="CUSTOM" bindtap="selectDateMode">自定义</view>
+      </view>
+      <view wx:if="{{showCustomDate}}" class="custom-date-row">
+        <picker mode="date" value="{{startDate}}" start="{{forecastToday}}" end="{{maxForecastDate}}" bindchange="onStartDateChange">
+          <view class="date-picker"><text>开始</text><strong>{{startDate}}</strong></view>
+        </picker>
+        <text class="date-arrow">至</text>
+        <picker mode="date" value="{{endDate}}" start="{{startDate}}" end="{{maxForecastDate}}" bindchange="onEndDateChange">
+          <view class="date-picker"><text>结束</text><strong>{{endDate}}</strong></view>
+        </picker>
+      </view>
+    </view>
+
+    <view wx:if="{{loading}}" class="page-state">
+      <view class="state-icon loading-icon">备</view>
+      <text class="state-title">正在生成智能备货清单</text>
+      <text class="state-desc">预测、库存和采购状态会分开读取</text>
+    </view>
+
+    <view wx:elif="{{pageError}}" class="page-state error-state">
+      <view class="state-icon">!</view>
+      <text class="state-title">{{pageError}}</text>
+      <view class="retry-button" bindtap="refreshPage">重新加载</view>
+    </view>
+
+    <block wx:else>
+      <view class="summary-grid">
+        <view class="summary-card total-card"><text>备货商品</text><strong>{{summary.total}}</strong><small>只展示 A/B 级</small></view>
+        <view class="summary-card a-card"><text>A 直接备货</text><strong>{{summary.levelA}}</strong><small>可信度较高</small></view>
+        <view class="summary-card b-card"><text>B 联系确认</text><strong>{{summary.levelB}}</strong><small>先联系客户</small></view>
+      </view>
+
+      <view wx:if="{{contextNotice}}" class="context-notice">{{contextNotice}}</view>
+
+      <view class="filter-panel">
+        <view class="level-filters">
+          <view class="level-filter {{activeLevel == '' ? 'active' : ''}}" data-level="" bindtap="selectLevel">全部 {{summary.total}}</view>
+          <view class="level-filter a-filter {{activeLevel == 'LEVEL_A' ? 'active' : ''}}" data-level="LEVEL_A" bindtap="selectLevel">A 直接备货 {{summary.levelA}}</view>
+          <view class="level-filter b-filter {{activeLevel == 'LEVEL_B' ? 'active' : ''}}" data-level="LEVEL_B" bindtap="selectLevel">B 联系确认 {{summary.levelB}}</view>
+        </view>
+        <view class="goods-search">
+          <image src="/images/search-3.png" mode="aspectFit"></image>
+          <input value="{{keyword}}" placeholder="搜索商品名称、规格" bindinput="onKeywordInput"></input>
+          <text wx:if="{{keyword}}" bindtap="clearKeyword">×</text>
+        </view>
+        <scroll-view wx:if="{{categories.length}}" scroll-x="true" class="category-scroll">
+          <view class="category-row">
+            <view class="category-chip {{activeCategory == '' ? 'active' : ''}}" data-category="" bindtap="selectCategory">全部分类</view>
+            <view
+              wx:for="{{categories}}"
+              wx:key="key"
+              class="category-chip {{activeCategory == item.key ? 'active' : ''}}"
+              data-category="{{item.key}}"
+              bindtap="selectCategory"
+            >{{item.name}} {{item.count}}</view>
+          </view>
+        </scroll-view>
+      </view>
+
+      <view wx:if="{{visibleProducts.length}}" class="product-list">
+        <view wx:for="{{visibleProducts}}" wx:key="key" class="product-card {{item.levelClass}}">
+          <view class="product-overview">
+            <view class="goods-photo-wrap">
+              <image src="{{item.imageUrl}}" mode="aspectFill" class="goods-photo"></image>
+              <view class="level-badge">{{item.levelLetter}}</view>
+            </view>
+            <view class="goods-summary">
+              <view class="goods-title-row">
+                <view class="goods-info">
+                  <strong>{{item.goodsName}}</strong>
+                  <text>{{item.categoryName}}{{item.detailText ? ' · ' + item.detailText : ''}}</text>
+                </view>
+                <view class="trust-value"><strong>{{item.trustText}}</strong><text>可信度</text></view>
+              </view>
+              <view class="recommend-line">
+                <text>建议备货量</text>
+                <strong>{{item.predictedQuantityText}}<small>{{item.predictedUnit}}</small></strong>
+              </view>
+              <view class="action-tip {{item.levelClass}}">{{item.levelLabel}}</view>
+            </view>
+          </view>
+
+          <view class="metric-grid">
+            <view><text>库存数量</text><strong>{{item.context.stockText}} {{item.context.stockUnit}}</strong></view>
+            <view><text>建议操作</text><strong>{{item.levelLabel}}</strong></view>
+            <view><text>采购状态</text><strong class="purchase-metric {{item.context.state}}">{{item.context.purchaseText}}</strong></view>
+          </view>
+
+          <view class="demand-block">
+            <text class="block-label">需求客户</text>
+            <view wx:for="{{item.departmentLines}}" wx:for-item="line" wx:key="key" class="department-line">
+              <strong>{{line.departmentName}}</strong><text>{{line.forecastText}}</text>
+            </view>
+          </view>
+
+          <view class="procurement-row">
+            <view class="purchase-state {{item.context.state}}">
+              <text>采购订货</text>
+              <strong>{{item.context.purchaseText}}</strong>
+            </view>
+            <view
+              wx:if="{{item.context.canCreate}}"
+              class="add-button {{item.creating ? 'disabled' : ''}}"
+              data-id="{{item.goodsId}}"
+              catchtap="addProcurement"
+            >{{item.creating ? '添加中…' : '+ 添加采购'}}</view>
+          </view>
+
+          <view class="evidence-toggle" data-id="{{item.goodsId}}" bindtap="toggleEvidence">
+            <text>预测依据</text><text>{{item.expanded ? '收起' : '查看'}} {{item.expanded ? '⌃' : '⌄'}}</text>
+          </view>
+          <view wx:if="{{item.expanded}}" class="evidence-panel">
+            <view wx:if="{{item.reasons.length}}" class="reason-group">
+              <strong>支持理由</strong>
+              <text wx:for="{{item.reasons}}" wx:key="*this">· {{item}}</text>
+            </view>
+            <view wx:if="{{item.riskReasons.length}}" class="reason-group risk-group">
+              <strong>需要留意</strong>
+              <text wx:for="{{item.riskReasons}}" wx:key="*this">· {{item}}</text>
+            </view>
+            <text wx:if="{{item.quantityMethod}}" class="quantity-method">数量说明：{{item.quantityMethod}}</text>
+            <text wx:if="{{!item.reasons.length && !item.riskReasons.length && !item.quantityMethod}}" class="empty-evidence">暂无更多说明</text>
+          </view>
+        </view>
+      </view>
+
+      <view wx:else class="empty-result">
+        <view class="empty-check">✓</view>
+        <strong>{{summary.total ? '当前筛选下没有商品' : '当前无需提前备货'}}</strong>
+        <text>{{summary.total ? '可以切换等级、分类或清除搜索条件' : '页面已正常读取数据，并不是系统故障'}}</text>
+      </view>
+
+      <view class="boundary-note">
+        <strong>数据口径</strong>
+        <text>预测只展示服务端 A/B 级结果；库存和采购状态不参与预测筛选。</text>
+        <text>“采购中”只统计货架补货和智能备货，订单自动生成的采购不计入。</text>
+      </view>
+    </block>
+    <view class="safe-bottom"></view>
+  </scroll-view>
+</view>

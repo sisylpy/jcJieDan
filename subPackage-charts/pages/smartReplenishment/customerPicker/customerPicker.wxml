@@ -1,0 +1,50 @@
+<view class="page">
+  <back-navbar
+    style="height: {{navBarHeight}}rpx;"
+    title="选择客户"
+    avatar="/images/back-gray.png"
+    bindnavbuttontap="toBack"
+  ></back-navbar>
+
+  <view class="picker-body" style="margin-top: {{navBarHeight}}rpx; height: {{contentHeight}}rpx;">
+    <view class="search-box">
+      <image src="/images/search-3.png" mode="aspectFit"></image>
+      <input value="{{keyword}}" placeholder="搜索客户名称" bindinput="onKeywordInput" focus="{{false}}"></input>
+      <text wx:if="{{keyword}}" bindtap="clearKeyword">×</text>
+    </view>
+
+    <view wx:if="{{loading}}" class="page-state">正在读取客户目录…</view>
+    <view wx:elif="{{pageError}}" class="page-state error-state">
+      <text>{{pageError}}</text>
+      <view bindtap="loadCustomers">重新加载</view>
+    </view>
+
+    <scroll-view wx:else scroll-y="true" class="customer-scroll">
+      <view class="all-customer {{selectedId == 'ALL' ? 'selected' : ''}}" bindtap="selectAll">
+        <view class="customer-avatar all-avatar">全</view>
+        <view class="customer-text"><strong>全部客户</strong><text>汇总所有有效客户</text></view>
+        <view wx:if="{{selectedId == 'ALL'}}" class="selected-check">✓</view>
+        <view wx:else class="row-arrow">›</view>
+      </view>
+
+      <view class="list-caption">客户列表 · {{visibleCustomers.length}} 家</view>
+      <view
+        wx:for="{{visibleCustomers}}"
+        wx:key="departmentId"
+        class="customer-row {{selectedId == item.departmentId ? 'selected' : ''}}"
+        data-id="{{item.departmentId}}"
+        bindtap="selectCustomer"
+      >
+        <view class="customer-avatar">{{item.initial}}</view>
+        <view class="customer-text">
+          <strong>{{item.departmentName}}</strong>
+          <text>{{item.historyLabel}}{{item.lastOrderLabel ? ' · ' + item.lastOrderLabel : ''}}</text>
+        </view>
+        <view wx:if="{{selectedId == item.departmentId}}" class="selected-check">✓</view>
+        <view wx:else class="row-arrow">›</view>
+      </view>
+      <view wx:if="{{!visibleCustomers.length}}" class="empty-list">没有找到“{{keyword}}”</view>
+      <view class="safe-bottom"></view>
+    </scroll-view>
+  </view>
+</view>

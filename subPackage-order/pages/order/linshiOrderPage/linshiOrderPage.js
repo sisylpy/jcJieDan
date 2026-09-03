@@ -175,7 +175,7 @@ Page({
     if (this.data.userInfo.nxDiuWxOpenId == 'oX2485BL9V-FjEa7bKOkFJcqxD0E') {
       wx.navigateToMiniProgram({
         appId: appId,
-        path: '/pages/ai/customer/chefOrder/chefOrder?depFatherId=' + this.data.depFatherId + '&disId=' + this.data.disId,
+        path: '/pages/ai/customer/chefOrder/chefOrder?depFatherId=' + this.data.depFatherId + '&disId=' + this.data.disId + '&entry=boss',
         envVersion: util.getCurrentEnvVersion(), // 动态获取环境版本
         success(res) {
           // that.setData({
@@ -186,7 +186,7 @@ Page({
     } else {
       wx.navigateToMiniProgram({
         appId: appId,
-        path: '/pages/ai/customer/chefOrder/chefOrder?depFatherId=' + this.data.depFatherId + '&disId=' + this.data.disId,
+        path: '/pages/ai/customer/chefOrder/chefOrder?depFatherId=' + this.data.depFatherId + '&disId=' + this.data.disId + '&entry=boss',
         envVersion: util.getCurrentEnvVersion(), // 动态获取环境版本
         success(res) {
           // that.setData({

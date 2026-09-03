@@ -1,4 +1,4 @@
-<back-navbar title="记录售后问题" avatar="/images/back-gray.png" button-text="" bindnavbuttontap="toBack"></back-navbar>
+<back-navbar title="{{isReturn ? '发起退货申请' : '记录售后问题'}}" avatar="/images/back-gray.png" button-text="" bindnavbuttontap="toBack"></back-navbar>
 
 <scroll-view scroll-y class="create-scroll" style="padding-top: {{navBarHeight}}rpx;">
   <view class="create-page" wx:if="{{draft}}">
@@ -8,6 +8,8 @@
       <text class="source-order">{{draft.originalShipmentTaskId ? '原配送任务 #' + draft.originalShipmentTaskId : '未关联配送任务'}}</text>
     </view>
 
+    <view class="return-banner" wx:if="{{isReturn}}">退货先提交审核；审核通过后安排司机路线取货，仓库验收后再进行退款或账款冲减。</view>
+
     <view class="form-section">
       <view class="form-title">问题类型</view>
       <view class="type-options">
@@ -16,11 +18,11 @@
     </view>
 
     <view class="form-section">
-      <view class="form-title-row">
+      <view class="form-title-row" wx:if="{{!isReturn}}">
         <text class="form-title">影响范围</text>
         <text class="scope-auto" wx:if="{{issueScopeMode !== 'FLEXIBLE'}}">已按问题类型自动设置</text>
       </view>
-      <view class="scope-options" wx:if="{{issueScopeMode === 'FLEXIBLE'}}">
+      <view class="scope-options" wx:if="{{!isReturn && issueScopeMode === 'FLEXIBLE'}}">
         <view class="scope-option {{issueScope === 'ORDER' ? 'selected' : ''}}" bindtap="selectIssueScope" data-scope="ORDER">
           <text class="scope-title">整张送货单</text><text class="scope-description">配送或服务类问题</text>
         </view>
@@ -28,7 +30,7 @@
           <text class="scope-title">指定商品</text><text class="scope-description">只有某些商品有问题</text>
         </view>
       </view>
-      <view class="order-scope-card" wx:if="{{issueScope === 'ORDER'}}">
+      <view class="order-scope-card" wx:if="{{!isReturn && issueScope === 'ORDER'}}">
         <view class="order-scope-icon">✓</view>
         <view><text class="order-scope-title">整张送货单</text><text class="order-scope-hint">无需选择商品，不会将问题归到某个商品上</text></view>
       </view>
@@ -36,7 +38,9 @@
         <text class="item-scope-hint">请选择实际有问题的商品</text>
         <view class="order-option {{item.selected ? 'selected' : ''}}" wx:for="{{orders}}" wx:key="historyOrderId" bindtap="toggleOrder" data-index="{{index}}">
           <view class="check-dot">{{item.selected ? '✓' : ''}}</view>
-          <view class="order-text"><text class="order-name">{{item.goodsName}}</text><text>{{item.quantity}}{{item.standard}}</text></view>
+          <view class="order-text"><view><text class="order-name">{{item.goodsName}}</text><text>原配送 {{item.quantity}}{{item.standard}}</text></view>
+            <view class="return-qty" wx:if="{{isReturn}}"><text>退货数量</text><input type="digit" value="{{item.returnQuantity}}" data-index="{{index}}" bindinput="onReturnQuantityInput" /></view>
+          </view>
         </view>
       </block>
     </view>
@@ -69,6 +73,6 @@
       </view>
     </view>
 
-    <button class="save-button" loading="{{saving}}" disabled="{{saving || loading}}" bindtap="save">创建售后</button>
+    <button class="save-button" loading="{{saving}}" disabled="{{saving || loading}}" bindtap="save">{{isReturn ? '提交退货申请' : '创建售后'}}</button>
   </view>
 </scroll-view>
