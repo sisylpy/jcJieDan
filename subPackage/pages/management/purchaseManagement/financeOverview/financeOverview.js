@@ -1,0 +1,3 @@
+import { getPurchaseFinanceOverview } from '../../../../../lib/apiDistributer.js'
+const app=getApp()
+Page({data:{navBarHeight:0,loading:false,error:'',summary:{}},onLoad(){this.setData({navBarHeight:app.globalData.navBarHeight*app.globalData.rpxR});this.load()},onShow(){if(this.loaded)this.load();this.loaded=true},toBack(){wx.navigateBack()},load(){this.setData({loading:true,error:''});getPurchaseFinanceOverview().then(r=>{const b=r.result||{};if(b.code!==0)throw new Error(b.msg||'加载失败');this.setData({summary:b.data||{}})}).catch(e=>this.setData({error:e.message||'加载失败'})).then(()=>this.setData({loading:false}))},open(e){wx.navigateTo({url:e.currentTarget.dataset.url})}})

@@ -1,0 +1,1 @@
+@import "../common.wxss";.entry{padding:24rpx 0;border-bottom:1rpx solid #edf1ef}.entry:last-child{border:0}

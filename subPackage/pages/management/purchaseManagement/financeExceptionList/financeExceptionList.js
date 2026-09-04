@@ -1,0 +1,2 @@
+import { getPurchaseFinanceExceptions } from '../../../../../lib/apiDistributer.js'
+const app=getApp();Page({data:{navBarHeight:0,list:[]},onLoad(){this.setData({navBarHeight:app.globalData.navBarHeight*app.globalData.rpxR});this.load()},toBack(){wx.navigateBack()},load(){getPurchaseFinanceExceptions({pageSize:100}).then(r=>this.setData({list:r.result.data||[]})).catch(()=>wx.showToast({title:'加载失败',icon:'none'}))}})

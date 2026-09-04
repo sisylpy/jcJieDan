@@ -1,0 +1,1 @@
+@import "../common.wxss";.line{padding:16rpx 0;border-bottom:1rpx solid #eee}.actions{display:flex;gap:12rpx;margin-top:16rpx}.actions button{margin:0}.field{background:#f5f8f7;padding:20rpx;margin-bottom:12rpx}.editor{position:sticky;bottom:12rpx}

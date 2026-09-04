@@ -1,0 +1,11 @@
+<view class="pm-page">
+  <back-navbar style="height:{{navBarHeight}}rpx" title="采购员报销" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+  <scroll-view scroll-y class="pm-body" style="padding-top:{{navBarHeight}}rpx">
+    <view class="pm-card"><text class="pm-section-title">待组批垫付明细</text>
+      <view wx:for="{{allocations}}" wx:key="allocationId" class="pm-row line" data-id="{{item.allocationId}}" bindtap="toggle"><text>{{item.checked?'☑':'☐'}} 采购员 {{item.purchaserUserId}} · 商品 {{item.purchaseGoodsId}}</text><text>¥{{item.allocationAmount}}</text></view>
+      <button class="pm-button" bindtap="create">建立报销批次</button>
+    </view>
+    <view wx:for="{{list}}" wx:key="batchId" class="pm-card"><view class="pm-row"><text>{{item.batchNo}}</text><text class="pm-money">¥{{item.approvedAmount||item.payableAmount}}</text></view><text class="pm-muted">采购员 {{item.purchaserName||item.purchaserUserId}} · {{item.reviewStatus}} / {{item.paymentStatus}} · 已付 {{item.paidAmount||0}}</text><view class="actions"><button wx:if="{{item.reviewStatus==='DRAFT'||item.reviewStatus==='REJECTED'}}" size="mini" data-id="{{item.batchId}}" bindtap="submit">提交</button><button wx:if="{{item.reviewStatus==='SUBMITTED'}}" size="mini" data-id="{{item.batchId}}" data-state="APPROVED" bindtap="review">通过</button><button wx:if="{{item.reviewStatus==='SUBMITTED'}}" size="mini" data-id="{{item.batchId}}" data-state="REJECTED" bindtap="review">驳回</button><button wx:if="{{item.reviewStatus!=='VOIDED'&&item.paymentStatus==='UNPAID'}}" size="mini" data-id="{{item.batchId}}" data-state="VOIDED" bindtap="review">作废</button><button wx:if="{{item.reviewStatus==='APPROVED'&&item.paymentStatus!=='PAID'}}" size="mini" data-id="{{item.batchId}}" data-amount="{{item.remainingAmount}}" bindtap="choosePay">登记付款</button></view></view>
+    <view wx:if="{{payId}}" class="pm-card editor"><input class="field" type="digit" value="{{payAmount}}" bindinput="amount"/><button class="pm-button" bindtap="pay">确认付款（银行转账）</button></view>
+  </scroll-view>
+</view>
