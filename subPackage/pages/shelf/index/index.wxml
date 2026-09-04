@@ -157,10 +157,11 @@
 
                       <view class="shelf-card-stock">
                         <block wx:if="{{shelfGoods.nxDisGoodsShelfStockEntities !== null && shelfGoods.nxDisGoodsShelfStockEntities.length > 0}}">
-                          <block wx:for="{{shelfGoods.nxDisGoodsShelfStockEntities}}" wx:for-item="stock" wx:key="index">
+                          <view class="stock-chip-row" wx:for="{{shelfGoods.nxDisGoodsShelfStockEntities}}" wx:for-item="stock" wx:key="index">
                             <text class="stock-chip" wx:if="{{shelfGoods.nxDistributerGoodsEntity.nxDgCartonUnit && shelfGoods.nxDistributerGoodsEntity.nxDgCartonUnit !== '' && shelfGoods.nxDistributerGoodsEntity.nxDgCartonUnit !== 'null' && shelfGoods.nxDistributerGoodsEntity.nxDgItemsPerCarton > 0}}">{{tool.formatQuantityDisplay(stock.nxDgssRestWeight, shelfGoods.nxDistributerGoodsEntity.nxDgCartonUnit, shelfGoods.nxDistributerGoodsEntity.nxDgItemsPerCarton, shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname)}}</text>
                             <text class="stock-chip" wx:else>{{stock.nxDgssRestWeight}}{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
-                          </block>
+                            <text class="stock-chip-detail" catchtap="toInventoryBatchBusiness" data-stock-id="{{stock.nxDistributerGoodsShelfStockId}}">详情</text>
+                          </view>
                         </block>
                         <block wx:else>
                           <text class="shelf-card-empty">暂无库存</text>
@@ -328,6 +329,9 @@
                                   </view>
                                 </view>
                               </view>
+                            </view>
+                            <view class="shelf-batch-business-link" catchtap="toInventoryBatchBusiness" data-stock-id="{{stock.nxDistributerGoodsShelfStockId}}">
+                              查看批次经营详情
                             </view>
                           </view>
                         </block>

@@ -625,6 +625,12 @@ toSmartReplenishment(){
   })
 },
 
+toPurchasePerformance(){
+  wx.navigateTo({
+    url: '/subPackage/pages/management/purchasePerformance/purchasePerformance',
+  })
+},
+
 
 toRetailer(){
   wx.navigateTo({

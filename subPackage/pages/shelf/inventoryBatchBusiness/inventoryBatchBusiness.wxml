@@ -1,0 +1,63 @@
+<view class="page">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="库存批次经营" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+  <scroll-view scroll-y class="body" style="padding-top: {{navBarHeight}}rpx;">
+    <view class="card summary">
+      <view class="title-row"><text class="title">{{detail.goodsName || '库存批次'}}</text><text class="status">{{detail.businessStatus === 'COMPLETED' ? '已完结' : '经营中'}}</text></view>
+      <text class="muted">批次 #{{stockBatchId}} · {{detail.purchaserName || '未分配采购员'}} · {{detail.supplierName || '未关联供货商'}}</text>
+      <view class="metrics">
+        <view><text>净入库</text><text class="metric-value">{{detail.netStockInQuantity || 0}}{{detail.baseUom}}</text></view>
+        <view><text>剩余</text><text class="metric-value">{{detail.remainingQuantity || 0}}{{detail.baseUom}}</text></view>
+        <view><text>已销售</text><text class="metric-value">{{detail.soldQuantity || 0}}{{detail.baseUom}}</text></view>
+        <view><text>退货</text><text class="metric-value">{{detail.supplierReturnQuantity || 0}}{{detail.baseUom}}</text></view>
+        <view><text>损耗</text><text class="metric-value">{{detail.lossQuantity || 0}}{{detail.baseUom}}</text></view>
+        <view><text>废弃</text><text class="metric-value">{{detail.discardQuantity || 0}}{{detail.baseUom}}</text></view>
+      </view>
+      <view class="line"><text>当前价格</text><text>¥{{detail.currentSellingPrice || 0}}</text></view>
+      <view class="line"><text>正常价销售收入</text><text>¥{{detail.normalRevenue || 0}}</text></view>
+      <view class="line"><text>降价销售</text><text>{{detail.markdownQuantity || 0}}{{detail.baseUom}} / ¥{{detail.markdownRevenue || 0}}</text></view>
+      <view class="line"><text>降价收入影响</text><text>¥{{detail.markdownImpact || 0}}</text></view>
+      <view class="line"><text>实际净采购成本</text><text>¥{{detail.actualNetPurchaseCost || 0}}</text></view>
+      <view class="line"><text>已实现销售成本</text><text>¥{{detail.soldCost || 0}}</text></view>
+      <view class="line"><text>损耗 / 废弃成本</text><text>¥{{detail.lossCost || 0}} / ¥{{detail.discardCost || 0}}</text></view>
+      <view class="line"><text>当前实现毛利</text><text>¥{{detail.currentRealizedMargin || 0}}</text></view>
+      <view class="line"><text>当前实现毛利率</text><text>{{detail.currentRealizedMarginRate || 0}}</text></view>
+      <view class="line" wx:if="{{detail.businessStatus === 'COMPLETED'}}"><text>最终毛利</text><text>¥{{detail.finalMargin || 0}}</text></view>
+      <view class="line" wx:if="{{detail.businessStatus === 'COMPLETED'}}"><text>最终毛利率</text><text>{{detail.finalMarginRate || 0}}</text></view>
+      <view class="warn" wx:if="{{!detail.quantityConserved}}">数量差异 {{detail.quantityConservationDelta}}，请核对历史变动</view>
+    </view>
+
+    <view class="card">
+      <text class="section-title">登记损耗 / 废弃</text>
+      <view class="form-row"><text>类型</text><picker range="{{factTypes}}" range-key="label" value="{{factTypeIndex}}" bindchange="onFactTypeChange"><text>{{factTypes[factTypeIndex].label}}</text></picker></view>
+      <input class="input" type="digit" value="{{quantity}}" bindinput="onQuantityInput" placeholder="数量（{{detail.baseUom}}）" />
+      <view class="form-row"><text>原因</text><picker range="{{reasons}}" range-key="label" value="{{reasonIndex}}" bindchange="onReasonChange"><text>{{reasons[reasonIndex].label}}</text></picker></view>
+      <view class="form-row"><text>责任归因</text><picker range="{{attributions}}" range-key="label" value="{{attributionIndex}}" bindchange="onAttributionChange"><text>{{attributions[attributionIndex].label}}</text></picker></view>
+      <textarea class="textarea" value="{{note}}" bindinput="onNoteInput" placeholder="备注（可选）"></textarea>
+      <button class="primary" bindtap="submitLoss">确认登记</button>
+    </view>
+
+    <view class="card">
+      <text class="section-title">尾货调价</text>
+      <text class="muted">原采购成本 ¥{{detail.unitCost || 0}}，允许低于成本销售并提示亏损，不修改采购成本。</text>
+      <input class="input" type="digit" value="{{newSellingPrice}}" bindinput="onPriceInput" placeholder="新销售价（元/{{detail.baseUom}}）" />
+      <view class="warn" wx:if="{{expectedTailMargin !== null}}">剩余库存按新价售完预计毛利 ¥{{expectedTailMargin}}{{belowCost ? '（低于采购成本）' : ''}}</view>
+      <input class="input" value="{{priceReason}}" bindinput="onPriceReasonInput" placeholder="调价原因" />
+      <input class="input" value="{{priceNote}}" bindinput="onPriceNoteInput" placeholder="备注（可选）" />
+      <button class="primary" bindtap="submitPrice">立即生效</button>
+      <view class="history" wx:for="{{detail.priceVersions}}" wx:key="priceVersionId">
+        <text wx:if="{{item.reasonCode === 'BASELINE_CAPTURE'}}">原始价格 ¥{{item.newSellingPrice}}</text>
+        <text wx:else>¥{{item.previousSellingPrice || 0}} → ¥{{item.newSellingPrice}}</text><text>{{item.effectiveAt}}</text>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="title-row"><text class="section-title">损耗事实</text><text class="link" bindtap="toPerformance">查看绩效</text></view>
+      <view class="history" wx:for="{{detail.lossFacts}}" wx:key="factId">
+        <view><text>{{item.factType}} · {{item.reasonCode}}</text><text>{{item.quantity}}{{item.uom}} / ¥{{item.amount}}</text></view>
+        <text class="muted">{{item.attributionCode}} · {{item.createdAt}}</text>
+        <button wx:if="{{item.status === 'CONFIRMED' && item.factType !== 'REVERSAL'}}" size="mini" data-fact-id="{{item.factId}}" bindtap="reverseFact">冲销</button>
+      </view>
+      <view class="empty" wx:if="{{!detail.lossFacts.length}}">暂无损耗或废弃记录</view>
+    </view>
+  </scroll-view>
+</view>

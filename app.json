@@ -65,12 +65,14 @@
       "pages/shelf/shelfGoodsSearch/shelfGoodsSearch",
       "pages/shelf/voiceAddGoods/voiceAddGoods",
       "pages/shelf/inventory/inventory",
+      "pages/shelf/inventoryBatchBusiness/inventoryBatchBusiness",
     
       "pages/shelf/settlePage/settlePage",
 
       "pages/management/homePage/homePage",
       "pages/management/dispatchPerformance/dispatchPerformance",
       "pages/management/dispatchPerformanceDetail/dispatchPerformanceDetail",
+      "pages/management/purchasePerformance/purchasePerformance",
       "pages/management/customerOrderAnomalies/customerOrderAnomalies",
       "pages/management/homeEdit/homeEdit",
       "pages/management/userNameEdit/userNameEdit",

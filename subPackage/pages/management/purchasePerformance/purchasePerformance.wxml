@@ -1,0 +1,13 @@
+<view class="page"><back-navbar style="height: {{navBarHeight}}rpx;" title="采购质量与经营" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+<scroll-view scroll-y class="body" style="padding-top:{{navBarHeight}}rpx">
+  <view class="filter card"><view class="tabs"><text class="{{dimension==='PURCHASER'?'on':''}}" data-value="PURCHASER" bindtap="changeDimension">按采购员</text><text class="{{dimension==='SUPPLIER'?'on':''}}" data-value="SUPPLIER" bindtap="changeDimension">按供货商</text></view><view class="dates"><picker mode="date" value="{{startDate}}" bindchange="changeStart"><text>{{startDate}}</text></picker><text>至</text><picker mode="date" value="{{stopDate}}" bindchange="changeStop"><text>{{stopDate}}</text></picker></view></view>
+  <view class="notice" wx:if="{{excludedCount > 0}}">已排除 {{excludedCount}} 个非库房或履约模式未解析批次</view>
+  <view wx:if="{{loading}}" class="state">正在加载…</view><view wx:elif="{{!groups.length}}" class="state">当前日期范围暂无库存批次</view>
+  <view class="card" wx:for="{{groups}}" wx:key="id"><view class="head"><text class="name">{{item.name}}</text><text>{{item.purchaseBatchCount}} 个批次</text></view>
+    <view class="grid"><view><text>总损耗率</text><text class="metric-value">{{item.totalLossRate}}</text></view><view><text>退货率</text><text class="metric-value">{{item.supplierReturnRate}}</text></view><view><text>拒收率</text><text class="metric-value">{{item.receiptRejectionRate}}</text></view><view><text>降价数量</text><text class="metric-value">{{item.markdownSalesQuantity}}</text></view><view><text>降价影响</text><text class="metric-value">¥{{item.markdownRevenueImpact}}</text></view><view><text>当前毛利</text><text class="metric-value">¥{{item.currentRealizedMargin}}</text></view><view><text>净入库金额</text><text class="metric-value">¥{{item.actualNetPurchaseAmount}}</text></view><view><text>完结批次</text><text class="metric-value">{{item.completedBatchCount}}</text></view><view><text>最终毛利</text><text class="metric-value">¥{{item.completedFinalMargin}}</text></view></view>
+    <text class="sub" wx:if="{{dimension === 'SUPPLIER'}}">供货商品质损耗率 {{item.supplierQualityLossRate}}</text>
+    <text class="sub" wx:else>选货损耗率 {{item.purchaserSelectionLossRate}} · 采购过量损耗率 {{item.purchaserOverbuyLossRate}}</text>
+    <text class="sub">已完结批次最终毛利率 {{item.completedFinalMarginRate}}</text>
+    <scroll-view scroll-x class="batch-list"><text wx:for="{{item.stockBatchIds}}" wx:key="*this" data-id="{{item}}" bindtap="openBatch">批次 #{{item}}</text></scroll-view>
+  </view>
+</scroll-view></view>

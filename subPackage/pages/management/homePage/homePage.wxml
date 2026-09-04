@@ -165,6 +165,15 @@
         <image src="../../../../images/arrow-right-3.png" class="arrow-icon"></image>
       </view>
 
+      <view class="setting-row highlight" bindtap="toPurchasePerformance" hover-class="hover">
+        <view class="setting-icon-wrap green"><text class="setting-icon-letter">采</text></view>
+        <view class="setting-main">
+          <text class="setting-title">采购质量与经营</text>
+          <text class="setting-desc">按采购员或供货商查看损耗、降价影响和批次毛利</text>
+        </view>
+        <image src="../../../../images/arrow-right-3.png" class="arrow-icon"></image>
+      </view>
+
       <view class="setting-row highlight" bindtap="toCoupon" hover-class="hover">
         <view class="setting-icon-wrap green">
           <image src="/images/money-2.png" class="setting-icon"></image>

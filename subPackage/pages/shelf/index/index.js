@@ -3552,6 +3552,14 @@ Page({
 
   },  
 
+  toInventoryBatchBusiness(e) {
+    const stockId = e.currentTarget.dataset.stockId
+    if (!stockId) return
+    wx.navigateTo({
+      url: '/subPackage/pages/shelf/inventoryBatchBusiness/inventoryBatchBusiness?stockBatchId=' + stockId
+    })
+  },
+
   onUnload() {
     wx.removeStorageSync('disGoods');
      wx.removeStorageSync('fromShelfPage');
