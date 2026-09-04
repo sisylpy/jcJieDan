@@ -109,6 +109,7 @@
       "pages/prepare/depOutOrder/depOutOrder",
       "pages/prepare/orderList/orderList",
       "pages/prepare/selfPurchase/selfPurchase",
+      "pages/prepare/purchaseReceipt/purchaseReceipt",
       "pages/prepare/printWeightOrders/printWeightOrders",
       "pages/goods/disGoodsDetail/disGoodsDetail",
       "pages/goods/disGoodsPage/disGoodsPage",

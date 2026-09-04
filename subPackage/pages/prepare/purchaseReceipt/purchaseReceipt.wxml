@@ -1,0 +1,53 @@
+<view class="page">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="采购收货" avatar="/images/back-gray.png"
+    bindnavbuttontap="toBack"></back-navbar>
+  <view class="content" style="padding-top: {{navBarHeight}}rpx;">
+    <view class="loading" wx:if="{{loading}}">正在加载采购收货事实…</view>
+    <block wx:else>
+      <view class="amount-card">
+        <view><text>预计金额</text><text>¥{{summary.plannedAmount || '--'}}</text></view>
+        <view><text>实际收货</text><text>¥{{summary.actualReceiptAmount}}</text></view>
+        <view><text>供应商退货</text><text>-¥{{summary.supplierReturnAmount}}</text></view>
+        <view class="net"><text>实际净采购</text><text>¥{{summary.actualNetPurchaseAmount}}</text></view>
+      </view>
+
+      <view class="goods-card" wx:for="{{draft}}" wx:key="purchaseGoodsId"
+        wx:for-item="item" wx:for-index="lineIndex">
+        <view class="title"><text>{{item.goodsName}}</text><text>{{item.source.receiptStatus}}</text></view>
+        <view class="facts">计划 {{item.source.plannedQuantity || '--'}}{{item.source.plannedUom || ''}}
+          · 已收 {{item.source.acceptedBaseQuantity}}{{item.source.baseUom}}
+          · 待入库 {{item.source.availableToPutawayBaseQuantity}}{{item.source.baseUom}}</view>
+        <view class="form-row"><text>送达</text><input type="digit" value="{{item.deliveredQuantity}}"
+          data-index="{{lineIndex}}" data-field="deliveredQuantity" bindinput="onNumberInput"/><text>{{item.purchaseUom}}</text></view>
+        <view class="form-row"><text>接受</text><input type="digit" value="{{item.acceptedQuantity}}"
+          data-index="{{lineIndex}}" data-field="acceptedQuantity" bindinput="onNumberInput"/><text>{{item.purchaseUom}}</text></view>
+        <view class="form-row"><text>拒收</text><input type="digit" value="{{item.rejectedQuantity}}"
+          data-index="{{lineIndex}}" data-field="rejectedQuantity" bindinput="onNumberInput"/><text>{{item.purchaseUom}}</text></view>
+        <view class="form-row"><text>最终单价</text><input type="digit" value="{{item.finalPurchaseUnitPrice}}"
+          data-index="{{lineIndex}}" data-field="finalPurchaseUnitPrice" bindinput="onNumberInput"/><text>元/{{item.purchaseUom}}</text></view>
+        <input class="note" placeholder="收货备注（可选）" value="{{item.note}}"
+          data-index="{{lineIndex}}" bindinput="onNoteInput"/>
+
+        <view class="event" wx:for="{{item.source.receiptEvents}}" wx:key="receiptLineId"
+          wx:for-item="event" wx:for-index="eventIndex">
+          <view>第{{eventIndex + 1}}次：接受 {{event.acceptedQuantity}}{{event.purchaseUom}} · ¥{{event.actualReceiptAmount}}</view>
+          <view class="actions">
+            <button wx:if="{{item.source.fulfillmentMode === 'WAREHOUSE_STOCK' && event.availableToPutawayQuantity > 0}}"
+              size="mini" data-line-index="{{lineIndex}}" data-event-index="{{eventIndex}}" bindtap="stockIn">入库</button>
+            <button wx:if="{{event.availableReturnBeforeStockQuantity > 0}}" size="mini"
+              data-line-index="{{lineIndex}}" data-event-index="{{eventIndex}}" bindtap="returnToSupplier">收货后退还</button>
+            <text wx:if="{{item.source.fulfillmentMode === 'ORDER_PURCHASE'}}">不需要入库</text>
+          </view>
+          <view class="stock-return" wx:for="{{event.stockBatches}}" wx:key="stockBatchId"
+            wx:for-item="stock" wx:for-index="stockBatchIndex">
+            <text>库存批次 {{stock.stockBatchId}} 可退 {{stock.availableReturnQuantity}}{{event.purchaseUom}}</text>
+            <button wx:if="{{stock.availableReturnQuantity > 0}}" size="mini"
+              data-line-index="{{lineIndex}}" data-event-index="{{eventIndex}}"
+              data-stock-batch-index="{{stockBatchIndex}}" bindtap="returnToSupplier">从库存退还</button>
+          </view>
+        </view>
+      </view>
+      <button class="confirm" loading="{{submitting}}" disabled="{{submitting}}" bindtap="confirmReceipt">确认本次收货</button>
+    </block>
+  </view>
+</view>

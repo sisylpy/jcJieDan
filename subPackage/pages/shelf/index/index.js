@@ -22,7 +22,6 @@ import {
   updateDisStock,
   setShelfLayer,
   clearShelfLayer,
-  staffRecievePurGoods,
   disUpdateBuyingPrice
 } from '../../../../lib/apiDistributer.js'
 
@@ -1610,61 +1609,14 @@ Page({
       return;
     }
 
-    const goodsName = shelfGoods.nxDistributerGoodsEntity?.nxDgGoodsName || '该商品';
     const purGoods = shelfGoods.shelfPurGoods;
-    const goodsId = shelfGoods.nxDistributerGoodsEntity?.nxDistributerGoodsId;
-    const shelfGoodsId = shelfGoods.nxDistributerGoodsShelfGoodsId;
-    
-    wx.showModal({
-      title: '确认接收',
-      content: `确定要接收商品"${goodsName}"吗？`,
-      success: (res) => {
-        if (res.confirm) {
-          const data = {
-            purGoodsId: purGoods.nxDistributerPurchaseGoodsId,
-            userId: this.data.userId
-          };
-          load.showLoading("接收商品中");
-          staffRecievePurGoods(data).then(res => {
-            load.hideLoading();
-            if (res.result.code == 0) {
-              wx.showToast({
-                title: '商品接收成功',
-                icon: 'success'
-              });
-              
-              // 收货接口返回的是stock（库存批次），需要：
-              // 1. 给这个货架商品的库存加返回的库存批次
-              // 2. 把采购商品清空
-              if (goodsId) {
-                const resultData = res.result.data || {};
-                // 更新库存：追加返回的库存批次到现有库存列表
-                this.updateStockInList(goodsId, shelfGoodsId, null, resultData, false);
-                // 清空采购商品
-                this.updatePurchaseGoodsInList(goodsId, shelfGoodsId, null, false);
-              }
-              
-              this.setData({
-                showOperation: false,
-                isEditGoods: false,
-              });
-            } else {
-              wx.showToast({
-                title: res.result.msg,
-                icon: 'none'
-              });
-            }
-          })
-          .catch(err => {
-            load.hideLoading();
-            console.error('receivePurGoods error:', err);
-            wx.showToast({
-              title: '接收失败，请重试',
-              icon: 'none'
-            });
-          });
-        }
-      }
+    if (!purGoods || !purGoods.nxDpgBatchId) {
+      wx.showToast({ title: '采购批次信息不完整', icon: 'none' });
+      return;
+    }
+    wx.navigateTo({
+      url: '/subPackage/pages/prepare/purchaseReceipt/purchaseReceipt?batchId=' +
+        purGoods.nxDpgBatchId
     });
   },
 
