@@ -1,0 +1,2 @@
+@import "../common.wxss";
+.avatar{width:64rpx;height:64rpx;border-radius:50%;background:#eef3f1;margin-right:14rpx}.identity{display:flex;align-items:center}.sort{margin-bottom:12rpx}

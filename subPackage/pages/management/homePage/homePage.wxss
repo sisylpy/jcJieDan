@@ -486,3 +486,4 @@
 .hover {
   opacity: 0.72;
 }
+.management-icon{display:flex;align-items:center;justify-content:center;background:#e8f6f2;color:#148b76;font-size:22rpx;font-weight:700;border-radius:6rpx}

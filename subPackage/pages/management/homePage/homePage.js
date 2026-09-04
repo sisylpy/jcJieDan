@@ -631,6 +631,12 @@ toPurchasePerformance(){
   })
 },
 
+toPurchaseManagement(){
+  wx.navigateTo({
+    url: '/subPackage/pages/management/purchaseManagement/index/index',
+  })
+},
+
 
 toRetailer(){
   wx.navigateTo({

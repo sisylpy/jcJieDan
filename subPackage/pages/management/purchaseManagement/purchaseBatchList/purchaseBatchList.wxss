@@ -1,0 +1,2 @@
+@import "../common.wxss";
+.search{flex:1;border:1rpx solid #dce5e2;padding:10rpx 14rpx;font-size:24rpx}.batch{padding:18rpx 0;border-bottom:1rpx solid #edf1ef}.filters{max-height:290rpx;overflow:hidden}.filters.open{max-height:none}

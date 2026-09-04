@@ -1,0 +1,2 @@
+@import "../common.wxss";
+.goods{display:inline-block;padding:8rpx 12rpx;background:#f0f6f4;margin:0 8rpx 8rpx 0;font-size:22rpx}.batch{padding:16rpx 0;border-bottom:1rpx solid #edf1ef}

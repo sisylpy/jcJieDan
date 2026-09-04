@@ -1,0 +1,2 @@
+@import "../common.wxss";
+.goods{padding:18rpx 0;border-bottom:1rpx solid #edf1ef}.goods:last-child{border-bottom:0}.status{margin:8rpx 0}
