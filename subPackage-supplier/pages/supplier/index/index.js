@@ -91,26 +91,15 @@ Page({
 
   addSupplier(){
     wx.navigateTo({
-      url: '../addSupplier/addSupplier?disId=' + this.data.disId 
-       + '&userId=' + this.data.userId,
+      url: '/subPackage/pages/management/purchaseManagement/supplierCollaboration/supplierCollaboration',
     })
   },
 
  
 
   toMyJinridinghuo(e) {
-    var that  = this;
-    console.log('nxDisId=' + this.data.disId +'&nxDisPurUserId=' + this.data.userId + '&commId=-1&commPurUserId=-1&gbDisId=-1&gbDepId=-1&gbDepUserId=-1&supplierId=' + this.data.supplierItem.nxJrdhSupplierId)
-    wx.navigateToMiniProgram({
-      appId: 'wx1ea78d3f33234284',
-      path: 'pages/seller/inviteSeller/inviteSeller?nxDisId=' + this.data.disId
-      +'&nxDisPurUserId=' + this.data.userId + '&commId=-1&commPurUserId=-1&gbDisId=-1&gbDepId=-1&gbDepUserId=-1&supplierId=' + this.data.supplierItem.nxJrdhSupplierId,
-      envVersion: 'trial', //release  develop  trial
-      success(res) {
-        that.setData({
-          navigateAuto: true
-        })
-      },
+    wx.navigateTo({
+      url: '/subPackage/pages/management/purchaseManagement/supplierCollaboration/supplierCollaboration',
     })
   },
 
