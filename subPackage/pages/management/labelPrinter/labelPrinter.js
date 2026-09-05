@@ -655,7 +655,7 @@ Page({
     console.log('打印内容:', printContent);
     
     // 使用TSC命令打印（标签打印机）
-    var tsc = require("../../../utils/GPutils/tsc.js").jpPrinter;
+    var tsc = require("../../../../utils/GPutils/tsc.js").jpPrinter;
     console.log('TSC模块加载成功');
     var command = tsc.createNew();
     console.log('创建TSC打印命令对象成功');
