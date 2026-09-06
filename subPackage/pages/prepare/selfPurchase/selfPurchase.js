@@ -1,4 +1,5 @@
 import { completeBossSelfPurchase } from '../../../../lib/apiDepOrder'
+const selfPurchaseUnit = require('../../../../utils/selfPurchaseUnit')
 
 Page({
   data: {
@@ -21,44 +22,31 @@ Page({
   },
 
   _prepareGoods(item, goodsIndex) {
-    const baseUom = String(item.nxDgGoodsStandardname || item.nxDpgStandard || '').trim()
-    const cartonUom = String(item.nxDgCartonUnit || '').trim()
+    const unit = selfPurchaseUnit.resolvePurchaseUnit(item)
     const sourceOrders = item.orders || []
-    let mode = ''
-    let invalidUnit = false
     const orders = sourceOrders.map((order, orderIndex) => {
-      const orderUom = String(order.nxDoStandard || '').trim()
-      const isCarton = !!cartonUom && orderUom === cartonUom && orderUom !== baseUom
-      const currentMode = isCarton ? 'CARTON' : (orderUom === baseUom ? 'BASE' : 'INVALID')
-      if (currentMode === 'INVALID' || (mode && mode !== currentMode)) invalidUnit = true
-      if (!mode && currentMode !== 'INVALID') mode = currentMode
-      const initial = this._positiveText(order.nxDoWeight) || this._positiveText(order.nxDoQuantity) || ''
+      const initial = selfPurchaseUnit.initialPurchaseQuantity(order, unit)
       return Object.assign({}, order, {
         orderKey: String(item.nxDistributerPurchaseGoodsId) + '-' + String(order.nxDepartmentOrdersId || orderIndex),
         customerName: order.depName || order.gbDepName || order.restrauntName ||
           order.nxDepartmentOrderCode || '客户订单',
-        actualQuantity: isCarton ? '' : initial,
-        actualScaleQuantity: isCarton ? (this._positiveText(order.nxDoQuantity) || '') : '',
-        isCarton
+        actualQuantity: unit.isCartonMode ? '' : initial,
+        actualScaleQuantity: unit.isCartonMode ? initial : '',
+        isCarton: unit.isCartonMode
       })
     })
     return Object.assign({}, item, {
       goodsKey: item.nxDistributerPurchaseGoodsId || goodsIndex,
-      baseUom,
-      cartonUom,
-      isCartonMode: mode === 'CARTON',
-      invalidUnit: invalidUnit || !mode,
+      baseUom: unit.baseUom,
+      cartonUom: unit.cartonUom,
+      purchaseUom: unit.purchaseUom,
+      isCartonMode: unit.isCartonMode,
+      invalidUnit: unit.invalidUnit,
       purchasePrice: '',
       purchaseScalePrice: '',
       estimatedSubtotal: '0.00',
       orders
     })
-  },
-
-  _positiveText(value) {
-    if (value === null || value === undefined || value === '') return ''
-    const number = Number(value)
-    return isFinite(number) && number > 0 ? String(value) : ''
   },
 
   _sanitize(value) {
@@ -115,7 +103,7 @@ Page({
     if (!this.data.goods.length) return '没有可自采的商品'
     for (let i = 0; i < this.data.goods.length; i++) {
       const goods = this.data.goods[i]
-      if (goods.invalidUnit) return `${goods.nxDgGoodsName || '商品'}的采购单位无法换算`
+      if (goods.invalidUnit) return `${goods.nxDgGoodsName || '商品'}缺少商品规格`
       const price = Number(goods.isCartonMode ? goods.purchaseScalePrice : goods.purchasePrice)
       if (!isFinite(price) || price <= 0) return `请填写${goods.nxDgGoodsName || '商品'}的采购单价`
       if (!goods.orders || !goods.orders.length) return `${goods.nxDgGoodsName || '商品'}缺少订单`

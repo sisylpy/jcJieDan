@@ -11,12 +11,12 @@
       <view class="goods-title-row">
         <text class="goods-index">{{goodsIndex + 1}}</text>
         <text class="goods-name">{{item.nxDgGoodsName}}</text>
-        <text class="goods-standard">{{item.isCartonMode ? item.cartonUom : item.baseUom}}</text>
+        <text class="goods-standard">{{item.purchaseUom}}</text>
       </view>
       <view class="planned">订单合计 {{item.nxDpgQuantity}}{{item.nxDpgStandard}}</view>
     </view>
 
-    <view class="unit-warning" wx:if="{{item.invalidUnit}}">订单单位与商品采购单位不一致，不能保存</view>
+    <view class="unit-warning" wx:if="{{item.invalidUnit}}">商品采购规格缺失，请先完善商品资料</view>
 
     <view class="price-row">
       <text class="field-label">采购单价</text>
@@ -25,7 +25,7 @@
           value="{{item.isCartonMode ? item.purchaseScalePrice : item.purchasePrice}}"
           data-goods-index="{{goodsIndex}}" bindinput="onPriceInput" bindblur="closeKeyboard"
           placeholder="请输入" />
-        <text class="input-unit">元/{{item.isCartonMode ? item.cartonUom : item.baseUom}}</text>
+        <text class="input-unit">元/{{item.purchaseUom}}</text>
       </view>
     </view>
 
@@ -42,7 +42,7 @@
           value="{{order.isCarton ? order.actualScaleQuantity : order.actualQuantity}}"
           data-goods-index="{{goodsIndex}}" data-order-index="{{orderIndex}}"
           bindinput="onQuantityInput" bindblur="closeKeyboard" />
-        <text class="quantity-unit">{{order.nxDoStandard}}</text>
+        <text class="quantity-unit">{{item.purchaseUom}}</text>
       </view>
     </view>
 
