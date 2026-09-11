@@ -281,10 +281,22 @@ ec-canvas {
   align-items: center;
   justify-content: center;
   gap: 10rpx;
-  padding: 24rpx 0 4rpx;
+  margin-top: 18rpx;
+  padding: 18rpx 0;
+  border: 1rpx solid #cfe3d8;
+  border-radius: 999rpx;
+  background: #f2faf6;
   color: #39715a;
-  font-size: 22rpx;
+  font-size: 26rpx;
   font-weight: 700;
+}
+
+.expand-tip {
+  margin-top: 18rpx;
+  padding: 14rpx 0 4rpx;
+  text-align: center;
+  color: #9aa5a0;
+  font-size: 22rpx;
 }
 
 .expand-btn.expanded {

@@ -1,0 +1,57 @@
+<view class="container">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="打印机设置" avatar="/images/back-gray.png" button-text="返回" bindnavbuttontap="toBack"></back-navbar>
+
+  <view class="section-list" style="margin-top: {{navBarHeight}}rpx;">
+    <!-- 拣货单打印机 -->
+    <view class="printer-card">
+      <view class="card-header">
+        <text class="card-title">拣货单打印机</text>
+        <text class="card-desc">用于打印分拣单 / 出库单</text>
+      </view>
+      <view class="status-row">
+        <text class="status-label">状态</text>
+        <text class="{{receiptPrinter ? 'status-on' : 'status-off'}}">{{receiptPrinter ? '已连接：' + receiptPrinter.deviceName : '未设置'}}</text>
+      </view>
+      <view class="btn-row">
+        <button class="btn btn-default" bindtap="goReceiptPrinter">连接</button>
+        <button class="btn btn-primary" bindtap="testReceiptPrinter" disabled="{{!receiptPrinter || isConnecting}}">测试连接</button>
+      </view>
+    </view>
+
+    <!-- 现金结账单打印机 -->
+    <view class="printer-card">
+      <view class="card-header">
+        <text class="card-title">现金结账单打印机</text>
+        <text class="card-desc">飞蛾网络打印机，保存后自动应用到全部现金结算客户</text>
+      </view>
+      <view class="input-row">
+        <text class="input-label">SN 号</text>
+        <input type="text" placeholder="请输入飞蛾打印机 SN 号" value="{{cashPrinterSN}}" bindinput="onCashSNInput" class="sn-input"/>
+      </view>
+      <view class="btn-row">
+        <button class="btn btn-default" bindtap="saveCashSN" disabled="{{isConnecting}}">保存</button>
+        <button class="btn btn-primary" bindtap="testCashPrinter" disabled="{{!cashPrinterSN || isConnecting}}">测试连接</button>
+      </view>
+    </view>
+
+    <!-- 标签打印机 -->
+    <view class="printer-card">
+      <view class="card-header">
+        <text class="card-title">标签打印机</text>
+        <text class="card-desc">用于库存标签打印</text>
+      </view>
+      <view class="status-row">
+        <text class="status-label">状态</text>
+        <text class="{{labelPrinter ? 'status-on' : 'status-off'}}">{{labelPrinter ? '已连接：' + labelPrinter.deviceName : '未设置'}}</text>
+      </view>
+      <view class="size-row" bindtap="choosePaperSize">
+        <text class="status-label">标签尺寸</text>
+        <text class="size-value">{{paperSizeText}}</text>
+      </view>
+      <view class="btn-row">
+        <button class="btn btn-default" bindtap="goLabelPrinter">连接</button>
+        <button class="btn btn-primary" bindtap="testLabelPrinter" disabled="{{!labelPrinter || isConnecting}}">测试连接</button>
+      </view>
+    </view>
+  </view>
+</view>

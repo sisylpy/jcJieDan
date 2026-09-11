@@ -1,23 +1,25 @@
-<view class="flex flex-column">
+<view class="flex flex-column" style="height: 100%;">
 
-  <custom-navbar style="height: {{navBarHeight}}rpx;" title="库存" avatar="{{url + userInfo.nxDiuWxAvartraUrl}}" button-text="设置" bindnavbuttontap="onNavButtonTap"></custom-navbar>
+  <custom-navbar style="height: {{navBarHeight}}rpx;" title="出货" avatar="{{url + userInfo.nxDiuWxAvartraUrl}}" button-text="设置" bindnavbuttontap="onNavButtonTap"></custom-navbar>
 
-  <view class="content flex-1 flex-column">
+  <view class="merged-work-tabs">
+    <view class="merged-work-tab {{workspaceCurrent === 0 ? 'is-active' : ''}}" data-workspace="stock" data-index="0" bindtap="switchWorkspace">出库</view>
+    <view class="merged-work-tab {{workspaceCurrent === 1 ? 'is-active' : ''}}" data-workspace="purchase" data-index="1" bindtap="switchWorkspace">外采</view>
+    <view class="merged-work-tab {{workspaceCurrent === 2 ? 'is-active' : ''}}" data-workspace="partner" data-index="2" bindtap="switchWorkspace">协作伙伴</view>
+  </view>
+
+  <swiper
+    current="{{workspaceCurrent}}"
+    bindchange="onWorkspaceSwiperChange"
+    duration="250"
+    style="width: 100%; height: {{contentHeight}}rpx; flex: 1; min-height: 0;">
+
+  <swiper-item>
+  <view class="content flex-1 flex-column" style="height: 100%;">
 
     <view class="flex  flex-row-between bg-white border-bottom pt-20" style=" height: {{viewBarHeight}}rpx; ">
 
       <view class="flex-row">
-        <view class=" button-container mr-30 ml-20" bind:tap="setPrint">
-          <image src="{{printOk ? '/images/print-4.png' : '/images/0dayinji-05.png'}}" class="icon"></image>
-        </view>
-        <view class=" button-container mr-30 ml-20" bind:tap="setPaperSize">
-
-          <text wx:if="{{paperSize == 1}}">小</text>
-          <text wx:elif="{{paperSize == 2}}">中</text>
-          <text wx:elif="{{paperSize == 3}}">大</text>
-          <text wx:elif="{{paperSize == 4}}">大横</text>
-        </view>
-
         <view class=" button-container ml-20" bindtap="toMyShelf" wx:if="{{disInfo.nxDistributerBusinessTypeId  > 1}}">
           <image src="/images/Focus-Auto.png" class="icon"></image>
         </view>
@@ -25,6 +27,7 @@
       </view>
 
       <view class="flex flex-row p-20" style="height: {{viewBarHeight}}rpx; align-items: center;">
+
         <view class="button-container mr-40" bindtap="changeShwoType">
           <image src="{{viewMode === 'category' ? '/images/icon_goods_active.png' : '/images/dianpu.png'}}" class="icon"></image>
         </view>
@@ -137,6 +140,7 @@
                       </view>
                       <text class="font-sm" wx:if="{{item.nxDgGoodsStandardWeight !== 'null' && item.nxDgGoodsStandardWeight.length > 0}}" style="flex-shrink: 1; min-width: 0; word-break: break-all;">({{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}})</text>
                       <text class="font-sm" wx:else style="flex-shrink: 1; min-width: 0; word-break: break-all;">({{item.nxDgGoodsStandardname}})</text>
+                      <text class="outbound-stock-quantity" wx:if="{{item.availableStockQuantity > 0}}">库存{{item.availableStockQuantity}}{{item.nxDgGoodsStandardname}}</text>
                     </view>
                     <!-- 订单信息（客户名称） -->
                     <view class="flex-row font-sm ml-10" style="flex-shrink: 1; min-width: 0;">
@@ -184,6 +188,7 @@
                       <text class=" font-lg font-bold">{{item.nxDgGoodsName}}</text>
                       <text class="" wx:if="{{item.nxDgGoodsStandardWeight !== 'null' && item.nxDgGoodsStandardWeight.length > 0}}">({{item.nxDgGoodsStandardWeight}}/{{item.nxDgGoodsStandardname}})</text>
                       <text class="" wx:else>({{item.nxDgGoodsStandardname}})</text>
+                      <text class="outbound-stock-quantity" wx:if="{{item.availableStockQuantity > 0}}">库存{{item.availableStockQuantity}}{{item.nxDgGoodsStandardname}}</text>
                       <text class="text-secondary" wx:if="{{item.nxDgGoodsPlace !== null && item.nxDgGoodsPlace.length > 0}}">{{item.nxDgGoodsPlace}}</text>
                       <text class="text-secondary  text-secondary" wx:if="{{item.nxDgGoodsDetail.length > 0 && item.nxDgGoodsDetail !==  'null'}}">{{item.nxDgGoodsDetail}}</text>
                     </view>
@@ -281,11 +286,38 @@
     </view>
 
   </view>
+  </swiper-item>
+
+  <swiper-item>
+    <purchase-workspace
+      id="workspace-purchase"
+      embedded="{{true}}"
+      bindselectionchange="onPurchaseSelectionChange"
+      style="width: 100%; height: 100%; display: flex; flex-direction: column;"></purchase-workspace>
+  </swiper-item>
+
+  <swiper-item>
+    <partner-workspace
+      id="workspace-partner"
+      embedded="{{true}}"
+      bindworkspaceback="onPartnerWorkspaceBack"
+      style="width: 100%; height: 100%; display: flex; flex-direction: column;"></partner-workspace>
+  </swiper-item>
+
+  </swiper>
 </view>
 
-
-
-
+<view class="purchase-workspace-actions"
+  wx:if="{{activeWorkspace === 'purchase' && purchaseSelectedCount > 0}}">
+  <view class="purchase-workspace-cart center-content" data-action="showCar" bindtap="runPurchaseAction">
+    <view class="purchase-workspace-count">{{purchaseSelectedCount}}</view>
+    <image class="pur_icon" src="/images/a-gouwuchejinhuocaigouhuo.png"></image>
+  </view>
+  <view class="purchase-workspace-action is-wx" data-action="toSelfPurchase" bindtap="runPurchaseAction">自己采购</view>
+  <view class="purchase-workspace-action is-paste" data-action="toPaste" bindtap="runPurchaseAction">复制订货</view>
+  <view class="purchase-workspace-action is-wx" data-action="saveBatchOrder" bindtap="runPurchaseAction"
+    wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">小程序订货</view>
+</view>
 
 <view class='overlay {{showOperationCarStock ? "show" : ""}}' catchtouchmove='ture' catch:tap="closeStockCar">
   <view class="flex-column orderBottomStock" animation='{{animationData}}'>
@@ -314,12 +346,13 @@
     </scroll-view>
 
   </view>
+
 </view>
 
 
 
 
-<view animation="{{buttonAnimation}}" class="flex flex-row bottom-button-container {{choiceStockArr.length > 0 ? 'is-active' : ''}}" style="z-index: 100000;">
+<view wx:if="{{activeWorkspace === 'stock'}}" animation="{{buttonAnimation}}" class="flex flex-row bottom-button-container {{choiceStockArr.length > 0 ? 'is-active' : ''}}" style="z-index: 100000;">
   <view class="flex flex-row-between bottom-button">
     <view class="" bindtap="showCarStock" style="width: 120rpx; margin-left: 40rpx;">
       <view class="dotWx">{{choiceStockArr.length}}</view>

@@ -37,7 +37,8 @@ Component({
     cartonBuyPrice: '', // 箱单价（用户输入的原始值）
     averageBuyPrice: '', // 平均单价（最小单位单价）
     cartonExpectPrice: '', // 箱零售价（用户输入的原始值）
-    averageExpectPrice: '' // 平均建议售价（最小单位零售价）
+    averageExpectPrice: '', // 平均建议售价（最小单位零售价）
+    keyboardVisible: false
   },
 
   /**
@@ -52,7 +53,8 @@ Component({
           cartonBuyPrice: '',
           averageBuyPrice: '',
           cartonExpectPrice: '',
-          averageExpectPrice: ''
+          averageExpectPrice: '',
+          keyboardVisible: false
         })
       }
     },
@@ -75,13 +77,30 @@ Component({
    */
   methods: {
 
+    hideKeyboard() {
+      this.setData({ keyboardVisible: false });
+      if (typeof wx.hideKeyboard === 'function') wx.hideKeyboard();
+    },
+
+    onInputFocus() {
+      this.setData({ keyboardVisible: true });
+    },
+
+    onInputBlur() {
+      this.setData({ keyboardVisible: false });
+    },
+
+    preventMove() {},
+
     clickMask() {
+      this.hideKeyboard();
       this.setData({
         show: false,
       })
     },
 
     cancle() {
+      this.hideKeyboard();
       this.setData({
         show: false,
         editApply: false,
@@ -91,6 +110,7 @@ Component({
     },
 
     finish(e){
+      this.hideKeyboard();
       this.setData({
         show: false,
         editApply: false,
@@ -303,6 +323,7 @@ Component({
 
     // 检查价格
     _checkPrice(e) {
+      this.onInputBlur();
       var price = e.detail.value;
       if (price && (isNaN(price) || price < 0)) {
         wx.showToast({
@@ -314,6 +335,7 @@ Component({
 
     // 检查数量
     _checkQuantity(e) {
+      this.onInputBlur();
       var quantity = e.detail.value;
       if (quantity && (isNaN(quantity) || quantity <= 0)) {
         wx.showToast({
@@ -367,12 +389,10 @@ Component({
           }
         }
 
+        this.hideKeyboard();
         console.log(this.data.item)
         this.triggerEvent('confirm', {
           item: this.data.item
-        })
-        this.setData({
-          show: false,
         })
     },
 

@@ -1,9 +1,11 @@
 import {
   createSmartReplenishmentProcurement,
+  deleteSmartReplenishmentProcurement,
   forecastSmartReplenishment,
   getSmartReplenishmentCatalog,
   getSmartReplenishmentContexts,
-  getSmartReplenishmentGoodsDetail
+  getSmartReplenishmentGoodsDetail,
+  updateSmartReplenishmentProcurement
 } from '../../../../lib/apiDistributer'
 
 import {
@@ -11,6 +13,7 @@ import {
   buildSmartCategories,
   decorateSmartProducts,
   forecastRangeForMode,
+  smartGoodsTypeSummary,
   smartSummary,
   validateForecastRange
 } from '../../../../utils/smartReplenishmentView'
@@ -30,6 +33,8 @@ Page({
     contextNotice: '',
     disId: null,
     selectedDepartmentId: null,
+    selectedDepartmentIds: [],
+    hasCustomerFilter: false,
     selectedDepartmentName: '全部客户',
     selectedDepartmentHistory: '汇总所有有效客户',
     forecastToday: '',
@@ -39,13 +44,23 @@ Page({
     endDate: '',
     dateModeLabel: '今天',
     showCustomDate: false,
-    summary: { total: 0, levelA: 0, levelB: 0 },
+    customStartDate: '',
+    customEndDate: '',
+    goodsTypeSummary: { total: 0, self: 0, stock: 0 },
+    predictionSummary: { total: 0, levelA: 0, levelB: 0 },
     products: [],
     visibleProducts: [],
     categories: [],
-    activeLevel: '',
+    activeGoodsType: '',
     activeCategory: '',
-    keyword: ''
+    activeCategoryName: '',
+    keyword: '',
+    showPurchaseModal: false,
+    purchaseModalMode: 'create',
+    purchaseDraft: null,
+    purchaseQuantity: '',
+    purchaseUnit: '',
+    purchaseKeyboardHeight: 0
   },
 
   onLoad() {
@@ -68,6 +83,7 @@ Page({
     this._creatingGoods = {}
     this._forecastRequestId = 0
     this._customerSelectionChanged = false
+    this._rpxRatio = ratio
     this.setData({
       navBarHeight: (globalData.navBarHeight || 0) * ratio,
       contentHeight: Math.max(0, (globalData.windowHeight || 0) * ratio -
@@ -90,6 +106,8 @@ Page({
   onPullDownRefresh() {
     this.loadCatalog(true)
   },
+
+  preventMove() {},
 
   toBack() {
     wx.navigateBack({ delta: 1 })
@@ -119,7 +137,7 @@ Page({
       wx.setStorageSync(CUSTOMER_CACHE_KEY, {
         distributerId: this.data.disId,
         departments,
-        selectedDepartmentId: selected.departmentId
+        selectedDepartmentIds: selected.departmentIds
       })
       this.setData({
         forecastToday,
@@ -127,6 +145,8 @@ Page({
         startDate: range.startDate,
         endDate: range.endDate,
         selectedDepartmentId: selected.departmentId,
+        selectedDepartmentIds: selected.departmentIds,
+        hasCustomerFilter: selected.departmentIds.length > 0,
         selectedDepartmentName: selected.departmentName,
         selectedDepartmentHistory: selected.historyLabel
       })
@@ -150,39 +170,23 @@ Page({
     wx.setStorageSync(CUSTOMER_CACHE_KEY, {
       distributerId: this.data.disId,
       departments: this._catalog.departments || [],
-      selectedDepartmentId: this.data.selectedDepartmentId
+      selectedDepartmentIds: this.data.selectedDepartmentIds
     })
     wx.navigateTo({
-      url: '/subPackage-charts/pages/smartReplenishment/customerPicker/customerPicker?selectedId=' +
-        (this.data.selectedDepartmentId === null ? 'ALL' : this.data.selectedDepartmentId)
+      url: '/subPackage-charts/pages/smartReplenishment/customerPicker/customerPicker?selectedIds=' +
+        encodeURIComponent(this.data.selectedDepartmentIds.length
+          ? this.data.selectedDepartmentIds.join(',') : 'ALL')
     })
-  },
-
-  applyCustomerSelection(selection) {
-    const departmentId = selection && selection.departmentId !== null &&
-      selection.departmentId !== undefined && selection.departmentId !== ''
-      ? Number(selection.departmentId) : null
-    const customer = {
-      departmentId,
-      departmentName: selection && selection.departmentName ? selection.departmentName : '全部客户',
-      historyLabel: selection && selection.historyLabel ? selection.historyLabel : '汇总所有有效客户'
-    }
-    wx.setStorageSync(CUSTOMER_SELECTION_KEY, customer)
-    this.setData({
-      selectedDepartmentId: customer.departmentId,
-      selectedDepartmentName: customer.departmentName,
-      selectedDepartmentHistory: customer.historyLabel,
-      activeLevel: '',
-      activeCategory: '',
-      keyword: ''
-    })
-    this._customerSelectionChanged = true
   },
 
   selectDateMode(e) {
     const mode = e.currentTarget.dataset.mode
     if (mode === 'CUSTOM') {
-      this.setData({ dateMode: mode, dateModeLabel: '自定义', showCustomDate: true })
+      this.setData({
+        showCustomDate: true,
+        customStartDate: this.data.startDate || this.data.forecastToday,
+        customEndDate: this.data.endDate || this.data.forecastToday
+      })
       return
     }
     const labels = { TODAY: '今天', TOMORROW: '明天', NEXT_7: '未来7天' }
@@ -193,27 +197,77 @@ Page({
       showCustomDate: false,
       startDate: range.startDate,
       endDate: range.endDate,
-      activeLevel: '',
       activeCategory: '',
       keyword: ''
     })
-    this.loadForecast()
+    return this.loadForecast()
   },
 
-  onStartDateChange(e) {
-    let startDate = e.detail.value
-    let endDate = this.data.endDate
-    if (!endDate || startDate > endDate) endDate = startDate
-    this.setData({ dateMode: 'CUSTOM', dateModeLabel: '自定义', startDate, endDate })
-    this.loadForecast()
+  closeCustomDate() {
+    this.setData({ showCustomDate: false })
   },
 
-  onEndDateChange(e) {
-    let endDate = e.detail.value
-    let startDate = this.data.startDate
-    if (!startDate || endDate < startDate) startDate = endDate
-    this.setData({ dateMode: 'CUSTOM', dateModeLabel: '自定义', startDate, endDate })
-    this.loadForecast()
+  onCustomStartDateChange(e) {
+    const customStartDate = e.detail.value
+    const customEndDate = !this.data.customEndDate || customStartDate > this.data.customEndDate
+      ? customStartDate : this.data.customEndDate
+    this.setData({ customStartDate, customEndDate })
+  },
+
+  onCustomEndDateChange(e) {
+    const customEndDate = e.detail.value
+    const customStartDate = !this.data.customStartDate || customEndDate < this.data.customStartDate
+      ? customEndDate : this.data.customStartDate
+    this.setData({ customStartDate, customEndDate })
+  },
+
+  confirmCustomDate() {
+    const range = {
+      startDate: this.data.customStartDate,
+      endDate: this.data.customEndDate
+    }
+    const rangeError = validateForecastRange(
+      range,
+      this.data.forecastToday,
+      this.data.maxForecastDate
+    )
+    if (rangeError) {
+      wx.showToast({ title: rangeError, icon: 'none' })
+      return
+    }
+    this.setData({
+      dateMode: 'CUSTOM',
+      dateModeLabel: '自定义',
+      showCustomDate: false,
+      startDate: range.startDate,
+      endDate: range.endDate,
+      activeCategory: '',
+      keyword: ''
+    })
+    return this.loadForecast()
+  },
+
+  applyCustomerSelection(selection) {
+    const requestedIds = selection && Array.isArray(selection.departmentIds)
+      ? selection.departmentIds : (selection && selection.departmentId ? [selection.departmentId] : [])
+    const uniqueIds = Array.from(new Set(requestedIds.map(Number)
+      .filter(id => Number.isFinite(id) && id > 0)))
+    const departments = this._catalog && Array.isArray(this._catalog.departments)
+      ? this._catalog.departments : []
+    const selected = uniqueIds.map(id => departments.find(item =>
+      Number(item.departmentId) === id)).filter(Boolean)
+    const customer = this._selectionFromDepartments(selected)
+    wx.setStorageSync(CUSTOMER_SELECTION_KEY, customer)
+    this.setData({
+      selectedDepartmentId: customer.departmentId,
+      selectedDepartmentIds: customer.departmentIds,
+      hasCustomerFilter: customer.departmentIds.length > 0,
+      selectedDepartmentName: customer.departmentName,
+      selectedDepartmentHistory: customer.historyLabel,
+      activeCategory: '',
+      keyword: ''
+    })
+    this._customerSelectionChanged = true
   },
 
   async loadForecast() {
@@ -230,14 +284,17 @@ Page({
     const requestId = ++this._forecastRequestId
     this.setData({ loading: true, pageError: '', contextNotice: '' })
     try {
-      const response = await forecastSmartReplenishment({
+      const departmentIds = this.data.selectedDepartmentIds || []
+      const forecastRequest = {
         distributerId: this.data.disId,
-        departmentId: this.data.selectedDepartmentId,
         predictionDate: this.data.startDate,
         predictionEndDate: this.data.endDate,
         historyWindowDays: 30,
         algorithmVersion: BASELINE
-      })
+      }
+      if (departmentIds.length === 1) forecastRequest.departmentId = departmentIds[0]
+      if (departmentIds.length > 1) forecastRequest.departmentIds = departmentIds
+      const response = await forecastSmartReplenishment(forecastRequest)
       if (requestId !== this._forecastRequestId) return
       this._run = this._requireData(response, '智能备货预测失败')
       this._goodsDetails = {}
@@ -310,15 +367,22 @@ Page({
     }
   },
 
-  selectLevel(e) {
-    const level = e.currentTarget.dataset.level || ''
-    this.setData({ activeLevel: this.data.activeLevel === level ? '' : level, activeCategory: '' })
+  selectGoodsType(e) {
+    const goodsType = e.currentTarget.dataset.type
+    this.setData({ activeGoodsType: goodsType === '' ? '' : Number(goodsType) })
     this._applyFilters()
+  },
+
+  clearCustomerFilter() {
+    if (!this.data.hasCustomerFilter) return
+    this.applyCustomerSelection({ departmentIds: [] })
+    this._customerSelectionChanged = false
+    this.loadForecast()
   },
 
   selectCategory(e) {
     const category = e.currentTarget.dataset.category || ''
-    this.setData({ activeCategory: this.data.activeCategory === category ? '' : category })
+    this.setData({ activeCategory: category })
     this._applyFilters()
   },
 
@@ -347,13 +411,91 @@ Page({
       wx.showToast({ title: '预估数量或订货单位不完整，暂时不能加入采购', icon: 'none' })
       return
     }
+    this.setData({
+      showPurchaseModal: true,
+      purchaseModalMode: 'create',
+      purchaseDraft: product,
+      purchaseQuantity: String(product.predictedQuantity),
+      purchaseUnit: String(product.predictedUnit || '')
+    })
+  },
+
+  editProcurement(e) {
+    const goodsId = Number(e.currentTarget.dataset.id)
+    const product = this.data.products.find(item => Number(item.goodsId) === goodsId)
+    if (!product || !product.context.activePurchaseCount) return
+    if (!product.context.canEdit) {
+      wx.showToast({ title: '采购已经进入执行流程，不能在这里修改', icon: 'none' })
+      return
+    }
+    this.setData({
+      showPurchaseModal: true,
+      purchaseModalMode: 'edit',
+      purchaseDraft: product,
+      purchaseQuantity: String(product.context.activePurchaseQuantity),
+      purchaseUnit: String(product.context.activePurchaseUnit || product.predictedUnit || '')
+    })
+  },
+
+  onPurchaseQuantityInput(e) {
+    this.setData({ purchaseQuantity: e.detail.value || '' })
+  },
+
+  onPurchaseUnitInput(e) {
+    this.setData({ purchaseUnit: e.detail.value || '' })
+  },
+
+  onPurchaseKeyboardHeightChange(e) {
+    const height = Number(e && e.detail && e.detail.height) || 0
+    const ratio = this._rpxRatio || ((getApp().globalData || {}).rpxR || 1)
+    this.setData({ purchaseKeyboardHeight: Math.max(0, Math.ceil(height * ratio)) })
+  },
+
+  closePurchaseModal() {
+    this.setData({
+      showPurchaseModal: false,
+      purchaseModalMode: 'create',
+      purchaseDraft: null,
+      purchaseQuantity: '',
+      purchaseUnit: '',
+      purchaseKeyboardHeight: 0
+    })
+  },
+
+  confirmPurchase() {
+    const product = this.data.purchaseDraft
+    const quantityText = String(this.data.purchaseQuantity || '').trim()
+    const unit = String(this.data.purchaseUnit || '').trim()
+    const quantity = Number(quantityText)
+    if (!product || !Number.isFinite(quantity) || quantity <= 0) {
+      wx.showToast({ title: '请输入大于0的备货数量', icon: 'none' })
+      return
+    }
+    if (!unit || unit.length > 32) {
+      wx.showToast({ title: unit ? '采购规格不能超过32个字' : '请输入采购规格', icon: 'none' })
+      return
+    }
+    const mode = this.data.purchaseModalMode
+    this.closePurchaseModal()
+    if (mode === 'edit') return this._updateProcurement(product, quantityText, unit)
+    return this._createProcurement(Object.assign({}, product, {
+      predictedQuantity: quantityText,
+      predictedUnit: unit
+    }))
+  },
+
+  deleteProcurement() {
+    const product = this.data.purchaseDraft
+    if (!product || this.data.purchaseModalMode !== 'edit' || !product.context.canEdit) return
     wx.showModal({
-      title: '添加采购商品',
-      content: '确认将“' + product.goodsName + '” ' + product.predictedQuantityText +
-        product.predictedUnit + ' 加入采购吗？\n入库时再选择真实货架。',
-      confirmText: '加入采购',
+      title: '删除采购',
+      content: '确认删除“' + product.goodsName + '”这条采购吗？',
+      confirmText: '删除',
+      confirmColor: '#d94d43',
       success: result => {
-        if (result.confirm) this._createProcurement(product)
+        if (!result.confirm) return
+        this.closePurchaseModal()
+        this._deleteProcurement(product)
       }
     })
   },
@@ -389,6 +531,52 @@ Page({
     }
   },
 
+  async _updateProcurement(product, quantity, unit) {
+    const goodsId = Number(product.goodsId)
+    const purchaseGoodsId = Number(product.context.activePurchaseGoodsId)
+    this._creatingGoods[goodsId] = true
+    this._decorateProducts()
+    try {
+      const response = await updateSmartReplenishmentProcurement(purchaseGoodsId, {
+        distributerId: this.data.disId,
+        quantity,
+        unit
+      })
+      this._contexts[goodsId] = Object.assign({}, this._requireData(response, '修改采购失败'), {
+        goodsId,
+        loading: false
+      })
+      wx.showToast({ title: '采购数量已修改', icon: 'none' })
+    } catch (error) {
+      wx.showToast({ title: error && error.message ? error.message : '修改采购失败', icon: 'none' })
+    } finally {
+      delete this._creatingGoods[goodsId]
+      this._decorateProducts()
+    }
+  },
+
+  async _deleteProcurement(product) {
+    const goodsId = Number(product.goodsId)
+    const purchaseGoodsId = Number(product.context.activePurchaseGoodsId)
+    this._creatingGoods[goodsId] = true
+    this._decorateProducts()
+    try {
+      const response = await deleteSmartReplenishmentProcurement(purchaseGoodsId, {
+        distributerId: this.data.disId
+      })
+      this._contexts[goodsId] = Object.assign({}, this._requireData(response, '删除采购失败'), {
+        goodsId,
+        loading: false
+      })
+      wx.showToast({ title: '采购已删除', icon: 'none' })
+    } catch (error) {
+      wx.showToast({ title: error && error.message ? error.message : '删除采购失败', icon: 'none' })
+    } finally {
+      delete this._creatingGoods[goodsId]
+      this._decorateProducts()
+    }
+  },
+
   _decorateProducts() {
     const products = decorateSmartProducts(
       this._run,
@@ -401,20 +589,32 @@ Page({
     }))
     this.setData({
       products,
-      summary: smartSummary(products),
-      categories: buildSmartCategories(products)
+      goodsTypeSummary: smartGoodsTypeSummary(products),
+      predictionSummary: smartSummary(products)
     })
     this._applyFilters(products)
   },
 
   _applyFilters(source) {
     const products = source || this.data.products
-    this.setData({
-      visibleProducts: applySmartProductFilters(products, {
-        level: this.data.activeLevel,
-        category: this.data.activeCategory,
+    const matchingProducts = applySmartProductFilters(products, {
+        goodsType: this.data.activeGoodsType,
         keyword: this.data.keyword
       })
+    const categories = buildSmartCategories(matchingProducts)
+    let activeCategoryKey = this.data.activeCategory
+    if (!categories.some(item => item.key === activeCategoryKey)) {
+      activeCategoryKey = categories.length ? categories[0].key : ''
+    }
+    const visibleProducts = applySmartProductFilters(matchingProducts, {
+      category: activeCategoryKey
+    })
+    const activeCategory = categories.find(item => item.key === activeCategoryKey)
+    this.setData({
+      visibleProducts,
+      categories,
+      activeCategory: activeCategoryKey,
+      activeCategoryName: activeCategory ? activeCategory.name : ''
     })
   },
 
@@ -429,28 +629,32 @@ Page({
 
   _resolveInitialCustomer(departments) {
     const saved = wx.getStorageSync(CUSTOMER_SELECTION_KEY) || null
+    if (saved && Array.isArray(saved.departmentIds)) {
+      const selected = saved.departmentIds.map(Number).map(id => departments.find(item =>
+        Number(item.departmentId) === id)).filter(Boolean)
+      return this._selectionFromDepartments(selected)
+    }
     if (saved && (saved.departmentId === null || saved.departmentId === '')) {
-      return { departmentId: null, departmentName: '全部客户', historyLabel: '汇总所有有效客户' }
+      return this._selectionFromDepartments([])
     }
     if (saved) {
       const matched = departments.find(item =>
         String(item.departmentId) === String(saved.departmentId))
-      if (matched) return this._customerFromDepartment(matched)
+      if (matched) return this._selectionFromDepartments([matched])
     }
     const first = departments.find(item => Number(item.historicalLineCount || 0) > 0) || departments[0]
-    return first ? this._customerFromDepartment(first) : {
-      departmentId: null,
-      departmentName: '全部客户',
-      historyLabel: '汇总所有有效客户'
-    }
+    return this._selectionFromDepartments(first ? [first] : [])
   },
 
-  _customerFromDepartment(department) {
-    const count = Number(department.historicalLineCount || 0)
+  _selectionFromDepartments(departments) {
+    const selected = Array.isArray(departments) ? departments : []
+    const departmentIds = selected.map(item => Number(item.departmentId))
     return {
-      departmentId: Number(department.departmentId),
-      departmentName: department.departmentName || '未命名客户',
-      historyLabel: count > 0 ? '历史 ' + count.toLocaleString('zh-CN') + ' 条' : '暂无历史数据'
+      departmentId: departmentIds.length === 1 ? departmentIds[0] : null,
+      departmentIds,
+      departmentName: selected.length
+        ? selected.map(item => item.departmentName || '未命名客户').join('，') : '全部客户',
+      historyLabel: selected.length ? '已选 ' + selected.length + ' 家客户' : '汇总所有有效客户'
     }
   },
 

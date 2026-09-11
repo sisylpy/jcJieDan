@@ -4,8 +4,14 @@
 
 <view class="flex flex-column">
 
-  <custom-navbar style="height: {{navBarHeight}}rpx;" title="协作伙伴" avatar="{{url + userInfo.nxDiuWxAvartraUrl}}"
+  <custom-navbar wx:if="{{!embedded}}" style="height: {{navBarHeight}}rpx;" title="协作伙伴" avatar="{{url + userInfo.nxDiuWxAvartraUrl}}"
     button-text="设置" bindnavbuttontap="onNavButtonTap"></custom-navbar>
+
+  <view class="merged-work-tabs" wx:if="{{!embedded}}">
+    <view class="merged-work-tab" bindtap="openStockWorkspace">出货中</view>
+    <view class="merged-work-tab" bindtap="openPurchaseWorkspace">采购中</view>
+    <view class="merged-work-tab is-active">协作伙伴</view>
+  </view>
 
   <view class="content flex-1 flex-column">
 
@@ -22,7 +28,8 @@
       </view>
     </view>
 
-    <swiper style="height: {{contentHeight }}rpx; " current="{{innerCurrent}}" bindchange='onInnerSwiperChange'>
+    <swiper style="height: {{contentHeight }}rpx; " current="{{innerCurrent}}" bindchange='onInnerSwiperChange'
+      disable-touch="{{embedded}}">
 
       <swiper-item>
 
@@ -397,6 +404,8 @@
   </view>
 
 </view>
+
+<local-tab-bar id="local-tab-bar" wx:if="{{!embedded}}"></local-tab-bar>
 
 
 

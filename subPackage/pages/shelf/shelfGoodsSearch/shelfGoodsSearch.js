@@ -1,4 +1,5 @@
 var load = require('../../../../lib/load.js');
+var directStockSubmission = require('../../../../utils/directStockSubmission.js');
 
 var dateUtils = require('../../../../utils/dateUtil');
 import apiUrl from '../../../../config.js'
@@ -892,8 +893,10 @@ Page({
     var loadingText = this.data.isEditPurchase ? "修改进货商品" : "保存进货商品";
     var successText = this.data.isEditPurchase ? "进货商品修改成功" : "进货商品保存成功";
 
+    const submission = directStockSubmission.begin(this, disSavePurGoodsSaveStock, purGoods);
+    if (!submission.started) return;
     load.showLoading(loadingText);
-    disSavePurGoodsSaveStock(purGoods).then(res => {
+    submission.promise.then(res => {
       if (res.result.code == 0) {
         wx.showToast({
           title: successText,

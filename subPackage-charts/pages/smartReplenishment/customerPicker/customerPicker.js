@@ -8,7 +8,8 @@ Page({
     contentHeight: 0,
     loading: true,
     pageError: '',
-    selectedId: 'ALL',
+    selectedIds: [],
+    allSelected: true,
     keyword: '',
     customers: [],
     visibleCustomers: []
@@ -17,11 +18,13 @@ Page({
   onLoad(options) {
     const globalData = getApp().globalData || {}
     const ratio = globalData.rpxR || 1
+    const selectedIds = this._parseSelectedIds(options && options.selectedIds)
     this.setData({
       navBarHeight: (globalData.navBarHeight || 0) * ratio,
       contentHeight: Math.max(0, (globalData.windowHeight || 0) * ratio -
         (globalData.navBarHeight || 0) * ratio),
-      selectedId: options && options.selectedId ? String(options.selectedId) : 'ALL'
+      selectedIds,
+      allSelected: selectedIds.length === 0
     })
     this.loadCustomers()
   },
@@ -54,10 +57,12 @@ Page({
           departmentName: item.departmentName || '未命名客户',
           historyLabel: count > 0 ? '历史 ' + count.toLocaleString('zh-CN') + ' 条' : '暂无历史数据',
           lastOrderLabel: item.lastOrderDate ? '最近订货 ' + item.lastOrderDate : '',
-          initial: String(item.departmentName || '客').charAt(0)
+          initial: String(item.departmentName || '客').charAt(0),
+          selected: false
         }
       })
-      this.setData({ loading: false, customers, visibleCustomers: customers })
+      this.setData({ loading: false, customers })
+      this._syncSelection()
     } catch (error) {
       this.setData({
         loading: false,
@@ -67,39 +72,58 @@ Page({
   },
 
   onKeywordInput(e) {
-    const keyword = String(e.detail.value || '')
-    const normalized = keyword.trim().toLocaleLowerCase('zh-CN')
-    this.setData({
-      keyword,
-      visibleCustomers: normalized ? this.data.customers.filter(item =>
-        String(item.departmentName || '').toLocaleLowerCase('zh-CN').includes(normalized)
-      ) : this.data.customers
-    })
+    this.setData({ keyword: String(e.detail.value || '') })
+    this._syncSelection()
   },
 
   clearKeyword() {
-    this.setData({ keyword: '', visibleCustomers: this.data.customers })
+    this.setData({ keyword: '' })
+    this._syncSelection()
   },
 
   selectAll() {
-    this._commit({
-      departmentId: null,
-      departmentName: '全部客户',
-      historyLabel: '汇总所有有效客户'
-    })
+    this.setData({ selectedIds: [], allSelected: true })
+    this._syncSelection()
   },
 
   selectCustomer(e) {
     const id = Number(e.currentTarget.dataset.id)
-    const customer = this.data.customers.find(item => Number(item.departmentId) === id)
-    if (customer) this._commit(customer)
+    if (!Number.isFinite(id) || id <= 0) return
+    const selected = this.data.allSelected ? [] : this.data.selectedIds.slice()
+    const index = selected.indexOf(id)
+    if (index >= 0) selected.splice(index, 1)
+    else selected.push(id)
+    this.setData({ selectedIds: selected, allSelected: selected.length === 0 })
+    this._syncSelection()
   },
 
-  _commit(customer) {
+  confirmSelection() {
+    this._commit({ departmentIds: this.data.allSelected ? [] : this.data.selectedIds.slice() })
+  },
+
+  _syncSelection() {
+    const selected = new Set(this.data.selectedIds.map(Number))
+    const customers = this.data.customers.map(item => Object.assign({}, item, {
+      selected: !this.data.allSelected && selected.has(Number(item.departmentId))
+    }))
+    const normalized = String(this.data.keyword || '').trim().toLocaleLowerCase('zh-CN')
+    const visibleCustomers = normalized ? customers.filter(item =>
+      String(item.departmentName || '').toLocaleLowerCase('zh-CN').includes(normalized)
+    ) : customers
+    this.setData({ customers, visibleCustomers })
+  },
+
+  _parseSelectedIds(value) {
+    if (!value || String(value).toUpperCase() === 'ALL') return []
+    return Array.from(new Set(String(value).split(',').map(Number)
+      .filter(id => Number.isFinite(id) && id > 0)))
+  },
+
+  _commit(selection) {
     const pages = getCurrentPages()
     const previous = pages.length > 1 ? pages[pages.length - 2] : null
     if (previous && typeof previous.applyCustomerSelection === 'function') {
-      previous.applyCustomerSelection(customer)
+      previous.applyCustomerSelection(selection)
     }
     wx.navigateBack({ delta: 1 })
   }

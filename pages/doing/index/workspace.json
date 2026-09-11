@@ -1,0 +1,8 @@
+{
+  "component": true,
+  "styleIsolation": "apply-shared",
+  "usingComponents": {
+    "custom-navbar": "/components/custom-navbar/custom-navbar",
+    "local-tab-bar": "/custom-tab-bar/index"
+  }
+}

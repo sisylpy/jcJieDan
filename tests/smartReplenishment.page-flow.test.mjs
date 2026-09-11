@@ -14,6 +14,8 @@ const source = fs.readFileSync(
 let pageConfig
 let forecastPayload
 let createPayload
+let updatePayload
+let deletePayload
 const storage = {}
 const toasts = []
 const forecastRun = {
@@ -58,11 +60,19 @@ function productRows(run, details, contexts) {
       predictedQuantity: item.predictedQuantity,
       predictedQuantityText: String(item.predictedQuantity),
       predictedUnit: item.predictedUnit,
+      goodsType: details[item.goodsId] && details[item.goodsId].goodsType,
       departmentLines: [], reasons: [], riskReasons: [], quantityMethod: '',
       context: context ? {
         state: active ? 'active' : 'idle',
         stockText: String(context.stockQuantity || 0), stockUnit: context.stockUnit || '斤',
-        purchaseText: active ? '采购中' : '暂无采购', canCreate: !active
+        purchaseText: active ? String(context.activePurchaseQuantity || '') +
+          (context.activePurchaseUnit || '斤') : '暂无采购',
+        canCreate: !active,
+        canEdit: active && Boolean(context.activePurchaseEditable),
+        activePurchaseCount: Number(context.activePurchaseCount || 0),
+        activePurchaseGoodsId: context.activePurchaseGoodsId || null,
+        activePurchaseQuantity: context.activePurchaseQuantity || null,
+        activePurchaseUnit: context.activePurchaseUnit || item.predictedUnit
       } : { state: 'loading', stockText: '查询中', stockUnit: '斤', purchaseText: '查询中', canCreate: false }
     }
   })
@@ -94,29 +104,61 @@ const context = vm.createContext({
   },
   getSmartReplenishmentCatalog: async () => ({ result: { code: 0, data: {
     forecastDate: '2026-09-02', maxForecastDate: '2026-10-03',
-    departments: [{ departmentId: 20, departmentName: '餐厅', historicalLineCount: 100 }]
+    departments: [
+      { departmentId: 20, departmentName: '餐厅', historicalLineCount: 100 },
+      { departmentId: 21, departmentName: '酒店', historicalLineCount: 80 }
+    ]
   } } }),
   forecastSmartReplenishment: async payload => {
     forecastPayload = payload
     return { result: { code: 0, data: forecastRun } }
   },
   getSmartReplenishmentContexts: async () => ({ result: { code: 0, data: [
-    { goodsId: 1, stockQuantity: 8, stockUnit: '斤', activePurchaseCount: 1 },
+    {
+      goodsId: 1, stockQuantity: 8, stockUnit: '斤', activePurchaseCount: 1,
+      activePurchaseGoodsId: 701, activePurchaseQuantity: 40,
+      activePurchaseUnit: '斤', activePurchaseEditable: true
+    },
     { goodsId: 2, stockQuantity: 0, stockUnit: '斤', activePurchaseCount: 0 }
   ] } }),
   getSmartReplenishmentGoodsDetail: async (disId, goodsId) => ({ result: { code: 0, data: {
-    goodsId, disId, nxDgNxFatherImg: goodsId === 1 ? 'upload/vegetable-father.jpg' : ''
+    goodsId, disId, goodsType: goodsId === 1 ? -1 : 1,
+    nxDgNxFatherImg: goodsId === 1 ? 'upload/vegetable-father.jpg' : ''
   } } }),
   createSmartReplenishmentProcurement: async payload => {
     createPayload = payload
     return { result: { code: 0, data: {
       created: true,
-      context: { goodsId: 2, stockQuantity: 0, stockUnit: '斤', activePurchaseCount: 1 }
+      context: {
+        goodsId: 2, stockQuantity: 0, stockUnit: '斤', activePurchaseCount: 1,
+        activePurchaseGoodsId: 702, activePurchaseQuantity: payload.quantity,
+        activePurchaseUnit: payload.unit, activePurchaseEditable: true
+      }
     } } }
   },
-  forecastRangeForMode: (mode, base) => ({ startDate: base, endDate: base }),
+  updateSmartReplenishmentProcurement: async (purchaseGoodsId, payload) => {
+    updatePayload = { purchaseGoodsId, ...payload }
+    return { result: { code: 0, data: {
+      goodsId: 2, activePurchaseCount: 1, activePurchaseGoodsId: purchaseGoodsId,
+      activePurchaseQuantity: payload.quantity, activePurchaseUnit: payload.unit,
+      activePurchaseEditable: true
+    } } }
+  },
+  deleteSmartReplenishmentProcurement: async (purchaseGoodsId, payload) => {
+    deletePayload = { purchaseGoodsId, ...payload }
+    return { result: { code: 0, data: { goodsId: 2, activePurchaseCount: 0 } } }
+  },
+  forecastRangeForMode: (mode, base) => ({
+    startDate: mode === 'TOMORROW' ? '2026-09-03' : base,
+    endDate: mode === 'NEXT_7' ? '2026-09-08' : (mode === 'TOMORROW' ? '2026-09-03' : base)
+  }),
   validateForecastRange: () => '',
   decorateSmartProducts: productRows,
+  smartGoodsTypeSummary: products => ({
+    total: products.length,
+    self: products.filter(item => item.goodsType === -1).length,
+    stock: products.filter(item => item.goodsType === 1).length
+  }),
   smartSummary: products => ({
     total: products.length,
     levelA: products.filter(item => item.level === 'LEVEL_A').length,
@@ -124,7 +166,10 @@ const context = vm.createContext({
   }),
   buildSmartCategories: products => Array.from(new Set(products.map(item => item.categoryKey)))
     .map(key => ({ key, name: products.find(item => item.categoryKey === key).categoryName, count: 1 })),
-  applySmartProductFilters: products => products
+  applySmartProductFilters: (products, options = {}) => products.filter(item =>
+    (!options.category || item.categoryKey === options.category) &&
+    (options.goodsType === '' || options.goodsType === undefined || item.goodsType === options.goodsType)
+  )
 })
 
 new vm.Script(source, { filename: 'smartReplenishment/index.js' }).runInContext(context)
@@ -147,7 +192,10 @@ page.setData({ disId: 13 })
 
 await page.loadCatalog()
 assert.equal(page.data.selectedDepartmentId, 20, '首次进入默认选择有历史记录的客户')
-assert.equal(page.data.summary.total, 2)
+assert.equal(page.data.goodsTypeSummary.total, 2)
+assert.deepEqual(JSON.parse(JSON.stringify(page.data.predictionSummary)), {
+  total: 2, levelA: 1, levelB: 1
+})
 assert.equal(page.data.products[0].context.state, 'active')
 assert.equal(page.data.products[1].context.state, 'idle')
 assert.equal(page.data.products[0].imageUrl, 'https://example.test/upload/vegetable-father.jpg')
@@ -164,14 +212,69 @@ page.applyCustomerSelection({ departmentId: null, departmentName: '全部客户'
 assert.equal(page.data.selectedDepartmentId, null)
 assert.equal(page._customerSelectionChanged, true)
 
+page.applyCustomerSelection({ departmentIds: [20, 21] })
+assert.deepEqual(JSON.parse(JSON.stringify(page.data.selectedDepartmentIds)), [20, 21])
+assert.equal(page.data.selectedDepartmentName, '餐厅，酒店')
+await page.loadForecast()
+assert.deepEqual(JSON.parse(JSON.stringify(forecastPayload.departmentIds)), [20, 21])
+assert.equal('departmentId' in forecastPayload, false)
+
+await page.selectDateMode({ currentTarget: { dataset: { mode: 'NEXT_7' } } })
+assert.equal(page.data.dateModeLabel, '未来7天')
+assert.equal(page.data.startDate, '2026-09-02')
+assert.equal(page.data.endDate, '2026-09-08')
+
+page.selectDateMode({ currentTarget: { dataset: { mode: 'CUSTOM' } } })
+assert.equal(page.data.showCustomDate, true)
+assert.equal(page.data.customStartDate, '2026-09-02')
+assert.equal(page.data.customEndDate, '2026-09-08')
+page.onCustomStartDateChange({ detail: { value: '2026-09-10' } })
+page.onCustomEndDateChange({ detail: { value: '2026-09-12' } })
+await page.confirmCustomDate()
+assert.equal(page.data.dateModeLabel, '自定义')
+assert.equal(page.data.showCustomDate, false)
+assert.equal(page.data.startDate, '2026-09-10')
+assert.equal(page.data.endDate, '2026-09-12')
+assert.equal(forecastPayload.predictionDate, '2026-09-10')
+assert.equal(forecastPayload.predictionEndDate, '2026-09-12')
+
 const purchasable = page.data.products.find(item => item.goodsId === 2)
-await page._createProcurement(purchasable)
+page.addProcurement({ currentTarget: { dataset: { id: 2 } } })
+assert.equal(page.data.showPurchaseModal, true)
+assert.equal(page.data.purchaseQuantity, '2', '智能预测数量应默认带入输入框')
+assert.equal(page.data.purchaseUnit, '斤', '智能预测规格应默认带入可编辑输入框')
+page.onPurchaseQuantityInput({ detail: { value: '3.5' } })
+page.onPurchaseUnitInput({ detail: { value: '件' } })
+page._rpxRatio = 2
+page.onPurchaseKeyboardHeightChange({ detail: { height: 300 } })
+assert.equal(page.data.purchaseKeyboardHeight, 600)
+await page.confirmPurchase()
 assert.deepEqual(Object.keys(createPayload).sort(), ['distributerId', 'goodsId', 'quantity', 'unit'])
 assert.deepEqual(JSON.parse(JSON.stringify(createPayload)), {
-  distributerId: 13, goodsId: 2, quantity: 2, unit: '斤'
+  distributerId: 13, goodsId: 2, quantity: '3.5', unit: '件'
 })
 assert.equal(page.data.products.find(item => item.goodsId === 2).context.state, 'active')
 assert.equal(toasts.at(-1), '已加入采购')
+
+page.editProcurement({ currentTarget: { dataset: { id: 2 } } })
+assert.equal(page.data.purchaseModalMode, 'edit')
+assert.equal(page.data.purchaseQuantity, '3.5')
+assert.equal(page.data.purchaseUnit, '件')
+page.onPurchaseQuantityInput({ detail: { value: '4' } })
+page.onPurchaseUnitInput({ detail: { value: '箱' } })
+await page.confirmPurchase()
+assert.deepEqual(JSON.parse(JSON.stringify(updatePayload)), {
+  purchaseGoodsId: 702, distributerId: 13, quantity: '4', unit: '箱'
+})
+assert.equal(toasts.at(-1), '采购数量已修改')
+
+const editedProduct = page.data.products.find(item => item.goodsId === 2)
+await page._deleteProcurement(editedProduct)
+assert.deepEqual(JSON.parse(JSON.stringify(deletePayload)), {
+  purchaseGoodsId: 702, distributerId: 13
+})
+assert.equal(page.data.products.find(item => item.goodsId === 2).context.state, 'idle')
+assert.equal(toasts.at(-1), '采购已删除')
 
 page.setData({
   dateMode: 'CUSTOM',

@@ -1,4 +1,5 @@
 {
+  "navigationBarTitleText": "打印机设置",
   "usingComponents": {
     "back-navbar": "/components/back-navbar/back-navbar"
   }

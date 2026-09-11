@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 
-const source = readFileSync('pages/purchase/index/index.js', 'utf8');
+const source = readFileSync('pages/purchase/index/purchaseComponent.js', 'utf8');
 const shelfSource = readFileSync('subPackage/pages/shelf/index/index.js', 'utf8');
 const apiSource = readFileSync('lib/apiDepOrder.js', 'utf8');
 const orderListSource = readFileSync('subPackage/pages/prepare/orderList/orderList.js', 'utf8');

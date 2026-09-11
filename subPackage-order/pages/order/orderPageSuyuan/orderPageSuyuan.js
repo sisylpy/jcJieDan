@@ -7,6 +7,8 @@ import apiUrl from '../../../../config.js'
 import {
   getOrderPageWithTraceReport,
   updateOrder,
+  giveOrderWeightListForStockAndFinish,
+  giveOrderWeightListForStockShelfGoods,
 } from '../../../../lib/apiDepOrder'
 
 import { resolveNxDoCostPriceLevel } from '../../../../lib/retailPriceLevel'
@@ -1980,7 +1982,7 @@ Page({
             this._initData();
           } else {
             wx.showToast({
-              title: 'res.result.msg',
+              title: res.result.msg || '保存失败',
               icon: 'none'
             })
           }

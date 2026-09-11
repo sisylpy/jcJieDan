@@ -85,6 +85,11 @@ function shortDate(value) {
   return parts.length === 3 ? Number(parts[1]) + '月' + Number(parts[2]) + '日' : String(value || '')
 }
 
+function shortSlashDate(value) {
+  const parts = String(value || '').split('-')
+  return parts.length === 3 ? Number(parts[1]) + '/' + Number(parts[2]) : String(value || '')
+}
+
 function reasonText(value) {
   return cleanText(value)
     .replace(/^相对拟合样本，/, '')
@@ -107,6 +112,14 @@ function detailText(goods, item) {
   return parts.join(' · ')
 }
 
+function goodsTypePresentation(goods, item) {
+  const candidates = [item.goodsType, item.nxDgPurchaseAuto, goods.goodsType, goods.nxDgPurchaseAuto]
+  const value = numeric(candidates.find(candidate => candidate !== null && candidate !== undefined && candidate !== ''))
+  if (value === -1) return { goodsType: -1, goodsTypeText: '自采商品', goodsTypeClass: 'self' }
+  if (value === 1) return { goodsType: 1, goodsTypeText: '出库商品', goodsTypeClass: 'stock' }
+  return { goodsType: value, goodsTypeText: '未设置', goodsTypeClass: 'unset' }
+}
+
 function dateForecastText(forecasts, fallbackQuantity, fallbackUnit) {
   const rows = Array.isArray(forecasts) ? forecasts : []
   if (rows.length) {
@@ -116,27 +129,55 @@ function dateForecastText(forecasts, fallbackQuantity, fallbackUnit) {
   return '预估 ' + formatSmartNumber(fallbackQuantity) + (fallbackUnit || '')
 }
 
+function dateForecastItems(forecasts, fallbackQuantity, fallbackUnit) {
+  const rows = Array.isArray(forecasts) ? forecasts : []
+  if (rows.length) {
+    return rows.map((item, index) => ({
+      key: String(item.date || 'forecast') + '-' + index,
+      dateText: shortSlashDate(item.date) || '预计',
+      quantityText: formatSmartNumber(item.quantity),
+      unit: cleanText(item.unit) || fallbackUnit || ''
+    }))
+  }
+  return [{
+    key: 'summary',
+    dateText: '预计',
+    quantityText: formatSmartNumber(fallbackQuantity),
+    unit: fallbackUnit || ''
+  }]
+}
+
 function departmentLines(item, run) {
   const departments = Array.isArray(item.departmentForecasts) ? item.departmentForecasts : []
   if (departments.length) {
-    return departments.map((department, index) => ({
-      key: String(department.departmentId || index) + '-' + String(department.unit || ''),
-      departmentName: department.departmentName || '客户' + (index + 1),
-      forecastText: dateForecastText(
-        department.dateForecasts,
-        department.predictedQuantity,
-        department.unit || item.predictedUnit || item.unit
-      )
-    }))
+    return departments.map((department, index) => {
+      const unit = department.unit || item.predictedUnit || item.unit
+      return {
+        key: String(department.departmentId || index) + '-' + String(department.unit || ''),
+        departmentName: department.departmentName || '客户' + (index + 1),
+        forecastText: dateForecastText(
+          department.dateForecasts,
+          department.predictedQuantity,
+          unit
+        ),
+        forecastItems: dateForecastItems(
+          department.dateForecasts,
+          department.predictedQuantity,
+          unit
+        )
+      }
+    })
   }
+  const unit = item.predictedUnit || item.unit
   return [{
     key: 'summary',
     departmentName: item.departmentName || run.departmentName || '当前客户',
     forecastText: dateForecastText(
       item.dateForecasts,
       item.predictedQuantity,
-      item.predictedUnit || item.unit
-    )
+      unit
+    ),
+    forecastItems: dateForecastItems(item.dateForecasts, item.predictedQuantity, unit)
   }]
 }
 
@@ -160,13 +201,26 @@ export function decorateProcurementContext(context, predictedUnit) {
     }
   }
   const activeCount = Math.max(0, Number(context.activePurchaseCount || 0))
+  const purchaseQuantity = numeric(context.activePurchaseQuantity)
+  const purchaseUnit = cleanText(context.activePurchaseUnit) || predictedUnit || ''
+  const purchaseQuantityText = purchaseQuantity === null ? '' : formatSmartNumber(purchaseQuantity)
   return {
     state: activeCount > 0 ? 'active' : 'idle',
     stockText: formatSmartNumber(context.stockQuantity),
     stockUnit: context.stockUnit || predictedUnit || '',
-    purchaseText: activeCount > 0 ? '采购中' + (activeCount > 1 ? ' · ' + activeCount + '笔' : '') : '暂无采购',
+    purchaseText: activeCount > 0
+      ? (activeCount > 1 ? activeCount + '笔采购' : (purchaseQuantityText
+        ? purchaseQuantityText + purchaseUnit : '采购中'))
+      : '暂无采购',
     canCreate: activeCount === 0,
-    activePurchaseCount: activeCount
+    canEdit: activeCount === 1 && Boolean(context.activePurchaseEditable) &&
+      Number(context.activePurchaseGoodsId) > 0 && purchaseQuantity !== null,
+    activePurchaseCount: activeCount,
+    activePurchaseGoodsId: Number(context.activePurchaseGoodsId) || null,
+    activePurchaseQuantity: purchaseQuantity,
+    activePurchaseQuantityText: purchaseQuantityText,
+    activePurchaseUnit: purchaseUnit,
+    activePurchaseStatus: numeric(context.activePurchaseStatus)
   }
 }
 
@@ -190,6 +244,7 @@ export function decorateSmartProducts(run, goodsDetails, contexts, imageBaseUrl)
       const risks = item.policy && item.policy.riskReasons ? item.policy.riskReasons : item.riskReasons
       const quantity = numeric(item.predictedQuantity)
       const context = decorateProcurementContext(contextMap[goodsId], unit)
+      const goodsType = goodsTypePresentation(goods, item)
       context.canCreate = context.canCreate && quantity !== null && quantity > 0 && Boolean(cleanText(unit))
       return {
         key: String(goodsId) + '::' + unit,
@@ -208,6 +263,9 @@ export function decorateSmartProducts(run, goodsDetails, contexts, imageBaseUrl)
         predictedQuantity: quantity,
         predictedQuantityText: formatSmartNumber(item.predictedQuantity),
         predictedUnit: unit,
+        goodsType: goodsType.goodsType,
+        goodsTypeText: goodsType.goodsTypeText,
+        goodsTypeClass: goodsType.goodsTypeClass,
         departmentLines: departmentLines(item, run || {}),
         reasons: (Array.isArray(supporting) ? supporting : []).map(reasonText).filter(Boolean).slice(0, 4),
         riskReasons: (Array.isArray(risks) ? risks : []).map(reasonText).filter(Boolean).slice(0, 3),
@@ -246,10 +304,21 @@ export function applySmartProductFilters(products, options) {
   return (Array.isArray(products) ? products : []).filter(product => {
     if (settings.level && product.level !== settings.level) return false
     if (settings.category && product.categoryKey !== settings.category) return false
+    if (settings.goodsType !== '' && settings.goodsType !== null &&
+      settings.goodsType !== undefined && product.goodsType !== Number(settings.goodsType)) return false
     if (!keyword) return true
     return [product.goodsName, product.detailText, product.categoryName]
       .some(value => String(value || '').toLocaleLowerCase('zh-CN').includes(keyword))
   })
+}
+
+export function smartGoodsTypeSummary(products) {
+  const source = Array.isArray(products) ? products : []
+  return {
+    total: source.length,
+    self: source.filter(item => item.goodsType === -1).length,
+    stock: source.filter(item => item.goodsType === 1).length
+  }
 }
 
 export function smartSummary(products) {

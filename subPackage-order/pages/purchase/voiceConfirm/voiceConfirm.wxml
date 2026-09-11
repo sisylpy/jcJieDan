@@ -1,0 +1,90 @@
+<view class="page">
+  <back-navbar
+    style="height: {{navBarHeight}}rpx;"
+    title="确认语音采购"
+    avatar="/images/back-gray.png"
+    bindnavbuttontap="toBack">
+  </back-navbar>
+  <view class="navbar-spacer" style="height: {{navBarHeight}}rpx;"></view>
+
+  <scroll-view class="confirm-scroll" scroll-y style="height: {{windowHeight}}rpx;">
+    <view class="summary-card">
+      <view>
+        <text class="summary-title">确认商品与规格</text>
+        <text class="summary-copy">{{rows.length}}种商品，已选择{{selectedCount}}种</text>
+      </view>
+      <view class="summary-count">{{selectedCount}}/{{rows.length}}</view>
+    </view>
+
+    <view class="notice-card">
+      调料等商品可能有多个品牌、重量和包装，请逐条选择准确商品后再生成采购。
+    </view>
+
+    <view class="purchase-row" wx:for="{{rows}}" wx:key="sourceIndex" wx:for-item="row" wx:for-index="rowIndex">
+      <view class="row-head">
+        <view class="row-index">{{rowIndex + 1}}</view>
+        <view class="recognized-copy">
+          <text class="recognized-name">识别：{{row.goodsName}}</text>
+          <text class="recognized-quantity">{{row.quantity}}{{row.standard}}</text>
+        </view>
+        <text class="choice-state {{row.selectedDisGoodsId ? 'ready' : ''}}">{{row.matchedByTraining ? '习惯匹配' : (row.selectedDisGoodsId ? '已选择' : '待选择')}}</text>
+      </view>
+
+      <view class="edit-row">
+        <view class="edit-field">
+          <text>采购数量</text>
+          <input type="digit" value="{{row.quantity}}" data-index="{{rowIndex}}" data-field="quantity" bindinput="updateRow" />
+        </view>
+        <view class="edit-field">
+          <text>采购单位</text>
+          <input value="{{row.standard}}" data-index="{{rowIndex}}" data-field="standard" bindinput="updateRow" />
+        </view>
+      </view>
+
+      <view class="candidate-title">
+        <text>{{row.matchedByTraining ? '已按您的采购习惯自动选择' : (row.candidates.length ? (row.candidates.length > 1 ? '请选择具体商品' : '已找到唯一商品') : '没有找到商品')}}</text>
+        <text class="candidate-count" wx:if="{{row.candidates.length && !row.matchedByTraining}}">{{row.candidates.length}}个候选</text>
+      </view>
+
+      <view
+        class="candidate-card {{row.selectedDisGoodsId == candidate.nxDistributerGoodsId ? 'selected' : ''}}"
+        wx:for="{{row.visibleCandidates}}"
+        wx:key="nxDistributerGoodsId"
+        wx:for-item="candidate"
+        data-index="{{rowIndex}}"
+        data-candidate-id="{{candidate.nxDistributerGoodsId}}"
+        bindtap="chooseCandidate">
+        <image wx:if="{{candidate.imageUrl}}" class="goods-image" src="{{candidate.imageUrl}}" mode="aspectFill"></image>
+        <view wx:else class="goods-image placeholder">货</view>
+        <view class="candidate-copy">
+          <text class="candidate-name">{{candidate.nameText}}</text>
+          <text class="candidate-spec">{{candidate.specText || '暂无规格说明'}}</text>
+        </view>
+        <view class="radio {{row.selectedDisGoodsId == candidate.nxDistributerGoodsId ? 'checked' : ''}}">
+          <text wx:if="{{row.selectedDisGoodsId == candidate.nxDistributerGoodsId}}">✓</text>
+        </view>
+      </view>
+
+      <view class="research-row">
+        <input
+          value="{{row.searchText}}"
+          data-index="{{rowIndex}}"
+          data-field="searchText"
+          bindinput="updateRow"
+          placeholder="换关键词重新搜索" />
+        <button loading="{{row.searching}}" data-index="{{rowIndex}}" bindtap="searchAgain">重新搜索</button>
+      </view>
+    </view>
+
+    <view class="empty" wx:if="{{!rows.length}}">没有采购确认数据，请返回重新识别。</view>
+    <view class="bottom-space"></view>
+  </scroll-view>
+
+  <view class="submit-bar" wx:if="{{rows.length}}">
+    <view class="submit-summary">
+      <text>已选 {{selectedCount}}/{{rows.length}}</text>
+      <text>生成待采购商品</text>
+    </view>
+    <button loading="{{submitting}}" bindtap="submitPurchase">确认生成</button>
+  </view>
+</view>

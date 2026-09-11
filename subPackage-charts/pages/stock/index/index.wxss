@@ -1,474 +1,620 @@
-
-
-
 page {
-  /* font-size: 3.5vw; */
-  height: 100%;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  /* background: #f6f8f8; */
-  background-color: #fff;
-
+  background: #f4f6f5;
+  color: #25312f;
 }
 
-/* 时间卡片容器 */
-.time-cards-container {
-  background: #f5f5f5;
-  padding: 20rpx;
-  min-height: 100%;
-}
-
-.time-cards-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 12rpx;
-}
-
-/* 图表区域 */
-.chart-section {
-  background: #ffffff;
-  border-radius: 16rpx;
-  padding: 20rpx;
-  margin-top: 20rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
-}
-
-/* 轻量修饰 - 统一视觉风格 */
-.bg-white {
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
-  border: 1rpx solid #f0f0f0;
-  transition: all 0.3s ease;
-}
-
-.bg-white:hover {
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
-  transform: translateY(-2rpx);
-}
-
-/* 图表区域修饰 */
-.echarts_back {
-  border-radius: 16rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
-  border: 1rpx solid #f0f0f0;
-}
-
-/* 进度条美化 */
-.line_father {
-  border-radius: 3rpx;
-  background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
-}
-
-/* 空状态 */
-.empty-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
-  min-height: 600rpx;
-}
-
-.empty-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.empty-icon {
-  width: 120rpx;
-  height: 120rpx;
-  opacity: 0.5;
-  margin-bottom: 20rpx;
-}
-
-.empty-text {
-  font-size: 28rpx;
-  color: #999;
-}
-
-/* 时间段卡片 */
-.time-card {
-  background: #ffffff;
-  border-radius: 16rpx;
-  padding: 24rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.06);
-  border: 1rpx solid #f0f0f0;
-  transition: all 0.3s ease;
-  position: relative;
+.stock-page {
+  min-height: 100vh;
   overflow: hidden;
 }
 
-/* 卡片悬停效果 */
-.time-card:hover {
-  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.1);
+.stock-content {
+  background: #f4f6f5;
 }
 
-/* 激活状态的卡片样式 */
-.time-card.active {
-  border-color: #e8f5e8;
-  background: #f8fff8;
-  transform: translateY(-2rpx);
-  box-shadow: 0 6rpx 20rpx rgba(0, 0, 0, 0.12);
-}
-
-.time-card.active::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4rpx;
-  background: linear-gradient(90deg, #4CAF50 0%, #8BC34A 100%);
-}
-
-/* 卡片头部 */
-.time-card-header {
+.stock-toolbar {
+  box-sizing: border-box;
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  width: 100%;
+  padding: 0 24rpx;
+  background: #ffffff;
 }
 
-/* 时间标题区域 */
-.time-title-section {
+.toolbar-title {
+  display: flex;
+  align-items: baseline;
+  color: #187e6e;
+  font-size: 30rpx;
+  font-weight: 600;
+}
+
+.toolbar-count {
+  font-size: 24rpx;
+  font-weight: 400;
+}
+
+.toolbar-actions {
   display: flex;
   align-items: center;
-  flex: 1;
 }
 
-/* 时间段图标 */
-.time-icon {
-  width: 36rpx;
-  height: 36rpx;
-  border-radius: 8rpx;
+.toolbar-mode-switch,
+.toolbar-refresh {
+  width: 64rpx;
+  height: 64rpx;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 22rpx;
-  font-weight: 500;
-  color: white;
-  position: relative;
-  margin-right: 8rpx;
-}
-
-/* 不同时间段的图标颜色 */
-.time-icon.all-stock {
-  background: #607D8B;
-}
-
-.time-icon.today {
-  background: #4CAF50;
-}
-
-.time-icon.one-day {
-  background: #2196F3;
-}
-
-.time-icon.two-days {
-  background: #FF9800;
-}
-
-.time-icon.three-days {
-  background: #F44336;
-}
-
-.time-icon.more-days {
-  background: #9C27B0;
-}
-
-/* 时间段文字 */
-.time-text {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #333;
-}
-
-/* 库存金额区域 */
-.stock-amount-section {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  flex: 1;
-}
-
-.stock-amount {
-  font-size: 32rpx;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 8rpx;
-}
-
-/* 进度条容器 */
-.progress-container {
-  width: 120rpx;
-  height: 6rpx;
-  background: #e0e0e0;
-  border-radius: 3rpx;
-  overflow: hidden;
-}
-
-/* 进度条 */
-.progress-bar {
-  height: 100%;
-  border-radius: 3rpx;
-  transition: width 0.3s ease;
-}
-
-.progress-bar.all-stock {
-  background: #607D8B;
-}
-
-.progress-bar.today {
-  background: #4CAF50;
-}
-
-.progress-bar.one-day {
-  background: #2196F3;
-}
-
-.progress-bar.two-days {
-  background: #FF9800;
-}
-
-.progress-bar.three-days {
-  background: #F44336;
-}
-
-.progress-bar.more-days {
-  background: #9C27B0;
-}
-
-swiper{
-  height: 100%;
-  width: 100%;
-}
- 
-.contain {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  height: 0;
-}
- 
-.tabbar {
-  height: 80rpx;
-  /* width: 100vw; */
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
-  z-index: 999999;
-  border-right: 1px solid lightgray;
-  /* border-bottom: 3px #dbdbdb solid; */
-  /* padding-bottom: 2vw; */
-}
- 
-.tabbar_item {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: center;
-  line-height: 80rpx;
-  height: 80rpx;
-  font-size: 32rpx;
-}
- 
-.on {
+  background: #f0f5f4;
   color: #187e6e;
 }
- 
-.swiper-box {
+
+.toolbar-mode-switch {
+  margin-right: 18rpx;
+}
+
+.mode-switch-icon {
+  width: 36rpx;
+  height: 36rpx;
+}
+
+.toolbar-refresh {
+  flex-shrink: 0;
+}
+
+.refresh-icon {
+  margin-top: -4rpx;
+  font-size: 42rpx;
+  line-height: 1;
+}
+
+.toolbar-refresh--loading .refresh-icon {
+  opacity: 0.45;
+}
+
+.stock-main {
+  display: flex;
+  overflow: hidden;
+}
+
+.category-menu {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  background: #f1f3f2;
+  border-right: 1rpx solid #e4e8e6;
+}
+
+.category-item {
+  position: relative;
+  box-sizing: border-box;
+  min-height: 120rpx;
+  padding: 20rpx 14rpx;
   display: flex;
   flex-direction: column;
-  flex: 1;
-  height: 0;
-  width: 100%;
-  overflow-x: hidden;
-  overflow-y: scroll;
-}
- 
-.swiper1_top_item {
-  font-size: 22rpx;
-  display: inline-block;
-  padding: 12rpx 8rpx !important;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1rpx solid #dde2df;
+  color: #454b49;
+  font-size: 25rpx;
+  line-height: 1.35;
   text-align: center;
-  box-sizing: border-box;
-  margin-right: 20rpx;
 }
 
-.swiper1_top_item.on {
-  color: #FFFFFF;
+.category-item--active {
+  background: #dff3ed;
+  color: #187e6e;
   font-weight: 600;
-  border-radius: 20rpx;
-  background: linear-gradient(135deg, #52b956, #3fa844);
-  /* border: 2rpx solid #1B5E20; */
-  /* box-shadow: 0 4rpx 12rpx rgba(27, 94, 32, 0.4); */
 }
 
-scroll-view {
-	white-space: nowrap;
-}
-
-/* 分类库存项样式 */
-.category-stock-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 24rpx 20rpx;
-  border-bottom: 1rpx solid #f0f0f0;
-  transition: background-color 0.2s ease;
-}
-
-.category-stock-item:hover {
-  background-color: #f8f9fa;
-}
-
-/* 左侧：商品图片和名称 */
-.category-left {
-  display: flex;
-  align-items: center;
-  flex: 1;
-  min-width: 0;
-}
-
-.category-image {
-  width: 80rpx;
-  height: 80rpx;
-  border-radius: 12rpx;
-  margin-right: 16rpx;
-  background-color: #f0f0f0;
+.category-item--active::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 6rpx;
+  background: #159681;
+  content: '';
 }
 
 .category-name {
-  font-size: 32rpx;
-  font-weight: 600;
-  color: #333;
-  flex: 1;
+  word-break: break-all;
+}
+
+.category-count {
+  margin-top: 4rpx;
+  font-size: 23rpx;
+}
+
+.menu-bottom-space {
+  height: 120rpx;
+}
+
+.goods-panel {
+  min-width: 0;
+  background: #f5f7f6;
+}
+
+.category-header {
+  box-sizing: border-box;
+  padding: 0 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border-bottom: 1rpx solid #dde3e0;
+}
+
+.category-header-main {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.category-header-label {
+  flex-shrink: 0;
+  color: #7b8481;
+  font-size: 25rpx;
+}
+
+.category-header-name {
   overflow: hidden;
+  margin-left: 8rpx;
+  color: #187e6e;
+  font-size: 29rpx;
+  font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
-  line-height: 1.3;
 }
 
-/* 右侧：库存信息 */
-.category-right {
+.category-header-count {
+  flex-shrink: 0;
+  margin-left: 14rpx;
+  color: #8c9492;
+  font-size: 22rpx;
+}
+
+.goods-scroll {
+  box-sizing: border-box;
+}
+
+.goods-list {
+  padding: 16rpx;
+}
+
+.goods-card {
+  overflow: hidden;
+  margin-bottom: 18rpx;
+  border: 1rpx solid #dfe6e3;
+  border-radius: 18rpx;
+  background: #ffffff;
+  box-shadow: 0 4rpx 12rpx rgba(40, 74, 65, 0.05);
+}
+
+.goods-overview {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8rpx;
+  padding: 18rpx;
+}
+
+.goods-image-wrap {
   flex-shrink: 0;
 }
 
-/* 主要金额行 */
-/* 库存金额行 - 主要信息 */
-.stock-amount-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12rpx;
-  padding-bottom: 8rpx;
-  border-bottom: 1rpx solid #f0f0f0;
+.goods-image {
+  width: 144rpx;
+  height: 144rpx;
+  border-radius: 14rpx;
+  background: #f2f3f3;
 }
 
-.stock-amount-main {
-  font-size: 36rpx;
-  font-weight: 700;
-  color: #333;
-  line-height: 1.2;
-}
-
-.stock-percentage {
-  font-size: 24rpx;
-  color: #666;
-  background-color: #f0f0f0;
-  padding: 4rpx 8rpx;
-  border-radius: 8rpx;
-}
-
-/* 商品数量信息 */
-.stock-quantity {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8rpx;
-  padding: 6rpx 0;
-}
-
-.quantity-label {
-  font-size: 26rpx;
-  color: #666;
-  font-weight: 500;
-}
-
-.quantity-value {
-  font-size: 28rpx;
-  font-weight: 600;
-  color: #333;
-}
-
-/* 过期信息 - 重要警告 */
-.waste-amount {
-  display: flex;
-  flex-direction: column;
-  gap: 6rpx;
-  padding: 12rpx;
-  background: linear-gradient(135deg, #fff2f0 0%, #ffe7e7 100%);
-  border-radius: 8rpx;
-  border: 2rpx solid #ffccc7;
-  margin-top: 8rpx;
-}
-
-.waste-label {
-  font-size: 24rpx;
-  color: #ff4d4f;
-  font-weight: 600;
-  text-align: center;
-  margin-bottom: 4rpx;
-}
-
-.waste-value {
-  font-size: 24rpx;
-  font-weight: 500;
-  color: #ff4d4f;
-  text-align: center;
-  line-height: 1.3;
-}
-
-/* 环形图样式 */
-.donut-chart-container {
-  margin-left: 12rpx;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.donut-chart {
-  border-radius: 50%;
-  position: relative;
+.goods-image--empty {
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* 环形图中心白色圆形 - 借鉴costGoodsByDate.wxss的实现 */
-.donut-chart::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 60%;
-  height: 60%;
-  background-color: white;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  z-index: 1;
+.camera-icon {
+  width: 52rpx;
+  height: 52rpx;
+  opacity: 0.45;
 }
 
-.donut-percent {
+.goods-info {
+  min-width: 0;
+  flex: 1;
+  padding-left: 18rpx;
+}
+
+.goods-name {
+  display: block;
+  color: #24302e;
+  font-size: 29rpx;
+  font-weight: 650;
+  line-height: 1.4;
+}
+
+.goods-spec-row {
+  margin-top: 9rpx;
+  display: flex;
+  flex-wrap: wrap;
+  color: #606a67;
+  font-size: 24rpx;
+}
+
+.goods-carton {
+  margin-left: 22rpx;
+}
+
+.goods-shelf-row {
+  margin-top: 12rpx;
+  display: flex;
+  align-items: flex-start;
+  font-size: 23rpx;
+  line-height: 1.5;
+}
+
+.goods-shelf-label {
+  flex-shrink: 0;
+  color: #808886;
+}
+
+.goods-shelf-value {
+  margin-left: 8rpx;
+  color: #e65f42;
+  word-break: break-all;
+}
+
+.goods-summary {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1rpx solid #edf0ef;
+  border-bottom: 1rpx solid #e4eae7;
+  background: #fafcfb;
+}
+
+.summary-cell {
+  min-width: 0;
+  padding: 14rpx 8rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-right: 1rpx solid #e6ebe9;
+}
+
+.summary-cell:last-child {
+  border-right: 0;
+}
+
+.summary-cell--amount,
+.batch-metric--rest {
+  background: #fff9f2;
+}
+
+.summary-label {
+  color: #8c9491;
+  font-size: 20rpx;
+}
+
+.summary-value {
+  overflow: hidden;
+  max-width: 100%;
+  margin-top: 5rpx;
+  color: #33403d;
+  font-size: 23rpx;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.summary-value--amount,
+.metric-value--rest {
+  color: #e77824;
+}
+
+.batch-list {
+  padding: 14rpx;
+  background: #f7faf8;
+}
+
+.batch-card {
+  overflow: hidden;
+  margin-bottom: 12rpx;
+  border-left: 6rpx solid #22aa8f;
+  border-radius: 12rpx;
+  background: #ffffff;
+  box-shadow: 0 2rpx 8rpx rgba(25, 102, 84, 0.06);
+}
+
+.batch-card:last-child {
+  margin-bottom: 0;
+}
+
+.batch-header {
+  padding: 13rpx 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #eaf8f4;
+}
+
+.batch-tag {
+  padding: 4rpx 10rpx;
+  border-radius: 8rpx;
+  background: #ccefe5;
+  color: #177d6c;
+  font-size: 21rpx;
+  font-weight: 600;
+}
+
+.batch-location {
+  overflow: hidden;
+  max-width: 65%;
+  color: #187e6e;
+  font-size: 22rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.batch-date-row {
+  padding: 10rpx 16rpx;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8rpx;
+  color: #69726f;
+  font-size: 20rpx;
+}
+
+.batch-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-top: 1rpx solid #e8edeb;
+}
+
+.batch-metric {
+  min-width: 0;
+  padding: 12rpx 7rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-right: 1rpx solid #e8edeb;
+}
+
+.batch-metric:last-child {
+  border-right: 0;
+}
+
+.metric-label {
+  color: #8a9290;
+  font-size: 19rpx;
+}
+
+.metric-value {
+  overflow: hidden;
+  max-width: 100%;
+  margin-top: 5rpx;
+  color: #37413f;
+  font-size: 20rpx;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metric-sub {
+  overflow: hidden;
+  max-width: 100%;
+  margin-top: 2rpx;
+  color: #6f7775;
   font-size: 18rpx;
-  font-weight: bold;
-  color: #333;
-  z-index: 2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.empty-page,
+.initial-loading,
+.category-empty {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #7d8683;
+}
+
+.empty-image {
+  width: 110rpx;
+  height: 110rpx;
+  opacity: 0.55;
+}
+
+.empty-title {
+  margin-top: 24rpx;
+  color: #58615f;
+  font-size: 30rpx;
+}
+
+.empty-desc {
+  margin-top: 10rpx;
+  color: #9aa19f;
+  font-size: 23rpx;
+}
+
+.category-empty {
+  min-height: 520rpx;
+  font-size: 25rpx;
+}
+
+.category-empty-image {
+  width: 88rpx;
+  height: 88rpx;
+  margin-bottom: 18rpx;
+  opacity: 0.45;
+}
+
+.initial-loading,
+.list-status {
+  color: #929a97;
+  font-size: 23rpx;
+}
+
+.list-status {
+  padding: 26rpx 0;
+  text-align: center;
+}
+
+.page-bottom-space {
+  height: 80rpx;
+}
+
+.hover {
+  opacity: 0.72;
+}
+
+/* 按货架显示：布局与货架页缩略图模式一致。 */
+.shelf-mode {
+  background: #f4f6f5;
+}
+
+.shelf-menu {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  background: #f3f4f4;
+  border-right: 1rpx solid #e1e5e3;
+}
+
+.shelf-menu-item {
   position: relative;
-  line-height: 1;
+  box-sizing: border-box;
+  min-height: 145rpx;
+  padding: 18rpx 8rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-bottom: 1rpx solid #dfe3e1;
+  color: #333b39;
+  font-size: 26rpx;
+  line-height: 1.35;
+  text-align: center;
+}
+
+.shelf-menu-item--active {
+  background: #cceee4;
+  color: #147e6c;
+  font-weight: 600;
+}
+
+.shelf-menu-item--active::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 6rpx;
+  background: #148b76;
+  content: '';
+}
+
+.shelf-menu-item--unshelved {
+  color: #f04f52;
+  font-weight: 600;
+}
+
+.shelf-menu-name {
+  word-break: break-all;
+}
+
+.shelf-menu-count {
+  margin-top: 5rpx;
+  font-size: 23rpx;
+}
+
+.shelf-goods-panel {
+  min-width: 0;
+  background: #f7f9f8;
+}
+
+.shelf-grid {
+  box-sizing: border-box;
+  padding: 18rpx 16rpx 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+
+.shelf-grid-card {
+  box-sizing: border-box;
+  width: 48.5%;
+  min-height: 214rpx;
+  margin: 0 3% 22rpx 0;
+  padding: 22rpx 18rpx;
+  display: flex;
+  flex-direction: column;
+  border: 1rpx solid #e4e9e7;
+  border-radius: 22rpx;
+  background: #ffffff;
+  box-shadow: 0 7rpx 20rpx rgba(29, 64, 55, 0.055);
+}
+
+.shelf-grid-card:nth-child(2n) {
+  margin-right: 0;
+}
+
+.shelf-grid-title {
+  color: #263330;
+  font-size: 29rpx;
+  font-weight: 650;
+  line-height: 1.42;
+  word-break: break-all;
+}
+
+.shelf-grid-spec-row {
+  margin-top: 9rpx;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  color: #555f5c;
+  font-size: 23rpx;
+  line-height: 1.45;
+}
+
+.temporary-mark {
+  margin-right: 7rpx;
+  color: #ff595d;
+  font-weight: 600;
+}
+
+.carton-mark {
+  color: #f1a527;
+  font-weight: 600;
+}
+
+.spec-divider {
+  margin: 0 7rpx;
+  color: #919896;
+}
+
+.shelf-grid-spec {
+  color: #56605d;
+}
+
+.shelf-position {
+  margin-top: 10rpx;
+  color: #87908d;
+  font-size: 21rpx;
+}
+
+.shelf-stock-chip {
+  align-self: flex-start;
+  margin-top: auto;
+  padding: 7rpx 16rpx;
+  border-radius: 18rpx;
+  background: #e8f0ff;
+  color: #3979f4;
+  font-size: 23rpx;
+  font-weight: 600;
+}
+
+.shelf-grid-status {
+  width: 100%;
 }

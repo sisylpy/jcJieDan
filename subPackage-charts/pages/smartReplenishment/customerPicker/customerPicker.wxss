@@ -1,11 +1,11 @@
 page { background: #f3f7f5; color: #223129; }
 .page { min-height: 100vh; background: #f3f7f5; }
-.picker-body { display: flex; flex-direction: column; box-sizing: border-box; }
+.picker-body { position: relative; display: flex; flex-direction: column; box-sizing: border-box; }
 .search-box { height: 82rpx; display: flex; align-items: center; gap: 15rpx; margin: 20rpx 22rpx; padding: 0 22rpx; border: 1rpx solid #d8e5de; border-radius: 20rpx; background: #fff; box-sizing: border-box; }
 .search-box image { width: 31rpx; height: 31rpx; opacity: .7; }
 .search-box input { min-width: 0; flex: 1; font-size: 27rpx; }
 .search-box > text { padding: 10rpx; color: #7b8981; font-size: 32rpx; }
-.customer-scroll { min-height: 0; flex: 1; padding: 0 22rpx; box-sizing: border-box; }
+.customer-scroll { min-height: 0; flex: 1; padding: 0 22rpx 120rpx; box-sizing: border-box; }
 .all-customer, .customer-row { display: flex; align-items: center; gap: 18rpx; padding: 22rpx; border-bottom: 1rpx solid #edf1ef; background: #fff; box-sizing: border-box; }
 .all-customer { border: 1rpx solid #d8e7df; border-radius: 22rpx; }
 .customer-row:first-of-type { border-radius: 22rpx 22rpx 0 0; }
@@ -17,11 +17,15 @@ page { background: #f3f7f5; color: #223129; }
 .customer-text strong, .customer-text text { display: block; }
 .customer-text strong { overflow: hidden; font-size: 29rpx; text-overflow: ellipsis; white-space: nowrap; }
 .customer-text text { margin-top: 6rpx; overflow: hidden; color: #839087; font-size: 21rpx; text-overflow: ellipsis; white-space: nowrap; }
-.selected-check { width: 42rpx; height: 42rpx; flex: none; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: #11945a; color: #fff; font-size: 23rpx; font-weight: 850; }
-.row-arrow { color: #97a29b; font-size: 35rpx; }
+.multi-check { width: 42rpx; height: 42rpx; flex: none; display: flex; box-sizing: border-box; align-items: center; justify-content: center; border: 2rpx solid #b8c6be; border-radius: 10rpx; color: #fff; font-size: 23rpx; font-weight: 850; }
+.multi-check.checked { border-color: #11945a; background: #11945a; }
 .list-caption { padding: 28rpx 6rpx 14rpx; color: #718078; font-size: 23rpx; font-weight: 750; }
 .page-state { flex: 1; display: flex; align-items: center; justify-content: center; flex-direction: column; color: #849188; font-size: 26rpx; }
 .error-state text { color: #a74f4a; }
 .error-state view { margin-top: 22rpx; padding: 15rpx 26rpx; border-radius: 15rpx; background: #11945a; color: #fff; }
 .empty-list { padding: 90rpx 20rpx; color: #87938c; font-size: 25rpx; text-align: center; }
 .safe-bottom { height: calc(env(safe-area-inset-bottom) + 30rpx); }
+.picker-footer { position: absolute; right: 0; bottom: 0; left: 0; display: flex; min-height: 104rpx; padding: 14rpx 28rpx calc(env(safe-area-inset-bottom) + 14rpx); box-sizing: border-box; align-items: center; justify-content: space-between; border-top: 1rpx solid #dde6e1; background: rgba(255, 255, 255, .96); }
+.picker-footer text { color: #526159; font-size: 25rpx; font-weight: 700; }
+.picker-footer button { width: 210rpx; height: 72rpx; margin: 0; border-radius: 36rpx; color: #fff; background: #11945a; font-size: 28rpx; font-weight: 750; line-height: 72rpx; }
+.picker-footer button::after { border: 0; }

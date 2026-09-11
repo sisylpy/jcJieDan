@@ -861,3 +861,29 @@ page {
   color: rgb(212, 10, 10);
   border: 1px solid rgb(248, 154, 154);
 }
+
+/* 第 2 个底栏入口内的一级业务切换：出货中 / 采购中 / 协作伙伴 */
+.merged-work-tabs {
+  display: flex;
+  flex-shrink: 0;
+  height: 88rpx;
+  box-sizing: border-box;
+  background-color: #fff;
+  border-bottom: 1rpx solid #e5e5e5;
+}
+
+.merged-work-tab {
+  flex: 1;
+  height: 88rpx;
+  line-height: 88rpx;
+  box-sizing: border-box;
+  text-align: center;
+  color: #555;
+  font-size: 30rpx;
+}
+
+.merged-work-tab.is-active {
+  color: #168474;
+  font-weight: 600;
+  border-bottom: 6rpx solid #168474;
+}

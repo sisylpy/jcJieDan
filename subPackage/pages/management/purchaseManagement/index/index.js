@@ -2,7 +2,8 @@ import { getPurchaseManagementOverview } from '../../../../../lib/apiDistributer
 const app=getApp()
 Page({
   data:{navBarHeight:0,range:'TODAY',startDate:'',stopDate:'',loading:false,error:'',period:{},tasks:{},structures:{}},
-  onLoad(){this.setData({navBarHeight:app.globalData.navBarHeight*app.globalData.rpxR});this.load()},
+  onLoad(){this.setData({navBarHeight:app.globalData.navBarHeight*app.globalData.rpxR})},
+  onShow(){this.load()},
   onPullDownRefresh(){this.load(true)},toBack(){wx.navigateBack({delta:1})},
   chooseRange(e){const range=e.currentTarget.dataset.range;this.setData({range,startDate:'',stopDate:''});this.load()},
   changeStart(e){this.setData({range:'CUSTOM',startDate:e.detail.value});this.tryCustom()},

@@ -8,8 +8,6 @@
     "input-pur-goods": "/components/inputPurGoods/inputPurGoods",
     "input-pur-stock": "/components/inputPurStock/inputPurStock",
     "disEditPurchase": "/components/disEditPurchase/disEditPurchase",
-    "editShelfStock": "/components/editShelfStock/editShelfStock",
-    "editShelfStockDetail": "/components/editShelfStockDetail/editShelfStockDetail",
 
     "stockDetailModal": "/components/stockDetailModalSuyuan/stockDetailModalSuyuan",
     "goodsWillPirce": "/components/goodsWillPirce/goodsWillPirce"

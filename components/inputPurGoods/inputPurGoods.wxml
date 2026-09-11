@@ -1,7 +1,7 @@
-<view class='ccc' wx:if='{{show}}' catchtouchmove='ture'>
+<view class='ccc' wx:if='{{show}}' catchtouchmove='preventMove'>
   <view class='modal-content flex-column'>
     <view class="top">
-      <view class='goodsTitle flex-row'>
+      <view class='goodsTitle flex-row {{keyboardVisible ? "keyboard-open" : ""}}'>
         <text class="brand" wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0 && item.nxDistributerGoodsEntity.nxDgGoodsBrand !== 'null'}}">{{item.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
         <text>{{item.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
         <text wx:for="{{item.nxDistributerGoodsEntity.nxAliasEntities}}" wx:for-item="alias">={{alias.nxDaAliasName}}</text>
@@ -12,6 +12,7 @@
           <text class="">({{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
         </block>
       </view>
+      <view class="keyboard-dismiss" wx:if="{{keyboardVisible}}" catchtouchstart="hideKeyboard">收起键盘</view>
     </view>
 
     <view class="body">
@@ -37,7 +38,7 @@
           <text class="margin-l-right">采购数量:</text>
           <view class="flex-row">
             <view class="inputView" style="width: 200rpx; margin-right: 10rpx;">
-              <input class='input' type='digit' value="{{item.nxDpgBuyQuantity}}" bindinput="getPurchaseQuantity" bindblur="_checkQuantity" hold-keyboard='true'></input>
+              <input class='input' type='digit' value="{{item.nxDpgBuyQuantity}}" bindinput="getPurchaseQuantity" bindfocus="onInputFocus" bindblur="_checkQuantity" confirm-type="done" bindconfirm="hideKeyboard"></input>
             </view>
             <text>{{item.nxDistributerGoodsEntity.nxDgCartonUnit !== null && item.nxDistributerGoodsEntity.nxDgCartonUnit !== undefined && item.nxDistributerGoodsEntity.nxDgCartonUnit !== '' ? item.nxDistributerGoodsEntity.nxDgCartonUnit : item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
           </view>
@@ -47,7 +48,7 @@
           <text class="margin-l-right">采购单价:</text>
           <view class="flex-row">
             <view class="inputView" style="width: 200rpx; margin-right: 10rpx;">
-              <input class='input' type='digit' value="{{cartonBuyPrice || item.nxDpgBuyPrice}}" bindinput="getPurchasePrice" bindblur="_checkPrice" hold-keyboard='true'></input>
+              <input class='input' type='digit' value="{{cartonBuyPrice || item.nxDpgBuyPrice}}" bindinput="getPurchasePrice" bindfocus="onInputFocus" bindblur="_checkPrice" confirm-type="done" bindconfirm="hideKeyboard"></input>
             </view>
             <text>元/{{item.nxDistributerGoodsEntity.nxDgCartonUnit !== null && item.nxDistributerGoodsEntity.nxDgCartonUnit !== undefined && item.nxDistributerGoodsEntity.nxDgCartonUnit !== '' ? item.nxDistributerGoodsEntity.nxDgCartonUnit : item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
           </view>
@@ -64,7 +65,7 @@
           <text class="margin-l-right">建议售价:</text>
           <view class="flex-row">
             <view class="inputView" style="width: 200rpx; margin-right: 10rpx;">
-              <input class='input' type='digit' value="{{cartonExpectPrice || item.nxDpgExpectPrice}}" bindinput="getPurchaseExpectPrice" bindblur="_checkPrice" hold-keyboard='true'></input>
+              <input class='input' type='digit' value="{{cartonExpectPrice || item.nxDpgExpectPrice}}" bindinput="getPurchaseExpectPrice" bindfocus="onInputFocus" bindblur="_checkPrice" confirm-type="done" bindconfirm="hideKeyboard"></input>
             </view>
             <text>元/{{item.nxDistributerGoodsEntity.nxDgCartonUnit !== null && item.nxDistributerGoodsEntity.nxDgCartonUnit !== undefined && item.nxDistributerGoodsEntity.nxDgCartonUnit !== '' ? item.nxDistributerGoodsEntity.nxDgCartonUnit : item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
           </view>
@@ -77,13 +78,17 @@
           </view>
         </view>
 
-        <view class="flex-row-between p-20">
+        <view class="flex-row-between p-20" wx:if="{{item.nxDpgStatus != 2}}">
           <text class="margin-l-right">等待入库:</text>
           <view class="flex-row">
             <view class="inputView1" style="width: 200rpx; margin-right: 10rpx;">
               <switch checked="{{item.isShowTools}}" bindchange="changeWait"/>
             </view>
           </view>
+        </view>
+        <view class="flex-row-between p-20" wx:else>
+          <text class="margin-l-right">当前状态:</text>
+          <text>等待入库，本次完成后生成库存批次</text>
         </view>
       </view>
 

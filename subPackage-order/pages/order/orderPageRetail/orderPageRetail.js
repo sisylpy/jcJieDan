@@ -2359,7 +2359,7 @@ Page({
             this._initData();
           } else {
             wx.showToast({
-              title: 'res.result.msg',
+              title: res.result.msg || '保存失败',
               icon: 'none'
             })
           }

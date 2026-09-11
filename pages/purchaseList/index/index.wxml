@@ -1,0 +1,220 @@
+<view class="purchase-page">
+  <custom-navbar
+    style="height: {{navBarHeight}}rpx;"
+    title="备货"
+    avatar="{{avatarUrl}}"
+    button-text="设置"
+    bindnavbuttontap="onNavButtonTap">
+  </custom-navbar>
+
+  <view class=" flex flex-row-between bg-white border-bottom p-20">
+
+    <view class="flex-row">
+   
+    <view class="button-container ml-20" bindtap="onToolCart">
+      <image src="/images/Focus-Auto.png" class="icon"></image>
+    </view>
+
+    <view class="button-container ml-20 mr-40" bindtap="toStock">
+      <image src="/images/goods.png" class="icon"></image>
+    </view>
+    <view class="button-container ml-40 mr-20" bindtap="onToolAdd">
+        <image src="/images/robot-solid.png" class="icon"></image>
+      </view>
+      
+    <view
+      class="button-container ml-20 voice-purchase-entry"
+      aria-label="语音采购"
+      bindtap="openVoicePurchase">
+      <image class="voice-purchase-icon" src="/images/luyin-2.png" mode="aspectFit"></image>
+      <text class="voice-purchase-label">语音采购</text>
+    </view>
+    
+    </view>
+
+  
+
+    <view class="flex flex-row">
+      <view class="button-container mr-40" aria-label="打开精彩订货"
+      bindtap="openPurchaseApp">
+      <image src="/images/jjdhn.png" class="icon"></image>
+    </view>
+      <!-- <view class="button-container mr-40" bindtap="onToolSearch">
+        <image src="/images/warn-3.png" class="icon"></image>
+      </view> -->
+      
+    </view>
+  </view>
+
+  <view
+    class="purchase-workspace {{selectedGoods.length ? 'has-selection' : ''}}"
+    style="height: {{contentHeight}}rpx;">
+    <view class="loading" wx:if="{{purchaseLoading && purchaseGoods.length === 0}}">正在加载采购任务…</view>
+    <view class="empty" wx:elif="{{purchaseGoods.length === 0}}">
+      <view class="empty-icon">✓</view>
+      <text class="empty-title">今天没有待采购商品</text>
+      <text class="empty-copy">货架采购和智能备货任务会出现在这里</text>
+    </view>
+
+    <view class="category-main" wx:else>
+      <scroll-view
+        class="left-menu"
+        scroll-y
+        scroll-with-animation
+        scroll-into-view="{{leftCategoryIntoView}}"
+        style="height: {{contentHeight}}rpx; width: {{leftMenuWidth}}rpx;">
+        <view
+          id="{{category.leftAnchorId}}"
+          class="left-item {{selectedCategoryIndex === categoryIndex ? 'left-active' : ''}}"
+          wx:for="{{purchaseCategories}}"
+          wx:key="categoryId"
+          wx:for-item="category"
+          wx:for-index="categoryIndex"
+          data-index="{{categoryIndex}}"
+          bindtap="selectPurchaseCategory">
+          <text class="left-category-name">{{category.nxDfgFatherGoodsName}}</text>
+          <text class="left-category-count">({{category.newOrderCount}})</text>
+        </view>
+        <view class="left-menu-space"></view>
+      </scroll-view>
+
+      <scroll-view
+        class="right-content"
+        scroll-y
+        scroll-with-animation
+        scroll-into-view="{{categoryIntoView}}"
+        refresher-enabled
+        refresher-triggered="{{pendingRefresh}}"
+        bindrefresherrefresh="onPendingRefresh"
+        bindscroll="onPurchaseGoodsScroll"
+        style="height: {{contentHeight}}rpx; width: {{windowWidth - leftMenuWidth}}rpx;">
+        <view
+          wx:for="{{purchaseGoods}}"
+          wx:key="nxDistributerPurchaseGoodsId"
+          wx:for-item="item">
+          <view
+            wx:if="{{item.showCategoryHeader}}"
+            id="{{item.categoryAnchor}}"
+            class="category-header-wrapper {{item.isFirstCategory ? 'first' : ''}}">
+            <view class="category-header">
+              <text class="category-title">{{item.categoryName}}</text>
+              <view
+                class="category-select-all {{item.categorySelectableCount ? '' : 'disabled'}}"
+                data-category-id="{{item.categoryId}}"
+                catchtap="selectAllCategoryGoods">
+                <text>全选</text>
+                <view class="custom-checkbox {{item.categoryIsAllSelected ? 'checked' : ''}}">
+                  <text class="checkbox-icon" wx:if="{{item.categoryIsAllSelected}}">✓</text>
+                </view>
+              </view>
+            </view>
+          </view>
+
+          <view
+            class="purchase-goods-row {{item.selected ? 'selected' : ''}}"
+            data-id="{{item.nxDistributerPurchaseGoodsId}}"
+            bindtap="toggleGoods">
+            <view class="purchase-goods-line">
+              <view class="purchase-goods-main">
+                <text class="goods-name">{{item.goodsNameText}}</text>
+                <text class="goods-spec" wx:if="{{item.goodsSpecText}}">({{item.goodsSpecText}})</text>
+                <view class="source-quantity-group">
+                  <text class="source-tag {{item.sourceClass}}">{{item.sourceText}}</text>
+                  <text class="goods-quantity">{{item.nxDpgQuantity || '—'}}{{item.nxDpgStandard || ''}}</text>
+                </view>
+                <view
+                  wx:if="{{item.canEditPurchase}}"
+                  class="purchase-edit-trigger"
+                  aria-label="编辑采购商品"
+                  data-id="{{item.nxDistributerPurchaseGoodsId}}"
+                  catchtap="openEditPurchase">
+                  <image class="purchase-edit-icon" src="/images/edit-3.png" mode="aspectFit"></image>
+                </view>
+                <text class="unavailable-text" wx:if="{{!item.canSelect}}">{{item.waitingStockIn ? '待入库' : '不可订货'}}</text>
+              </view>
+              <view class="goods-select-area" wx:if="{{item.canSelect}}">
+                <view class="custom-checkbox {{item.selected ? 'checked' : ''}}">
+                  <text class="checkbox-icon" wx:if="{{item.selected}}">✓</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+        <view class="safe-space"></view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <view class="selection-bar" wx:if="{{selectedGoods.length > 0}}">
+    <view class="selection-cart" bindtap="openSelectionDrawer">
+      <text class="selection-number">{{selectedGoods.length}}</text>
+      <image class="selection-cart-icon" src="/images/a-gouwuchejinhuocaigouhuo.png"></image>
+    </view>
+    <view class="selection-copy" bindtap="openSelectionDrawer">已选 {{selectedGoods.length}} 项</view>
+    <button class="selection-action stock-in" bindtap="openUnifiedPurchase">统一采购入库</button>
+    <button class="selection-action wechat" loading="{{submittingBatch}}" bindtap="createWechatBatch">微信分享</button>
+  </view>
+
+  <view class="selection-overlay" wx:if="{{showSelectionDrawer}}" catchtouchmove="preventMove" bindtap="closeSelectionDrawer">
+    <view class="selection-drawer" catchtap="stopTap">
+      <view class="selection-drawer-head">
+        <text>选择了 {{selectedGoods.length}} 个商品</text>
+        <view class="selection-drawer-actions">
+          <text catchtap="clearSelection">清除</text>
+          <text catchtap="closeSelectionDrawer">关闭</text>
+        </view>
+      </view>
+      <scroll-view class="selection-drawer-scroll" scroll-y>
+        <view class="selection-chips">
+          <view class="selection-chip" wx:for="{{selectedGoods}}" wx:key="nxDistributerPurchaseGoodsId" wx:for-item="selectedItem">
+            <text>{{index + 1}}. {{selectedItem.goodsNameText}}</text>
+            <text
+              class="selection-chip-delete"
+              data-id="{{selectedItem.nxDistributerPurchaseGoodsId}}"
+              catchtap="deleteSelectedGoods">×</text>
+          </view>
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+
+  <view
+    class="purchase-edit-mask"
+    wx:if="{{showEditPurchaseModal}}"
+    style="padding-bottom: {{editPurchaseKeyboardHeight ? editPurchaseKeyboardHeight + 30 : 30}}rpx;"
+    catchtouchmove="preventMove"
+    catchtap="closeEditPurchase">
+    <view class="purchase-edit-modal" catchtap="stopTap">
+      <view class="purchase-edit-title">{{editPurchaseDraft.goodsNameText}}</view>
+      <view class="purchase-edit-body">
+        <view class="purchase-edit-row">
+          <text>采购数量：</text>
+          <input
+            type="digit"
+            value="{{editPurchaseQuantity}}"
+            focus
+            adjust-position="{{false}}"
+            bindinput="onEditPurchaseQuantityInput"
+            bindkeyboardheightchange="onEditPurchaseKeyboardHeightChange"></input>
+          <strong>{{editPurchaseUnit}}</strong>
+        </view>
+        <view class="purchase-edit-row">
+          <text>采购规格：</text>
+          <input
+            type="text"
+            value="{{editPurchaseUnit}}"
+            maxlength="32"
+            adjust-position="{{false}}"
+            bindinput="onEditPurchaseUnitInput"
+            bindkeyboardheightchange="onEditPurchaseKeyboardHeightChange"></input>
+        </view>
+      </view>
+      <view class="purchase-edit-actions">
+        <button class="delete" loading="{{editPurchaseSubmitting}}" bindtap="deleteEditPurchase">删除</button>
+        <button bindtap="closeEditPurchase">取消</button>
+        <button class="confirm" loading="{{editPurchaseSubmitting}}" bindtap="saveEditPurchase">保存</button>
+      </view>
+    </view>
+  </view>
+
+</view>

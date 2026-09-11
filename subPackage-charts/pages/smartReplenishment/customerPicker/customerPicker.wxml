@@ -20,18 +20,17 @@
     </view>
 
     <scroll-view wx:else scroll-y="true" class="customer-scroll">
-      <view class="all-customer {{selectedId == 'ALL' ? 'selected' : ''}}" bindtap="selectAll">
+      <view class="all-customer {{allSelected ? 'selected' : ''}}" bindtap="selectAll">
         <view class="customer-avatar all-avatar">全</view>
         <view class="customer-text"><strong>全部客户</strong><text>汇总所有有效客户</text></view>
-        <view wx:if="{{selectedId == 'ALL'}}" class="selected-check">✓</view>
-        <view wx:else class="row-arrow">›</view>
+        <view class="multi-check {{allSelected ? 'checked' : ''}}">{{allSelected ? '✓' : ''}}</view>
       </view>
 
       <view class="list-caption">客户列表 · {{visibleCustomers.length}} 家</view>
       <view
         wx:for="{{visibleCustomers}}"
         wx:key="departmentId"
-        class="customer-row {{selectedId == item.departmentId ? 'selected' : ''}}"
+        class="customer-row {{item.selected ? 'selected' : ''}}"
         data-id="{{item.departmentId}}"
         bindtap="selectCustomer"
       >
@@ -40,11 +39,15 @@
           <strong>{{item.departmentName}}</strong>
           <text>{{item.historyLabel}}{{item.lastOrderLabel ? ' · ' + item.lastOrderLabel : ''}}</text>
         </view>
-        <view wx:if="{{selectedId == item.departmentId}}" class="selected-check">✓</view>
-        <view wx:else class="row-arrow">›</view>
+        <view class="multi-check {{item.selected ? 'checked' : ''}}">{{item.selected ? '✓' : ''}}</view>
       </view>
       <view wx:if="{{!visibleCustomers.length}}" class="empty-list">没有找到“{{keyword}}”</view>
       <view class="safe-bottom"></view>
     </scroll-view>
+
+    <view wx:if="{{!loading && !pageError}}" class="picker-footer">
+      <text>{{allSelected ? '全部客户' : '已选 ' + selectedIds.length + ' 家'}}</text>
+      <button bindtap="confirmSelection">确定</button>
+    </view>
   </view>
 </view>

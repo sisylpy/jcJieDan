@@ -1,0 +1,90 @@
+<view class="page">
+  <back-navbar
+    style="height: {{navBarHeight}}rpx;"
+    title="语音采购"
+    avatar="/images/back-gray.png"
+    bindnavbuttontap="toBack">
+  </back-navbar>
+  <view class="navbar-spacer" style="height: {{navBarHeight}}rpx;"></view>
+
+  <scroll-view class="page-scroll" scroll-y style="height: {{windowHeight}}rpx;">
+    <view class="hero-card">
+      <view class="hero-mark">AI</view>
+      <view class="hero-copy">
+        <text class="hero-title">智能语音采购</text>
+        <text class="hero-subtitle">识别采购清单，只生成备货采购商品</text>
+      </view>
+    </view>
+
+    <view class="input-card {{isRecording ? 'is-recording' : ''}}">
+      <view class="card-head">
+        <text class="card-title">采购清单</text>
+        <view class="head-actions">
+          <text wx:if="{{!inputContent}}" bindtap="useExample">试用示例</text>
+          <text wx:else bindtap="clearAll">清空</text>
+        </view>
+      </view>
+      <textarea
+        class="purchase-textarea"
+        value="{{inputContent}}"
+        maxlength="-1"
+        disabled="{{isRecording}}"
+        bindinput="onInput"
+        placeholder="例如：千禾酱油2桶&#10;王守义十三香3盒&#10;油菜10斤">
+      </textarea>
+      <view class="record-status" wx:if="{{isRecording || recognitionStatus}}">
+        <view class="record-dot" wx:if="{{isRecording}}"></view>
+        <text>{{recognitionStatus}}</text>
+        <text class="record-time" wx:if="{{isRecording}}">{{duration}}s</text>
+      </view>
+    </view>
+
+    <view class="source-actions">
+      <view class="source-action {{isRecording ? 'recording' : ''}}" bindtap="{{isRecording ? 'stopRecord' : 'startRecord'}}">
+        <view class="source-icon voice">{{isRecording ? '■' : '●'}}</view>
+        <text>{{isRecording ? '停止录音' : '语音采购'}}</text>
+      </view>
+      <view class="source-action" bindtap="pasteFromClipboard">
+        <view class="source-icon paste">粘</view>
+        <text>粘贴清单</text>
+      </view>
+    </view>
+
+    <view class="parse-button {{!inputContent || isRecording ? 'disabled' : ''}}" bindtap="parseContent">
+      <text>✦</text>
+      <text>{{items.length ? '重新解析采购清单' : '解析采购清单'}}</text>
+      <text>›</text>
+    </view>
+
+    <view class="result-section" wx:if="{{items.length}}">
+      <view class="result-title-row">
+        <text class="result-title">识别结果（{{items.length}}种）</text>
+        <text class="add-line" bindtap="addItem">+ 添加一行</text>
+      </view>
+      <view class="item-card {{item.needsReview ? 'needs-review' : ''}}" wx:for="{{items}}" wx:key="sourceIndex">
+        <view class="item-head">
+          <text class="item-index">{{index + 1}}</text>
+          <text class="review-tip" wx:if="{{item.needsReview}}">{{item.warning || '请检查'}}</text>
+          <text class="delete-line" data-index="{{index}}" bindtap="removeItem">删除</text>
+        </view>
+        <view class="field-row">
+          <text class="field-label">商品</text>
+          <input class="field-input" value="{{item.goodsName}}" data-index="{{index}}" data-field="goodsName" bindinput="updateItem" placeholder="商品名称" />
+        </view>
+        <view class="quantity-row">
+          <view class="field-row compact">
+            <text class="field-label">数量</text>
+            <input class="field-input" type="digit" value="{{item.quantity}}" data-index="{{index}}" data-field="quantity" bindinput="updateItem" placeholder="数量" />
+          </view>
+          <view class="field-row compact">
+            <text class="field-label">单位</text>
+            <input class="field-input" value="{{item.standard}}" data-index="{{index}}" data-field="standard" bindinput="updateItem" placeholder="斤/件/箱" />
+          </view>
+        </view>
+        <view class="spoken-remark" wx:if="{{item.remark}}">语音补充：{{item.remark}}</view>
+      </view>
+      <button class="confirm-button" loading="{{searching}}" bindtap="searchAndConfirm">查找商品并确认</button>
+    </view>
+    <view class="safe-space"></view>
+  </scroll-view>
+</view>

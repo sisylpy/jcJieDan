@@ -39,6 +39,7 @@
 
 /* 弹窗头部 */
 .top {
+  position: relative;
   height: 120rpx;
   width: 100%;
   background: linear-gradient(135deg, #187e6e, #1e82b4);
@@ -47,6 +48,20 @@
   flex-flow: column nowrap;
   justify-content: center;
   border-radius: 20rpx 20rpx 0 0;
+}
+
+.keyboard-dismiss {
+  position: absolute;
+  top: 16rpx;
+  right: 18rpx;
+  z-index: 2;
+  padding: 12rpx 18rpx;
+  border: 1rpx solid rgba(255, 255, 255, .65);
+  border-radius: 28rpx;
+  color: #176f60;
+  background: rgba(255, 255, 255, .94);
+  font-size: 23rpx;
+  line-height: 1;
 }
 
 .goodsTitle {
@@ -60,6 +75,10 @@
   line-height: 1.4;
   word-wrap: break-word;
   overflow-wrap: break-word;
+}
+
+.goodsTitle.keyboard-open {
+  padding-right: 170rpx;
 }
 
 

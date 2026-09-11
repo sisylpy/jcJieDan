@@ -1,5 +1,16 @@
 @import "../../../customer-standard-workline.wxss";
 
+.outbound-stock-quantity {
+  flex-shrink: 0;
+  margin-left: 16rpx;
+  padding: 2rpx 10rpx;
+  border-radius: 6rpx;
+  background-color: #e9f6f3;
+  color: #187e6e;
+  font-size: 24rpx;
+  white-space: nowrap;
+}
+
 
 .dotWx{
   position: absolute;
@@ -145,6 +156,58 @@
 .bottom-button {
   background-color: #252525;
   height: 100%;
+}
+
+.purchase-workspace-actions {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 100000;
+  height: 120rpx;
+  padding: 10rpx 16rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  background-color: rgb(118, 143, 138);
+}
+
+.purchase-workspace-cart {
+  position: relative;
+  width: 100rpx;
+  flex-shrink: 0;
+}
+
+.purchase-workspace-count {
+  position: absolute;
+  top: -18rpx;
+  right: 4rpx;
+  min-width: 40rpx;
+  height: 40rpx;
+  line-height: 40rpx;
+  border-radius: 20rpx;
+  text-align: center;
+  color: #fff;
+  background-color: #00a980;
+}
+
+.purchase-workspace-action {
+  flex: 1;
+  height: 70rpx;
+  line-height: 70rpx;
+  margin-left: 16rpx;
+  border-radius: 40rpx;
+  color: #fff;
+  text-align: center;
+  font-size: 30rpx;
+}
+
+.purchase-workspace-action.is-wx {
+  background-color: #04c273;
+}
+
+.purchase-workspace-action.is-paste {
+  background-color: #189771;
 }
 
 

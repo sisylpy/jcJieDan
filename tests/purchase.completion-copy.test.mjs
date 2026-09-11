@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const page = fs.readFileSync(path.join(root, 'pages/purchase/index/index.js'), 'utf8');
+const page = fs.readFileSync(path.join(root, 'pages/purchase/index/purchaseComponent.js'), 'utf8');
 const copy = fs.readFileSync(path.join(root, 'template/copySwiperItem/copySwiperItem.wxml'), 'utf8');
 const wechat = fs.readFileSync(path.join(root, 'template/wxSwiperItem/wxSwiperItem.wxml'), 'utf8');
 

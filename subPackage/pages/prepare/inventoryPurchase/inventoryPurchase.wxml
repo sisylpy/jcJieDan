@@ -1,0 +1,115 @@
+<back-navbar style="height: {{navBarHeight}}rpx;" title="统一采购入库" avatar="/images/back-gray.png"
+  button-text="返回" bindnavbuttontap="toBack"></back-navbar>
+
+<scroll-view class="purchase-confirm" scroll-y style="padding-top: {{navBarHeight + 20}}rpx;">
+  <view class="confirm-summary">
+    <text class="summary-title">本次采购 {{goods.length}} 种商品</text>
+    <text class="summary-copy">点击商品逐个录入采购信息，全部完成后统一提交。</text>
+  </view>
+
+  <view class="goods-card {{item.inputCompleted ? 'completed' : ''}}" wx:for="{{goods}}"
+    wx:key="nxDistributerPurchaseGoodsId" wx:for-item="item" wx:for-index="index"
+    data-index="{{index}}" bindtap="openEditor">
+    <view class="goods-head">
+      <text class="goods-index">{{index + 1}}</text>
+      <text class="goods-name">{{item.goodsNameText}}</text>
+      <text class="planned">计划 {{item.nxDpgQuantity}}{{item.nxDpgStandard}}</text>
+    </view>
+    <view class="goods-result">
+      <view>
+        <text class="entry-state {{item.inputCompleted ? 'done' : ''}}">{{item.inputCompleted ? '已录入' : '待录入'}}</text>
+        <text class="result-copy" wx:if="{{item.inputCompleted}}">实采 {{item.actualQuantity}}{{item.purchaseUnit}} · ¥{{item.purchasePrice}}/{{item.purchaseUnit}}</text>
+      </view>
+      <view class="result-right">
+        <text class="subtotal" wx:if="{{item.inputCompleted}}">¥{{item.subtotal}}</text>
+        <text class="edit-link">{{item.inputCompleted ? '修改' : '录入'}} ›</text>
+      </view>
+    </view>
+  </view>
+
+  <view class="empty" wx:if="{{goods.length === 0}}">没有选择采购商品</view>
+  <view class="bottom-space"></view>
+</scroll-view>
+
+<view class="submit-bar" wx:if="{{goods.length > 0}}">
+  <view class="total-block">
+    <text class="total-label">采购合计</text>
+    <text class="total-value">¥{{totalAmount}}</text>
+  </view>
+  <button class="submit-button" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">确认采购入库</button>
+</view>
+
+<view class="editor-mask" wx:if="{{showEditor}}" catchtouchmove="preventMove" bindtap="closeEditor">
+  <view class="editor-modal" catchtap="stopTap">
+    <view class="editor-head">
+      <text class="editor-title">{{editingItem.goodsNameText}}</text>
+      <text class="editor-spec" wx:if="{{editingItem.goodsSpecText}}">({{editingItem.goodsSpecText}})</text>
+    </view>
+
+    <scroll-view class="editor-body" scroll-y>
+      <view class="editor-row amount-row">
+        <text class="editor-label">金额：</text>
+        <text class="editor-value amount-value">¥{{editingItem.subtotal}}</text>
+      </view>
+      <view class="editor-row">
+        <text class="editor-label">订货数量：</text>
+        <text class="editor-value">{{editingItem.nxDpgQuantity}}{{editingItem.nxDpgStandard}}</text>
+      </view>
+      <view class="editor-row conversion-row" wx:if="{{editingItem.isConverted}}">
+        <text class="editor-label">规格换算：</text>
+        <view class="conversion-wrap">
+          <text>1{{editingItem.purchaseUnit}} =</text>
+          <input class="editor-input conversion-input" type="digit" value="{{editingItem.conversionFactor}}"
+            disabled="{{editingItem.conversionLocked}}" bindinput="onConversionInput"
+            bindblur="closeKeyboard" cursor-spacing="32" />
+          <text>{{editingItem.baseUnit}}</text>
+        </view>
+      </view>
+      <view class="editor-row">
+        <text class="editor-label">采购数量：</text>
+        <view class="editor-input-wrap">
+          <input class="editor-input" type="digit" value="{{editingItem.actualQuantity}}"
+            disabled="{{editingItem.waitingStockIn}}" bindinput="onQuantityInput"
+            bindblur="closeKeyboard" cursor-spacing="32" />
+          <text class="editor-unit">{{editingItem.purchaseUnit}}</text>
+        </view>
+      </view>
+      <view class="editor-row">
+        <text class="editor-label">采购单价：</text>
+        <view class="editor-input-wrap">
+          <input class="editor-input" type="digit" value="{{editingItem.purchasePrice}}"
+            disabled="{{editingItem.waitingStockIn}}" bindinput="onPriceInput"
+            bindblur="closeKeyboard" cursor-spacing="32" />
+          <text class="editor-unit">元/{{editingItem.purchaseUnit}}</text>
+        </view>
+      </view>
+      <view class="editor-row derived-row" wx:if="{{editingItem.averagePurchasePrice}}">
+        <text class="editor-label">每{{editingItem.baseUnit}}采购价：</text>
+        <text class="derived-value">¥{{editingItem.averagePurchasePrice}}/{{editingItem.baseUnit}}</text>
+      </view>
+      <view class="editor-row">
+        <text class="editor-label">建议售价：</text>
+        <view class="editor-input-wrap">
+          <input class="editor-input" type="digit" value="{{editingItem.expectedPrice}}"
+            disabled="{{editingItem.waitingStockIn}}" bindinput="onExpectedPriceInput"
+            bindblur="closeKeyboard" placeholder="选填" cursor-spacing="32" />
+          <text class="editor-unit">元/{{editingItem.purchaseUnit}}</text>
+        </view>
+      </view>
+      <view class="editor-row derived-row" wx:if="{{editingItem.averageExpectedPrice}}">
+        <text class="editor-label">每{{editingItem.baseUnit}}建议售价：</text>
+        <text class="derived-value">¥{{editingItem.averageExpectedPrice}}/{{editingItem.baseUnit}}</text>
+      </view>
+      <view class="editor-row" wx:if="{{!editingItem.waitingStockIn}}">
+        <text class="editor-label">等待入库：</text>
+        <switch color="#168c78" checked="{{editingItem.isShowTools}}" bindchange="onWaitChange" />
+      </view>
+      <view class="waiting-tip" wx:else>已采购待入库，完成后生成库存批次</view>
+    </scroll-view>
+
+    <view class="editor-actions">
+      <view class="editor-button cancel" bindtap="closeEditor">关闭</view>
+      <view class="editor-button confirm" bindtap="confirmEditor">完成</view>
+    </view>
+  </view>
+</view>

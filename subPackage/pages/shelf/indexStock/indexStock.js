@@ -1,4 +1,5 @@
 var load = require('../../../../lib/load.js');
+var directStockSubmission = require('../../../../utils/directStockSubmission.js');
 
 import apiUrl from '../../../../config.js'
 import {
@@ -1301,10 +1302,12 @@ Page({
 
     const isUnshelf = this.data.unShelfGoodsList.length > 0;
     const shelfGoodsId = !isUnshelf && this.data.shelfGoods?.nxDistributerGoodsShelfGoodsId;
-    
+
+    const submission = directStockSubmission.begin(this, disSavePurGoodsSaveStock, purGoods);
+    if (!submission.started) return;
     load.showLoading(loadingText);
     console.log("savestock", purGoods)
-    disSavePurGoodsSaveStock(purGoods).then(res => {
+    submission.promise.then(res => {
       if (res.result.code == 0) {
         wx.showToast({
           title: successText,
@@ -1350,6 +1353,9 @@ Page({
           icon: 'none'
         });
       }
+    }).catch(err => {
+      load.hideLoading();
+      console.error('disSavePurGoodsSaveStock error:', err);
     })
     
   },

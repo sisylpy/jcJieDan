@@ -160,6 +160,35 @@ page{
   font-weight: 700;
 }
 
+.bill-profit-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 76rpx;
+  padding: 0 16rpx 8rpx;
+}
+
+.bill-profit-label {
+  color: #666;
+}
+
+.bill-profit-value {
+  display: flex;
+  align-items: baseline;
+}
+
+.bill-profit-amount {
+  color: #222;
+  font-size: 34rpx;
+  font-weight: 700;
+}
+
+.bill-profit-scale {
+  margin-left: 12rpx;
+  font-size: 28rpx;
+  color: #888;
+}
+
 
 .sentence{
   padding: 60rpx 60rpx 20rpx 60rpx;

@@ -160,7 +160,8 @@
                           <view class="stock-chip-row" wx:for="{{shelfGoods.nxDisGoodsShelfStockEntities}}" wx:for-item="stock" wx:key="index">
                             <text class="stock-chip" wx:if="{{shelfGoods.nxDistributerGoodsEntity.nxDgCartonUnit && shelfGoods.nxDistributerGoodsEntity.nxDgCartonUnit !== '' && shelfGoods.nxDistributerGoodsEntity.nxDgCartonUnit !== 'null' && shelfGoods.nxDistributerGoodsEntity.nxDgItemsPerCarton > 0}}">{{tool.formatQuantityDisplay(stock.nxDgssRestWeight, shelfGoods.nxDistributerGoodsEntity.nxDgCartonUnit, shelfGoods.nxDistributerGoodsEntity.nxDgItemsPerCarton, shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname)}}</text>
                             <text class="stock-chip" wx:else>{{stock.nxDgssRestWeight}}{{shelfGoods.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
-                            <text class="stock-chip-detail" catchtap="toInventoryBatchBusiness" data-stock-id="{{stock.nxDistributerGoodsShelfStockId}}">详情</text>
+                            <text class="stock-chip-detail" catchtap="toInventoryBatchBusiness"
+                              data-stock-id="{{stock.nxDistributerGoodsShelfStockId}}" data-shelfgoods="{{shelfGoods}}">详情</text>
                           </view>
                         </block>
                         <block wx:else>
@@ -330,7 +331,8 @@
                                 </view>
                               </view>
                             </view>
-                            <view class="shelf-batch-business-link" catchtap="toInventoryBatchBusiness" data-stock-id="{{stock.nxDistributerGoodsShelfStockId}}">
+                            <view class="shelf-batch-business-link" catchtap="toInventoryBatchBusiness"
+                              data-stock-id="{{stock.nxDistributerGoodsShelfStockId}}" data-shelfgoods="{{shelfGoods}}">
                               查看批次经营详情
                             </view>
                           </view>
@@ -536,11 +538,6 @@
 <disEditPurchase show="{{showEditPurGoods}}" item="{{item}}" planOrder="{{planOrder}}" applyStandardName="{{applyStandardName}}" purchaseGoods="{{purchaseGoods}}" priceLevel="{{priceLevel}}" bindconfirmEditGoods="confirmEditPurGoods" bindcancle="closeEditPurGoods" binddelPurGoods="deletePurGoods" />
 
 
-<editShelfStock show="{{showStock}}" shelfGoods="{{shelfGoods}}" disId="{{disId}}" userId="{{userId}}" totalRestWeight="{{stockRestWeightTotal}}" sameShelfGoods="{{shelfGoods.sameShelfGoods}}" bindclose="closeStockModal" bindsuccess="refreshAfterStockOperation" />
-
-<editShelfStockDetail show="{{showStockDetail}}" shelfGoods="{{shelfGoods}}" disId="{{disId}}" userId="{{userId}}" bindclose="closeStockDetailModal" bindconfirm="confirmStockDetail" />
-
-
 <!-- 
 <stockDetailModal id="stockDetailModal" visible="{{showStockDetailSuyuan}}" shelfGoods="{{shelfGoods}}" disId="{{disId}}" userId="{{userId}}" bindclose="closeStockDetailModal" bindconfirm="confirmStockDetailSuyuan" binduploadimage="handleUploadStockImage" /> -->
 <!--  -->
@@ -555,6 +552,12 @@
           <text class="mr-10">{{disGoods.nxDgGoodsName}}</text>
           <text>({{disGoods.nxDgGoodsStandardname}})</text>
         </view>
+      </view>
+
+      <view wx:if="{{disInfo.nxDistributerBusinessTypeId > 2 && disGoods.shelfPurGoods == null}}"
+        class="p-30 flex-row border-bottom" catchtap="showInputOrder" hover-class="hover">
+        <image src="/images/add-active.png" mode="aspectFill" class="icon mr-20" />
+        <text> 订货</text>
       </view>
 
       <view class="p-30 flex-row border-bottom" catchtap="changeShelf" hover-class="hover">
@@ -616,20 +619,13 @@
         <text class="{{shelfGoods.shelfPurGoods.nxDpgStatus == 1 ? 'text-secondary' : ''}}"> 确定收货</text>
       </view>
 
-      <block wx:if="{{shelfGoods.nxDisGoodsShelfStockEntities.length > 0}}">
-
-        <view class="p-30 flex-row border-bottom" catchtap="showStockDetail" hover-class="hover">
-          <image src="/images/Focus-Auto.png" mode="aspectFill" class="icon mr-20" />
-          <text>库存详细</text>
-        </view>
-
-        <view class="p-30 flex-row border-bottom" catchtap="showStock" hover-class="hover">
-          <image src="/images/tab_classification-2.png" mode="aspectFill" class="icon mr-20" />
-          <text> 修改库存数量</text>
-        </view>
       </block>
 
-      </block>
+      <view wx:if="{{shelfGoods.nxDisGoodsShelfStockEntities && shelfGoods.nxDisGoodsShelfStockEntities.length > 0}}"
+        class="p-30 flex-row border-bottom" catchtap="openInventoryBatchList" hover-class="hover">
+        <image src="/images/Focus-Auto.png" mode="aspectFill" class="icon mr-20" />
+        <text>打开库存批次列表</text>
+      </view>
 
 
 

@@ -1,4 +1,5 @@
 var load = require('../../../../lib/load.js');
+var directStockSubmission = require('../../../../utils/directStockSubmission.js');
 
 import apiUrl from '../../../../config.js'
 import {
@@ -1256,9 +1257,11 @@ Page({
 
     const isUnshelf = this.data.unShelfGoodsList.length > 0;
     const shelfGoodsId = !isUnshelf && this.data.shelfGoods?.nxDistributerGoodsShelfGoodsId;
-    
+
+    const submission = directStockSubmission.begin(this, disSavePurGoodsSaveStock, purGoods);
+    if (!submission.started) return;
     load.showLoading(loadingText);
-    disSavePurGoodsSaveStock(purGoods).then(res => {
+    submission.promise.then(res => {
       if (res.result.code == 0) {
         wx.showToast({
           title: successText,
@@ -1430,15 +1433,15 @@ Page({
     const isUnshelf = this.data.unShelfGoodsList.length > 0;
     const shelfGoodsId = !isUnshelf && this.data.shelfGoods?.nxDistributerGoodsShelfGoodsId;
     
-    load.showLoading(loadingText);
-    
-    // 使用溯源报告接口保存
-    const savePromise = disSavePurGoodsSaveStockWithTraceReport({
+    // 使用溯源报告接口保存；同一次弹窗提交复用稳定的幂等键。
+    const submission = directStockSubmission.begin(this, disSavePurGoodsSaveStockWithTraceReport, {
       filePath: traceReportFile || null, // 如果有文件则传递，否则为null
       ...traceReportData
     });
-    
-    savePromise.then(res => {
+    if (!submission.started) return;
+    load.showLoading(loadingText);
+
+    submission.promise.then(res => {
       if (res.result.code == 0) {
         wx.showToast({
           title: successText,

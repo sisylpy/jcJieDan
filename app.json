@@ -4,6 +4,7 @@
     "pages/order/index/index",
     "pages/doing/index/index",
     "pages/purchase/index/index",
+    "pages/purchaseList/index/index",
     "pages/stock/index/index",
     "pages/dispatch/index/index",
     "pages/printLogin/printLogin",
@@ -94,6 +95,7 @@
       "pages/management/myBills/myBills",
   
       "pages/management/printerSet/printerSet",
+      "pages/management/printerSetting/printerSetting",
       "pages/management/labelPrinter/labelPrinter",
 
       "pages/management/staff/staff",
@@ -126,6 +128,7 @@
       "pages/prepare/depOutOrder/depOutOrder",
       "pages/prepare/orderList/orderList",
       "pages/prepare/selfPurchase/selfPurchase",
+      "pages/prepare/inventoryPurchase/inventoryPurchase",
       "pages/prepare/purchaseReceipt/purchaseReceipt",
       "pages/prepare/printWeightOrders/printWeightOrders",
       "pages/goods/disGoodsDetail/disGoodsDetail",
@@ -182,8 +185,6 @@
       "pages/sel/searchDate/searchDate",
       
       "pages/stock/index/index",
-        "pages/stock/stockList/stockList",
-        "pages/stock/stockListOneDay/stockListOneDay",
       
       "pages/mangement/costGoodsFenxi/costGoodsFenxi",
       "pages/mangement/purGoodsFenxi/purGoodsFenxi",
@@ -216,6 +217,8 @@
       "pages/order/orderPageSuyuan/orderPageSuyuan",
       "pages/order/depList/depList",
       "pages/order/paste/paste",
+      "pages/purchase/voice/voice",
+      "pages/purchase/voiceConfirm/voiceConfirm",
       "pages/order/ailasGoodsList/ailasGoodsList",
       "pages/order/pSearchPrinter/pSearchPrinter",
       "pages/order/linshiOrderPage/linshiOrderPage",
@@ -261,7 +264,7 @@
      
       {
         "pagePath": "pages/stock/index/index",
-        "text": "出库中",
+        "text": "出货中",
         "iconPath": "/images/icons/icon_goods.png",
         "selectedIconPath": "/images/icons/icon_goods_active.png"
       }, {
@@ -270,15 +273,10 @@
         "iconPath": "/images/icons/icon_prepare.png",
         "selectedIconPath": "/images/icons/icon_prepare_active.png"
       }, {
-        "pagePath": "pages/purchase/index/index",
-        "text": "未采购",
-        "iconPath": "/images/icons/icon_goods.png",
-        "selectedIconPath": "/images/icons/icon_goods_active.png"
-      }, {
-        "pagePath": "pages/doing/index/index",
-        "text": "采购中",
-        "iconPath": "/images/icons/icon_goods.png",
-        "selectedIconPath": "/images/icons/icon_goods_active.png"
+        "pagePath": "pages/purchaseList/index/index",
+        "text": "采购列表",
+        "iconPath": "/images/icons/icon_purchase.png",
+        "selectedIconPath": "/images/icons/icon_purchase_active.png"
       }
     ]
   },

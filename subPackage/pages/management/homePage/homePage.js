@@ -31,8 +31,7 @@ Page({
           }),
           disId: res.result.data.nxDistributerEntity.nxDistributerId,
           isPlaceholderStoreImg: isPlaceholderStoreImg,
-          canViewSalesAnalysis: Number(res.result.data.nxDiuAdmin) === 0,
-          canViewSmartReplenishment: Number(res.result.data.nxDiuAdmin) === 0
+          canViewSalesAnalysis: Number(res.result.data.nxDiuAdmin) === 0
         })
         wx.setStorageSync('disInfo', res.result.data.nxDistributerEntity);
         wx.setStorageSync('userInfo', res.result.data);
@@ -52,7 +51,6 @@ Page({
     yuyin: 0,
     isPlaceholderStoreImg: false,
     canViewSalesAnalysis: false,
-    canViewSmartReplenishment: false,
     userInfo: {
       nxDistributerEntity: {
         nxDistributerName: '',
@@ -94,7 +92,6 @@ Page({
       url: apiUrl.server,
       userInfo: Object.assign({}, this.data.userInfo, cachedUser),
       canViewSalesAnalysis: Number(cachedUser.nxDiuAdmin) === 0,
-      canViewSmartReplenishment: Number(cachedUser.nxDiuAdmin) === 0,
       disInfo: Object.assign({}, this.data.disInfo, cachedDis, {
         machinePayList: (cachedDis && cachedDis.machinePayList) ? cachedDis.machinePayList : []
       })
@@ -260,12 +257,6 @@ Page({
   toCustomer(){
     wx.navigateTo({
       url: '../../customer/index/index',
-    })
-  },
-
-  toCustomerOrderAnomalies(){
-    wx.navigateTo({
-      url: '../customerOrderAnomalies/customerOrderAnomalies',
     })
   },
 
@@ -460,6 +451,12 @@ Page({
 
 
 
+  toPrinterSetting() {
+    wx.navigateTo({
+      url: '/subPackage/pages/management/printerSetting/printerSetting',
+    })
+  },
+
   toPurchase(e) {
     console.log("nxDisId=" + this.data.disId + '&nxDisPurUserId=' + this.data.userInfo.nxDistributerUserId + '&from=nx');
     wx.navigateToMiniProgram({
@@ -561,19 +558,7 @@ Page({
   },
   
 
-toMyShelf(e){
-  console.log('shelelele' + this.data.disInfo.nxDistributerType)
-  if(this.data.disInfo.nxDistributerType == 2){
-    wx.navigateTo({
-      url: '../../shelf/indexSuyuan/indexSuyuan',
-    })
-  }else{
-    wx.navigateTo({
-      url: '../../shelf/index/index',
-    })
-  }
-  
-},
+
 
 
 
@@ -615,16 +600,6 @@ toSalesAnalysis(){
   })
 },
 
-toSmartReplenishment(){
-  if (!this.data.canViewSmartReplenishment) {
-    wx.showToast({ title: '只有老板账号可以查看', icon: 'none' })
-    return
-  }
-  wx.navigateTo({
-    url: '/subPackage-charts/pages/smartReplenishment/index/index',
-  })
-},
-
 toPurchasePerformance(){
   wx.navigateTo({
     url: '/subPackage/pages/management/purchasePerformance/purchasePerformance',
@@ -637,6 +612,10 @@ toPurchaseManagement(){
   })
 },
 
+
+toShelf(){
+  wx.navigateTo({ url: '/subPackage/pages/shelf/index/index' })
+},
 
 toRetailer(){
   wx.navigateTo({

@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 
 const apiSource = readFileSync('lib/apiDepOrder.js', 'utf8');
 const ownerRequestSource = readFileSync('lib/ownerRequest.js', 'utf8');
-const purchasePageSource = readFileSync('pages/purchase/index/index.js', 'utf8');
+const purchasePageSource = readFileSync('pages/purchase/index/purchaseComponent.js', 'utf8');
 
 function exportedFunction(name) {
   const start = apiSource.indexOf(`export const ${name} =`);

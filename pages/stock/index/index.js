@@ -1,5 +1,6 @@
 var load = require('../../../lib/load.js');
 var platformDisplay = require('../../../utils/platformOrderDisplay.js');
+var prepareOutViewMode = require('../../../utils/prepareOutViewMode.js');
 
 import apiUrl from '../../../config.js'
 
@@ -14,13 +15,19 @@ import {
 } from '../../../lib/apiDepOrder'
 
 const viewBarHeight = 50;
+const mergedWorkBarHeight = 88; // rpx，与 app.wxss 中一级业务页签高度一致
 
 
 
 Component({
 
   data:{
- 
+
+    // 一级业务页签当前展示的工作区：stock / purchase / partner
+    activeWorkspace: 'stock',
+    workspaceCurrent: 0,
+    purchaseSelectedCount: 0,
+
     currentPage: 1,
     limit: 15,
     totalPage: 0,
@@ -81,7 +88,7 @@ Component({
         const navBarHeightRpx = navBarHeight * rpxRatio;
         const tabBarHeightRpx = 100;
         const viewBarHeightRpx = viewBarHeight * rpxRatio;
-        const contentHeight = (screenHeight - navBarHeight ) * rpxRatio;
+        const contentHeight = (screenHeight - navBarHeight) * rpxRatio - mergedWorkBarHeight;
         
       // 获取显示模式（从缓存读取，如果没有则使用默认值）
       const viewMode = wx.getStorageSync('stockViewMode') || 'category';
@@ -172,7 +179,7 @@ Component({
       const tabBarHeightRpx = 100;
 
       const viewBarHeightRpx = viewBarHeight * rpxRatio;
-      const contentHeight = (screenHeight - navBarHeight ) * rpxRatio;
+      const contentHeight = (screenHeight - navBarHeight) * rpxRatio - mergedWorkBarHeight;
 
       // 获取显示模式（从缓存读取，如果没有则使用默认值）
       const viewMode = wx.getStorageSync('stockViewMode') || 'category';
@@ -258,6 +265,53 @@ Component({
 
   methods: {
 
+    // 一级业务页签：只切换下方内容，不再跳转页面
+    switchWorkspace(e) {
+      var dataset = e.currentTarget.dataset || {};
+      var nextIndex = Number(dataset.index);
+      if (!Number.isInteger(nextIndex) || nextIndex < 0 || nextIndex > 2) return;
+      if (nextIndex === this.data.workspaceCurrent) return;
+      this.setData({
+        workspaceCurrent: nextIndex,
+        activeWorkspace: dataset.workspace
+      });
+    },
+
+    // 左右滑动和点击顶部页签共用同一份工作区状态
+    onWorkspaceSwiperChange(e) {
+      var workspaceNames = ['stock', 'purchase', 'partner'];
+      var nextIndex = Number(e.detail.current);
+      this.setData({
+        workspaceCurrent: nextIndex,
+        activeWorkspace: workspaceNames[nextIndex] || 'stock'
+      });
+    },
+
+    // 协作伙伴第一个内层页右滑时，明确退回上一个一级工作区“外采”。
+    onPartnerWorkspaceBack() {
+      this.setData({
+        workspaceCurrent: 1,
+        activeWorkspace: 'purchase'
+      });
+    },
+
+    onPurchaseSelectionChange(e) {
+      this.setData({
+        purchaseSelectedCount: Number(e.detail.count) || 0
+      });
+    },
+
+    runPurchaseAction(e) {
+      var workspace = this.selectComponent('#workspace-purchase');
+      var action = e.currentTarget.dataset.action;
+      if (workspace && typeof workspace[action] === 'function') {
+        if (action !== 'showCar') {
+          this.setData({ purchaseSelectedCount: 0 });
+        }
+        workspace[action]();
+      }
+    },
+
     _processGoodsList(list) {
       return platformDisplay.processGoodsList(list || []);
     },
@@ -306,30 +360,17 @@ Component({
       }
     },
     
-    // 设置打印机开关
+    // 跳转到统一打印机设置页面（标签打印机和尺寸已迁移到该页面）
     setPrint() {
-      // 跳转到标签打印机连接页面
       wx.navigateTo({
-        url: '../../../subPackage/pages/management/labelPrinter/labelPrinter',
+        url: '/subPackage/pages/management/printerSetting/printerSetting',
       });
     },
     
-    // 设置标签尺寸
+    // 设置标签尺寸已迁移到打印机设置页面
     setPaperSize() {
-      var that = this;
-      wx.showActionSheet({
-        itemList: ['4*3cm（横）', '4*6cm（竖）', '5*8cm（竖）', '5*8cm（横）'],
-        success: function(res) {
-          var selectedSize = res.tapIndex + 1;
-          that.setData({
-            paperSize: selectedSize
-          });
-          wx.setStorageSync('paperSize', selectedSize);
-          wx.showToast({
-            title: '标签尺寸已设置',
-            icon: 'success'
-          });
-        }
+      wx.navigateTo({
+        url: '/subPackage/pages/management/printerSetting/printerSetting',
       });
     },
 
@@ -416,41 +457,8 @@ Component({
   },
 
 
-    // 切换显示模式（按类别/按客户）
-    changeShwoType() {
-      const newMode = this.data.viewMode === 'category' ? 'department' : 'category';
-      console.log('切换显示模式:', newMode);
-      
-      // 保存显示模式到本地存储
-      wx.setStorageSync('stockViewMode', newMode);
-      
-      // 左侧菜单宽度统一为 120rpx
-      const leftMenuWidth = 120;
-      
-      // 重置选中状态
-                this.setData({
-        viewMode: newMode,
-        leftMenuWidth: leftMenuWidth,
-        choiceStockArr: [],
-        goodsArr: [],
-        goodsCataArr: [],
-        depArr: [],
-        selectedDepId: null,
-        selDepName: '',
-        selectedSub: 0,
-        toView: 'position0',
-        scrollTopLeft: 0,
-        categoryPositions: [],
-        currentPage: 1,
-        totalPage: 0,
-        totalCount: 0,
-        hasMore: true,
-        isLoading: false,
-      }, () => {
-        // 重新初始化数据
-        this._initData();
-      });
-    },
+    // 出库、外采共用同一切换方法；-1 表示出库商品。
+    changeShwoType: prepareOutViewMode.createChangeShwoType(-1),
 
     // 滚动到底部加载更多数据
     onReachBottom() {
@@ -1127,9 +1135,24 @@ Component({
       });
     },
 
-    // 下拉刷新
+    // 下拉刷新：非出库工作区时转发给当前内嵌的子工作区
     onPullDownRefresh() {
+      if (this.data.activeWorkspace !== 'stock') {
+        var child = this._activeWorkspaceChild();
+        if (child && typeof child.onPullDownRefresh === 'function') {
+          child.onPullDownRefresh();
+          return;
+        }
+        wx.stopPullDownRefresh();
+        return;
+      }
       this._refreshStockData({ fromPullDown: true })
+    },
+
+    _activeWorkspaceChild() {
+      if (this.data.activeWorkspace === 'purchase') return this.selectComponent('#workspace-purchase');
+      if (this.data.activeWorkspace === 'partner') return this.selectComponent('#workspace-partner');
+      return null;
     },
 
     onScrollRefresh() {
@@ -1192,11 +1215,11 @@ Component({
 
 
     // swiper-item-1 茭白，红尖椒，荷兰豆 
-    _initData() {
+    _initData(purType = -1) {
       load.showLoading("获取数据中");
       var data = {
         disId: this.data.disId,
-        purType: -1
+        purType: purType
       }
       
       // 根据显示模式调用不同接口
@@ -1282,6 +1305,7 @@ Component({
                 stockCount: res.result.data.stockCount,
                 unPurCount: res.result.data.unPurCount,
                 puringCount: res.result.data.puringCount,
+                collCount: res.result.data.collCount,
               })
              
               // 优先加载协作商家，否则加载部门
@@ -2816,7 +2840,7 @@ Component({
         success: (res) => {
           if (res.confirm) {
             wx.navigateTo({
-              url: '../../../subPackage/pages/management/labelPrinter/labelPrinter',
+              url: '/subPackage/pages/management/printerSetting/printerSetting',
             });
           }
         }
@@ -2998,7 +3022,7 @@ Component({
           success: function(res) {
             if (res.confirm) {
               wx.navigateTo({
-                url: '../../../subPackage/pages/management/labelPrinter/labelPrinter',
+                url: '/subPackage/pages/management/printerSetting/printerSetting',
               });
             }
           }
@@ -3047,7 +3071,7 @@ Component({
                     success: function(res) {
                       if (res.confirm) {
                         wx.navigateTo({
-                          url: '../../../subPackage/pages/management/labelPrinter/labelPrinter',
+                          url: '/subPackage/pages/management/printerSetting/printerSetting',
                         });
                       }
                     }

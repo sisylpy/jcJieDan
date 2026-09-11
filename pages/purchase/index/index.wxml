@@ -1,28 +1,16 @@
-<wxs src="../../../utils/fn.wxs" module="tool" />
-<import src="../../../template/copySwiperItem/copySwiperItem.wxml" />
-
-
-
 <view class="flex flex-column">
 
-  <custom-navbar style="height: {{navBarHeight}}rpx;" title="采购中" avatar="{{url + userInfo.nxDiuWxAvartraUrl}}"
+  <custom-navbar wx:if="{{!embedded}}" style="height: {{navBarHeight}}rpx;" title="外采" avatar="{{url + userInfo.nxDiuWxAvartraUrl}}"
     button-text="设置" bindnavbuttontap="onNavButtonTap"></custom-navbar>
 
-    <view class="flex-row" style="height: {{viewBarHeight}}rpx; ">
-      <view class="navbar">
-        <block wx:for="{{tabs_wx}}" wx:key="name">
-          <view id="{{index}}"
-            class="half-row text-center navbar-item-sub {{innerCurrent == index ? 'bar-item-sub-on':''}}"
-            data-current='{{index}}' bindtap='onTab1ClickSub' hover-class="hover">
-            <view class='navbar-title-sub' style="line-height: {{viewBarHeight}}rpx;">{{item.name}}({{item.amount}})
-            </view>
-          </view>
-        </block>
-      </view>
+    <view class="merged-work-tabs" wx:if="{{!embedded}}">
+      <view class="merged-work-tab" bindtap="openStockWorkspace">出货中</view>
+      <view class="merged-work-tab is-active">外采</view>
+      <view class="merged-work-tab" bindtap="openPartnerWorkspace">协作伙伴</view>
     </view>
 
-    <swiper style="height: {{contentHeight }}rpx;" current="{{innerCurrent}}" bindchange='onInnerSwiperChange'>
-      <swiper-item>
+    <!-- 外采工作区只展示未采购数据，不再提供“采购中”二级页签。 -->
+    <view style="height: {{contentHeight}}rpx;">
 
         <view class="content flex-1 flex-column">
           <view
@@ -267,17 +255,14 @@
             </view>
           </view>
         </view>
-      </swiper-item>
-
-
-      <!-- 复制 -->
-      <template is="copySwiperItem"
-        data="{{batchArr, refresherTriggered2, contentHeight, windowHeight, windowWidth ,url}}" />
-    </swiper>
+    </view>
 
 
 
 </view>
+
+<!-- 采购页已从原生 tabBar 中隐藏；保留同一套自定义底栏，视觉上仍属于第 2 个入口。 -->
+<local-tab-bar id="local-tab-bar" wx:if="{{!embedded}}"></local-tab-bar>
 
 
 

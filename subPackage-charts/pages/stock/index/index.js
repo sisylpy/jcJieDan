@@ -1,402 +1,531 @@
-const globalData = getApp().globalData;
-var load = require('../../../../lib/load.js');
+var load = require('../../../../lib/load.js')
+
 import apiUrl from '../../../../config.js'
-
 import {
-  getMendianStockTypePeriod,
+  getStockCategoryGoodsPage,
+  getStockShelfGoodsPage
+} from '../../../../lib/apiDistributer.js'
 
-} from '../../../lib/apiDistributerGb.js'
-
+const VIEW_BAR_HEIGHT_PX = 52
+const LEFT_MENU_WIDTH_RPX = 132
 
 Page({
+  data: {
+    url: '',
+    disId: 0,
+    navBarHeight: 0,
+    viewBarHeight: 0,
+    contentHeight: 0,
+    categoryHeaderHeight: 84,
+    windowWidth: 750,
+    leftMenuWidth: LEFT_MENU_WIDTH_RPX,
+    shelfMenuWidth: 100,
+    viewMode: 'category',
+    categoryArr: [],
+    selectedCategoryId: null,
+    selectedCategoryIndex: 0,
+    selectedCategoryName: '',
+    shelfArr: [],
+    selectedShelfId: null,
+    selectedShelfIndex: 0,
+    selectedShelfName: '',
+    goodsArr: [],
+    currentPage: 1,
+    totalPage: 0,
+    totalCount: 0,
+    limit: 15,
+    hasMore: false,
+    isLoading: false,
+    hasLoaded: false,
+    refresherTriggered: false,
+    goodsScrollTop: 0
+  },
+
+  onLoad() {
+    this._measurePage()
+
+    const disInfo = wx.getStorageSync('disInfo') || {}
+    const ownerDistributerId = Number(wx.getStorageSync('ownerDistributerId'))
+    const nestedDisInfo = disInfo.nxDistributerEntity || {}
+    const disId = ownerDistributerId || Number(disInfo.nxDistributerId) || Number(nestedDisInfo.nxDistributerId)
+
+    this.setData({
+      url: apiUrl.server,
+      disId: disId || 0
+    })
+
+    if (!disId) {
+      wx.showToast({
+        title: '未找到配送商信息',
+        icon: 'none'
+      })
+      return
+    }
+
+    this._loadCategoryGoods({ reset: true, showLoading: true })
+  },
 
   onShow() {
-
-    // 推荐直接用新API
-    let windowInfo = wx.getWindowInfo();
-    let globalData = getApp().globalData;
-    this.setData({
-      windowWidth: windowInfo.windowWidth * globalData.rpxR,
-      windowHeight: windowInfo.windowHeight * globalData.rpxR,
-      navBarHeight: globalData.navBarHeight * globalData.rpxR,
-    });
-
+    this._measurePage()
   },
 
-  data: {
-    searchDepIds: -1,
-    searchDepId: -1,
-    tab1Index: 0,
-    itemIndex: 0,
-    dateString: "",
-  },
-
-  onLoad: function (options) {
+  _measurePage() {
+    const appData = getApp().globalData || {}
+    const windowInfo = wx.getWindowInfo ? wx.getWindowInfo() : wx.getSystemInfoSync()
+    const rpxRatio = appData.rpxR || (750 / windowInfo.windowWidth)
+    const navBarHeightPx = appData.navBarHeight || 0
+    const contentHeight = Math.max(0, windowInfo.windowHeight - navBarHeightPx - VIEW_BAR_HEIGHT_PX) * rpxRatio
 
     this.setData({
-
-      url: apiUrl.server,
+      navBarHeight: navBarHeightPx * rpxRatio,
+      viewBarHeight: VIEW_BAR_HEIGHT_PX * rpxRatio,
+      contentHeight: contentHeight,
+      windowWidth: windowInfo.windowWidth * rpxRatio
     })
+  },
 
-    var value = wx.getStorageSync('disInfo');
-    if (value) {
+  _loadCategoryGoods(options) {
+    const settings = options || {}
+    const reset = settings.reset !== false
+    if (this.data.isLoading || !this.data.disId) {
+      return
+    }
+
+    const page = reset ? 1 : this.data.currentPage + 1
+    if (!reset && !this.data.hasMore) {
+      return
+    }
+
+    const categoryId = settings.categoryId !== undefined
+      ? settings.categoryId
+      : this.data.selectedCategoryId
+
+    if (settings.showLoading) {
+      load.showLoading('获取库存中')
+    }
+    this.setData({ isLoading: true })
+
+    getStockCategoryGoodsPage({
+      disId: this.data.disId,
+      categoryId: categoryId,
+      page: page,
+      limit: this.data.limit
+    }).then(res => {
+      if (settings.showLoading) {
+        load.hideLoading()
+      }
+
+      const result = res && res.result ? res.result : {}
+      if (result.code !== 0) {
+        this.setData({
+          isLoading: false,
+          refresherTriggered: false,
+          hasLoaded: true
+        })
+        wx.showToast({
+          title: result.msg || '库存加载失败',
+          icon: 'none'
+        })
+        return
+      }
+
+      const responseData = result.data || {}
+      const categoryArr = responseData.categoryArr || []
+      const selectedCategoryId = responseData.selectedCategoryId
+      const pageGoods = this._decorateGoods(responseData.goodsArr || [], (page - 1) * this.data.limit)
+      let selectedCategoryIndex = 0
+      let selectedCategoryName = ''
+
+      for (let index = 0; index < categoryArr.length; index += 1) {
+        if (categoryArr[index].nxDistributerFatherGoodsId === selectedCategoryId) {
+          selectedCategoryIndex = index
+          selectedCategoryName = categoryArr[index].nxDfgFatherGoodsName || ''
+          break
+        }
+      }
+
       this.setData({
-        disInfo: value,
-        disId: value.nxDistributerId || value.nxDistributerEntity?.nxDistributerId,
-        type: value.nxDistributerStockCycle || value.nxDistributerEntity?.nxDistributerStockCycle,
+        categoryArr: categoryArr,
+        selectedCategoryId: selectedCategoryId,
+        selectedCategoryIndex: selectedCategoryIndex,
+        selectedCategoryName: selectedCategoryName,
+        goodsArr: reset ? pageGoods : this.data.goodsArr.concat(pageGoods),
+        currentPage: Number(responseData.currentPage) || page,
+        totalPage: Number(responseData.totalPage) || 0,
+        totalCount: Number(responseData.totalCount) || 0,
+        hasMore: responseData.hasMore === true,
+        isLoading: false,
+        hasLoaded: true,
+        refresherTriggered: false
+      })
+    }).catch(() => {
+      if (settings.showLoading) {
+        load.hideLoading()
+      }
+      this.setData({
+        isLoading: false,
+        refresherTriggered: false,
+        hasLoaded: true
+      })
+    })
+  },
+
+  _loadShelfGoods(options) {
+    const settings = options || {}
+    const reset = settings.reset !== false
+    if (this.data.isLoading || !this.data.disId) {
+      return
+    }
+
+    const page = reset ? 1 : this.data.currentPage + 1
+    if (!reset && !this.data.hasMore) {
+      return
+    }
+
+    const shelfId = settings.shelfId !== undefined
+      ? settings.shelfId
+      : this.data.selectedShelfId
+
+    if (settings.showLoading) {
+      load.showLoading('获取货架库存中')
+    }
+    this.setData({ isLoading: true })
+
+    getStockShelfGoodsPage({
+      disId: this.data.disId,
+      shelfId: shelfId,
+      page: page,
+      limit: this.data.limit
+    }).then(res => {
+      if (settings.showLoading) {
+        load.hideLoading()
+      }
+
+      const result = res && res.result ? res.result : {}
+      if (result.code !== 0) {
+        this.setData({
+          isLoading: false,
+          refresherTriggered: false,
+          hasLoaded: true
+        })
+        wx.showToast({
+          title: result.msg || '货架库存加载失败',
+          icon: 'none'
+        })
+        return
+      }
+
+      const responseData = result.data || {}
+      const shelfArr = responseData.shelfArr || []
+      const selectedShelfId = responseData.selectedShelfId
+      const pageGoods = this._decorateShelfGridGoods(
+        responseData.shelfGoodsArr || [],
+        responseData.goodsArr || [],
+        (page - 1) * this.data.limit
+      )
+      let selectedShelfIndex = 0
+      let selectedShelfName = ''
+
+      for (let index = 0; index < shelfArr.length; index += 1) {
+        if (shelfArr[index].nxDistributerGoodsShelfId === selectedShelfId) {
+          selectedShelfIndex = index
+          selectedShelfName = shelfArr[index].nxDistributerGoodsShelfName || ''
+          break
+        }
+      }
+
+      this.setData({
+        shelfArr: shelfArr,
+        selectedShelfId: selectedShelfId,
+        selectedShelfIndex: selectedShelfIndex,
+        selectedShelfName: selectedShelfName,
+        goodsArr: reset ? pageGoods : this.data.goodsArr.concat(pageGoods),
+        currentPage: Number(responseData.currentPage) || page,
+        totalPage: Number(responseData.totalPage) || 0,
+        totalCount: Number(responseData.totalCount) || 0,
+        hasMore: responseData.hasMore === true,
+        isLoading: false,
+        hasLoaded: true,
+        refresherTriggered: false
+      })
+    }).catch(() => {
+      if (settings.showLoading) {
+        load.hideLoading()
+      }
+      this.setData({
+        isLoading: false,
+        refresherTriggered: false,
+        hasLoaded: true
+      })
+    })
+  },
+
+  _decorateShelfGridGoods(shelfGoodsArr, unshelvedGoodsArr, startIndex) {
+    const displayOffset = Number(startIndex) || 0
+    const source = shelfGoodsArr.length > 0
+      ? shelfGoodsArr.map(shelfGoods => ({
+        goods: shelfGoods.nxDistributerGoodsEntity || {},
+        stockArr: shelfGoods.nxDisGoodsShelfStockEntities || [],
+        shelfGoods: shelfGoods
+      }))
+      : unshelvedGoodsArr.map(goods => ({
+        goods: goods,
+        stockArr: goods.nxDisGoodsShelfStockEntities || [],
+        shelfGoods: null
+      }))
+
+    return source.map((sourceItem, index) => {
+      const goods = sourceItem.goods
+      const stockArr = sourceItem.stockArr
+      const brand = this._validText(goods.nxDgGoodsBrand) ? goods.nxDgGoodsBrand : ''
+      const standard = this._validText(goods.nxDgGoodsStandardname) ? goods.nxDgGoodsStandardname : '件'
+      let restWeight = 0
+      stockArr.forEach(stock => {
+        const value = Number(stock.nxDgssRestWeight)
+        restWeight += Number.isFinite(value) ? value : 0
       })
 
-      console.log("init---------2222222")
-      this._getInitData();
-
-    }
-
-
+      return {
+        gridKey: sourceItem.shelfGoods
+          ? 's-' + sourceItem.shelfGoods.nxDistributerGoodsShelfGoodsId
+          : 'u-' + goods.nxDistributerGoodsId,
+        nxDistributerGoodsId: goods.nxDistributerGoodsId,
+        displayIndex: displayOffset + index + 1,
+        displayName: brand + (goods.nxDgGoodsName || ''),
+        displayStandard: standard,
+        cartonText: this._buildCartonText(goods),
+        isTemporary: goods.nxDgNxGoodsId === null || goods.nxDgNxGoodsId === undefined,
+        restWeightText: this._formatNumber(restWeight, 2),
+        shelfLayer: sourceItem.shelfGoods ? sourceItem.shelfGoods.nxDgsgShelfLayer : null,
+        shelfSequence: sourceItem.shelfGoods ? sourceItem.shelfGoods.nxDgsgShelfLayerSeq : null
+      }
+    })
   },
 
+  _decorateGoods(goodsArr, startIndex) {
+    const displayOffset = Number(startIndex) || 0
+    return goodsArr.map((goods, goodsIndex) => {
+      const item = Object.assign({}, goods)
+      const stockArr = (goods.nxDisGoodsShelfStockEntities || []).map((stock, stockIndex) => {
+        const batch = Object.assign({}, stock)
+        const shelfName = this._validText(stock.shelfName) ? stock.shelfName : ''
+        const layer = stock.nxDgsgShelfLayer
+        const sequence = stock.nxDgsgShelfLayerSeq
+        let locationText = shelfName || '未设置货架'
 
+        if (shelfName && layer !== null && layer !== undefined && layer !== '') {
+          locationText += '-L' + layer
+        }
+        if (shelfName && sequence !== null && sequence !== undefined && sequence !== '') {
+          locationText += '-' + sequence
+        }
 
+        batch.batchIndex = stockIndex + 1
+        batch.locationText = locationText
+        batch.inDateText = stock.nxDgssProduceDate || stock.nxDgssInventoryDate || stock.nxDgssDate || ''
+        batch.expiryDateText = stock.nxDgssExpiryDate || ''
+        batch.priceText = this._formatNumber(stock.nxDgssPrice, 2)
+        batch.inWeightText = this._formatNumber(stock.nxDgssWeight, 2)
+        batch.inSubtotalText = this._formatNumber(stock.nxDgssSubtotal, 2)
+        batch.restWeightText = this._formatNumber(stock.nxDgssRestWeight, 2)
+        batch.restSubtotalText = this._formatNumber(stock.nxDgssRestSubtotal, 2)
+        return batch
+      })
 
-  _getInitData() {
-
-    var whichDay = "";
-    if (this.data.itemIndex == 0) {
-      whichDay = 99;
-    } else {
-      whichDay = Number(this.data.itemIndex) - 1;
-    }
-    load.showLoading("获取数据中")
-    var data = {
-      disId: this.data.disId,
-      searchDepIds: this.data.searchDepIds,
-      searchDepId: this.data.searchDepId,
-      whichDay: whichDay,
-      type: this.data.type,
-
-    }
-    console.log("doososs", data);
-    getMendianStockTypePeriod(data)
-      .then(res => {
-        load.hideLoading();
-        console.log("abc")
-        console.log(res.result.data)
-        console.log("🔍 检查exceed数据:", res.result.data.exceed)
-        console.log("🔍 检查exceedArr数据:", res.result.data.exceedArr)
-        if (res.result.code == 0) {
-          if (res.result.data.total.restTotal > 0) {
-            // 为每个商品添加环形图渐变色
-            const processedData = this._addConicGradients(res.result.data);
-
-            console.log("📊 设置exceedThree数据:", res.result.data.exceed)
-            console.log("📊 处理后的exceed数据:", processedData.exceed)
-            this.setData({
-              total: res.result.data.total,
-              totalArr: processedData.arr,
-              exceedThree: processedData.exceed,
-              three: res.result.data.three,
-              two: res.result.data.two,
-              one: res.result.data.one,
-              in: res.result.data.in,
-              arr: processedData,
-
-            })
-            console.log("✅ 设置后的exceedThree:", this.data.exceedThree)
-
-
-            if (this.data.tab1Index == 0) {
-              this.setData({
-                dateString: this.data.total.dateString
-              })
-            } else if (this.data.tab1Index == 1) {
-              this.setData({
-                dateString: this.data.in.dateString
-              })
-            } else if (this.data.tab1Index == 2) {
-              this.setData({
-                dateString: this.data.one.dateString
-              })
-            } else if (this.data.tab1Index == 3) {
-              this.setData({
-                dateString: this.data.two.dateString
-              })
-            } else if (this.data.tab1Index == 4) {
-              this.setData({
-                dateString: this.data.three.dateString
-              })
-            } else if (this.data.tab1Index == 5) {
-              console.log("🎯 tab1Index == 5, 设置3天以上日期字符串")
-              console.log("exceedThree数据:", this.data.exceedThree)
-              this.setData({
-                dateString: this.data.exceedThree.dateString
-              })
-              console.log("设置后的dateString:", this.data.exceedThree.dateString)
-            }
-            console.log("chckckckdkdkkdatesYr", this.data.dateString);
-            console.log("当前tab1Index:", this.data.tab1Index)
-
-          } else {
-            this.setData({
-              total: "0.0",
-              totalArr: [],
-              arr: [],
-              exceedThree: "",
-              three: "",
-              two: "",
-              one: "",
-              zero: "",
-            })
-          }
-        } else {
-          this.setData({
-            total: "0.0",
-            totalArr: [],
-            arr: [],
-            exceedThree: "",
-            three: "",
-            two: "",
-            one: "",
-            zero: "",
-          })
+      const locations = []
+      stockArr.forEach(stock => {
+        if (stock.locationText !== '未设置货架' && locations.indexOf(stock.locationText) < 0) {
+          locations.push(stock.locationText)
         }
       })
+
+      const brand = this._validText(goods.nxDgGoodsBrand) ? goods.nxDgGoodsBrand : ''
+      item.displayIndex = displayOffset + goodsIndex + 1
+      item.displayName = brand + (goods.nxDgGoodsName || '')
+      item.displayStandard = this._validText(goods.nxDgGoodsStandardname) ? goods.nxDgGoodsStandardname : '件'
+      item.displayStandardWeight = this._validText(goods.nxDgGoodsStandardWeight) ? goods.nxDgGoodsStandardWeight : ''
+      item.cartonText = this._buildCartonText(goods)
+      item.imagePath = this._goodsImagePath(goods)
+      item.shelfText = locations.length > 0 ? locations.join('、') : '未设置货架'
+      item.stockArr = stockArr
+      item.batchCount = stockArr.length
+      item.restWeightText = this._formatNumber(goods.goodsStockWeightTotal, 2)
+      item.restAmountText = this._formatNumber(goods.goodsStockTotal, 2)
+      return item
+    })
   },
 
-
-  toStockPage(e) {
-    console.log('点击库存项展开:', e.currentTarget.dataset);
-
-
-    var dateDuring = e.currentTarget.dataset.dateduring;
-    var whichDay = "";
-    if (this.data.itemIndex == 0) {
-      whichDay = 99;
-    } else {
-      whichDay = Number(this.data.itemIndex) - 1;
+  _buildCartonText(goods) {
+    if (!this._validText(goods.nxDgCartonUnit) || !this._validText(goods.nxDgItemsPerCarton)) {
+      return ''
     }
-    var goodsIndex = e.currentTarget.dataset.index; // 商品序号
-
-    var id = "";
-
-    // 根据当前选择的部门确定搜索ID
-    if (this.data.itemIndexDep == 0) {
-      id = this.data.searchDepIds;
-    } else {
-      id = this.data.searchDepId;
-    }
-
-    // 构建跳转参数
-    var params = {
-      greatId: e.currentTarget.dataset.id,
-      fatherName: e.currentTarget.dataset.name,
-      color: e.currentTarget.dataset.color,
-      fatherTotal: e.currentTarget.dataset.total,
-      searchDepIds: id,
-      disId: this.data.disId,
-      type: this.data.type,
-      goodsIndex: goodsIndex // 添加商品序号参数
-    };
-
-    console.log('跳转参数:', params);
-
-    wx.navigateTo({
-      url: '../stockList/stockList?greatId=' + params.greatId +
-        '&fatherName=' + params.fatherName +
-        '&dateString=' + this.data.dateString +
-        '&color=' + encodeURIComponent(params.color) +
-        '&fatherTotal=' + params.fatherTotal +
-        '&whichDay=' + whichDay +
-        '&searchDepIds=' + params.searchDepIds +
-        '&disId=' + params.disId +
-        '&type=' + params.type +
-        '&goodsIndex=' + params.goodsIndex
-    });
+    const unit = this._validText(goods.nxDgGoodsStandardname) ? goods.nxDgGoodsStandardname : '件'
+    return goods.nxDgItemsPerCarton + unit + '/' + goods.nxDgCartonUnit
   },
 
-  /**
-   * tabItme点击
-   */
-  onTab1Click(event) {
-    let index = event.currentTarget.dataset.index;
-    console.log("🖱️ onTab1Click - index:", index)
-    console.log(event.currentTarget.dataset)
+  _goodsImagePath(goods) {
+    const largeFile = this._validText(goods.nxDgGoodsFileLarge) ? goods.nxDgGoodsFileLarge : ''
+    const normalFile = this._validText(goods.nxDgGoodsFile) && goods.nxDgGoodsFile !== 'goodsImage/logo.jpg'
+      ? goods.nxDgGoodsFile
+      : ''
+    return largeFile || normalFile
+  },
+
+  _validText(value) {
+    return value !== null && value !== undefined && value !== '' && value !== 'null'
+  },
+
+  _formatNumber(value, digits) {
+    const numberValue = Number(value)
+    if (!Number.isFinite(numberValue)) {
+      return '0'
+    }
+    return numberValue.toFixed(digits).replace(/\.00$/, '').replace(/(\.\d)0$/, '$1')
+  },
+
+  changeCategory(e) {
+    const categoryId = Number(e.currentTarget.dataset.id)
+    const categoryIndex = Number(e.currentTarget.dataset.index)
+    if (!categoryId || categoryId === this.data.selectedCategoryId || this.data.isLoading) {
+      return
+    }
+
+    const category = this.data.categoryArr[categoryIndex] || {}
     this.setData({
-      tab1Index: index,
-      itemIndex: index,
-      days: event.currentTarget.dataset.days,
-      depTotal: event.currentTarget.dataset.total,
-
-
+      selectedCategoryId: categoryId,
+      selectedCategoryIndex: categoryIndex,
+      selectedCategoryName: category.nxDfgFatherGoodsName || '',
+      goodsArr: [],
+      totalCount: Number(category.goodsCount) || 0,
+      currentPage: 1,
+      totalPage: 0,
+      hasMore: false,
+      goodsScrollTop: this.data.goodsScrollTop === 0 ? 1 : 0
+    }, () => {
+      this.setData({ goodsScrollTop: 0 })
+      this._loadCategoryGoods({
+        reset: true,
+        categoryId: categoryId,
+        showLoading: true
+      })
     })
-    console.log("📌 点击后tab1Index:", this.data.tab1Index, "是否为3天以上(index 5):", index == 5)
-
   },
 
+  changeShelf(e) {
+    const shelfId = Number(e.currentTarget.dataset.id)
+    const shelfIndex = Number(e.currentTarget.dataset.index)
+    if (!Number.isFinite(shelfId) || shelfId === this.data.selectedShelfId || this.data.isLoading) {
+      return
+    }
 
-  animationfinishDep(event) {
-    console.log("amddddep")
+    const shelf = this.data.shelfArr[shelfIndex] || {}
     this.setData({
-      tab1IndexDep: event.detail.current,
-      itemIndexDep: event.detail.current,
-
+      selectedShelfId: shelfId,
+      selectedShelfIndex: shelfIndex,
+      selectedShelfName: shelf.nxDistributerGoodsShelfName || '',
+      goodsArr: [],
+      totalCount: Number(shelf.goodsCount) || 0,
+      currentPage: 1,
+      totalPage: 0,
+      hasMore: false,
+      goodsScrollTop: this.data.goodsScrollTop === 0 ? 1 : 0
+    }, () => {
+      this.setData({ goodsScrollTop: 0 })
+      this._loadShelfGoods({
+        reset: true,
+        shelfId: shelfId,
+        showLoading: true
+      })
     })
+  },
 
-    if (this.data.tab1IndexDep == 0) {
-      this.setData({
-        searchDepId: -1,
+  toggleViewMode() {
+    if (this.data.isLoading) {
+      return
+    }
+
+    const viewMode = this.data.viewMode === 'category' ? 'shelf' : 'category'
+    this.setData({
+      viewMode: viewMode,
+      goodsArr: [],
+      currentPage: 1,
+      totalPage: 0,
+      totalCount: 0,
+      hasMore: false,
+      hasLoaded: false,
+      goodsScrollTop: 0
+    }, () => {
+      if (viewMode === 'shelf') {
+        this._loadShelfGoods({
+          reset: true,
+          shelfId: this.data.selectedShelfId,
+          showLoading: true
+        })
+      } else {
+        this._loadCategoryGoods({
+          reset: true,
+          categoryId: this.data.selectedCategoryId,
+          showLoading: true
+        })
+      }
+    })
+  },
+
+  onRefresh() {
+    if (this.data.isLoading) {
+      return
+    }
+    this.setData({ refresherTriggered: true })
+    if (this.data.viewMode === 'shelf') {
+      this._loadShelfGoods({
+        reset: true,
+        shelfId: this.data.selectedShelfId
       })
     } else {
-      this.setData({
-        searchDepId: this.data.resultDepList[event.detail.current - 1].nxDepartmentId,
+      this._loadCategoryGoods({
+        reset: true,
+        categoryId: this.data.selectedCategoryId
       })
     }
-
-
-    this._getInitData();
-
   },
 
-
-  animationfinish(event) {
-    console.log("findiis----zero");
-    console.log(event)
-    console.log("🔄 animationfinish - current:", event.detail.current)
-    this.setData({
-      tab1Index: event.detail.current,
-      itemIndex: event.detail.current,
-    })
-
-    if (event.detail.current == 0) {
-      this.setData({
-        leftWidth: 0,
+  refreshStock() {
+    if (this.data.isLoading) {
+      return
+    }
+    if (this.data.viewMode === 'shelf') {
+      this._loadShelfGoods({
+        reset: true,
+        shelfId: this.data.selectedShelfId,
+        showLoading: true
+      })
+    } else {
+      this._loadCategoryGoods({
+        reset: true,
+        categoryId: this.data.selectedCategoryId,
+        showLoading: true
       })
     }
-    if (event.detail.current == 1) {
-      this.setData({
-        leftWidth: 50,
-      })
-    }
-    if (event.detail.current == 2) {
-      this.setData({
-        // leftWidth: 50,
-      })
-    }
-
-    if (event.detail.current == 3) {
-      this.setData({
-        leftWidth: 100,
-      })
-    }
-    if (event.detail.current == 4) {
-      this.setData({
-        leftWidth: 220,
-      })
-    }
-    if (event.detail.current == 5) {
-      console.log("🎯 切换到3天以上标签页 (index 5)")
-      this.setData({
-        leftWidth: 250,
-      })
-    }
-    console.log("📌 最终tab1Index:", this.data.tab1Index, "itemIndex:", this.data.itemIndex)
-    this._getInitData();
   },
 
-
-
-  // 为商品数据添加环形图颜色（简化版本，使用后台计算的百分比）
-  _addConicGradients(data) {
-    // console.log('🔧 开始处理环形图数据:', data);
-
-    // 使用统一的颜色
-    const baseColor = '#4CAF50';
-
-    // 处理各个时间段的数据
-    const processArray = (arr) => {
-      if (!arr || !Array.isArray(arr)) return arr;
-      // console.log('📊 处理数组数据:', arr);
-
-      return arr.map((item, index) => {
-        // 直接使用后台返回的百分比（NX项目可能没有此字段，需要根据实际返回调整）
-        const percentage = parseFloat(item.fatherStockTotalPercent) || 0;
-        const degree = (percentage / 100) * 360;
-        const gradient = `conic-gradient(${baseColor} 0deg ${degree}deg, #f0f0f0 ${degree}deg 360deg)`;
-
-        // console.log(`🎯 商品 ${item.nxDfgFatherGoodsName || item.gbDfgFatherGoodsName} 添加环形图:`, {
-        //   originalPercent: item.fatherStockTotalPercent,
-        //   percentage,
-        //   degree,
-        //   gradient,
-        //   stockTotalString: item.fatherStockTotalString
-        // });
-
-        return {
-          ...item,
-          stockConicGradient: gradient
-        };
-      });
-    };
-
-    const result = {
-      ...data,
-      arr: processArray(data.arr),
-      in: {
-        ...data.in,
-        arr: processArray(data.in.arr)
-      },
-      one: {
-        ...data.one,
-        arr: processArray(data.one.arr)
-      },
-      two: {
-        ...data.two,
-        arr: processArray(data.two.arr)
-      },
-      three: {
-        ...data.three,
-        arr: processArray(data.three.arr)
-      },
-      exceed: data.exceed ? {
-        ...data.exceed,
-        arr: processArray(data.exceedArr || data.exceed.arr || [])
-      } : { arr: processArray(data.exceedArr || []) }
-    };
-
-    console.log('✅ 环形图数据处理完成:', result);
-    console.log('🔍 exceed数据详情:', {
-      exceed: data.exceed,
-      exceedArr: data.exceedArr,
-      exceedDotArr: data.exceed?.arr,
-      processedExceedArr: result.exceed?.arr
-    });
-    return result;
+  onScrollToLower() {
+    if (this.data.viewMode === 'shelf') {
+      this._loadShelfGoods({ reset: false })
+    } else {
+      this._loadCategoryGoods({ reset: false })
+    }
   },
 
-
-
-  toFilter() {
-    wx.removeStorageSync('tab1IndexDep');
-    wx.navigateTo({
-      url: '../../sel/filterStockDepartment/filterStockDepartment',
-    })
+  previewImage(e) {
+    const path = e.currentTarget.dataset.path
+    if (!path) {
+      return
+    }
+    const url = this.data.url + path
+    wx.previewImage({ current: url, urls: [url] })
   },
-
-
 
   toBack() {
-    wx.navigateBack({
-      delta: 1
-    });
-  },
-
-  // 图片加载错误处理
-  onImageError(e) {
-    console.log('图片加载失败:', e);
-    // 可以设置默认图片或隐藏图片
-    // 这里不做处理，让图片显示为空
-  },
-
-
-
-
-
+    wx.navigateBack({ delta: 1 })
+  }
 })

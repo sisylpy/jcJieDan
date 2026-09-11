@@ -1,4 +1,5 @@
 var load = require('../../../../lib/load.js');
+var directStockSubmission = require('../../../../utils/directStockSubmission.js');
 
 import apiUrl from '../../../../config.js'
 import {
@@ -19,7 +20,6 @@ import {
   downloadShelfGoodsTemplate,
   importShelfGoodsFromExcel,
   uploadShelfStock,
-  updateDisStock,
   setShelfLayer,
   clearShelfLayer,
   disUpdateBuyingPrice
@@ -182,8 +182,6 @@ Page({
     voiceShelfNewItems: [],
     needsRefreshOnShow: false,
     refreshShelfListOnShow: false,
-    stockRestWeightTotal: 0,
-    showStockDetail: false,
     layerTextMap: {
       1: '第一层结束',
       2: '第二层结束',
@@ -1024,8 +1022,11 @@ Page({
     this.setData({
       showOperation: true,
       isEditGoods: true,
-       disGoods: disGoods,
+      disGoods: disGoods,
+      shelfGoods: null,
       isUnshelfSelected: true,
+      isEditPurchase: false,
+      isUnshelfEdit: false,
       goodsIndex: e.currentTarget.dataset.index
     })
   },
@@ -1236,8 +1237,24 @@ Page({
 
   // auto
   showInputOrder(e) {
-    // 根据 nxDgCartonUnit 是否为 null 决定使用哪个规格
     const disGoods = this.data.disGoods;
+    if (!disGoods) {
+      wx.showToast({
+        title: '商品数据异常',
+        icon: 'none'
+      });
+      return;
+    }
+    const stockList = Array.isArray(disGoods.stockList)
+      ? disGoods.stockList
+      : (Array.isArray(disGoods.nxDisGoodsShelfStockEntities)
+        ? disGoods.nxDisGoodsShelfStockEntities
+        : []);
+    const restWeightTotal = stockList.reduce((sum, stock) => {
+      const weight = Number(stock && stock.nxDgssRestWeight ? stock.nxDgssRestWeight : 0);
+      return sum + (isNaN(weight) ? 0 : weight);
+    }, 0);
+    // 根据 nxDgCartonUnit 是否为 null 决定使用哪个规格
     const standardName = disGoods.nxDgCartonUnit !== null && disGoods.nxDgCartonUnit !== undefined && disGoods.nxDgCartonUnit !== '' ?
       disGoods.nxDgCartonUnit :
       disGoods.nxDgGoodsStandardname;
@@ -1247,6 +1264,10 @@ Page({
       applyStandardName: standardName,
       windowHeight: this.data.windowHeight,
       showOperation: false,
+      isEditPurchase: false,
+      isUnshelfEdit: false,
+      restWeight: restWeightTotal.toString(),
+      maxRestWeight: restWeightTotal,
     })
   },
 
@@ -1308,8 +1329,14 @@ Page({
     const isUnshelfEdit = this.data.isUnshelfEdit || false;
     const isUnshelf = isUnshelfEdit || this.data.isUnshelfSelected;
     const shelfGoodsId = !isUnshelf && this.data.shelfGoods?.nxDistributerGoodsShelfGoodsId;
-    
-    purGoods.nxDpgApplyShelfId = this.data.shelfId;
+
+    // 无货架订货与智能备货同属“无指定货架的库存补货”；货架商品保留货架补货来源。
+    purGoods.nxDpgDemandSource = isUnshelf ? 'SMART_REPLENISHMENT' : 'SHELF_REPLENISHMENT';
+
+    // 非货架商品没有申请货架，不能沿用用户上一次浏览的 shelfId。
+    if (!isUnshelf && Number(this.data.shelfId) > 0) {
+      purGoods.nxDpgApplyShelfId = this.data.shelfId;
+    }
     load.showLoading(loadingText);
     staffApplyPurGoods(purGoods).then(res => {
       if (res.result.code == 0) {
@@ -1328,7 +1355,7 @@ Page({
         }
         
         this.setData({
-          show: false,
+          showPlanPurchase: false,
           showOperation: false,
           isEditPurchase: false, // 重置修改模式
           isUnshelfEdit: false, // 重置非货架商品标识
@@ -1513,10 +1540,12 @@ Page({
 
     const isUnshelf = this.data.unShelfGoodsList.length > 0;
     const shelfGoodsId = !isUnshelf && this.data.shelfGoods?.nxDistributerGoodsShelfGoodsId;
-    
+
+    const submission = directStockSubmission.begin(this, disSavePurGoodsSaveStock, purGoods);
+    if (!submission.started) return;
     load.showLoading(loadingText);
     console.log("savestock", purGoods)
-    disSavePurGoodsSaveStock(purGoods).then(res => {
+    submission.promise.then(res => {
       if (res.result.code == 0) {
         wx.showToast({
           title: successText,
@@ -1562,6 +1591,9 @@ Page({
           icon: 'none'
         });
       }
+    }).catch(err => {
+      load.hideLoading();
+      console.error('disSavePurGoodsSaveStock error:', err);
     })
     
   },
@@ -2672,193 +2704,6 @@ Page({
   },
 
 
-  showStock() {
-    console.log('=== 点击修改库存 ===')
-    console.log('shelfGoods:', this.data.shelfGoods)
-
-    if (!this.data.shelfGoods) {
-      console.error('错误：shelfGoods为null或undefined')
-      wx.showToast({
-        title: '商品数据异常',
-        icon: 'none'
-      })
-      return
-    }
-
-    console.log('批次数据:', this.data.shelfGoods.nxDisGoodsShelfStockEntities)
-    console.log('批次数量:', this.data.shelfGoods.nxDisGoodsShelfStockEntities ? this.data.shelfGoods.nxDisGoodsShelfStockEntities.length : 0)
-
-    const stockList = Array.isArray(this.data.shelfGoods.nxDisGoodsShelfStockEntities) ? this.data.shelfGoods.nxDisGoodsShelfStockEntities : []
-    const totalRestWeight = stockList.reduce((sum, item) => {
-      const weight = Number(item && item.nxDgssRestWeight ? item.nxDgssRestWeight : 0)
-      return sum + (isNaN(weight) ? 0 : weight)
-    }, 0)
-
-    console.log('设置showStock为true')
-    this.setData({
-      showStock: true,
-      showOperation: false,
-      stockRestWeightTotal: totalRestWeight
-    }, () => {
-      console.log('setData完成，showStock应该为true')
-      console.log('当前showStock值:', this.data.showStock)
-      console.log('当前总剩余库存:', this.data.stockRestWeightTotal)
-    })
-  },
-
-  showStockDetail() {
-    console.log('=== 点击查看库存 ===')
-    const shelfGoods = this.data.shelfGoods
-
-    if (!shelfGoods) {
-      console.error('错误：shelfGoods为null或undefined')
-      wx.showToast({
-        title: '商品数据异常',
-        icon: 'none'
-      })
-      return
-    }
-
-    
-    this.setData({
-      showStockDetail: true,
-      showOperation: false
-    }, () => {
-      console.log('showStockDetail 设置完成，当前值:', this.data.showStockDetail)
-    })
-  },
-
-  confirmStockDetail(e) {
-    const {
-      stockId,
-      restWeight,
-      sellingPrice,
-      sellingPriceCarton,
-      nxDgssProduceDate,
-      nxDgssShelfLife,
-      nxDgssShelfLifeUnit,
-      nxDgssExpiryDate
-    } = e.detail || {}
-    if (!stockId) {
-      console.warn('confirmStockDetail 缺少 stockId', e)
-      wx.showToast({
-        title: '批次数据异常',
-        icon: 'none'
-      })
-      return
-    }
-
-    const shelfGoods = this.data.shelfGoods;
-    if (!shelfGoods) {
-      wx.showToast({
-        title: '商品数据异常',
-        icon: 'none'
-      });
-      return;
-    }
-    
-    const goodsId = shelfGoods.nxDistributerGoodsEntity?.nxDistributerGoodsId;
-    const shelfGoodsId = shelfGoods.nxDistributerGoodsShelfGoodsId;
-    const isUnshelf = this.data.isUnshelfSelected || this.data.shelfIndex === this.data.shelfArr.length;
-    
-    load.showLoading('保存中...');
-    updateDisStock({
-      stockId,
-      restWeight,
-      sellingPrice,
-      sellingPriceCarton,
-      nxDgssProduceDate,
-      nxDgssShelfLife,
-      nxDgssShelfLifeUnit,
-      nxDgssExpiryDate,
-      disId: this.data.disId,
-      userId: this.data.userId
-    }).then(res => {
-      load.hideLoading();
-      if (res.result.code === 0) {
-        wx.showToast({
-          title: '更新成功',
-          icon: 'success'
-        });
-        
-        // 优化：只更新列表中对应商品的库存批次，不刷新整个列表
-        const resultData = res.result.data || {};
-        if (goodsId) {
-          // 如果接口返回了更新后的库存批次列表，使用它
-          if (resultData.stockEntities || resultData.nxDisGoodsShelfStockEntities) {
-            this.updateStockInList(goodsId, shelfGoodsId, null, resultData, isUnshelf);
-          } else {
-            // 否则，只更新当前批次的信息（从现有列表中查找并更新）
-            const stockList = Array.isArray(shelfGoods.nxDisGoodsShelfStockEntities) 
-              ? shelfGoods.nxDisGoodsShelfStockEntities 
-              : [];
-            const stockIndex = stockList.findIndex(stock => 
-              stock.nxDistributerGoodsShelfStockId === stockId
-            );
-            if (stockIndex !== -1) {
-              const updatedStockList = [...stockList];
-              const prev = updatedStockList[stockIndex];
-              const merged = {
-                ...prev,
-                nxDgssRestWeight: restWeight,
-                nxDgssSellingPrice: sellingPrice,
-                nxDgssProduceDate: nxDgssProduceDate,
-                nxDgssShelfLife: nxDgssShelfLife,
-                nxDgssShelfLifeUnit: nxDgssShelfLifeUnit,
-                nxDgssExpiryDate: nxDgssExpiryDate
-              };
-              if (sellingPriceCarton != null && sellingPriceCarton !== '') {
-                merged.nxDgssSellingPriceCarton = sellingPriceCarton;
-              }
-              updatedStockList[stockIndex] = merged;
-              this.updateStockInList(goodsId, shelfGoodsId, updatedStockList, null, isUnshelf);
-            }
-          }
-        }
-        
-        this.setData({
-          isEditGoods: false,
-          showStockDetail: false
-        });
-      } else {
-        wx.showToast({
-          title: res.result.msg || '更新失败',
-          icon: 'none'
-        });
-      }
-    }).catch(err => {
-      console.error('更新库存失败:', err);
-      load.hideLoading();
-      wx.showToast({
-        title: '网络错误',
-        icon: 'none'
-      });
-    });
-  },
-
-
-  // 关闭库存弹窗
-  closeStockModal() {
-    this.setData({
-      showStock: false,
-    })
-  },
-
-  closeStockDetailModal() {
-    this.setData({
-      showStockDetail: false
-    })
-  },
-
-  // 库存操作成功后刷新数据
-  refreshAfterStockOperation() {
-    if (this.data.isUnshelfSelected || this.data.shelfIndex === this.data.shelfArr.length) {
-      this.getUnShelfGoods();
-    } else {
-      this.updateShelfGoodsData();
-    }
-  },
-
   /**
    * 从货架商品列表中移除指定商品（优化：不刷新整个列表）
    * @param {Number} shelfGoodsId - 货架商品ID
@@ -3552,9 +3397,51 @@ Page({
 
   },  
 
+  _saveInventoryBatchContext(shelfGoods, stockList) {
+    const goods = shelfGoods && shelfGoods.nxDistributerGoodsEntity
+      ? shelfGoods.nxDistributerGoodsEntity
+      : this.data.disGoods
+    const currentShelf = (this.data.shelfArr || [])[this.data.shelfIndex] || {}
+    wx.setStorageSync('inventoryBatchBusinessContext', {
+      shelfGoodsId: shelfGoods ? shelfGoods.nxDistributerGoodsShelfGoodsId : null,
+      shelfId: shelfGoods ? shelfGoods.nxDgsgShelfId : this.data.shelfId,
+      shelfName: currentShelf.nxDistributerGoodsShelfName || '',
+      goods: goods || {},
+      stockList: Array.isArray(stockList) ? stockList : []
+    })
+  },
+
+  openInventoryBatchList() {
+    const shelfGoods = this.data.shelfGoods || {}
+    const stockList = Array.isArray(shelfGoods.nxDisGoodsShelfStockEntities)
+      ? shelfGoods.nxDisGoodsShelfStockEntities
+      : []
+    if (stockList.length === 0) {
+      wx.showToast({ title: '该商品暂无库存批次', icon: 'none' })
+      return
+    }
+
+    this._saveInventoryBatchContext(shelfGoods, stockList)
+    this.setData({
+      showOperation: false,
+      needsRefreshOnShow: true
+    })
+    wx.navigateTo({
+      url: '/subPackage/pages/shelf/inventoryBatchBusiness/inventoryBatchBusiness?shelfGoodsId=' +
+        (shelfGoods.nxDistributerGoodsShelfGoodsId || '')
+    })
+  },
+
   toInventoryBatchBusiness(e) {
-    const stockId = e.currentTarget.dataset.stockId
+    const stockId = Number(e.currentTarget.dataset.stockId)
     if (!stockId) return
+    const shelfGoods = e.currentTarget.dataset.shelfgoods || this.data.shelfGoods || {}
+    const allStocks = Array.isArray(shelfGoods.nxDisGoodsShelfStockEntities)
+      ? shelfGoods.nxDisGoodsShelfStockEntities
+      : []
+    const stock = allStocks.find(item => Number(item.nxDistributerGoodsShelfStockId) === stockId)
+    this._saveInventoryBatchContext(shelfGoods, stock ? [stock] : [])
+    this.setData({ needsRefreshOnShow: true })
     wx.navigateTo({
       url: '/subPackage/pages/shelf/inventoryBatchBusiness/inventoryBatchBusiness?stockBatchId=' + stockId
     })

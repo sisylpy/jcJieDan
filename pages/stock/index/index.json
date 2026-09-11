@@ -4,6 +4,8 @@
   "backgroundTextStyle": "dark",
   "usingComponents": {
     "custom-navbar": "/components/custom-navbar/custom-navbar",
-    "stockOutGoods": "/components/stockOutGoods/stockOutGoods"
+    "stockOutGoods": "/components/stockOutGoods/stockOutGoods",
+    "purchase-workspace": "/pages/purchase/index/workspace",
+    "partner-workspace": "/pages/doing/index/workspace"
   }
 }

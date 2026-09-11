@@ -152,6 +152,13 @@
 					<text>实付金额</text>
 					<text class="bill-pay-value">¥{{bill.nxDbPayAmount || bill.nxDbTotal || '0.00'}}</text>
 				</view>
+				<view class="bill-profit-row" wx:if="{{bill.nxDbProfitTotal}}">
+					<text class="bill-profit-label">毛利</text>
+					<view class="bill-profit-value">
+						<text class="bill-profit-amount">¥{{bill.nxDbProfitTotal}}</text>
+						<text class="bill-profit-scale" wx:if="{{bill.nxDbProfitScale}}">（{{bill.nxDbProfitScale}}%）</text>
+					</view>
+				</view>
 			</view>
 
 			<view class="flex-column p-20 weight_five font-lg" style="margin-bottom: 80rpx;">
