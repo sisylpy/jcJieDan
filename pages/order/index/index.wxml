@@ -510,6 +510,10 @@
 
                 </view>
 
+                <view wx:if="{{item.returnCount > 0}}" class="flex-row font-xs text-danger">
+                  <text>待处理退货：{{item.returnCount}}个（进入客户订单后确认完成）</text>
+                </view>
+
               </view>
             </view>
 

@@ -10,6 +10,7 @@ import {
   updateOrder,
   deleteOrder,
   phoneGetToFillDepOrdersGb,
+  completeJczbReturn,
   depFatherGetTaskListJustCount,
   phoneGetToFillDepOrdersWithKg,
   phoneGetToFillDepOrdersWithJin,
@@ -130,6 +131,7 @@ Page({
       url: apiUrl.server,
       imgUrl: 'userImage/say.png',
       isKgMode: false, // 默认显示斤，false=斤，true=公斤
+      returnBatches: [],
     })
 
     var userInfo = wx.getStorageSync('userInfo');
@@ -217,6 +219,10 @@ Page({
     if (this.data.depHasSubs > 0) {
       data.arr.forEach(function (dep) {
         if (dep.depOrders && dep.depOrders.length) {
+          dep.depOrders = dep.depOrders.filter(function (order) {
+            return !(order.nxDoReturnStatus !== null && order.nxDoReturnStatus !== undefined
+              && /^JCZB-\d+$/.test(String(order.nxDoOrderGroupNo || '')));
+          });
           dep.depOrders = dep.depOrders.map(function (order) {
             return page._decorateCustomerStandards(platformDisplay.normalizeOrder(order));
           });
@@ -225,6 +231,10 @@ Page({
         }
       });
     } else {
+      data.arr = data.arr.filter(function (order) {
+        return !(order.nxDoReturnStatus !== null && order.nxDoReturnStatus !== undefined
+          && /^JCZB-\d+$/.test(String(order.nxDoOrderGroupNo || '')));
+      });
       data.arr = data.arr.map(function (order) {
         return page._decorateCustomerStandards(platformDisplay.normalizeOrder(order));
       });
@@ -512,6 +522,7 @@ Page({
             hasWeightCount: res.result.data.hasWeightCount,
             jczbBatchCount: res.result.data.jczbBatchCount || 0,
             hasMultipleJczbBatches: !!res.result.data.hasMultipleJczbBatches,
+            returnBatches: res.result.data.returnBatches || [],
             isKgMode: isKgMode,
           })
           if (this.data.depHasSubs > 0) {
@@ -1559,26 +1570,49 @@ Page({
   },
 
 
+  completeReturnBatch(e) {
+    var batchId = Number(e.currentTarget.dataset.id);
+    if (!batchId) return;
+    wx.showModal({
+      title: '确认退货完成？',
+      content: '确认后将结束本次退货，并同步通知饭馆。该退货不会进入正常出库和配送账单。',
+      confirmText: '确认完成',
+      success: (modalRes) => {
+        if (!modalRes.confirm) return;
+        load.showLoading('正在完成退货');
+        completeJczbReturn({ batchId: batchId, disId: this.data.nxDisId })
+          .then(res => {
+            load.hideLoading();
+            if (res.result.code == 0) {
+              wx.showToast({ title: '退货已完成', icon: 'success' });
+              this._initData();
+            } else {
+              wx.showToast({ title: res.result.msg || '退货完成失败', icon: 'none' });
+            }
+          })
+          .catch(() => {
+            load.hideLoading();
+            wx.showToast({ title: '网络异常，请稍后重试', icon: 'none' });
+          });
+      }
+    });
+  },
+
+  // 保留原 GB 客户退货入口；精彩账本退货已在独立批次区域处理。
   haveReceive(e) {
     var status = e.currentTarget.dataset.status;
     var index = e.currentTarget.dataset.index;
-    console.log(e.currentTarget.dataset);
     var item = this.data.applyArr[index];
     item.gbDoStatus = status;
+    load.showLoading('修改订单');
     receiveReturnApplyNx(item).then(res => {
-      load.showLoading("修改订单")
+      load.hideLoading();
       if (res.result.code == 0) {
-        load.hideLoading();
         this._initData();
-
       } else {
-        load.hideLoading();
-        wx.showToast({
-          title: res.result.msg,
-          icon: "none"
-        })
+        wx.showToast({ title: res.result.msg, icon: 'none' });
       }
-    })
+    });
   },
 
   printPick() {
