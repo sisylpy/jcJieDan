@@ -265,7 +265,6 @@ Page({
     displayItems.forEach(function (item) { knownTexts[item.text] = true; });
     [
       { label: '分拣', text: relation.nxDdgPickDetail },
-      { label: '商品', text: relation.nxDdgDepGoodsDetail },
       { label: '备注', text: relation.nxDdgOrderRemark }
     ].forEach(function (legacy) {
       var text = String(legacy.text || '').trim();
