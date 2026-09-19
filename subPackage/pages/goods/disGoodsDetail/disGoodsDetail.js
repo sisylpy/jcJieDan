@@ -1,5 +1,6 @@
 var load = require('../../../../lib/load.js');
 var dateUtils = require('../../../../utils/dateUtil');
+var fulfillmentUi = require('../../../../utils/disGoodsFulfillmentUi');
 
 let windowWidth = 0;
 let itemWidth = 0;
@@ -28,13 +29,14 @@ Page({
    */
   data: {
     activeTab: 0,
+    fulfillmentUiMode: fulfillmentUi.MODE_PURCHASE,
     navPlaceholderHeight: 0,
     items: [{
-      name: '-1',
+      name: fulfillmentUi.MODE_STOCK,
       value: '出库'
     },
     {
-      name: '1',
+      name: fulfillmentUi.MODE_PURCHASE,
       value: '采购',
     },
     // {
@@ -97,7 +99,8 @@ Page({
     var value = wx.getStorageSync('disGoods');
     if (value) {
       this.setData({
-        goods: value
+        goods: value,
+        fulfillmentUiMode: fulfillmentUi.resolveMode(value)
       })
       // 回显价格策略选中项
       var strategy = value.nxDgPriceStrategy;
@@ -118,11 +121,11 @@ Page({
     if(disInfo){
       var businessTypeId = disInfo.nxDistributerBusinessTypeId;
       var items = [
-        { name: '-1', value: '出库' },
-        { name: '1', value: '采购' },
+        { name: fulfillmentUi.MODE_STOCK, value: '出库' },
+        { name: fulfillmentUi.MODE_PURCHASE, value: '采购' },
       ];
       if (businessTypeId > 2) {
-        items.push({ name: '2', value: '自动订货' });
+        items.push({ name: fulfillmentUi.MODE_AUTO, value: '自动订货' });
       }
       this.setData({
         disInfo: disInfo,
@@ -171,9 +174,10 @@ Page({
       if (res.result.code == 0) {
         console.log(res.result.data.orderArr);
         load.hideLoading();
+        var goods = res.result.data.goodsInfo;
         this.setData({
-          goods: res.result.data.goodsInfo,
-         
+          goods: goods,
+          fulfillmentUiMode: fulfillmentUi.resolveMode(goods),
         })
       }else{
         load.hideLoading();
@@ -195,10 +199,10 @@ Page({
     })
   },
   radioChangePurType: function (e) {
-    var value = e.detail.value;
-    var detail = "goods.nxDgPurchaseAuto";
+    var mode = e.detail.value;
     this.setData({
-      [detail]: value,
+      fulfillmentUiMode: mode,
+      goods: fulfillmentUi.applyMode(this.data.goods, mode),
     })
   },
 
@@ -682,9 +686,21 @@ Page({
   },
 
   updateDisGoods(e) {
-    load.showLoading("保存商品")
     var goods = this.data.goods;
     var activeTab = this.data.activeTab;
+    if (activeTab === 0) {
+      var prepared = fulfillmentUi.prepareForSave(goods, this.data.fulfillmentUiMode);
+      if (!prepared.ok) {
+        wx.showToast({
+          title: prepared.message,
+          icon: 'none'
+        })
+        return;
+      }
+      goods = prepared.goods;
+      this.setData({ goods: goods });
+    }
+    load.showLoading("保存商品")
     // Tab0（商品详细）走 disGoodsUpdate；Tab1（修改价格）走 disUpdateBuyingPrice，
     // 后者会级联重算未结算订单/采购单的单价、成本、利润。
     // 一档/二档规格名由后台 disGoodsUpdate 自动赋值（一档=基本规格名，二档=外箱/大包装名称）。

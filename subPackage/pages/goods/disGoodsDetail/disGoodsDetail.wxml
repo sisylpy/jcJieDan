@@ -48,14 +48,14 @@
         <text class="text-secondary mr-20 flex-fixed">出货方式:</text>
         <radio-group class="radio-group" bindchange="radioChangePurType">
           <label class="radio mr-30" style="font-size: 30rpx;" wx:for="{{items}}" wx:key="value">
-            <radio value="{{item.name}}" checked="{{goods.nxDgPurchaseAuto == item.name ? 'true' : ''}}" />{{item.value}}
+            <radio value="{{item.name}}" checked="{{fulfillmentUiMode == item.name ? 'true' : ''}}" />{{item.value}}
           </label>
         </radio-group>
       </view>
 
       <!-- 供货商（条件显示） -->
       <block>
-        <view class="flex flex-row-between p-20" wx:if="{{(goods.nxDgPurchaseAuto == 1 || goods.nxDgPurchaseAuto == 2) && disInfo.nxDistributerBusinessTypeId > 2}}">
+        <view class="flex flex-row-between p-20" wx:if="{{fulfillmentUiMode == 'auto' && disInfo.nxDistributerBusinessTypeId > 2}}">
           <view class="flex-row">
             <text class="text-secondary mr-10">供货商:</text>
             <view bind:tap="toSupplier" wx:if="{{goods.nxDgSupplierId !== null}}">{{goods.nxJrdhSupplierEntity.nxJrdhsSupplierName}}</view>
