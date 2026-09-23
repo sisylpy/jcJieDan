@@ -88,7 +88,6 @@
       "pages/management/purchaseManagement/settlementList/settlementList",
       "pages/management/purchaseManagement/paymentList/paymentList",
       "pages/management/purchaseManagement/financeExceptionList/financeExceptionList",
-      "pages/management/purchaseManagement/supplierCollaboration/supplierCollaboration",
       "pages/management/customerOrderAnomalies/customerOrderAnomalies",
       "pages/management/homeEdit/homeEdit",
       "pages/management/userNameEdit/userNameEdit",

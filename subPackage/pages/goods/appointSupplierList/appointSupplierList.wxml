@@ -30,11 +30,8 @@
         <view class="" bindtap="choiceSupplier" data-item="{{item}}" wx:if="{{item.jrdhUserEntity !== null}}">
           <text class="mainBack_new_btn ">选择</text>
         </view>
-        <view wx:else="">
-          <view class="p-20 flex-row mainBack_new_btn" catchtap="toExternalSupplierInvitation" data-item="{{item}}">
-            <image src="../../../../images/person.png" class="icon margin-l-right"></image>
-            <text class="small gray">邀请外部供应商激活</text>
-          </view>
+        <view wx:else="" class="p-20">
+          <text class="small gray">尚未通过订货分享完成注册</text>
         </view>
 
 

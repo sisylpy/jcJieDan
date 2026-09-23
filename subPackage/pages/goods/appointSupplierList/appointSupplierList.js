@@ -76,17 +76,6 @@ Page({
     })
   },
 
-  toExternalSupplierInvitation(e) {
-    const supplier = e.currentTarget.dataset.item || {}
-    const relationId = Number(supplier.nxJrdhSupplierId)
-    if (!relationId) return wx.showToast({ title: '外部供应商关系无效', icon: 'none' })
-    const supplierName = supplier.nxJrdhsSupplierName || ''
-    wx.navigateTo({
-      url: '/subPackage/pages/management/purchaseManagement/supplierCollaboration/supplierCollaboration?openInvite=1&supplierRelationId=' + relationId + '&supplierName=' + encodeURIComponent(supplierName)
-    })
-  },
-
-
   choiceSupplier(e) {
     var supplierItem = e.currentTarget.dataset.item;
     console.log(e);

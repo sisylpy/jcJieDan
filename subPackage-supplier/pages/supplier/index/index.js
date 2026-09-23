@@ -88,16 +88,6 @@ Page({
     })
   },
 
-
-  addSupplier(){
-    wx.navigateTo({
-      url: '/subPackage/pages/management/purchaseManagement/supplierCollaboration/supplierCollaboration',
-    })
-  },
-
- 
-
- 
   openOperation(e) {   
     this.setData({
       showOperation: true,

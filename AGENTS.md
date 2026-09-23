@@ -14,5 +14,6 @@
 ## 供应方身份与邀请入口
 
 - 内部“协作配送商”双方都具有 `nx_distributer` 与老板端身份。唯一正式入口是 `subPackage/pages/offerNx/offerNxDistributerList/offerNxDistributerList`，分享接受页是 `subPackage/pages/offerNx/inviteOfferDis/inviteOfferDis`，关系写入必须复用 `nx_distributer_nx_distributer/saveBusiness`。其他页面只能跳转到此入口，不得复制邀请表单或新建关系。
-- 外部供应商没有老板端配送商身份。唯一邀请发起入口是 `subPackage/pages/management/purchaseManagement/supplierCollaboration/supplierCollaboration`；邀请接受/激活由精彩订货的 `pkgSeller/pages/seller/supplierInvitation/supplierInvitation` 完成，身份落在 `nx_jrdh_supplier`。
-- 不得把内部配送商写成 JRDH 外部供应商，也不得把外部供应商伪装成 NX 配送商。已删除的精彩订货买方邀请页、旧 `inviteSeller/sellerRegister` 分享注册链和 Boss 直跳 `pages/jinriListWithLogin` 的邀请逻辑不得恢复。
+- 外部供应商没有老板端配送商身份。正式入口不是独立邀请表单：Boss 创建真实采购批次并打开精彩订货批次页，由采购方直接把该批次微信分享给供货商；供货商打开分享后在批次页注册/登录，服务端按真实 `batchId` 建立或复用 `nx_jrdh_supplier` 关系并继续接单。
+- Boss 的“外部供应商”页面只管理已经通过真实批次分享建立的关系，不提供预建供应商或令牌邀请。采购管理首页不得重复增加“协作配送商/外部供应商协同”入口；这两类管理入口只保留在管理首页。
+- 不得把内部配送商写成 JRDH 外部供应商，也不得把外部供应商伪装成 NX 配送商。已删除的 Boss `supplierCollaboration`、精彩订货 `supplierInvitation`、精彩订货买方邀请页及旧 `inviteSeller/sellerRegister` 独立邀请链不得恢复。
