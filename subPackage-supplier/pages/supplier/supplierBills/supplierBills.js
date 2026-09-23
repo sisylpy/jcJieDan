@@ -55,12 +55,14 @@ Page({
       
     })
 
-    var todayRange = dateUtils.getDateRange('today');
+    var monthRange = dateUtils.getDateRange('thisMonth');
+    var startDate = options.startDate || monthRange.startDate;
+    var stopDate = options.stopDate || monthRange.stopDate;
     this.setData({
-      dateType: 'day',
-      startDate: todayRange.startDate,
-      stopDate: todayRange.stopDate,
-      hanzi: "今天",
+      dateType: options.dateType || 'month',
+      startDate: startDate,
+      stopDate: stopDate,
+      hanzi: options.hanzi ? decodeURIComponent(options.hanzi) : (monthRange.name || "本月"),
     })
     var userInfoValue = wx.getStorageSync('userInfo');
     if (userInfoValue) {

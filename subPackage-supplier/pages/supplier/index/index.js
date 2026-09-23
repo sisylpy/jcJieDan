@@ -43,12 +43,12 @@ Page({
       url: apiUrl.server,
     })
 
-    var todayRange = dateUtils.getDateRange('today');
+    var monthRange = dateUtils.getDateRange('thisMonth');
     this.setData({
-      dateType: 'day',
-      startDate: todayRange.startDate,
-      stopDate: todayRange.stopDate,
-      hanzi: "今天",
+      dateType: 'month',
+      startDate: monthRange.startDate,
+      stopDate: monthRange.stopDate,
+      hanzi: monthRange.name || "本月",
     })
     var disInfo = wx.getStorageSync('disInfo');
     if(disInfo){
@@ -194,7 +194,11 @@ toSupplierDetail(e) {
   wx.setStorageSync('supplierItem', e.currentTarget.dataset.item);
   wx.navigateTo({
     url: '../supplierBills/supplierBills?type=' + e.currentTarget.dataset.type + '&supplierId=' +
-    e.currentTarget.dataset.item.nxJrdhSupplierId + '&value=' + e.currentTarget.dataset.value,
+    e.currentTarget.dataset.item.nxJrdhSupplierId + '&value=' + e.currentTarget.dataset.value +
+    '&dateType=' + encodeURIComponent(this.data.dateType || 'month') +
+    '&startDate=' + encodeURIComponent(this.data.startDate || '') +
+    '&stopDate=' + encodeURIComponent(this.data.stopDate || '') +
+    '&hanzi=' + encodeURIComponent(this.data.hanzi || '本月'),
   })
 },
 
