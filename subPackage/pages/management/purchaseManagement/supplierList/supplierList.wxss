@@ -1,2 +1,2 @@
 @import "../common.wxss";
-.supplier{padding:18rpx 0;border-bottom:1rpx solid #edf1ef}.supplier:last-child{border-bottom:0}
+.supplier{padding:20rpx;margin-bottom:14rpx}.type-badge{display:inline-block;margin-left:12rpx;padding:4rpx 10rpx;background:#edf7f4;color:#177866;font-size:20rpx}.summary-grid{margin-top:16rpx}.quality-row{align-items:flex-start;margin-top:14rpx}.quality-row .pm-muted{max-width:68%;text-align:right}.search-row{display:flex;align-items:center;gap:12rpx}.search-input{flex:1;min-width:0;border:1rpx solid #dfe7e4;padding:12rpx 14rpx;font-size:24rpx}.search-row .pm-button{white-space:nowrap}

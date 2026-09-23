@@ -1,1 +1,49 @@
-<view class="pm-page"><back-navbar style="height:{{navBarHeight}}rpx" title="供应商详情" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar><scroll-view scroll-y class="pm-body" style="padding-top:{{navBarHeight}}rpx" bindscrolltolower="loadBatches"><view wx:if="{{loading}}" class="pm-state">正在加载…</view><view wx:elif="{{error}}" class="pm-state">{{error}}</view><block wx:else><view class="pm-card"><view class="pm-row"><text class="pm-name">{{detail.supplierName||'历史供应商'}}</text><text class="pm-badge">{{detail.relationStatusText}}</text></view><text class="pm-muted">当前负责人：{{detail.responsiblePurchaserName||'待分配'}} · 首次邀请人：{{detail.invitedByName||'历史未记录'}}</text><view class="pm-grid"><view class="pm-metric"><text class="pm-label">批次 / 有效批次</text><text>{{detail.summary.totalBatchCount||0}} / {{detail.summary.effectiveBatchCount||0}}</text></view><view class="pm-metric"><text class="pm-label">实际净采购</text><text class="pm-money">{{detail.summary.actualNetPurchaseAmount==null?'—':'¥'}}{{detail.summary.actualNetPurchaseAmount}}</text></view><view class="pm-metric"><text class="pm-label">退货率 / 拒收率</text><text>{{detail.summary.supplierReturnRate==null?'—':detail.summary.supplierReturnRate}} / {{detail.summary.rejectionRate==null?'—':detail.summary.rejectionRate}}</text></view><view class="pm-metric"><text class="pm-label">供货质量损耗率</text><text>{{detail.summary.supplierQualityLossRate==null?'—':detail.summary.supplierQualityLossRate}}</text></view><view class="pm-metric"><text class="pm-label">降价影响</text><text>{{detail.summary.markdownImpact==null?'—':'¥'}}{{detail.summary.markdownImpact}}</text></view><view class="pm-metric"><text class="pm-label">当前 / 最终毛利</text><text>{{detail.summary.currentRealizedMargin==null?'—':'¥'}}{{detail.summary.currentRealizedMargin}} / {{detail.summary.completedFinalMargin==null?'—':'¥'}}{{detail.summary.completedFinalMargin}}</text></view></view><text class="pm-muted">{{detail.summary.dataCompletenessText}} · 覆盖率 {{detail.summary.dataCoverageRate}}</text></view><view class="pm-card"><text class="pm-section-title">供货商品</text><text wx:if="{{!detail.goods.length}}" class="pm-muted">暂无已绑定商品</text><text class="goods" wx:for="{{detail.goods}}" wx:key="goodsId">{{item.goodsName}} {{item.specification}}</text></view><view class="pm-card"><text class="pm-section-title">采购批次</text><view wx:if="{{!items.length}}" class="pm-state">当前范围暂无批次</view><view class="batch" wx:for="{{items}}" wx:key="batchId" data-id="{{item.batchId}}" bindtap="openBatch"><view class="pm-row"><text class="pm-name">{{item.batchNumber}}</text><text class="pm-link">{{item.businessDate}} ›</text></view><text class="pm-muted">历史负责人 {{item.purchaserName||'未分配'}} · {{item.demandSources}}</text><view class="pm-line"><text>实际收货 {{item.actualReceiptAmount==null?'—':'¥'}}{{item.actualReceiptAmount}}</text><text>净采购 {{item.actualNetPurchaseAmount==null?'—':'¥'}}{{item.actualNetPurchaseAmount}}</text></view><text class="pm-badge {{item.hasException?'warn':''}}">{{item.dataCompletenessText}}</text></view><view wx:if="{{batchLoading}}" class="pm-state">正在加载更多…</view></view></block></scroll-view></view>
+<view class="pm-page">
+  <back-navbar style="height:{{navBarHeight}}rpx" title="供应方详情" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+  <scroll-view scroll-y class="pm-body" style="padding-top:{{navBarHeight}}rpx" bindscrolltolower="loadMoreFacts">
+    <view wx:if="{{loading}}" class="pm-state">正在加载…</view>
+    <view wx:elif="{{error}}" class="pm-state">{{error}}</view>
+    <block wx:else>
+      <view class="pm-card">
+        <view class="pm-row"><view><text class="pm-name">{{detail.supplierName||'名称未解析'}}</text><text class="type-badge">{{detail.supplierTypeText}}</text></view><text class="pm-badge">{{detail.relationStatusText}}</text></view>
+        <view class="pm-grid detail-grid">
+          <view class="pm-metric"><text class="pm-label">采购次数</text><text>{{detail.purchaseCount}} 次</text></view>
+          <view class="pm-metric"><text class="pm-label">商品行数</text><text>{{detail.goodsLineCount}} 行</text></view>
+          <view class="pm-metric"><text class="pm-label">已识别采购金额</text><text class="pm-money">{{detail.purchaseAmountText}}</text></view>
+          <view class="pm-metric"><text class="pm-label">最近采购日期</text><text>{{detail.lastPurchaseDate||'—'}}</text></view>
+        </view>
+        <view class="quality-note"><text class="pm-badge {{detail.qualityClass}}">{{detail.dataQualityText}}</text><text class="pm-muted">{{detail.amountScopeText}}</text></view>
+        <text class="pm-muted source-note">投影更新时间：{{detail.projectedAt||'—'}} · 来源状态：{{detail.sourceStatus||'—'}}</text>
+        <view class="manage-button" bindtap="manageSupplier">{{detail.manageText}}</view>
+      </view>
+
+      <view class="pm-card">
+        <text class="pm-section-title">采购商品汇总（{{goodsTotal}}）</text>
+        <text wx:if="{{!goods.length}}" class="pm-muted">当前范围暂无商品汇总</text>
+        <view class="goods-row" wx:for="{{goods}}" wx:key="index">
+          <view class="pm-row"><text class="pm-name">{{item.goodsName||'商品名称未解析'}} <text class="pm-spec">{{item.specification||''}}</text></text><text class="pm-money">{{item.purchaseAmountText}}</text></view>
+          <view class="pm-line"><text>订购 {{item.orderedQuantityText}}</text><text>实际 {{item.actualQuantityText}}</text><text>{{item.purchaseCount}} 次</text></view>
+          <view class="pm-row"><text class="pm-badge {{item.qualityClass}}">{{item.dataQualityText}}</text><text class="pm-muted">{{item.amountScopeText}}</text></view>
+        </view>
+        <view wx:if="{{goodsHasMore}}" class="more-button" bindtap="loadMoreGoods">{{goodsLoading?'正在加载…':'加载更多商品'}}</view>
+      </view>
+
+      <view class="pm-card">
+        <text class="pm-section-title">真实采购记录（{{factTotal}}）</text>
+        <text wx:if="{{!facts.length}}" class="pm-muted">当前范围暂无采购事实</text>
+        <view class="fact-row" wx:for="{{facts}}" wx:key="purchaseFactId">
+          <view class="pm-row"><text class="pm-name">{{item.goodsName||'商品名称未解析'}} <text class="pm-spec">{{item.specification||''}}</text></text><text>{{item.businessDate||'—'}}</text></view>
+          <view class="pm-grid fact-grid">
+            <view class="pm-metric"><text class="pm-label">{{item.quantityLabel}}</text><text>{{item.quantityText}}</text></view>
+            <view class="pm-metric"><text class="pm-label">单价</text><text>{{item.unitPriceText}}</text></view>
+            <view class="pm-metric"><text class="pm-label">已识别金额</text><text class="pm-money">{{item.grossAmountText}}</text></view>
+            <view class="pm-metric"><text class="pm-label">履约状态</text><text>{{item.factStatusText}}</text></view>
+          </view>
+          <text class="pm-muted source-note">{{item.sourceTypeText}} · {{item.orderLinkText}}</text>
+          <view class="pm-row"><text class="pm-badge {{item.qualityClass}}">{{item.dataQualityText}}</text><text class="pm-muted">金额依据：{{item.amountBasis||'未解析'}}</text></view>
+        </view>
+        <view wx:if="{{factLoading}}" class="pm-state compact">正在加载更多…</view>
+      </view>
+    </block>
+  </scroll-view>
+</view>
