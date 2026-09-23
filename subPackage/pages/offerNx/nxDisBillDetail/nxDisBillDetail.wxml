@@ -63,9 +63,20 @@
         </view>
 
 
-        <view class="flex-cloumn " style=" width: {{windowWidth - 160}}rpx; ">
-          <view class="flex-row-default pb-10" wx:for-item="order" wx:for="{{item.nxDepartmentOrdersEntities}}"
+        <view class="order-list" style="width: {{windowWidth - 160}}rpx;">
+          <view class="order-detail-card" wx:for-item="order" wx:for="{{item.nxDepartmentOrdersEntities}}"
             wx:for-index="orderIndex" wx:key="nxDepartmentOrdersId">
+
+            <view class="order-party">
+              <view class="order-party-row">
+                <text class="order-party-label">门店部门</text>
+                <text class="order-party-value">{{order.purchaseDepartmentName || '未记录'}}</text>
+              </view>
+              <view class="order-party-row">
+                <text class="order-party-label">申请人</text>
+                <text class="order-party-value">{{order.purchaseApplicantName || '未记录'}}</text>
+              </view>
+            </view>
 
             <view class="flex-column">
               <view class="purchase-order-source" wx:if="{{order.hasOrderPurchaseSource}}">
@@ -79,25 +90,22 @@
                 </view>
               </view>
 
-              <view class="flex flex-row" style="width:{{(windowWidth - 80)}}rpx; ">
-                <view class="half-row">
-                  <text class="text-secondary">订货:</text>
-                  <text>{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+              <view class="order-metrics">
+                <view class="order-metric">
+                  <text class="order-metric-label">申请数量</text>
+                  <text class="order-metric-value">{{order.requestQuantityText}}</text>
                 </view>
-                <view class="half-row">
-                  <text class="text-secondary">供货数量:</text>
-                  <text>{{order.nxDoWeight}}{{item.nxDgGoodsStandardname}}</text>
+                <view class="order-metric">
+                  <text class="order-metric-label">回复数量</text>
+                  <text class="order-metric-value">{{order.replyQuantityText}}</text>
                 </view>
-              
-              </view>
-              <view class=" flex-row " style="width:{{(windowWidth - 80)}}rpx;;">     
-                <view class="half-row">
-                  <text class="text-secondary">单价:</text>
-                  <text>{{order.nxDoPrice}}元/{{item.nxDgGoodsStandardname}}</text>
-                </view>         
-                <view class="half-row">
-                  <text class="text-secondary">小计:</text>
-                  <text>{{order.nxDoSubtotal}}元</text>
+                <view class="order-metric">
+                  <text class="order-metric-label">单价</text>
+                  <text class="order-metric-value">{{order.unitPriceText}}</text>
+                </view>
+                <view class="order-metric">
+                  <text class="order-metric-label">小计</text>
+                  <text class="order-metric-value order-subtotal">{{order.subtotalText}}</text>
                 </view>
               </view>
 

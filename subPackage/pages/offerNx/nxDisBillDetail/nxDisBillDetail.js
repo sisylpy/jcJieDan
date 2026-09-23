@@ -94,12 +94,22 @@ Page({
         const mainOrderId = this._positiveOrderId(order.nxDoCollaborationMainOrderId)
         const collaborationOrderId = this._positiveOrderId(order.nxDepartmentOrdersId)
         const sourceOrderId = mainOrderId || collaborationOrderId
+        const departmentName = this._formatPurchaseCustomer(order)
+        const replyUnit = order.nxDoPrintStandard
+          || goods.nxDgGoodsStandardname
+          || order.nxDoStandard
 
         return Object.assign({}, order, {
           hasOrderPurchaseSource: sourceOrderId !== null,
           purchaseSourceOrderId: sourceOrderId,
           purchaseSourceOrderLabel: mainOrderId ? '关联采购订单' : '关联协作订单',
-          purchaseCustomerName: sourceOrderId ? this._formatPurchaseCustomer(order) : ''
+          purchaseCustomerName: sourceOrderId ? departmentName : '',
+          purchaseDepartmentName: departmentName,
+          purchaseApplicantName: this._formatPurchaseApplicant(order),
+          requestQuantityText: this._formatQuantity(order.nxDoQuantity, order.nxDoStandard),
+          replyQuantityText: this._formatQuantity(order.nxDoWeight, replyUnit),
+          unitPriceText: this._formatUnitPrice(order.nxDoPrice, replyUnit),
+          subtotalText: this._formatMoney(order.nxDoSubtotal)
         })
       })
 
@@ -140,6 +150,36 @@ Page({
       return departmentName || fatherName
     }
     return departmentName ? fatherName + ' · ' + departmentName : fatherName
+  },
+
+  _formatPurchaseApplicant(order){
+    const user = order && order.nxDepartmentUserEntity
+    if(!user){
+      return ''
+    }
+    return user.nxDuWxNickName || user.nxDuCode || ''
+  },
+
+  _hasDisplayValue(value){
+    return value !== undefined && value !== null && value !== '' && value !== 'null'
+  },
+
+  _formatQuantity(value, unit){
+    if(!this._hasDisplayValue(value)){
+      return '--'
+    }
+    return String(value) + (this._hasDisplayValue(unit) ? String(unit) : '')
+  },
+
+  _formatUnitPrice(value, unit){
+    if(!this._hasDisplayValue(value)){
+      return '--'
+    }
+    return String(value) + '元' + (this._hasDisplayValue(unit) ? '/' + String(unit) : '')
+  },
+
+  _formatMoney(value){
+    return this._hasDisplayValue(value) ? String(value) + '元' : '--'
   },
 
   changeStatus(){

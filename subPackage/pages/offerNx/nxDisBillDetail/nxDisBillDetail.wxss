@@ -104,6 +104,77 @@ page{
   word-break: break-all;
 }
 
+.order-list {
+  box-sizing: border-box;
+}
+
+.order-detail-card {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 14rpx 0 20rpx;
+  padding: 20rpx;
+  border: 1rpx solid #e6ecea;
+  border-radius: 14rpx;
+  background: #fff;
+}
+
+.order-party {
+  padding-bottom: 14rpx;
+  border-bottom: 1rpx solid #edf1f0;
+}
+
+.order-party-row {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  line-height: 42rpx;
+}
+
+.order-party-label {
+  flex-shrink: 0;
+  width: 120rpx;
+  color: #7b8582;
+  font-size: 25rpx;
+}
+
+.order-party-value {
+  min-width: 0;
+  color: #202725;
+  font-size: 28rpx;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.order-metrics {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18rpx 24rpx;
+  padding-top: 18rpx;
+}
+
+.order-metric {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.order-metric-label {
+  margin-bottom: 6rpx;
+  color: #7b8582;
+  font-size: 24rpx;
+}
+
+.order-metric-value {
+  color: #202725;
+  font-size: 29rpx;
+  font-weight: 600;
+  word-break: break-all;
+}
+
+.order-subtotal {
+  color: #276afa;
+}
+
 /* 状态标签（与 nxBillBusiness 一致） */
 .status-badge {
   font-size: 22rpx;
