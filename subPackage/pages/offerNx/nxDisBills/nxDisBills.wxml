@@ -39,7 +39,7 @@
     </view>
     <view class="bill-type-tab {{swiperCurrent == 1 ? 'bill-type-tab-active' : ''}}" bind:tap="switchToBuy">
       <image src="/images/jinhuodan.png" class="bill-type-tab-icon"></image>
-      <text class="bill-type-tab-label">进货单</text>
+      <text class="bill-type-tab-label">订货单</text>
       <text class="bill-type-tab-count">({{buyBillArr.length > 0 ? buyBillArr.length : buyCollCount}}个)</text>
     </view>
   </view>
@@ -72,7 +72,7 @@
               <view class="bill-amount-section flex-column">
                 <view class="bill-amount">{{item.nxDbdTotal}}元</view>
                 <text class="bill-type-text tag-offer" wx:if="{{item.nxDbdOfferNxDisId == disId}}">销售单</text>
-                <text class="bill-type-text tag-purchase" wx:else="">进货单</text>
+                <text class="bill-type-text tag-purchase" wx:else="">订货单</text>
               </view>
             </view>
           </view>
@@ -80,12 +80,12 @@
         </scroll-view>
       </view>
     </swiper-item>
-    <!-- 进货单列表 -->
+    <!-- 订货单列表 -->
     <swiper-item>
       <view class="bill-list-wrap p-20">
         <view wx:if="{{buyBillArr.length == 0}}" class="flex-column center-content" style="height: 200rpx;">
           <image class="empty_image" src="/images/xiuxi.png"></image>
-          <text class="p-30">暂无进货单</text>
+          <text class="p-30">暂无订货单</text>
         </view>
         <scroll-view wx:else scroll-y="true" style="height: {{windowHeight - navBarHeight - 320}}rpx;">
           <view class="bill-item" wx:for="{{buyBillArr}}" wx:for-item="item" wx:key="nxDistributerBillId"
@@ -105,7 +105,7 @@
               <view class="bill-amount-section flex-column">
                 <view class="bill-amount">{{item.nxDbdTotal}}元</view>
                 <text class="bill-type-text tag-offer" wx:if="{{item.nxDbdOfferNxDisId == disId}}">销售单</text>
-                <text class="bill-type-text tag-purchase" wx:else="">进货单</text>
+                <text class="bill-type-text tag-purchase" wx:else="">订货单</text>
               </view>
             </view>
           </view>

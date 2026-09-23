@@ -51,7 +51,7 @@ Page({
     })
     var batchItem = wx.getStorageSync('batchItem');
     if(batchItem){
-      var name = (disId != null && batchItem.nxDbdOrderDisId == disId) ? '进货单' : '销售单';
+      var name = (disId != null && batchItem.nxDbdOrderDisId == disId) ? '订货单' : '销售单';
       this.setData({
         batchItem: batchItem,
         billStatus: batchItem.nxDbdStatus === 2 ? 2 : 1,

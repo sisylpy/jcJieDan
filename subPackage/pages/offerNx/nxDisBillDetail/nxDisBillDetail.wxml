@@ -26,7 +26,7 @@
               <view class="status-badge status-settled" wx:if="{{batchItem.nxDbdStatus == 0}}">收货确认</view>
               <view class="status-badge status-pending" wx:elif="{{batchItem.nxDbdStatus == 2}}">收款确认</view>
               <text class="bill-type-text tag-offer" wx:if="{{batchItem.nxDbdOfferNxDisId == disId}}">销售单</text>
-              <text class="bill-type-text tag-purchase" wx:else="">进货单</text>
+              <text class="bill-type-text tag-purchase" wx:else="">订货单</text>
             </view>
           </view>
         </view>
@@ -124,7 +124,7 @@
 
 </view>
 
-<!-- 订货方（进货单）：收货确认 / 申请收款 -->
+<!-- 订货方（订货单）：收货确认 / 申请收款 -->
 <block wx:if="{{batchItem.nxDbdOrderDisId == disId}}">
   <block wx:if="{{batchItem.nxDbdStatus == 0}}">
     <view class="bottom-action-bar">

@@ -86,36 +86,38 @@
               </view>
             </view>
 
-            <!-- 订单统计 -->
-            <view class="supplier-stats">
-              <view class="supplier-stat-item" catch:tap="toSupplierDetail" data-item="{{supplier}}" data-type="all" data-value="{{supplier.itemData.billTotal}}">
-                <text class="supplier-stat-label">订单总额</text>
-                <text class="supplier-stat-count">{{supplier.itemData.billCount}}单</text>
-                <text class="supplier-stat-value stat-value-primary">¥{{supplier.itemData.billTotal}}</text>
+            <!-- 按交易方向统计，避免把“我欠他”和“他欠我”混成一个余额。 -->
+            <view class="direction-stats">
+              <view class="direction-card direction-purchase" catch:tap="toSupplierDetail"
+                data-item="{{supplier}}" data-type="all" data-direction="purchase"
+                data-value="{{supplier.itemData.purchase.billTotal}}">
+                <view class="direction-header">
+                  <text class="direction-title">订货单</text>
+                  <text class="direction-count">{{supplier.itemData.purchase.billCount}}单 ›</text>
+                </view>
+                <view class="direction-total-label">我向他采购</view>
+                <view class="direction-total">¥{{supplier.itemData.purchase.billTotal}}</view>
+                <view class="direction-debt-row">
+                  <text>我欠他</text>
+                  <text class="direction-debt purchase-debt">¥{{supplier.itemData.purchase.outstandingTotal}}</text>
+                </view>
+                <view class="direction-settled">已结 {{supplier.itemData.purchase.settledCount}}单 · ¥{{supplier.itemData.purchase.settledTotal}}</view>
               </view>
-              <view class="supplier-stat-item" catch:tap="toSupplierDetail" data-item="{{supplier}}" data-type="allUnPay" data-value="{{supplier.itemData.unPayCount}}">
-                <text class="supplier-stat-label">待支付</text>
-                <text class="supplier-stat-count">{{supplier.itemData.unPayCount}}单</text>
-                <text class="supplier-stat-value stat-value-primary">¥{{supplier.itemData.unPayTotal}}</text>
-              </view>
-            </view>
 
-            <!-- 付款详情 -->
-            <view class="payment-detail">
-              <view class="payment-item" catch:tap="toSupplierDetail" data-item="{{supplier}}" data-type="havePayed" data-value="{{supplier.itemData.havePayTotal}}">
-                <text class="payment-label">已结订单</text>
-                <text class="payment-count payment-success">{{supplier.itemData.havePayCount}}单</text>
-                <text class="payment-value payment-success">¥{{supplier.itemData.havePayTotal}}</text>
-              </view>
-              <view class="payment-item" catch:tap="toSupplierDetail" data-item="{{supplier}}" data-type="unPayBills" data-value="{{supplier.itemData.unPayTotal}}">
-                <text class="payment-label">待确认订单</text>
-                <text class="payment-count supplier-stat-count">{{supplier.itemData.unConfirmCount}}单</text>
-                <text class="payment-value stat-value-primary">¥{{supplier.itemData.unConfirmTotal}}</text>
-              </view>
-              <view class="payment-item" wx:if="{{supplier.itemData.returnBillCount > 0}}" catch:tap="toSupplierDetail" data-item="{{supplier}}" data-type="unPayReturnBills" data-value="{{supplier.itemData.returnPayTotal}}">
-                <text class="payment-label">退货单</text>
-                <text class="payment-count payment-danger">{{supplier.itemData.returnBillCount}}单</text>
-                <text class="payment-value payment-danger">¥{{supplier.itemData.returnPayTotal}}</text>
+              <view class="direction-card direction-sales" catch:tap="toSupplierDetail"
+                data-item="{{supplier}}" data-type="all" data-direction="sales"
+                data-value="{{supplier.itemData.sales.billTotal}}">
+                <view class="direction-header">
+                  <text class="direction-title">销售单</text>
+                  <text class="direction-count">{{supplier.itemData.sales.billCount}}单 ›</text>
+                </view>
+                <view class="direction-total-label">他向我采购</view>
+                <view class="direction-total">¥{{supplier.itemData.sales.billTotal}}</view>
+                <view class="direction-debt-row">
+                  <text>他欠我</text>
+                  <text class="direction-debt sales-debt">¥{{supplier.itemData.sales.outstandingTotal}}</text>
+                </view>
+                <view class="direction-settled">已结 {{supplier.itemData.sales.settledCount}}单 · ¥{{supplier.itemData.sales.settledTotal}}</view>
               </view>
             </view>
           </view>

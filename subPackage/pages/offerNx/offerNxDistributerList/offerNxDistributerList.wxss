@@ -344,103 +344,79 @@ button{
   margin: 0;
 }
 
-/* 订单统计 */
-.supplier-stats {
+/* 按采购/销售方向拆分账单统计 */
+.direction-stats {
   display: flex;
-  justify-content: space-between;
-  margin-bottom: 15rpx;
+  gap: 12rpx;
 }
 
-.supplier-stat-item {
+.direction-card {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
   background: rgba(255, 255, 255, 0.6);
-  padding: 15rpx 20rpx;
+  padding: 18rpx 16rpx;
   border-radius: 12rpx;
-  flex: 1;
-  margin: 0 5rpx;
   backdrop-filter: blur(10rpx);
 }
 
-.supplier-stat-item:first-child {
-  margin-left: 0;
+.direction-purchase {
+  border-left: 6rpx solid #f5a45d;
 }
 
-.supplier-stat-item:last-child {
-  margin-right: 0;
+.direction-sales {
+  border-left: 6rpx solid #11998e;
 }
 
-.supplier-stat-label {
-  font-size: 24rpx;
-  color: #666;
-  margin-bottom: 6rpx;
+.direction-header,
+.direction-debt-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.supplier-stat-count {
-  font-size: 24rpx;
-  color: #999;
-  margin-bottom: 4rpx;
-}
-
-.supplier-stat-value {
-  font-size: 32rpx;
-  font-weight: bold;
+.direction-title {
+  font-size: 28rpx;
+  font-weight: 700;
   color: #333;
 }
 
-.stat-value-primary {
-  color: #4c5fd5;
-}
-
-.stat-value-success {
-  color: #11998e;
-}
-
-/* 付款详情 */
-.payment-detail {
-  display: flex;
-  justify-content: space-between;
-  gap: 10rpx;
-}
-
-.payment-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background: rgba(255, 255, 255, 0.5);
-  padding: 12rpx 8rpx;
-  border-radius: 10rpx;
-}
-
-.payment-label {
+.direction-count,
+.direction-total-label,
+.direction-settled,
+.direction-debt-row {
   font-size: 22rpx;
   color: #666;
-  margin-bottom: 4rpx;
 }
 
-.payment-count {
-  font-size: 24rpx;
-  font-weight: 600;
-  margin-bottom: 4rpx;
+.direction-total-label {
+  margin-top: 14rpx;
 }
 
-.payment-value {
+.direction-total {
+  margin: 2rpx 0 14rpx;
+  font-size: 32rpx;
+  font-weight: 700;
+  color: #333;
+}
+
+.direction-debt {
   font-size: 26rpx;
   font-weight: 700;
 }
 
-.payment-success {
-  color: #11998e;
+.purchase-debt {
+  color: #c76b2a;
 }
 
-.payment-warning {
-  color: #f5576c;
+.sales-debt {
+  color: #0d7a6f;
 }
 
-.payment-danger {
-  color: #fa709a;
+.direction-settled {
+  margin-top: 8rpx;
+  opacity: 0.85;
 }
 
 .ml-20 {

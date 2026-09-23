@@ -44,8 +44,11 @@ Page({
   
       }
       
-      this._fetchBills('offer');
-      this.setData({ buyBillArr: [], buyCollCount: 0 });
+      const currentDirection = this.data.searchType || 'offer';
+      this.setData(currentDirection === 'offer'
+        ? { offerBillArr: [] }
+        : { buyBillArr: [] });
+      this._fetchBills(currentDirection);
      }
 
   },
@@ -58,7 +61,7 @@ Page({
     swiperCurrent: 0,
     offerBillArr: [],
     buyBillArr: [],
-    buyCollCount: 0,  // 进货单数量，来自 offer 接口的 collCount
+    buyCollCount: 0,  // 订货单数量，来自 offer 接口的 collCount
   },
 
   /**
@@ -73,6 +76,7 @@ Page({
       type: options.type,
       requestDisId: options.requestDisId,
       value: options.value,
+      initialDirection: options.direction || 'sales',
       
     })
 
@@ -116,7 +120,12 @@ Page({
         disId: userInfoValue.nxDiuDistributerId,
       })
     }
-    this.getOfferBills();
+    if (this.data.initialDirection === 'purchase') {
+      this.setData({ swiperCurrent: 1, searchType: 'buy' });
+      this._fetchBills('buy');
+    } else {
+      this.getOfferBills();
+    }
   },
 
   getOfferBills() {
@@ -126,6 +135,7 @@ Page({
 
   switchToOffer() {
     this.setData({ swiperCurrent: 0, searchType: 'offer' });
+    if (this.data.offerBillArr.length === 0) this._fetchBills('offer');
   },
 
   switchToBuy() {
@@ -135,7 +145,14 @@ Page({
 
   onBillTypeChange(e) {
     const index = e.detail.current;
-    this.setData({ swiperCurrent: index, searchType: index === 0 ? 'offer' : 'buy' });
+    const searchType = index === 0 ? 'offer' : 'buy';
+    this.setData({ swiperCurrent: index, searchType });
+    if (searchType === 'offer' && this.data.offerBillArr.length === 0) {
+      this._fetchBills('offer');
+    }
+    if (searchType === 'buy' && this.data.buyBillArr.length === 0) {
+      this._fetchBills('buy');
+    }
   },
 
   onBillTypeAnimationFinish(e) {
@@ -146,6 +163,9 @@ Page({
   },
 
   _fetchBills(searchType) {
+    this._billFetching = this._billFetching || {};
+    if (this._billFetching[searchType]) return;
+    this._billFetching[searchType] = true;
     load.showLoading("获取账单");
     const data = {
       type: this.data.type,
@@ -155,6 +175,7 @@ Page({
       offerDisId: searchType === 'offer' ? this.data.disId : this.data.requestDisId
     };
     disGetNxDistributerBillsWithStatus(data).then(res => {
+      this._billFetching[searchType] = false;
       if (res.result.code == 0) {
         load.hideLoading();
         const arr = res.result.data || [];
@@ -169,6 +190,10 @@ Page({
         wx.showToast({ title: res.result.msg, icon: 'none' });
         this.setData(searchType === 'offer' ? { offerBillArr: [] } : { buyBillArr: [] });
       }
+    }).catch(() => {
+      this._billFetching[searchType] = false;
+      load.hideLoading();
+      wx.showToast({ title: '获取账单失败，请稍后重试', icon: 'none' });
     })
   },
 
