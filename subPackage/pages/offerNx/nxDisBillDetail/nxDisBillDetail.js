@@ -80,12 +80,66 @@ Page({
       console.log(res)
       if(res.result.code == 0){
           this.setData({ 
-            applyArr: res.result.data,
+            applyArr: this._decoratePurchaseOrderSources(res.result.data),
           })         
      
       }
 
     })
+  },
+
+  _decoratePurchaseOrderSources(goodsList){
+    return (goodsList || []).map(goods => {
+      const orders = (goods.nxDepartmentOrdersEntities || []).map(order => {
+        const mainOrderId = this._positiveOrderId(order.nxDoCollaborationMainOrderId)
+        const collaborationOrderId = this._positiveOrderId(order.nxDepartmentOrdersId)
+        const sourceOrderId = mainOrderId || collaborationOrderId
+
+        return Object.assign({}, order, {
+          hasOrderPurchaseSource: sourceOrderId !== null,
+          purchaseSourceOrderId: sourceOrderId,
+          purchaseSourceOrderLabel: mainOrderId ? '关联采购订单' : '关联协作订单',
+          purchaseCustomerName: sourceOrderId ? this._formatPurchaseCustomer(order) : ''
+        })
+      })
+
+      return Object.assign({}, goods, {
+        nxDepartmentOrdersEntities: orders
+      })
+    })
+  },
+
+  _positiveOrderId(value){
+    if(value === undefined || value === null || value === ''){
+      return null
+    }
+    const orderId = Number(value)
+    return Number.isFinite(orderId) && orderId > 0 ? orderId : null
+  },
+
+  _formatPurchaseCustomer(order){
+    const department = order && order.nxDepartmentEntity
+    if(!department){
+      return ''
+    }
+
+    const departmentName = department.nxDepartmentName
+      || department.nxDepartmentAttrName
+      || department.nxDepartmentOrderCode
+      || ''
+    const father = department.fatherDepartmentEntity
+    if(!father){
+      return departmentName
+    }
+
+    const fatherName = father.nxDepartmentAttrName
+      || father.nxDepartmentName
+      || father.nxDepartmentOrderCode
+      || ''
+    if(!fatherName || fatherName === departmentName || father.nxDepartmentId === department.nxDepartmentId){
+      return departmentName || fatherName
+    }
+    return departmentName ? fatherName + ' · ' + departmentName : fatherName
   },
 
   changeStatus(){

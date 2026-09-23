@@ -66,6 +66,44 @@ page{
   color: #276afa;
 }
 
+.purchase-order-source {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 12rpx 0 18rpx;
+  padding: 14rpx 18rpx;
+  border-left: 6rpx solid #18a889;
+  border-radius: 8rpx;
+  background: #f1faf7;
+}
+
+.purchase-order-source-row {
+  display: flex;
+  align-items: baseline;
+  min-width: 0;
+  line-height: 42rpx;
+}
+
+.purchase-order-source-label {
+  flex-shrink: 0;
+  margin-right: 10rpx;
+  color: #68726f;
+  font-size: 25rpx;
+}
+
+.purchase-order-source-id {
+  color: #188c75;
+  font-size: 26rpx;
+  font-weight: 600;
+}
+
+.purchase-order-customer {
+  min-width: 0;
+  color: #202725;
+  font-size: 27rpx;
+  font-weight: 600;
+  word-break: break-all;
+}
+
 /* 状态标签（与 nxBillBusiness 一致） */
 .status-badge {
   font-size: 22rpx;

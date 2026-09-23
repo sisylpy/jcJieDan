@@ -68,7 +68,17 @@
             wx:for-index="orderIndex" wx:key="nxDepartmentOrdersId">
 
             <view class="flex-column">
-            
+              <view class="purchase-order-source" wx:if="{{order.hasOrderPurchaseSource}}">
+                <view class="purchase-order-source-row">
+                  <text class="purchase-order-source-label">{{order.purchaseSourceOrderLabel}}:</text>
+                  <text class="purchase-order-source-id">#{{order.purchaseSourceOrderId}}</text>
+                </view>
+                <view class="purchase-order-source-row" wx:if="{{order.purchaseCustomerName}}">
+                  <text class="purchase-order-source-label">为客户采购:</text>
+                  <text class="purchase-order-customer">{{order.purchaseCustomerName}}</text>
+                </view>
+              </view>
+
               <view class="flex flex-row" style="width:{{(windowWidth - 80)}}rpx; ">
                 <view class="half-row">
                   <text class="text-secondary">订货:</text>
