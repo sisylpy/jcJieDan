@@ -63,6 +63,7 @@ Page({
   },
   inputKeyword(event) { this.setData({ keyword: event.detail.value }) },
   search() { this.load(true) },
+  retry() { this.load(true) },
   chooseType(event) {
     this.setData({ supplierType: event.currentTarget.dataset.value || '' })
     this.load(true)
