@@ -5,7 +5,7 @@
 <view class="flex flex-column">
 
 
-  <back-navbar title="供货商" style="height: {{navBarHeight}}rpx;" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+  <back-navbar title="外部供应商" style="height: {{navBarHeight}}rpx;" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
 
   <!--  top -->
@@ -26,6 +26,7 @@
         </view>
       </view>
     </view>
+    <button size="mini" bindtap="addSupplier">邀请外部供应商</button>
 
     <!-- <view class="flex-row p-20" bindtap="toFilterType">
       <image src="{{searchDepId !== -1 ? '../../../../images/filter.png' : '../../../../images/filter-3-fill.png'}}" class="icon mr-20"></image>
@@ -99,9 +100,9 @@
       <view class="font-lg">
         <view class="center-content flex-column">
           <image class="empty_image" src="../../../../images/xiuxi-2.png"></image>
-          <text class="big">将订单发送给微信好友</text>
-          <text class="font-xs text-secondary pt-20 p-10"> 他们直接接收订货需求</text>
-          <text class="font-xs text-secondary ">可记录现金或记账</text>
+          <text class="big">暂无外部供应商</text>
+          <text class="font-xs text-secondary pt-20 p-10">邀请没有老板端账号的供应商进入精彩订货</text>
+          <button size="mini" bindtap="addSupplier">邀请外部供应商</button>
         </view>
       </view>
     </view>

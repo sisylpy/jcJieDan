@@ -9,7 +9,7 @@ Page({
     editName: '',
     isInviter: false,
     isInvitee: false,
-    pageTitle: '邀请市场协作伙伴',
+    pageTitle: '邀请协作配送商',
     inviteTitle: '',
   },
 
@@ -55,7 +55,7 @@ Page({
                     disId: myDisId,
                     isInviter: true,
                     isInvitee: false,
-                    pageTitle: '邀请协作伙伴',
+                    pageTitle: '邀请协作配送商',
                   });
                 } else {
                   // 被邀请方：当前用户是打开链接的人
@@ -65,7 +65,7 @@ Page({
                     offerDisId: myDisId,
                     isInviter: false,
                     isInvitee: true,
-                    pageTitle: '协作邀请',
+                    pageTitle: '协作配送商邀请',
                     inviteTitle: that.data.disName + ' 邀请您',
                   });
                 }

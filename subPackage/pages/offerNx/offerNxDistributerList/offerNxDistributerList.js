@@ -160,7 +160,7 @@ Page({
     }
     const disName = encodeURIComponent((this.data.disInfo && this.data.disInfo.nxDistributerName) || '');
     return {
-      title: inviteType === 1 ? '邀请成为我的供货商' : '邀请购买我的产品',
+      title: inviteType === 1 ? '邀请协作配送商给我供货' : '邀请协作配送商采购我的商品',
       path: '/subPackage/pages/offerNx/inviteOfferDis/inviteOfferDis?disId=' + this.data.disId + '&disName=' + disName + '&inviteType=' + inviteType,
       imageUrl: this.data.url + this.data.imgUrl,
     }

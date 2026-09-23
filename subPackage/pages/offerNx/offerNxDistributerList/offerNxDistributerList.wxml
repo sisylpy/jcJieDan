@@ -5,7 +5,7 @@
 <view class="flex flex-column">
 
 
-  <back-navbar title="协作伙伴" style="height: {{navBarHeight}}rpx;" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+  <back-navbar title="协作配送商" style="height: {{navBarHeight}}rpx;" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
 
   <!--  top -->
@@ -129,9 +129,8 @@
       <view class="font-lg">
         <view class="center-content flex-column">
           <image class="empty_image" src="../../../../images/xiuxi-2.png"></image>
-          <text class="big">邀请市场协作伙伴</text>
-          <text class="font-xs text-secondary pt-20 p-10"> 他们直接接收订货需求</text>
-          <text class="font-xs text-secondary ">获得推广奖励</text>
+          <text class="big">邀请协作配送商</text>
+          <text class="font-xs text-secondary pt-20 p-10">双方都使用老板端，可按方向互相采购和供货</text>
         </view>
       </view>
     </view>

@@ -97,12 +97,6 @@ Page({
 
  
 
-  toMyJinridinghuo(e) {
-    wx.navigateTo({
-      url: '/subPackage/pages/management/purchaseManagement/supplierCollaboration/supplierCollaboration',
-    })
-  },
-
  
   openOperation(e) {   
     this.setData({
@@ -190,13 +184,6 @@ Page({
   })
   },
 
-
-  edit(e){
-    wx.setStorageSync('supplierItem', this.data.supplierItem);
-    wx.navigateTo({
-      url: '../addSupplier/addSupplier?type=edit'
-    })
-  },
 
   deleteSuppler(){
     this.setData({

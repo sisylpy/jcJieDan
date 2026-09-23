@@ -76,25 +76,13 @@ Page({
     })
   },
 
-  addSupplier(e){
+  toExternalSupplierInvitation(e) {
+    const supplier = e.currentTarget.dataset.item || {}
+    const relationId = Number(supplier.nxJrdhSupplierId)
+    if (!relationId) return wx.showToast({ title: '外部供应商关系无效', icon: 'none' })
+    const supplierName = supplier.nxJrdhsSupplierName || ''
     wx.navigateTo({
-      url: '../addSupplier/addSupplier?fatherId=' + e.currentTarget.dataset.id
-       + '&name=' + e.currentTarget.dataset.name + '&disId=' + this.data.disId,
-    })
-  },
-
-
-  toMyJinridinghuo(e) {
-    var that  = this;
-    console.log('disId=' + this.data.disId+'&nxDisPurUserId=' + this.data.userId)
-    wx.navigateToMiniProgram({
-      appId: 'wx1ea78d3f33234284',
-      path: 'pages/jinriListWithLogin/jinriListWithLogin?nxDisId=' + this.data.disId
-      +'&nxDisPurUserId=' + this.data.userId + '&commId=-1&commPurUserId=-1&gbDisId=-1&gbDepId=-1&gbDepUserId=-1' ,
-      envVersion: 'trial', //release  develop  trial
-      success(res) {
-        
-      },
+      url: '/subPackage/pages/management/purchaseManagement/supplierCollaboration/supplierCollaboration?openInvite=1&supplierRelationId=' + relationId + '&supplierName=' + encodeURIComponent(supplierName)
     })
   },
 

@@ -23,19 +23,25 @@ Page({
     navBarHeight: 0,
     tab: 'BATCH', loading: false, error: '',
     batches: [], relations: [], invitations: [], purchasers: [], detail: null,
-    showInvite: false, supplierName: '', targetContact: '', goodsId: '',
+    showInvite: false, supplierName: '', targetContact: '', goodsId: '', supplierRelationId: null,
     replacementSupplierRelationId: '', assigningRelationId: null, invitationToken: ''
   },
-  onLoad() {
-    this.setData({ navBarHeight: app.globalData.navBarHeight * app.globalData.rpxR })
+  onLoad(options = {}) {
+    const relationId = Number(options.supplierRelationId)
+    this.setData({
+      navBarHeight: app.globalData.navBarHeight * app.globalData.rpxR,
+      showInvite: options.openInvite === '1',
+      supplierRelationId: relationId > 0 ? relationId : null,
+      supplierName: options.supplierName || ''
+    })
     this.load()
   },
   onPullDownRefresh() { this.load(true) },
   toBack() { wx.navigateBack({ delta: 1 }) },
   switchTab(e) { this.setData({ tab: e.currentTarget.dataset.tab, detail: null, error: '' }); this.load() },
   input(e) { this.setData({ [e.currentTarget.dataset.field]: e.detail.value }) },
-  openInvite() { this.setData({ showInvite: true }) },
-  closeInvite() { this.setData({ showInvite: false }) },
+  openInvite() { this.setData({ showInvite: true, supplierRelationId: null, supplierName: '', targetContact: '', goodsId: '' }) },
+  closeInvite() { this.setData({ showInvite: false, supplierRelationId: null }) },
   load(refresh) {
     if (this.data.loading) return
     this.setData({ loading: true, error: '' })
@@ -54,12 +60,13 @@ Page({
     const supplierName = String(this.data.supplierName || '').trim()
     if (!supplierName) return wx.showToast({ title: '请填写供应商名称', icon: 'none' })
     const payload = { supplierName, targetContact: String(this.data.targetContact || '').trim() }
+    if (Number(this.data.supplierRelationId) > 0) payload.supplierRelationId = Number(this.data.supplierRelationId)
     const goodsId = Number(this.data.goodsId)
     if (goodsId > 0) payload.goodsId = goodsId
     wx.showLoading({ title: '生成邀请' })
     createSupplierInvitation(payload, key('owner-invite')).then(res => {
       const invitation = body(res) || {}
-      this.setData({ showInvite: false, supplierName: '', targetContact: '', goodsId: '', tab: 'INVITE', invitationToken: invitation.invitationToken || '' })
+      this.setData({ showInvite: false, supplierName: '', targetContact: '', goodsId: '', supplierRelationId: null, tab: 'INVITE', invitationToken: invitation.invitationToken || '' })
       if (invitation.invitationToken) wx.showToast({ title: '安全邀请已生成', icon: 'success' })
       this.load()
     }).catch(e => wx.showToast({ title: e.message || '邀请失败', icon: 'none' }))

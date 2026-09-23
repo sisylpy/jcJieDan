@@ -10,3 +10,9 @@
 - 有效修改完成后精确暂存并提交 `main`；用户授权时再推送。源码、相关测试、页面配置和必要资源一起保存；禁止无差别 `git add -A`，不得提交密钥、敏感本地配置、日志或构建产物。不丢弃、隐藏或擅自 stash 其他工作；影响发布的剩余修改必须说明。不能为了清理而删除仍被页面使用的图片或其他依赖。
 - 默认由用户选择开发者工具、真机验收及上传发布安排。Git 提交、推送、构建、预览、上传和发布是独立操作；“修改完成”不代表自动执行后续步骤。未经明确授权，不自行生成预览、上传体验版、提交审核或发布。正式发布应以干净的正式 `main` 已提交版本为来源，不另做隔离副本绕过未确认修改。推送若会触发自动上传或发布，须先取得用户同意。
 - 只读任务相关代码与必要规范，不默认遍历全部文档、历史报告和分支。不打印完整环境变量或反复读取完整日志，不额外启动多轮审计 Agent，不为普通修复生成长篇治理文档。交付时简要说明修改、提交与推送状态、验证及阻塞；未做开发者工具或真机验收、未上传或发布时明确说明。
+
+## 供应方身份与邀请入口
+
+- 内部“协作配送商”双方都具有 `nx_distributer` 与老板端身份。唯一正式入口是 `subPackage/pages/offerNx/offerNxDistributerList/offerNxDistributerList`，分享接受页是 `subPackage/pages/offerNx/inviteOfferDis/inviteOfferDis`，关系写入必须复用 `nx_distributer_nx_distributer/saveBusiness`。其他页面只能跳转到此入口，不得复制邀请表单或新建关系。
+- 外部供应商没有老板端配送商身份。唯一邀请发起入口是 `subPackage/pages/management/purchaseManagement/supplierCollaboration/supplierCollaboration`；邀请接受/激活由精彩订货的 `pkgSeller/pages/seller/supplierInvitation/supplierInvitation` 完成，身份落在 `nx_jrdh_supplier`。
+- 不得把内部配送商写成 JRDH 外部供应商，也不得把外部供应商伪装成 NX 配送商。已删除的精彩订货买方邀请页、旧 `inviteSeller/sellerRegister` 分享注册链和 Boss 直跳 `pages/jinriListWithLogin` 的邀请逻辑不得恢复。

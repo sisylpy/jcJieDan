@@ -71,7 +71,7 @@
           <text class="invite-detail-text">邀请方式: {{inviteType === 1 ? '邀请您成为对方的供货商' : '邀请您购买对方的产品'}}</text>
         </view>
       </view>
-      <text class="invite-accept-tip">接受此邀请后，您将与对方配送商建立协作关系。</text>
+      <text class="invite-accept-tip">这是老板端配送商之间的协作邀请。接受后，您将以自己的配送商账号与对方建立协作关系，不会创建外部供应商身份。</text>
       <view class="invite-btns invite-btns-row">
         <view class="invite-btn invite-btn-primary" bind:tap="saveOfferNxDis">接受</view>
         <view class="invite-btn invite-btn-secondary" bind:tap="toBack">拒绝</view>
