@@ -17,6 +17,7 @@ for (const path of [
   assert.ok(api.includes(path), `missing V2 supplier API contract: ${path}`)
 }
 assert.match(api, /inventoryBatchRequest\('purchase-management\/v2\/suppliers'/)
+assert.match(api, /syncPurchaseSupplierV2 = data => purchaseSupplierV2Request\('\/sync', data, 'POST'\)/)
 assert.doesNotMatch(api, /inventoryBatchRequest\('api\/purchase-management\/v2\/suppliers'/,
   'ownerRequest adds the owner API prefix and must not receive a duplicate api segment')
 assert.doesNotMatch(api, /getPurchaseManagementSupplier =/,
@@ -27,6 +28,8 @@ assert.match(api, /getPurchaseManagementSuppliers =/,
   'the shared V1 supplier filter remains for the out-of-scope purchase-batch page')
 
 assert.match(listJs, /getPurchaseSupplierV2List/)
+assert.match(listJs, /syncPurchaseSupplierV2/)
+assert.match(listJs, /syncAndLoad/)
 assert.match(detailJs, /getPurchaseSupplierV2Detail/)
 assert.match(detailJs, /getPurchaseSupplierV2Facts/)
 assert.match(detailJs, /getPurchaseSupplierV2Goods/)

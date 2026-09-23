@@ -1,4 +1,7 @@
-import { getPurchaseSupplierV2List } from '../../../../../lib/apiDistributer.js'
+import {
+  getPurchaseSupplierV2List,
+  syncPurchaseSupplierV2
+} from '../../../../../lib/apiDistributer.js'
 
 const app = getApp()
 
@@ -42,6 +45,8 @@ Page({
     total: 0,
     hasMore: false,
     loading: false,
+    syncing: false,
+    syncNotice: '',
     error: ''
   },
   onLoad(options) {
@@ -50,20 +55,20 @@ Page({
       startDate: options.startDate || '',
       stopDate: options.stopDate || ''
     })
-    this.load(true)
+    this.syncAndLoad()
   },
   toBack() { wx.navigateBack({ delta: 1 }) },
   changeStart(event) {
     this.setData({ startDate: event.detail.value })
-    this.load(true)
+    this.syncAndLoad()
   },
   changeStop(event) {
     this.setData({ stopDate: event.detail.value })
-    this.load(true)
+    this.syncAndLoad()
   },
   inputKeyword(event) { this.setData({ keyword: event.detail.value }) },
   search() { this.load(true) },
-  retry() { this.load(true) },
+  retry() { this.syncAndLoad() },
   chooseType(event) {
     this.setData({ supplierType: event.currentTarget.dataset.value || '' })
     this.load(true)
@@ -71,6 +76,31 @@ Page({
   chooseSort(event) {
     this.setData({ sort: event.currentTarget.dataset.value })
     this.load(true)
+  },
+  syncAndLoad() {
+    if (this.data.syncing || !this.data.startDate || !this.data.stopDate) {
+      this.load(true)
+      return
+    }
+    this.setData({ syncing: true, syncNotice: '' })
+    syncPurchaseSupplierV2({
+      startDate: this.data.startDate,
+      stopDate: this.data.stopDate
+    }).then(res => {
+      const body = res.result || {}
+      if (body.code !== 0) throw new Error(body.msg || '采购事实同步失败')
+      const result = body.data || {}
+      const internal = result.internal || {}
+      const external = result.external || {}
+      if (internal.complete === false || external.complete === false) {
+        this.setData({ syncNotice: '本次同步已达到安全上限，可再次点击重新加载继续同步。' })
+      }
+    }).catch(error => {
+      this.setData({ syncNotice: error.message || '采购事实同步失败，已继续查询现有数据。' })
+    }).then(() => {
+      this.setData({ syncing: false })
+      this.load(true)
+    })
   },
   load(reset) {
     if (this.data.loading) return

@@ -1,3 +1,4 @@
 @import "../common.wxss";
 .supplier{padding:20rpx;margin-bottom:14rpx}.type-badge{display:inline-block;margin-left:12rpx;padding:4rpx 10rpx;background:#edf7f4;color:#177866;font-size:20rpx}.summary-grid{margin-top:16rpx}.quality-row{align-items:flex-start;margin-top:14rpx}.quality-row .pm-muted{max-width:68%;text-align:right}.search-row{display:flex;align-items:center;gap:12rpx}.search-input{flex:1;min-width:0;border:1rpx solid #dfe7e4;padding:12rpx 14rpx;font-size:24rpx}.search-row .pm-button{white-space:nowrap}
 .scope-note .pm-muted{display:block;margin-top:10rpx;line-height:1.6}.empty-hint{display:block;margin:12rpx 0 20rpx;color:#87928f;font-size:24rpx}.retry-button{display:inline-block}
+.sync-notice{margin:0 18rpx 14rpx;padding:14rpx 18rpx;background:#fff8e8;color:#9b6a16;font-size:23rpx;line-height:1.5}

@@ -5,6 +5,8 @@
       <text class="pm-section-title">采购供应方查询</text>
       <text class="pm-muted">统一查看内部协作配送商和外部供应商的采购次数、商品、数量、单价与已识别金额。日期只筛选采购记录，不隐藏已经建立的供应方。</text>
     </view>
+    <view wx:if="{{syncing}}" class="pm-state compact">正在同步当前范围的采购事实…</view>
+    <view wx:if="{{syncNotice}}" class="sync-notice">{{syncNotice}}</view>
     <view class="pm-card pm-filter">
       <picker mode="date" value="{{startDate}}" bindchange="changeStart"><text class="pm-date">{{startDate||'开始日期'}}</text></picker>
       <text>至</text>
@@ -25,7 +27,7 @@
       <text class="pm-tab {{sort==='PURCHASE_COUNT'?'on':''}}" data-value="PURCHASE_COUNT" bindtap="chooseSort">采购次数</text>
     </view>
     <view wx:if="{{error}}" class="pm-state">{{error}}</view>
-    <view wx:if="{{!loading&&!items.length&&!error}}" class="pm-state">
+    <view wx:if="{{!syncing&&!loading&&!items.length&&!error}}" class="pm-state">
       <text>暂无统一采购供应方数据</text>
       <text class="empty-hint">若原业务已有采购记录，请确认采购事实同步已经运行。</text>
       <text class="pm-button retry-button" bindtap="retry">重新加载</text>
