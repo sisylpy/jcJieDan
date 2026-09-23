@@ -1,53 +1,111 @@
 <view class="pm-page">
   <back-navbar style="height:{{navBarHeight}}rpx" title="采购供应方" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
-  <scroll-view scroll-y class="pm-body" style="padding-top:{{navBarHeight}}rpx" bindscrolltolower="more">
-    <view class="pm-card scope-note">
-      <text class="pm-section-title">采购供应方查询</text>
-      <text class="pm-muted">统一查看内部协作配送商和外部供应商的采购次数、商品、数量、单价与已识别金额。日期只筛选采购记录，不隐藏已经建立的供应方。</text>
-    </view>
-    <view wx:if="{{syncing}}" class="pm-state compact">正在同步当前范围的采购事实…</view>
-    <view wx:if="{{syncNotice}}" class="sync-notice">{{syncNotice}}</view>
-    <view class="pm-card pm-filter">
-      <picker mode="date" value="{{startDate}}" bindchange="changeStart"><text class="pm-date">{{startDate||'开始日期'}}</text></picker>
-      <text>至</text>
-      <picker mode="date" value="{{stopDate}}" bindchange="changeStop"><text class="pm-date">{{stopDate||'结束日期'}}</text></picker>
-    </view>
-    <view class="pm-card search-row">
-      <input class="search-input" value="{{keyword}}" placeholder="搜索供应方名称" bindinput="inputKeyword" confirm-type="search" bindconfirm="search" />
-      <text class="pm-button" bindtap="search">搜索</text>
-    </view>
-    <view class="pm-tabs">
-      <text class="pm-tab {{supplierType===''?'on':''}}" data-value="" bindtap="chooseType">全部</text>
-      <text class="pm-tab {{supplierType==='INTERNAL_DISTRIBUTER'?'on':''}}" data-value="INTERNAL_DISTRIBUTER" bindtap="chooseType">内部协作配送商</text>
-      <text class="pm-tab {{supplierType==='EXTERNAL_JRDH'?'on':''}}" data-value="EXTERNAL_JRDH" bindtap="chooseType">外部供应商</text>
-    </view>
-    <view class="pm-tabs">
-      <text class="pm-tab {{sort==='LAST_PURCHASE'?'on':''}}" data-value="LAST_PURCHASE" bindtap="chooseSort">最近采购</text>
-      <text class="pm-tab {{sort==='PURCHASE_AMOUNT'?'on':''}}" data-value="PURCHASE_AMOUNT" bindtap="chooseSort">已识别金额</text>
-      <text class="pm-tab {{sort==='PURCHASE_COUNT'?'on':''}}" data-value="PURCHASE_COUNT" bindtap="chooseSort">采购次数</text>
-    </view>
-    <view wx:if="{{error}}" class="pm-state">{{error}}</view>
-    <view wx:if="{{!syncing&&!loading&&!items.length&&!error}}" class="pm-state">
-      <text>暂无统一采购供应方数据</text>
-      <text class="empty-hint">若原业务已有采购记录，请确认采购事实同步已经运行。</text>
-      <text class="pm-button retry-button" bindtap="retry">重新加载</text>
-    </view>
-    <view class="pm-card supplier" wx:for="{{items}}" wx:key="purchaseSupplierRefId" data-id="{{item.purchaseSupplierRefId}}" bindtap="open">
-      <view class="pm-row">
-        <view><text class="pm-name">{{item.supplierName||'名称未解析'}}</text><text class="type-badge">{{item.supplierTypeText}}</text></view>
-        <text class="pm-link">详情 ›</text>
+  <scroll-view scroll-y class="supplier-scroll" style="padding-top:{{navBarHeight}}rpx" scroll-top="{{scrollTop}}"
+    bindscroll="rememberScroll" bindscrolltolower="more">
+    <view class="supplier-body">
+      <view class="date-bar">
+        <text class="calendar-icon">日</text>
+        <picker class="date-picker" mode="date" value="{{startDate}}" bindchange="changeStart">
+          <text>{{startDate||'开始日期'}}</text>
+        </picker>
+        <text class="date-separator">—</text>
+        <picker class="date-picker" mode="date" value="{{stopDate}}" bindchange="changeStop">
+          <text>{{stopDate||'结束日期'}}</text>
+        </picker>
       </view>
-      <view class="pm-grid summary-grid">
-        <view class="pm-metric"><text class="pm-label">采购次数</text><text>{{item.purchaseCount}} 次</text></view>
-        <view class="pm-metric"><text class="pm-label">商品行数</text><text>{{item.goodsLineCount}} 行</text></view>
-        <view class="pm-metric"><text class="pm-label">已识别采购金额</text><text class="pm-money">{{item.purchaseAmountText}}</text></view>
-        <view class="pm-metric"><text class="pm-label">最近采购日期</text><text>{{item.lastPurchaseDate||'—'}}</text></view>
+
+      <view class="search-bar">
+        <text class="search-icon">⌕</text>
+        <input class="search-input" value="{{keyword}}" placeholder="搜索供应方名称" bindinput="inputKeyword"
+          confirm-type="search" bindconfirm="search" />
+        <text class="search-action" bindtap="search">搜索</text>
       </view>
-      <view class="pm-row quality-row">
-        <text class="pm-badge {{item.qualityClass}}">{{item.dataQualityText}}</text>
-        <text class="pm-muted">{{item.amountScopeText}}</text>
+
+      <view class="toolbar">
+        <view class="toolbar-left">
+          <text class="toolbar-button {{supplierType?'active':''}}" bindtap="openTypeSheet">
+            {{supplierType==='INTERNAL_DISTRIBUTER'?'内部协作配送商':(supplierType==='EXTERNAL_JRDH'?'外部供应商':'全部供应方')}}⌄
+          </text>
+          <text class="toolbar-button" bindtap="openSortSheet">{{sortText}}⌄</text>
+        </view>
+        <text class="data-note-link" bindtap="openDataNote">数据说明</text>
       </view>
+
+      <view wx:if="{{syncing}}" class="status-notice neutral">正在更新当前日期范围的采购数据…</view>
+      <view wx:if="{{syncNotice}}" class="status-notice warn">{{syncNotice}}</view>
+
+      <view wx:if="{{error}}" class="state-panel error-state">
+        <text class="state-title">采购数据加载失败</text>
+        <text class="state-copy">{{error}}</text>
+        <text class="state-button" bindtap="retry">重新加载</text>
+      </view>
+
+      <view wx:if="{{!syncing&&!loading&&!items.length&&!error}}" class="state-panel">
+        <text class="state-title">没有符合条件的供应方</text>
+        <text class="state-copy">可以调整日期、类型或搜索条件后重试。</text>
+      </view>
+
+      <view class="supplier-card" wx:for="{{items}}" wx:key="purchaseSupplierRefId"
+        data-id="{{item.purchaseSupplierRefId}}" bindtap="open">
+        <view class="card-heading">
+          <view class="identity">
+            <text class="supplier-name">{{item.supplierName||'名称待核对'}}</text>
+            <text class="type-badge {{item.typeClass}}">{{item.supplierTypeText}}</text>
+            <text wx:if="{{item.relationText}}" class="relation-badge">{{item.relationText}}</text>
+          </view>
+          <text class="card-arrow">›</text>
+        </view>
+
+        <view class="amount-row">
+          <text class="amount-label">采购金额</text>
+          <text class="amount-value {{item.amountState==='unresolved'?'muted':''}}">{{item.purchaseAmountText}}</text>
+        </view>
+
+        <view class="meta-row">
+          <text>{{item.purchaseCountText}}张采购单</text>
+          <text class="meta-dot">·</text>
+          <text>{{item.goodsLineCountText}}条商品记录</text>
+          <text class="meta-dot">·</text>
+          <text>最近采购 {{item.lastPurchaseDate||'—'}}</text>
+        </view>
+
+        <view wx:if="{{item.amountScopeText}}" class="amount-note {{item.amountState}}">
+          <text class="note-mark">{{item.amountState==='no-record'?'':'!'}}</text>
+          <text>{{item.amountScopeText}}</text>
+        </view>
+        <view wx:if="{{item.qualityText}}" class="quality-warning">{{item.qualityText}}</view>
+
+        <view class="card-footer">
+          <text>查看采购记录</text><text>›</text>
+        </view>
+      </view>
+
+      <view wx:if="{{loading}}" class="loading-state">正在加载…</view>
+      <view wx:elif="{{!hasMore&&items.length}}" class="list-end">已显示全部供应方</view>
     </view>
-    <view wx:if="{{loading}}" class="pm-state">正在加载…</view>
   </scroll-view>
+
+  <view class="sheet-mask" wx:if="{{showTypeSheet||showSortSheet||showDataNote}}" bindtap="closeSheets">
+    <view class="bottom-sheet" catchtap="stopPropagation">
+      <block wx:if="{{showTypeSheet}}">
+        <view class="sheet-title">供应方类型</view>
+        <view class="sheet-option {{supplierType===''?'selected':''}}" data-value="" bindtap="chooseType">全部供应方</view>
+        <view class="sheet-option {{supplierType==='INTERNAL_DISTRIBUTER'?'selected':''}}" data-value="INTERNAL_DISTRIBUTER" bindtap="chooseType">内部协作配送商</view>
+        <view class="sheet-option {{supplierType==='EXTERNAL_JRDH'?'selected':''}}" data-value="EXTERNAL_JRDH" bindtap="chooseType">外部供应商</view>
+      </block>
+      <block wx:elif="{{showSortSheet}}">
+        <view class="sheet-title">排序方式</view>
+        <view class="sheet-option {{sort==='LAST_PURCHASE'?'selected':''}}" data-value="LAST_PURCHASE" bindtap="chooseSort">最近采购</view>
+        <view class="sheet-option {{sort==='PURCHASE_AMOUNT'?'selected':''}}" data-value="PURCHASE_AMOUNT" bindtap="chooseSort">采购金额从高到低</view>
+        <view class="sheet-option {{sort==='PURCHASE_COUNT'?'selected':''}}" data-value="PURCHASE_COUNT" bindtap="chooseSort">采购单数从多到少</view>
+      </block>
+      <block wx:else>
+        <view class="sheet-title">数据说明</view>
+        <text class="sheet-copy">采购金额是当前日期范围内，来源小计可以识别且未取消的采购记录合计，不代表已收货、已付款或实际净采购。</text>
+        <text class="sheet-copy">采购单数包含待处理、进行中和来源流程已完成的采购单，不等于已完成采购。商品记录数是采购事实记录行数，不是商品种类。</text>
+        <text class="sheet-copy">金额待核对的记录不计入采购金额；缺失金额不会按0元处理。</text>
+      </block>
+      <view class="sheet-close" bindtap="closeSheets">关闭</view>
+    </view>
+  </view>
 </view>

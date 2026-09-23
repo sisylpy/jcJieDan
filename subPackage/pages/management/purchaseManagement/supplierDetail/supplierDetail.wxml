@@ -1,49 +1,112 @@
 <view class="pm-page">
   <back-navbar style="height:{{navBarHeight}}rpx" title="供应方详情" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
-  <scroll-view scroll-y class="pm-body" style="padding-top:{{navBarHeight}}rpx" bindscrolltolower="loadMoreFacts">
-    <view wx:if="{{loading}}" class="pm-state">正在加载…</view>
-    <view wx:elif="{{error}}" class="pm-state">{{error}}</view>
-    <block wx:else>
-      <view class="pm-card">
-        <view class="pm-row"><view><text class="pm-name">{{detail.supplierName||'名称未解析'}}</text><text class="type-badge">{{detail.supplierTypeText}}</text></view><text class="pm-badge">{{detail.relationStatusText}}</text></view>
-        <view class="pm-grid detail-grid">
-          <view class="pm-metric"><text class="pm-label">采购次数</text><text>{{detail.purchaseCount}} 次</text></view>
-          <view class="pm-metric"><text class="pm-label">商品行数</text><text>{{detail.goodsLineCount}} 行</text></view>
-          <view class="pm-metric"><text class="pm-label">已识别采购金额</text><text class="pm-money">{{detail.purchaseAmountText}}</text></view>
-          <view class="pm-metric"><text class="pm-label">最近采购日期</text><text>{{detail.lastPurchaseDate||'—'}}</text></view>
-        </view>
-        <view class="quality-note"><text class="pm-badge {{detail.qualityClass}}">{{detail.dataQualityText}}</text><text class="pm-muted">{{detail.amountScopeText}}</text></view>
-        <text class="pm-muted source-note">投影更新时间：{{detail.projectedAt||'—'}} · 来源状态：{{detail.sourceStatus||'—'}}</text>
-        <view class="manage-button" bindtap="manageSupplier">{{detail.manageText}}</view>
+  <scroll-view scroll-y class="detail-scroll" style="padding-top:{{navBarHeight}}rpx" bindscrolltolower="loadMore">
+    <view class="detail-body">
+      <view wx:if="{{loading}}" class="state-panel">正在加载供应方详情…</view>
+      <view wx:elif="{{error}}" class="state-panel">
+        <text class="state-title">供应方详情加载失败</text>
+        <text class="state-copy">{{error}}</text>
+        <text class="state-button" bindtap="load">重新加载</text>
       </view>
 
-      <view class="pm-card">
-        <text class="pm-section-title">采购商品汇总（{{goodsTotal}}）</text>
-        <text wx:if="{{!goods.length}}" class="pm-muted">当前范围暂无商品汇总</text>
-        <view class="goods-row" wx:for="{{goods}}" wx:key="index">
-          <view class="pm-row"><text class="pm-name">{{item.goodsName||'商品名称未解析'}} <text class="pm-spec">{{item.specification||''}}</text></text><text class="pm-money">{{item.purchaseAmountText}}</text></view>
-          <view class="pm-line"><text>订购 {{item.orderedQuantityText}}</text><text>实际 {{item.actualQuantityText}}</text><text>{{item.purchaseCount}} 次</text></view>
-          <view class="pm-row"><text class="pm-badge {{item.qualityClass}}">{{item.dataQualityText}}</text><text class="pm-muted">{{item.amountScopeText}}</text></view>
-        </view>
-        <view wx:if="{{goodsHasMore}}" class="more-button" bindtap="loadMoreGoods">{{goodsLoading?'正在加载…':'加载更多商品'}}</view>
-      </view>
-
-      <view class="pm-card">
-        <text class="pm-section-title">真实采购记录（{{factTotal}}）</text>
-        <text wx:if="{{!facts.length}}" class="pm-muted">当前范围暂无采购事实</text>
-        <view class="fact-row" wx:for="{{facts}}" wx:key="purchaseFactId">
-          <view class="pm-row"><text class="pm-name">{{item.goodsName||'商品名称未解析'}} <text class="pm-spec">{{item.specification||''}}</text></text><text>{{item.businessDate||'—'}}</text></view>
-          <view class="pm-grid fact-grid">
-            <view class="pm-metric"><text class="pm-label">{{item.quantityLabel}}</text><text>{{item.quantityText}}</text></view>
-            <view class="pm-metric"><text class="pm-label">单价</text><text>{{item.unitPriceText}}</text></view>
-            <view class="pm-metric"><text class="pm-label">已识别金额</text><text class="pm-money">{{item.grossAmountText}}</text></view>
-            <view class="pm-metric"><text class="pm-label">履约状态</text><text>{{item.factStatusText}}</text></view>
+      <block wx:else>
+        <view class="summary-card">
+          <view class="identity-row">
+            <view class="identity">
+              <text class="supplier-name">{{detail.supplierName||'名称待核对'}}</text>
+              <text class="type-badge {{detail.typeClass}}">{{detail.supplierTypeText}}</text>
+              <text wx:if="{{detail.relationText}}" class="relation-badge">{{detail.relationText}}</text>
+            </view>
+            <text class="data-note-link" bindtap="openDataNote">数据说明</text>
           </view>
-          <text class="pm-muted source-note">{{item.sourceTypeText}} · {{item.orderLinkText}}</text>
-          <view class="pm-row"><text class="pm-badge {{item.qualityClass}}">{{item.dataQualityText}}</text><text class="pm-muted">金额依据：{{item.amountBasis||'未解析'}}</text></view>
+          <text class="period-text">{{detail.periodText}}</text>
+          <view class="summary-amount">
+            <text>期间采购金额</text>
+            <text class="amount-value {{detail.amountState==='unresolved'?'muted':''}}">{{detail.purchaseAmountText}}</text>
+          </view>
+          <view wx:if="{{detail.amountScopeText}}" class="amount-note {{detail.amountState}}">{{detail.amountScopeText}}</view>
+          <view class="summary-meta">
+            <text>{{detail.purchaseCount||0}}张采购单</text><text>·</text>
+            <text>{{detail.goodsLineCount||0}}条商品记录</text><text>·</text>
+            <text>最近采购 {{detail.lastPurchaseDate||'—'}}</text>
+          </view>
+          <view class="manage-button" bindtap="manageSupplier">{{detail.manageText}}<text>›</text></view>
         </view>
-        <view wx:if="{{factLoading}}" class="pm-state compact">正在加载更多…</view>
-      </view>
-    </block>
+
+        <view class="detail-tabs">
+          <view class="detail-tab {{activeTab==='records'?'active':''}}" data-tab="records" bindtap="switchTab">采购记录</view>
+          <view class="detail-tab {{activeTab==='goods'?'active':''}}" data-tab="goods" bindtap="switchTab">商品汇总</view>
+        </view>
+
+        <view wx:if="{{activeTab==='records'}}" class="tab-content">
+          <view wx:if="{{!facts.length}}" class="empty-panel">本期暂无采购记录</view>
+          <view class="record-card" wx:for="{{facts}}" wx:key="purchaseFactId" wx:for-index="recordIndex">
+            <view class="record-heading">
+              <view class="goods-title">
+                <text>{{item.goodsName||'商品名称待核对'}}</text>
+                <text wx:if="{{item.specification}}" class="goods-spec">{{item.specification}}</text>
+              </view>
+              <text class="record-date">{{item.businessDate||'业务日期待核对'}}</text>
+            </view>
+
+            <view class="record-values">
+              <view class="value-item"><text class="value-label">订购数量</text><text>{{item.orderedQuantityText}}</text></view>
+              <view class="value-item"><text class="value-label">{{item.actualQuantityLabel}}</text><text>{{item.actualQuantityText}}</text></view>
+              <view class="value-item"><text class="value-label">单价</text><text>{{item.unitPriceText}}</text></view>
+              <view class="value-item"><text class="value-label">小计</text><text class="money-text">{{item.grossAmountText}}</text></view>
+            </view>
+
+            <view class="record-status {{item.progressClass}}">{{item.progressText}}</view>
+            <view wx:if="{{item.issueText}}" class="record-warning">{{item.issueText}}</view>
+
+            <view class="source-toggle" data-index="{{recordIndex}}" bindtap="toggleSource">
+              <text>订单来源</text><text>{{item.sourceExpanded?'收起':'展开'}} {{item.sourceExpanded?'⌃':'⌄'}}</text>
+            </view>
+            <view wx:if="{{item.sourceExpanded}}" class="source-detail">
+              <text class="source-title">{{item.internal?'offerNx协作订单':'精彩订货采购记录'}}</text>
+              <view wx:if="{{item.mainOrderId}}" class="source-line"><text>主订单号</text><text>{{item.mainOrderId}}</text></view>
+              <view wx:if="{{item.collaborationOrderId}}" class="source-line"><text>协作订单号</text><text>{{item.collaborationOrderId}}</text></view>
+              <view wx:if="{{item.externalBatchId}}" class="source-line"><text>采购批次编号</text><text>{{item.externalBatchId}}</text></view>
+              <view wx:if="{{item.externalPurchaseGoodsId}}" class="source-line"><text>商品记录编号</text><text>{{item.externalPurchaseGoodsId}}</text></view>
+              <view class="source-copy"><text>金额来源</text><text>{{item.sourceAmountText}}</text></view>
+            </view>
+          </view>
+          <view wx:if="{{factLoading}}" class="loading-state">正在加载更多采购记录…</view>
+          <view wx:elif="{{factHasMore}}" class="load-more" bindtap="loadMoreFacts">加载更多采购记录</view>
+        </view>
+
+        <view wx:else class="tab-content">
+          <view wx:if="{{!goods.length}}" class="empty-panel">本期暂无商品汇总</view>
+          <view class="goods-card" wx:for="{{goods}}" wx:key="index">
+            <view class="record-heading">
+              <view class="goods-title">
+                <text>{{item.goodsName||'商品名称待核对'}}</text>
+                <text wx:if="{{item.specification}}" class="goods-spec">{{item.specification}}</text>
+              </view>
+              <text class="money-text">{{item.purchaseAmountText}}</text>
+            </view>
+            <view class="summary-meta goods-meta">
+              <text>{{item.purchaseCountText}}张采购单</text><text>·</text>
+              <text>{{item.goodsLineCountText}}条商品记录</text><text>·</text>
+              <text>最近采购 {{item.lastPurchaseDate||'—'}}</text>
+            </view>
+            <view wx:if="{{item.amountScopeText}}" class="amount-note {{item.amountState}}">{{item.amountScopeText}}</view>
+            <view wx:if="{{item.issueText}}" class="record-warning">{{item.issueText}}</view>
+          </view>
+          <view wx:if="{{goodsLoading}}" class="loading-state">正在加载更多商品…</view>
+          <view wx:elif="{{goodsHasMore}}" class="load-more" bindtap="loadMoreGoods">加载更多商品</view>
+        </view>
+      </block>
+    </view>
   </scroll-view>
+
+  <view class="sheet-mask" wx:if="{{showDataNote}}" bindtap="closeDataNote">
+    <view class="bottom-sheet" catchtap="stopPropagation">
+      <view class="sheet-title">数据说明</view>
+      <text class="sheet-copy">本页数量、单价和小计来自原业务采购记录。内部协作的“供货数量”来自协作订单，外部供应商的“来源数量”来自采购商品记录，二者都不能直接解释为买方实收数量。</text>
+      <text class="sheet-copy">“来源流程已完成”只表示原业务记录达到完成状态，不代表已收货或已付款。本页暂不展示未接入的收货、付款和结算状态。</text>
+      <text class="sheet-copy">采购金额只合计小计可识别且未取消的记录；缺失金额不会按0元处理。最近采购日期使用采购业务日期，不使用数据更新时间替代。</text>
+      <view class="sheet-close" bindtap="closeDataNote">关闭</view>
+    </view>
+  </view>
 </view>

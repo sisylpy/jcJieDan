@@ -38,27 +38,54 @@ for (const source of [listJs, detailJs]) {
   assert.doesNotMatch(source, /supplierRelationId/)
 }
 
-for (const source of [listJs, listWxml, detailJs, detailWxml]) {
-  assert.doesNotMatch(source, /实际净采购|损耗率|毛利|已付款|待结算/,
-    'phase one must not invent finance, loss or profit metrics')
+for (const source of [listJs, detailJs]) {
+  assert.doesNotMatch(source, /actualNetPurchase|lossRate|profit|paidAmount|settlement/,
+    'phase one must not bind finance, loss or profit metrics')
 }
 assert.match(listWxml, /内部协作配送商/)
 assert.match(listWxml, /外部供应商/)
-assert.match(listWxml, /已识别采购金额/)
-assert.match(listWxml, /采购供应方查询/)
-assert.match(listWxml, /日期只筛选采购记录，不隐藏已经建立的供应方/)
+assert.match(listWxml, /采购金额/)
+assert.match(listWxml, /查看采购记录/)
+assert.match(listWxml, /数据说明/)
+assert.match(listWxml, /采购单数.*不等于已完成采购/s)
+assert.match(listWxml, /商品记录数.*不是商品种类/s)
 assert.match(listWxml, /bindtap="retry"/)
-assert.match(detailWxml, /真实采购记录/)
-assert.match(detailWxml, /item\.quantityText/)
+assert.match(detailWxml, /activeTab==='records'/)
+assert.match(detailWxml, /采购记录/)
+assert.match(detailWxml, /商品汇总/)
+assert.match(detailWxml, /item\.orderedQuantityText/)
+assert.match(detailWxml, /item\.actualQuantityText/)
 assert.match(detailWxml, /item\.unitPriceText/)
 assert.match(detailWxml, /item\.grossAmountText/)
+assert.match(detailWxml, />小计</)
+assert.match(detailWxml, /订单来源/)
+assert.match(detailWxml, /主订单号/)
+assert.match(detailWxml, /协作订单号/)
+assert.match(detailWxml, /采购批次编号/)
+assert.match(detailWxml, /商品记录编号/)
+assert.doesNotMatch(detailWxml, /DPG_FINAL|FULFILLED|projectedAt|sourceStatus/,
+  'technical projection codes must stay out of the page')
 assert.match(detailJs, /offerNxDistributerList\/offerNxDistributerList/)
 assert.match(detailJs, /subPackage-supplier\/pages\/supplier\/index\/index/)
-assert.match(detailJs, /value == null \? '—' : '¥' \+ value/,
+assert.match(detailJs, /value == null \|\| value === ''/,
   'null money must stay unknown rather than becoming zero')
-assert.match(detailJs, /主订单.*协作订单/,
-  'internal facts must expose the exact collaboration link identities')
 assert.match(listJs, /supplierType.*startDate.*stopDate.*sort/s,
   'list must forward identity, period and sort to the V2 contract')
+assert.match(listJs, /options\.startDate \|\| ''/)
+assert.match(listJs, /options\.stopDate \|\| ''/)
+assert.doesNotMatch(listJs, /thisMonth|getFirstDateInMonth|本月/,
+  'supplier page must inherit the selected period instead of resetting to this month')
+assert.match(listJs, /_savedScrollTop/)
+assert.match(listJs, /采购数据加载失败/)
+assert.match(listJs, /items: \[\], total: 0, hasMore: false/,
+  'a failed reset query must not leave results from the previous date range on screen')
+assert.match(listWxml, /!syncing&&!loading&&!items\.length&&!error/,
+  'initial projection refresh must not flash a false empty state')
+assert.match(listJs, /本期暂无采购记录/)
+assert.match(listJs, /金额均待核对/)
+assert.match(listJs, /未计入上述金额/)
+assert.match(detailJs, /activeTab: 'records'/)
+assert.doesNotMatch(detailWxml, /确认收货|入库|付款操作|结算操作/,
+  'supplier detail must stay read-only in this phase')
 
 console.log('purchase supplier V2 contracts passed')
