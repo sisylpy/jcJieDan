@@ -51,7 +51,7 @@ for (const markup of purchaserWxml) {
 }
 assert.match(overviewWxml, /wx:if="\{\{period\.totalBatchCount\|\|period\.directSelfBuyRecordCount\}\}"/,
   'overview must treat batchless self-buy records as in-range purchase data')
-assert.match(overviewWxml, /直接采购 \{\{period\.directSelfBuyRecordCount\}\} 条（已采购 \{\{period\.directSelfBuyPurchaseCount\|\|0\}\} 条 · 已入库 \{\{period\.directSelfBuyStockInCount\|\|0\}\} 条）/,
+assert.match(overviewWxml, /直接采购 \{\{period\.directSelfBuyRecordCount\}\} 条（待采购 \{\{period\.directSelfBuyPendingCount\|\|0\}\} 条 · 已采购 \{\{period\.directSelfBuyPurchaseCount\|\|0\}\} 条 · 已入库 \{\{period\.directSelfBuyStockInCount\|\|0\}\} 条）/,
   'overview must disclose batchless self-buy purchase and stock-in counts without changing batch counts')
 assert.match(overviewWxml, /wx:if="\{\{period\.totalBatchCount\}\}">有效批次/,
   'batch coverage text must remain conditional on real purchase batches')
@@ -68,25 +68,43 @@ assert.doesNotMatch(overviewWxml, /period\.(?:currentRealizedMarginRate|complete
   'overview must not render or format raw decimal margin rates')
 assert.match(purchaserListWxml, /wx:if="\{\{item\.totalBatchCount\|\|item\.directSelfBuyRecordCount\}\}"/,
   'purchaser cards must remain non-empty for batchless self-buy records')
-assert.match(purchaserListWxml, /直接采购 \{\{item\.directSelfBuyRecordCount\}\} 条（已采购 \{\{item\.directSelfBuyPurchaseCount\|\|0\}\} 条 · 已入库 \{\{item\.directSelfBuyStockInCount\|\|0\}\} 条）/)
+assert.match(purchaserListWxml, /直接采购 \{\{item\.directSelfBuyRecordCount\}\} 条（待采购 \{\{item\.directSelfBuyPendingCount\|\|0\}\} 条 · 已采购 \{\{item\.directSelfBuyPurchaseCount\|\|0\}\} 条 · 已入库 \{\{item\.directSelfBuyStockInCount\|\|0\}\} 条）/)
 assert.match(purchaserListWxml, /wx:if="\{\{item\.totalBatchCount\}\}">\{\{item\.dataCompletenessText\}\}/,
   'batch completeness must not be shown as history-incomplete for a direct-only purchaser')
 assert.match(purchaserListWxml, /wx:else[^>]*>当前范围暂无采购记录/)
 assert.match(purchaserDetailWxml, /wx:if="\{\{detail\.summary\.totalBatchCount\|\|detail\.summary\.directSelfBuyRecordCount\}\}"/,
   'purchaser detail must remain non-empty for batchless self-buy records')
-assert.match(purchaserDetailWxml, /直接采购 \{\{detail\.summary\.directSelfBuyRecordCount\}\} 条（已采购 \{\{detail\.summary\.directSelfBuyPurchaseCount\|\|0\}\} 条 · 已入库 \{\{detail\.summary\.directSelfBuyStockInCount\|\|0\}\} 条）/)
+assert.match(purchaserDetailWxml, /直接采购 \{\{detail\.summary\.directSelfBuyRecordCount\}\} 条（待采购 \{\{detail\.summary\.directSelfBuyPendingCount\|\|0\}\} 条 · 已采购 \{\{detail\.summary\.directSelfBuyPurchaseCount\|\|0\}\} 条 · 已入库 \{\{detail\.summary\.directSelfBuyStockInCount\|\|0\}\} 条）/)
 assert.match(purchaserDetailWxml, /wx:if="\{\{detail\.summary\.totalBatchCount\}\}">\{\{detail\.summary\.dataCompletenessText\}\}/,
   'batch completeness must be hidden when purchaser detail only has direct self-buy records')
 assert.match(purchaserDetailWxml, /wx:else[^>]*>\{\{detail\.accountStatusText\}\} · 当前范围暂无采购记录/)
 
 assert.match(read('subPackage/pages/management/homePage/homePage.wxml'), /采购管理/)
-assert.match(read('subPackage/pages/management/purchaseManagement/purchaseBatchDetail/purchaseBatchDetail.wxml'), /完整时间线/)
-assert.match(read('subPackage/pages/management/purchaseManagement/purchaseBatchDetail/purchaseBatchDetail.wxml'), /关联库存批次/)
+const batchDetailJs = read('subPackage/pages/management/purchaseManagement/purchaseBatchDetail/purchaseBatchDetail.js')
+const batchDetail = read('subPackage/pages/management/purchaseManagement/purchaseBatchDetail/purchaseBatchDetail.wxml')
+assert.match(batchDetail, /为客户订单采购/)
+assert.match(batchDetail, /用于库存备货/)
+assert.match(batchDetail, /供货单价/)
+assert.match(batchDetail, /供货小计/)
+assert.match(batchDetail, /订单来源/)
+assert.match(batchDetail, /关联库存记录/)
+assert.match(batchDetail, /客户订单订货不经过配送商采购收货和入库/)
+assert.doesNotMatch(batchDetail, /确认收货|部分收货|拒收|待入库/)
+assert.match(batchDetailJs, /pkgPurchase\/pages\/txs\/disOrderBatch\/disOrderBatch/)
+assert.match(batchDetailJs, /fromBuyer=1&fromBoss=1/)
+assert.match(batchDetailJs, /buyerConfirmationRequired/)
 assert.match(read('subPackage/pages/management/purchaseManagement/purchaseExceptionList/purchaseExceptionList.wxml'), /采购待办与异常/)
 const batchList = read('subPackage/pages/management/purchaseManagement/purchaseBatchList/purchaseBatchList.wxml')
-for (const filter of ['采购员', '供应商', '需求来源', '采购方式', '履约模式', '收货状态', '入库状态', '退货状态', '有异常']) {
-  assert.ok(batchList.includes(filter), `missing batch filter: ${filter}`)
+const batchListJs = read('subPackage/pages/management/purchaseManagement/purchaseBatchList/purchaseBatchList.js')
+for (const filter of ['客户订单订货', '库存备货', '用途待核对', '全部供应方', '最近采购', '供货金额']) {
+  assert.ok((batchList + batchListJs).includes(filter), `missing batch filter: ${filter}`)
 }
+assert.doesNotMatch(batchList, /收货状态|入库状态|退货状态|有损耗|毛利/)
+assert.match(batchListJs, /purchasePurpose:/)
+assert.match(batchListJs, /supplierId: this\.data\.supplierRelationId/)
+assert.match(batchListJs, /supplierOptions:\s*\[\{ supplierRelationId: '', supplierName: '全部供应方' \}\]/)
+assert.doesNotMatch(batchListJs, /getPurchaseManagementSuppliers|getPurchaseManagementPurchasers/)
+assert.match(batchListJs, /restoreScrollTop/)
 assert.match(allJs, /pageSize:\s*20/)
 
 // Stage5 direct-purchase record contracts on the purchaser detail page.

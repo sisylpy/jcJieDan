@@ -1,2 +1,13 @@
 @import "../common.wxss";
-.search{flex:1;border:1rpx solid #dce5e2;padding:10rpx 14rpx;font-size:24rpx}.batch{padding:18rpx 0;border-bottom:1rpx solid #edf1ef}.filters{max-height:290rpx;overflow:hidden}.filters.open{max-height:none}
+.query-panel{background:#fff;border:1rpx solid #e0e8e5;margin-bottom:14rpx;padding:16rpx}
+.date-row,.search-row,.compact-filters,.card-head,.supplier-row,.amount-row{display:flex;align-items:center}.date-row{justify-content:flex-start;gap:12rpx;border-bottom:1rpx solid #edf1ef;padding-bottom:14rpx}
+.date-value{font-size:23rpx;color:#35433f;padding:7rpx 10rpx;border:1rpx solid #dce6e2;background:#fafcfb}.date-separator{font-size:23rpx;color:#7b8985}
+.search-row{margin-top:14rpx;border:1rpx solid #dbe5e1}.search-input{flex:1;height:64rpx;padding:0 15rpx;font-size:24rpx}.search-button{height:64rpx;line-height:64rpx;padding:0 22rpx;color:#fff;background:#15806d;font-size:24rpx}
+.purpose-tabs{display:flex;gap:8rpx;overflow-x:auto;white-space:nowrap;padding:14rpx 0 12rpx}.purpose-tab{display:inline-block;border:1rpx solid #dce6e2;padding:8rpx 13rpx;font-size:22rpx;color:#566560;background:#fff}.purpose-tab.on{color:#fff;background:#15806d;border-color:#15806d}
+.compact-filters{justify-content:space-between;border-top:1rpx solid #edf1ef;padding-top:12rpx}.filter-value{font-size:22rpx;color:#3d5951}
+.batch-card{background:#fff;border:1rpx solid #e0e8e5;margin-bottom:12rpx;padding:18rpx}.card-head,.supplier-row,.amount-row{justify-content:space-between;gap:12rpx}.head-left{display:flex;align-items:center;gap:10rpx;min-width:0}
+.purpose-badge{font-size:20rpx;color:#116f61;background:#e8f5f1;padding:4rpx 8rpx}.purpose-badge.warn{color:#936119;background:#fff4df}.batch-number,.business-date{font-size:21rpx;color:#71807c}
+.supplier-row{margin-top:16rpx}.supplier-name{font-size:29rpx;font-weight:650;color:#25332f}.progress-text{font-size:22rpx;color:#147967;text-align:right}.goods-summary{display:block;margin-top:10rpx;font-size:24rpx;color:#51605c;line-height:1.5}
+.amount-row{margin-top:16rpx;padding-top:14rpx;border-top:1rpx solid #edf1ef}.amount-label{font-size:22rpx;color:#73817d}.amount-value{font-size:31rpx;font-weight:700;color:#d55b31}.amount-pending{font-size:23rpx;color:#9a6b25}
+.notice{margin-top:12rpx;padding:10rpx 12rpx;background:#fff8ea;color:#8a5a13;font-size:21rpx;line-height:1.45}.state-panel{text-align:center;color:#75827f;padding:110rpx 20rpx;background:#fff;border:1rpx solid #e0e8e5}.state-panel text{display:block}
+.error-state{color:#6f4b46}.state-detail{font-size:21rpx;margin:12rpx 0 22rpx;color:#8b7773}.retry-button{display:inline-block!important;background:#15806d;color:#fff;padding:11rpx 22rpx;font-size:23rpx}.loading-state,.end-state{text-align:center;color:#84918d;font-size:22rpx;padding:26rpx}

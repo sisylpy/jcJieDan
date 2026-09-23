@@ -1,105 +1,110 @@
-import {
-  getPurchaseManagementBatches,
-  getPurchaseManagementPurchasers,
-  getPurchaseManagementSuppliers
-} from '../../../../../lib/apiDistributer.js'
+import { getPurchaseManagementBatches } from '../../../../../lib/apiDistributer.js'
 
 const app = getApp()
+
+function today() {
+  const date = new Date()
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return year + '-' + month + '-' + day
+}
+
+function monthStart(stopDate) {
+  return (stopDate || today()).slice(0, 7) + '-01'
+}
 
 Page({
   data: {
     navBarHeight: 0,
     startDate: '', stopDate: '', page: 1, total: 0, items: [], loading: false, error: '',
-    filtersOpen: false, keyword: '', purchaserId: '', supplierRelationId: '',
-    purchaserIndex: 0, supplierIndex: 0,
-    purchaserOptions: [{ id: '', name: '全部采购员' }],
-    supplierOptions: [{ id: '', name: '全部供应商' }],
-    demandSource: '', procurementMode: '', fulfillmentMode: '',
-    receiptStatus: '', putawayStatus: '', returnStatus: '',
-    hasLoss: '', hasMarkdown: '', hasException: ''
+    keyword: '', purchasePurpose: '', supplierRelationId: '', supplierIndex: 0,
+    supplierOptions: [{ supplierRelationId: '', supplierName: '全部供应方' }],
+    sort: 'LATEST', sortIndex: 0,
+    sortOptions: [{ value: 'LATEST', name: '最近采购' }, { value: 'SUPPLY_AMOUNT', name: '供货金额' }],
+    scrollTop: 0, restoreScrollTop: 0
   },
+
   onLoad(options) {
+    const stopDate = options.stopDate || today()
     this.setData({
       navBarHeight: app.globalData.navBarHeight * app.globalData.rpxR,
-      startDate: options.startDate || '', stopDate: options.stopDate || ''
+      startDate: options.startDate || monthStart(stopDate),
+      stopDate
     })
-    this.loadOptions()
     this.load(true)
   },
+
+  onShow() {
+    if (this.data.restoreScrollTop) this.setData({ scrollTop: this.data.restoreScrollTop })
+  },
+
   toBack() { wx.navigateBack({ delta: 1 }) },
-  toggle() { this.setData({ filtersOpen: !this.data.filtersOpen }) },
   input(event) { this.setData({ keyword: event.detail.value }) },
-  choose(event) {
-    this.setData({ [event.currentTarget.dataset.key]: event.currentTarget.dataset.value || '' })
-    this.load(true)
-  },
-  resetFacts() {
-    this.setData({ hasLoss: '', hasMarkdown: '', hasException: '' })
-    this.load(true)
-  },
-  changePurchaser(event) {
-    const index = Number(event.detail.value)
-    this.setData({ purchaserIndex: index, purchaserId: this.data.purchaserOptions[index].id })
+  search() { this.load(true) },
+  retry() { this.load(true) },
+  recordScroll(event) { this.setData({ restoreScrollTop: event.detail.scrollTop }) },
+  changeStart(event) { this.setData({ startDate: event.detail.value }); this.load(true) },
+  changeStop(event) { this.setData({ stopDate: event.detail.value }); this.load(true) },
+  choosePurpose(event) {
+    this.setData({ purchasePurpose: event.currentTarget.dataset.value || '' })
     this.load(true)
   },
   changeSupplier(event) {
     const index = Number(event.detail.value)
-    this.setData({ supplierIndex: index, supplierRelationId: this.data.supplierOptions[index].id })
+    const option = this.data.supplierOptions[index] || this.data.supplierOptions[0]
+    this.setData({ supplierIndex: index, supplierRelationId: option.supplierRelationId || '' })
     this.load(true)
   },
-  loadOptions() {
-    const query = { startDate: this.data.startDate, stopDate: this.data.stopDate, page: 1, pageSize: 100 }
-    Promise.all([getPurchaseManagementPurchasers(query), getPurchaseManagementSuppliers(query)]).then(all => {
-      const purchaserBody = all[0].result || {}, supplierBody = all[1].result || {}
-      if (purchaserBody.code !== 0 || supplierBody.code !== 0) return
-      const purchasers = ((purchaserBody.data && purchaserBody.data.items) || []).map(item => ({
-        id: item.purchaserUserId, name: item.purchaserName || item.purchaserStatusText
-      }))
-      const suppliers = ((supplierBody.data && supplierBody.data.items) || []).map(item => ({
-        id: item.supplierRelationId, name: item.supplierName || item.relationStatusText
-      }))
-      this.setData({
-        purchaserOptions: [{ id: '', name: '全部采购员' }].concat(purchasers),
-        supplierOptions: [{ id: '', name: '全部供应商' }].concat(suppliers)
-      })
-    })
+  changeSort(event) {
+    const index = Number(event.detail.value)
+    const option = this.data.sortOptions[index] || this.data.sortOptions[0]
+    this.setData({ sortIndex: index, sort: option.value })
+    this.load(true)
   },
-  search() { this.load(true) },
   load(reset) {
-    if (this.data.loading) return
+    if (this.data.loading || !this.data.startDate || !this.data.stopDate) return
     const page = reset ? 1 : this.data.page
     const query = {
       startDate: this.data.startDate, stopDate: this.data.stopDate, page, pageSize: 20,
-      keyword: this.data.keyword, purchaserId: this.data.purchaserId,
-      supplierRelationId: this.data.supplierRelationId, demandSource: this.data.demandSource,
-      procurementMode: this.data.procurementMode, fulfillmentMode: this.data.fulfillmentMode,
-      receiptStatus: this.data.receiptStatus, putawayStatus: this.data.putawayStatus,
-      returnStatus: this.data.returnStatus
+      keyword: this.data.keyword, purchasePurpose: this.data.purchasePurpose,
+      supplierId: this.data.supplierRelationId, sort: this.data.sort
     }
-    if (this.data.hasLoss !== '') query.hasLoss = this.data.hasLoss === 'true'
-    if (this.data.hasMarkdown !== '') query.hasMarkdown = this.data.hasMarkdown === 'true'
-    if (this.data.hasException !== '') query.hasException = this.data.hasException === 'true'
     this.setData({ loading: true, error: '' })
     getPurchaseManagementBatches(query).then(res => {
       const body = res.result || {}
-      if (body.code !== 0) throw new Error(body.msg || '加载失败')
+      if (body.code !== 0) throw new Error(body.msg || '采购批次加载失败')
       const data = body.data || {}
+      const serverSuppliers = (data.supplierOptions || []).map(item => ({
+        supplierRelationId: item.supplierRelationId,
+        supplierName: item.supplierName || '名称待核对'
+      }))
+      const supplierOptions = [{ supplierRelationId: '', supplierName: '全部供应方' }].concat(serverSuppliers)
+      let supplierIndex = supplierOptions.findIndex(item => String(item.supplierRelationId || '') === String(this.data.supplierRelationId || ''))
+      if (supplierIndex < 0) supplierIndex = 0
       this.setData({
         items: reset ? (data.items || []) : this.data.items.concat(data.items || []),
-        page, total: data.total || 0
+        page, total: data.total || 0, supplierOptions, supplierIndex,
+        supplierRelationId: supplierOptions[supplierIndex].supplierRelationId || '',
+        startDate: data.startDate || this.data.startDate,
+        stopDate: data.stopDate || this.data.stopDate,
+        scrollTop: reset ? 0 : this.data.scrollTop,
+        restoreScrollTop: reset ? 0 : this.data.restoreScrollTop
       })
-    }).catch(error => this.setData({ error: error.message || '加载失败' }))
+    }).catch(error => this.setData({ error: error.message || '采购批次加载失败' }))
       .then(() => this.setData({ loading: false }))
   },
   more() {
-    if (this.data.items.length < this.data.total) {
+    if (!this.data.loading && this.data.items.length < this.data.total) {
       this.setData({ page: this.data.page + 1 })
       this.load(false)
     }
   },
   open(event) {
+    const batchId = event.currentTarget.dataset.id
     wx.navigateTo({
-      url: '/subPackage/pages/management/purchaseManagement/purchaseBatchDetail/purchaseBatchDetail?batchId=' + event.currentTarget.dataset.id
+      url: '/subPackage/pages/management/purchaseManagement/purchaseBatchDetail/purchaseBatchDetail?batchId=' + batchId +
+        '&startDate=' + encodeURIComponent(this.data.startDate) + '&stopDate=' + encodeURIComponent(this.data.stopDate)
     })
   }
 })
