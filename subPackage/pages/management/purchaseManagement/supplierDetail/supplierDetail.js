@@ -62,11 +62,14 @@ function aggregateAmountState(item) {
 
 function decorateDetail(detail, startDate, stopDate) {
   const amount = aggregateAmountState(detail)
+  const canManage = detail.supplierType === 'INTERNAL_DISTRIBUTER' ||
+    (detail.supplierType === 'EXTERNAL_JRDH' && detail.relationStatus === 'ACTIVE')
   return Object.assign({}, detail, amount, {
     supplierTypeText: TYPE_TEXT[detail.supplierType] || '供应方类型待核对',
     typeClass: detail.supplierType === 'INTERNAL_DISTRIBUTER' ? 'internal' : 'external',
     relationText: detail.relationStatus === 'ACTIVE' ? '' : (RELATION_TEXT[detail.relationStatus] || ''),
     periodText: periodText(startDate, stopDate),
+    canManage,
     manageText: detail.supplierType === 'INTERNAL_DISTRIBUTER'
       ? '进入协作伙伴'
       : '进入外部供应商'
@@ -275,6 +278,10 @@ Page({
     if (this.data.detail.supplierType === 'INTERNAL_DISTRIBUTER') {
       url = '/subPackage/pages/offerNx/offerNxDistributerList/offerNxDistributerList?disId=' + currentDisId
     } else if (this.data.detail.supplierType === 'EXTERNAL_JRDH') {
+      if (this.data.detail.relationStatus !== 'ACTIVE') {
+        wx.showToast({ title: '历史外部供应方不可进入业务管理', icon: 'none' })
+        return
+      }
       url = '/subPackage-supplier/pages/supplier/index/index?disId=' + currentDisId
     } else {
       wx.showToast({ title: '供应方类型未解析，无法进入管理', icon: 'none' })

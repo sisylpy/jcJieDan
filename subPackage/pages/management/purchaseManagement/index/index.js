@@ -1,14 +1,95 @@
 import { getPurchaseManagementOverview } from '../../../../../lib/apiDistributer.js'
-const app=getApp()
+import { formatPurchaseMoney, normalizePurchaseAmount } from '../purchaseAmountPresenter.js'
+
+const app = getApp()
+
 Page({
-  data:{navBarHeight:0,range:'TODAY',startDate:'',stopDate:'',loading:false,error:'',period:{},tasks:{},structures:{}},
-  onLoad(){this.setData({navBarHeight:app.globalData.navBarHeight*app.globalData.rpxR})},
-  onShow(){this.load()},
-  onPullDownRefresh(){this.load(true)},toBack(){wx.navigateBack({delta:1})},
-  chooseRange(e){const range=e.currentTarget.dataset.range;this.setData({range,startDate:'',stopDate:''});this.load()},
-  changeStart(e){this.setData({range:'CUSTOM',startDate:e.detail.value});this.tryCustom()},
-  changeStop(e){this.setData({range:'CUSTOM',stopDate:e.detail.value});this.tryCustom()},
-  tryCustom(){if(this.data.startDate&&this.data.stopDate)this.load()},
-  load(refresh){this.setData({loading:true,error:''});const q=this.data.range==='CUSTOM'?{startDate:this.data.startDate,stopDate:this.data.stopDate}:{range:this.data.range};getPurchaseManagementOverview(q).then(res=>{const body=res.result||{};if(body.code!==0)throw new Error(body.msg||'加载失败');const d=body.data||{};this.setData({period:d.period||{},tasks:d.currentTasks||{},structures:d.structures||{},startDate:d.startDate||'',stopDate:d.stopDate||''})}).catch(e=>this.setData({error:e.message||'加载失败'})).then(()=>{this.setData({loading:false});if(refresh)wx.stopPullDownRefresh()})},
-  open(e){wx.navigateTo({url:e.currentTarget.dataset.url+'?startDate='+this.data.startDate+'&stopDate='+this.data.stopDate})}
+  data: {
+    navBarHeight: 0,
+    range: 'TODAY',
+    startDate: '',
+    stopDate: '',
+    loading: false,
+    error: '',
+    period: {},
+    warehouseStockInAmountText: '—',
+    purchaseAmount: normalizePurchaseAmount({}),
+    tasks: {},
+    structures: {}
+  },
+
+  onLoad() {
+    this.setData({ navBarHeight: app.globalData.navBarHeight * app.globalData.rpxR })
+  },
+
+  onShow() { this.load() },
+  onPullDownRefresh() { this.load(true) },
+  toBack() { wx.navigateBack({ delta: 1 }) },
+
+  chooseRange(event) {
+    const range = event.currentTarget.dataset.range
+    this.setData({ range, startDate: '', stopDate: '' })
+    this.load()
+  },
+
+  changeStart(event) {
+    this.setData({ range: 'CUSTOM', startDate: event.detail.value })
+    this.tryCustom()
+  },
+
+  changeStop(event) {
+    this.setData({ range: 'CUSTOM', stopDate: event.detail.value })
+    this.tryCustom()
+  },
+
+  tryCustom() {
+    if (this.data.startDate && this.data.stopDate) this.load()
+  },
+
+  retry() { this.load() },
+
+  load(refresh) {
+    this.setData({ loading: true, error: '' })
+    const query = this.data.range === 'CUSTOM'
+      ? { startDate: this.data.startDate, stopDate: this.data.stopDate }
+      : { range: this.data.range }
+    getPurchaseManagementOverview(query).then(res => {
+      const body = res.result || {}
+      if (body.code !== 0) throw new Error(body.msg || '加载失败')
+      const data = body.data || {}
+      if (!data.purchaseAmount) throw new Error('本期采购金额数据未返回')
+      const purchaseAmount = normalizePurchaseAmount(data.purchaseAmount)
+      if (!purchaseAmount.contractValid) throw new Error('本期采购金额状态无法识别')
+      const period = data.period || {}
+      this.setData({
+        period,
+        warehouseStockInAmountText: formatPurchaseMoney(period.warehouseStockInAmount),
+        purchaseAmount,
+        tasks: data.currentTasks || {},
+        structures: data.structures || {},
+        startDate: data.startDate || '',
+        stopDate: data.stopDate || ''
+      })
+    }).catch(error => this.setData({ error: error.message || '加载失败' }))
+      .then(() => {
+        this.setData({ loading: false })
+        if (refresh) wx.stopPullDownRefresh()
+      })
+  },
+
+  openAmountRecords() {
+    wx.navigateTo({
+      url: '/subPackage/pages/management/purchaseManagement/purchaseAmountDetail/purchaseAmountDetail'
+        + '?startDate=' + encodeURIComponent(this.data.startDate)
+        + '&stopDate=' + encodeURIComponent(this.data.stopDate)
+    })
+  },
+
+  open(event) {
+    wx.navigateTo({
+      url: event.currentTarget.dataset.url
+        + '?startDate=' + encodeURIComponent(this.data.startDate)
+        + '&stopDate=' + encodeURIComponent(this.data.stopDate)
+    })
+  }
 })

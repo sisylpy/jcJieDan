@@ -1,0 +1,84 @@
+<view class="pm-page">
+  <back-navbar style="height:{{navBarHeight}}rpx" title="采购金额明细" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+  <scroll-view scroll-y class="amount-scroll" style="padding-top:{{navBarHeight}}rpx" scroll-top="{{scrollTop}}"
+    bindscroll="rememberScroll" bindscrolltolower="more">
+    <view class="amount-body">
+      <view class="date-bar">
+        <text class="calendar-icon">日</text>
+        <text class="date-picker">{{startDate}}</text>
+        <text class="date-separator">—</text>
+        <text class="date-picker">{{stopDate}}</text>
+      </view>
+
+      <view wx:if="{{loading}}" class="state-panel"><text class="state-title">正在加载采购明细…</text></view>
+      <view wx:elif="{{error}}" class="state-panel error-state">
+        <text class="state-title">采购明细加载失败</text><text class="state-copy">{{error}}</text>
+        <text class="state-button" bindtap="retry">重新加载</text>
+      </view>
+
+      <block wx:else>
+        <view class="summary-card">
+          <view class="summary-heading"><view><text class="summary-title">本期采购金额</text><text class="summary-period">{{startDate}} 至 {{stopDate}}</text></view><text class="summary-amount {{summary.hasRecognizedAmount?'':'muted'}}">{{summary.amountText}}</text></view>
+          <text class="summary-copy">{{summary.stateText}}</text>
+          <view wx:if="{{summary.hasAnyRecord}}" class="summary-groups">
+            <view class="summary-group" wx:for="{{summary.groups}}" wx:key="sourceType"><text>{{item.sourceText}}</text><text class="group-amount">{{item.recognizedAmountText}}</text><text class="group-count">{{item.includedRecordCount}}条</text></view>
+          </view>
+          <view wx:if="{{summary.unresolvedAmountCount}}" class="summary-note warn">另有{{summary.unresolvedAmountCount}}条采购记录金额尚未形成，未计入上述金额</view>
+          <view wx:if="{{summary.conflictRecordCount}}" class="summary-note conflict">另有{{summary.conflictRecordCount}}条记录来源信息冲突，未计入本期采购金额</view>
+          <view wx:if="{{summary.undatedRecordCount}}" class="summary-note separate">另有{{summary.undatedRecordCount}}条记录没有可靠业务日期，无法判断是否属于本期</view>
+          <view wx:if="{{summary.historicalDateFallbackCount}}" class="summary-note info">包含{{summary.historicalDateFallbackCount}}条按采购需求日期归期的历史采购，合计{{summary.historicalDateFallbackAmountText}}</view>
+          <view wx:if="{{summary.pendingDemandCount}}" class="summary-note plain">另有{{summary.pendingDemandCount}}条尚未完成采购的需求，不属于本期采购记录，也不计为金额待形成</view>
+          <text class="amount-definition">本期采购金额是采购方向明确、来源未取消且来源小计已形成的采购记录合计，不代表收货、入库、付款或净采购。</text>
+        </view>
+
+        <view class="filter-bar">
+          <picker mode="selector" range="{{sourceOptions}}" range-key="name" value="{{sourceIndex}}" bindchange="changeSource"><text class="filter-button">{{sourceOptions[sourceIndex].name}}⌄</text></picker>
+          <picker mode="selector" range="{{amountOptions}}" range-key="name" value="{{amountIndex}}" bindchange="changeAmountStatus"><text class="filter-button">{{amountOptions[amountIndex].name}}⌄</text></picker>
+        </view>
+
+        <view wx:if="{{historicalBillIssues.length&&!sourceType&&!amountStatus}}" class="historical-section">
+          <text class="section-title">历史账单来源待核对</text>
+          <view class="historical-card" wx:for="{{historicalBillIssues}}" wx:key="billId">
+            <view class="record-heading"><text class="record-name">历史账单 #{{item.billId}}</text><text class="record-date">{{item.businessDateText}}</text></view>
+            <view class="record-line"><text>{{item.supplierText}}</text><text class="record-amount">{{item.amountText}}</text></view>
+            <text class="issue-copy">{{item.explanation}}</text>
+          </view>
+        </view>
+
+        <view wx:if="{{!items.length}}" class="state-panel">
+          <text class="state-title">{{summary.hasAnyRecord?'当前筛选暂无采购记录':'本期暂无采购记录'}}</text>
+          <text wx:if="{{summary.historicalBillUnresolvedCount}}" class="state-copy">历史账单待核对不是已计入的采购记录。</text>
+        </view>
+
+        <view class="record-card" wx:for="{{items}}" wx:key="_key" wx:for-index="recordIndex">
+          <view class="record-heading"><view class="record-title-wrap"><text class="record-name">{{item.goodsDisplayName}}</text><text wx:if="{{item.specification}}" class="record-unit">{{item.specification}}</text></view><text class="record-date">{{item.businessDateText}}</text></view>
+          <view class="identity-row"><text class="source-badge source-{{item.sourceClass}}">{{item.sourceTypeText}}</text><text>{{item.supplierDisplayName}}</text><text class="purpose-text">{{item.purposeText}}</text></view>
+          <view wx:if="{{item.historicalDateFallback}}" class="date-basis">按采购需求日期归期</view>
+          <view class="quantity-grid">
+            <view><text class="field-label">订购数量</text><text class="field-value">{{item.orderedQuantityText}}</text></view>
+            <view><text class="field-label">{{item.sourceQuantityLabel}}</text><text class="field-value">{{item.sourceQuantityText}}</text></view>
+            <view><text class="field-label">单价</text><text class="field-value">{{item.unitPriceText}}</text></view>
+            <view><text class="field-label">来源小计</text><text class="field-value amount">{{item.sourceSubtotalText}}</text></view>
+          </view>
+          <view class="record-status"><text wx:if="{{item.businessStatusText}}">{{item.businessStatusText}}</text><text class="amount-status {{item.inclusionClass}}">{{item.inclusionText}}</text></view>
+          <text wx:if="{{item.issueText}}" class="issue-copy">{{item.issueText}}</text>
+          <view class="source-toggle" data-index="{{recordIndex}}" bindtap="toggleSource"><text>来源信息</text><text>{{item.sourceExpanded?'收起 ⌃':'展开 ⌄'}}</text></view>
+          <view wx:if="{{item.sourceExpanded}}" class="source-detail">
+            <view wx:if="{{item.mainOrderId}}" class="source-line"><text>主订单号</text><text>{{item.mainOrderId}}</text></view>
+            <view wx:if="{{item.collaborationOrderId}}" class="source-line"><text>协作订单号</text><text>{{item.collaborationOrderId}}</text></view>
+            <view wx:if="{{item.externalBatchId}}" class="source-line"><text>采购批次编号</text><text>{{item.externalBatchId}}</text></view>
+            <view wx:if="{{item.purchaseGoodsId}}" class="source-line"><text>商品记录编号</text><text>{{item.purchaseGoodsId}}</text></view>
+            <view wx:if="{{item.dateBasisText}}" class="source-line"><text>日期依据</text><text>{{item.dateBasisText}}</text></view>
+            <view wx:if="{{item.amountBasisText}}" class="source-line"><text>金额依据</text><text>{{item.amountBasisText}}</text></view>
+            <view wx:if="{{item.relatedCustomerOrderCount}}" class="source-line"><text>关联客户订单</text><text>{{item.relatedCustomerOrderCount}}张</text></view>
+          </view>
+          <view wx:if="{{item.actionType}}" class="record-action" data-index="{{recordIndex}}" bindtap="openRecord"><text>{{item.actionText}}</text><text>›</text></view>
+        </view>
+
+        <view wx:if="{{loadingMore}}" class="list-state">正在加载更多…</view>
+        <view wx:elif="{{loadMoreError}}" class="list-state error" bindtap="more">{{loadMoreError}}，点击重试</view>
+        <view wx:elif="{{items.length&&!hasMore}}" class="list-state">已显示全部采购记录</view>
+      </block>
+    </view>
+  </scroll-view>
+</view>

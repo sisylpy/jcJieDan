@@ -30,7 +30,7 @@
             <text>{{detail.goodsLineCount||0}}条商品记录</text><text>·</text>
             <text>最近采购 {{detail.lastPurchaseDate||'—'}}</text>
           </view>
-          <view class="manage-button" bindtap="manageSupplier">{{detail.manageText}}<text>›</text></view>
+          <view wx:if="{{detail.canManage}}" class="manage-button" bindtap="manageSupplier">{{detail.manageText}}<text>›</text></view>
         </view>
 
         <view class="detail-tabs">

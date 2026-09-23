@@ -6,6 +6,7 @@ const app = JSON.parse(read('app.json'))
 const pages = app.subPackages.find(item => item.root === 'subPackage/').pages
 const required = [
   'pages/management/purchaseManagement/index/index',
+  'pages/management/purchaseManagement/purchaseAmountDetail/purchaseAmountDetail',
   'pages/management/purchaseManagement/purchaserList/purchaserList',
   'pages/management/purchaseManagement/purchaserDetail/purchaserDetail',
   'pages/management/purchaseManagement/supplierList/supplierList',
@@ -18,6 +19,7 @@ required.forEach(page => assert.ok(pages.includes(page), `missing page registrat
 
 const api = read('lib/apiDistributer.js')
 assert.match(api, /purchaseManagementRequest\('overview'/)
+assert.match(api, /purchaseManagementRequest\('purchase-amount-records'/)
 assert.match(api, /purchaseManagementRequest\('purchasers'/)
 assert.match(api, /purchaseManagementRequest\('suppliers'/)
 assert.match(api, /purchaseManagementRequest\('batches'/)
@@ -32,7 +34,7 @@ assert.ok(!/lossRate\s*=|margin\s*=|actualNetPurchaseAmount\s*=/.test(allJs),
   'Boss pages must render server ViewModels instead of calculating business metrics')
 
 const managementIndexJs = read('subPackage/pages/management/purchaseManagement/index/index.js')
-assert.match(managementIndexJs, /onLoad\(\)\{this\.setData\([^\n]+\)\},\s*onShow\(\)\{this\.load\(\)\}/,
+assert.match(managementIndexJs, /onLoad\(\)\s*\{[\s\S]*?this\.setData\([\s\S]*?\)\s*\},\s*onShow\(\)\s*\{\s*this\.load\(\)\s*\}/,
   'overview must load from onShow so returning to the page refreshes its data')
 assert.doesNotMatch(managementIndexJs, /onLoad\(\)[^\n]*this\.load\(/,
   'overview must not also load from onLoad and issue two initial requests')
@@ -46,18 +48,17 @@ for (const markup of purchaserWxml) {
     'null currency values must render as a single placeholder instead of —null')
   assert.doesNotMatch(markup, /¥\{\{[^}]*Amount\}\}/,
     'nullable amount values must not render as ¥null')
+}
+for (const markup of [purchaserListWxml, purchaserDetailWxml]) {
   assert.match(markup, /dataCoverageRateText\|\|'—'/,
     'coverage must use the formatted value supplied by the server')
 }
-assert.match(overviewWxml, /wx:if="\{\{period\.totalBatchCount\|\|period\.directSelfBuyRecordCount\}\}"/,
-  'overview must treat batchless self-buy records as in-range purchase data')
-assert.match(overviewWxml, /直接采购 \{\{period\.directSelfBuyRecordCount\}\} 条（待采购 \{\{period\.directSelfBuyPendingCount\|\|0\}\} 条 · 已采购 \{\{period\.directSelfBuyPurchaseCount\|\|0\}\} 条 · 已入库 \{\{period\.directSelfBuyStockInCount\|\|0\}\} 条）/,
-  'overview must disclose batchless self-buy purchase and stock-in counts without changing batch counts')
-assert.match(overviewWxml, /wx:if="\{\{period\.totalBatchCount\}\}">有效批次/,
-  'batch coverage text must remain conditional on real purchase batches')
-assert.match(overviewWxml, /wx:else[^>]*>当前范围暂无采购记录/)
-assert.doesNotMatch(overviewWxml, /当前范围暂无采购批次/,
-  'batchless records must not fall into a misleading no-batch empty state')
+assert.match(overviewWxml, /本期采购金额/)
+assert.match(overviewWxml, /查看采购明细/)
+assert.match(overviewWxml, /按采购需求日期归期/)
+assert.match(overviewWxml, /历史账单/)
+assert.doesNotMatch(overviewWxml, /期间金额|实际收货|实际净采购/,
+  'overview must not keep the misleading period amount grid')
 assert.match(overviewWxml, /\{\{item\.batchCount\}\} 批次 · \{\{item\.goodsLineCount\}\} 商品行/,
   'procurement-mode structure must expose batchless goods lines as well as real batch counts')
 assert.match(overviewWxml, /当前实现毛利 \/ 率[\s\S]*?period\.currentRealizedMarginRateText\|\|'—'/,
