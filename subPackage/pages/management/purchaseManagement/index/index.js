@@ -1,5 +1,5 @@
 import { getPurchaseManagementOverview } from '../../../../../lib/apiDistributer.js'
-import { formatPurchaseMoney, normalizePurchaseAmount } from '../purchaseAmountPresenter.js'
+import { formatPurchaseMoney, normalizePurchaseAmount } from '../../../../../utils/purchaseAmountPresenter.js'
 
 const app = getApp()
 

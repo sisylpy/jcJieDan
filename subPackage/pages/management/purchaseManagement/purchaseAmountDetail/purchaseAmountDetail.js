@@ -3,7 +3,7 @@ import {
   formatPurchaseMoney,
   normalizePurchaseAmount,
   normalizePurchaseRecord
-} from '../purchaseAmountPresenter.js'
+} from '../../../../../utils/purchaseAmountPresenter.js'
 
 const app = getApp()
 

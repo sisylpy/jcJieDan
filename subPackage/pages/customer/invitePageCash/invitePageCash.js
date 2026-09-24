@@ -1,6 +1,6 @@
 
 var app = getApp()
-import QRCode from '../../../utils/qrcode/weapp.qrcode.esm'
+import QRCode from '../../../../utils/qrcode/weapp.qrcode.esm'
 
 Page({
 

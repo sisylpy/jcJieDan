@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import fs from 'node:fs'
 
 const read = path => fs.readFileSync(path, 'utf8')
-const presenterSource = read('subPackage/pages/management/purchaseManagement/purchaseAmountPresenter.js')
+const presenterSource = read('utils/purchaseAmountPresenter.js')
 const presenterUrl = 'data:text/javascript;base64,' + Buffer.from(presenterSource).toString('base64')
 const { formatPurchaseMoney, normalizePurchaseAmount, normalizePurchaseRecord } = await import(presenterUrl)
 
@@ -213,7 +213,7 @@ assert.match(detailWxml, /summary\.hasAnyRecord/)
 assert.match(detailWxml, /不代表收货、入库、付款或净采购/)
 assert.match(detailWxml, /item\.actionText/)
 
-const detailPresenter = read('subPackage/pages/management/purchaseManagement/purchaseAmountPresenter.js')
+const detailPresenter = read('utils/purchaseAmountPresenter.js')
 for (const legacyAlias of ['sourceSubtotal,', 'grossAmount', 'batchId,', 'supplierRefId', 'EXTERNAL_PURCHASE', 'DIRECT_SELF_BUY']) {
   assert.ok(!detailPresenter.includes(legacyAlias), 'new amount contract must not read legacy alias ' + legacyAlias)
 }
