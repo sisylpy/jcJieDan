@@ -68,7 +68,7 @@
                     class="left-item flex-column-center border-bottom {{selectedSubWx == leftIndex ? 'left-active' : ''}}"
                     wx:key="index" wx:for="{{depArr}}" wx:for-item="dep" bindtap="toScrollViewWx"
                     data-index="{{leftIndex}}" wx:for-index="leftIndex">
-                    <text class="font-sm text-center">{{dep.depOrderCode}}</text>
+                    <text class="font-sm text-center">{{dep.displayName}}</text>
                     <text class="font-sm">({{dep.orderCount}})</text>
                   </view>
                 </block>

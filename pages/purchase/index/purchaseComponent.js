@@ -227,6 +227,33 @@ module.exports = function purchaseComponent() {
     // 出库、外采共用同一切换方法；1 表示自采购商品。
     changeShwoType: prepareOutViewMode.createChangeShwoType(1),
 
+    _departmentDisplayName(department) {
+      var item = department || {};
+      var candidates = [
+        item.nxDepartmentOrderCode,
+        item.depOrderCode,
+        item.depName,
+        item.platformLabel
+      ];
+      for (var i = 0; i < candidates.length; i++) {
+        if (candidates[i] === null || candidates[i] === undefined) continue;
+        var value = String(candidates[i]).trim();
+        if (value && value.toLowerCase() !== 'null' && value.toLowerCase() !== 'undefined') {
+          return value;
+        }
+      }
+      return '未命名客户';
+    },
+
+    _normalizeDepartmentList(departments) {
+      var that = this;
+      return (Array.isArray(departments) ? departments : []).map(function (department) {
+        return Object.assign({}, department, {
+          displayName: that._departmentDisplayName(department)
+        });
+      });
+    },
+
     showCar() {
       this.setData({
         showOperationCar: true,
@@ -1316,8 +1343,9 @@ module.exports = function purchaseComponent() {
             console.log('按客户模式 - 部门列表:', res.result.data);
             if (res.result.code == 0) {
               load.hideLoading();
+              var departments = this._normalizeDepartmentList(res.result.data.arr);
               this.setData({
-                depArr: res.result.data.arr,
+                depArr: departments,
               })
              
               this._updateVisibleTabBar({
@@ -1326,8 +1354,8 @@ module.exports = function purchaseComponent() {
                 collCount: res.result.data.collCount,
               })
               // 如果有部门，默认选中第一个
-              if (res.result.data.arr.length > 0) {
-                return this._loadDepartmentGoods(res.result.data.arr[0].depId, 0);
+              if (departments.length > 0) {
+                return this._loadDepartmentGoods(departments[0].depId, 0);
               }
 
             } else {
@@ -2357,8 +2385,9 @@ module.exports = function purchaseComponent() {
         // 新参数
         var selectedDep = this.data.depArr.find(dep => dep.depId === this.data.selectedDepId);
         if (selectedDep) {
-          wx.setStorageSync('printCustomerName', selectedDep.nxDepartmentOrderCode || selectedDep.depOrderCode || '');
-          wx.setStorageSync('purchaseSelectedDepName', selectedDep.nxDepartmentOrderCode || selectedDep.depOrderCode || '');
+          var selectedDepName = selectedDep.displayName || this._departmentDisplayName(selectedDep);
+          wx.setStorageSync('printCustomerName', selectedDepName);
+          wx.setStorageSync('purchaseSelectedDepName', selectedDepName);
         }
         // 兼容旧参数
         wx.setStorageSync('purchaseViewMode', 'department');
