@@ -1,1 +1,42 @@
-@import "../common.wxss";.line{padding:16rpx 0;border-bottom:1rpx solid #eee}.actions{display:flex;gap:12rpx;margin-top:16rpx}.actions button{margin:0}.field{background:#f5f8f7;padding:20rpx;margin-bottom:12rpx}.editor{position:sticky;bottom:12rpx}
+@import "../common.wxss";
+
+.settlement-body{padding-bottom:160rpx}
+.section{background:#fff;border:1rpx solid #e1e9e6;margin-bottom:14rpx;padding:20rpx}
+.section-head,.row-title,.money-line,.selection-summary{display:flex;align-items:center;justify-content:space-between;gap:16rpx}
+.section-head .pm-section-title{margin-bottom:4rpx}
+.section-head>view text{display:block}
+.selected-count{font-size:23rpx;color:#147967}
+.source-row{display:flex;gap:14rpx;padding:20rpx 0;border-bottom:1rpx solid #e9efed}
+.source-row.selected{background:#f2faf7;margin:0 -12rpx;padding-left:12rpx;padding-right:12rpx;border-left:4rpx solid #178673}
+.check-mark{width:32rpx;color:#178673;font-size:28rpx;line-height:38rpx}
+.source-main{min-width:0;flex:1}
+.source-main text{display:block}
+.supplier-name{font-size:28rpx;font-weight:700;color:#21312e}
+.goods-name{font-size:25rpx;color:#344741;margin:8rpx 0 4rpx}
+.technical-id{font-size:20rpx;color:#98a39f;margin-top:3rpx}
+.amount,.batch-amount{color:#d35d2f;font-size:28rpx;font-weight:700;white-space:nowrap}
+.selection-summary{padding:16rpx 0 4rpx;font-size:24rpx;color:#334842}
+.create-button{margin-top:16rpx}
+.empty-line{text-align:center;color:#899590;font-size:24rpx;padding:32rpx 0}
+.batch-section{padding-bottom:4rpx}
+.batch-row{padding:22rpx 0;border-bottom:1rpx solid #e6ecea}
+.batch-row:last-of-type{border-bottom:0}
+.batch-row.voided{opacity:.56}
+.batch-no{display:block;color:#87938f;font-size:20rpx;margin:7rpx 0 12rpx;word-break:break-all}
+.status-line{display:flex;gap:8rpx;flex-wrap:wrap}
+.status-tag{font-size:20rpx;color:#49675f;background:#edf5f2;padding:5rpx 9rpx}
+.status-tag.done{background:#e8f6ef;color:#08765f}
+.status-tag.danger{background:#fff0ed;color:#b34134}
+.money-line{font-size:23rpx;color:#5e706b;margin-top:13rpx}
+.waiting-line{margin-top:14rpx;padding:12rpx;background:#fff8e9;color:#8a6115;font-size:22rpx;border-left:4rpx solid #dfaa3f}
+.actions{display:flex;gap:12rpx;margin-top:16rpx;flex-wrap:wrap}
+.actions button{margin:0;border-radius:4rpx}
+.actions .plain{background:#fff;color:#51645f;border:1rpx solid #cfdad6}
+.actions .pay-button{background:#178673;color:#fff}
+.actions .danger-button{color:#a14537;border-color:#ead4cf}
+.error-state text{display:block;margin-bottom:18rpx;color:#b34134}
+.pay-mask{position:fixed;left:0;right:0;top:0;bottom:0;background:rgba(0,0,0,.35);z-index:20}
+.pay-panel{position:fixed;left:20rpx;right:20rpx;bottom:calc(20rpx + env(safe-area-inset-bottom));z-index:21;background:#fff;border-top:6rpx solid #178673;padding:24rpx}
+.field{box-sizing:border-box;width:100%;background:#f5f8f7;border:1rpx solid #dce6e2;padding:20rpx;margin:18rpx 0 12rpx}
+.payment-method{display:block;font-size:24rpx;color:#334842;margin-bottom:10rpx}
+.pay-panel>.pm-button{margin-top:20rpx}
