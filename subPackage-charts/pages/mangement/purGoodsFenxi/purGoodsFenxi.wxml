@@ -1,183 +1,111 @@
+<wxs src="/utils/fn.wxs" module="tool" />
 
+<view class="page">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="采购分析" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+  <!-- back-navbar 内部为 fixed，显式占位避免日期筛选和概览卡片被导航栏覆盖 -->
+  <view class="navbar-spacer" style="height: {{navBarHeight}}rpx;"></view>
 
-
-<view class="flex flex-column">
-  <back-navbar style="height: {{navBarHeight}}rpx;" title="采购分析" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
-
- <!--  top -->
- <view class="date-bar bg-white border-bottom">
-   <image src="../../../../images/calender.png" class="date-icon"></image>
-   <picker mode="date" value="{{startDate}}" bindchange="onStartDateChange" class="date-picker">
-     <view class="date-value">{{startDate}}</view>
-   </picker>
-   <text class="date-sep">至</text>
-   <picker mode="date" value="{{stopDate}}" bindchange="onEndDateChange" class="date-picker">
-     <view class="date-value">{{stopDate}}</view>
-   </picker>
- </view>
-
-
-
-  <view class="flex-column p-20" wx:if="{{mapEveryDay !== null}}">
-
-    <view class="flex-column bg-white radius-10 border p-20 mt-30">
-      <view class="flex-column p-20" style="height: 400rpx;">
-        <view class="flex-row-between">
-          <view class="font-sm mb-20">自采购总额</view>
-          <view class="button-container-white" bind:tap="toPurchaser" hover-class="hover">
-          <image src="/images/points.png" mode="aspectFill" class="icon"/>
-          </view>
-        </view>
-       
-        <ec-canvas id="purUserChart" canvas-id="purUserChart" ec="{{ ecPurUser }}" style="width: 100%; height: 100%;"></ec-canvas>
+  <view class="date-toolbar">
+    <view class="date-selector" bindtap="toDatePageSearch" hover-class="date-selector-hover">
+      <view class="date-calendar"><image src="/images/calender.png"></image></view>
+      <view class="date-copy">
+        <view class="date-title">{{hanzi}}</view>
+        <view class="date-values" wx:if="{{startDate == stopDate}}"><text>{{tool.transferDateString(startDate)}}</text></view>
+        <view class="date-values" wx:else><text>{{tool.transferDateString(startDate)}}</text><text class="date-divider">-</text><text>{{tool.transferDateString(stopDate)}}</text></view>
       </view>
     </view>
-
-    <!-- 供货商采购总额图表 -->
-    <view class="flex-column bg-white radius-10 border p-20 mt-20 mb-30">
-      <view class="flex-column p-20" style="height: 400rpx;">
-        <view class="flex-row-between">
-          <view class="font-sm mb-20">供货商</view>
-          <view class="button-container-white" bind:tap="toSupplier" hover-class="hover">
-          <image src="/images/points.png" mode="aspectFill" class="icon"/>
-          </view>
-        </view>
-        <ec-canvas id="supplierChart" canvas-id="supplierChart" ec="{{ ecSupplier }}" style="width: 100%; height: 100%;"></ec-canvas>
-      </view>
-    </view>
-
-
-
-    <view class="analysis-section">
-      <view class="analysis-title-row">
-        <view><strong>单价波动商品</strong><text>优先关注进价变化较大的商品</text></view>
-        <text class="section-count">前 10</text>
-      </view>
-      <view class="analysis-goods-card" wx:for="{{topGoodsPrice}}" wx:key="nxDistributerGoodsId" wx:if="{{index < (showAllPriceGoods ? topGoodsPrice.length : 4)}}" data-id="{{item.nxDistributerGoodsId}}" bind:tap="toGoodsPage" data-goods="{{item}}" hover-class="analysis-card-hover">
-        <image src="{{item.goodsImageUrl}}" mode="aspectFill" class="analysis-goods-image"></image>
-        <view class="analysis-goods-main">
-          <strong>{{item.nxDgGoodsName}}</strong>
-          <text>{{item.goodsSpecificationText}}</text>
-          <view class="price-range">
-            <text>最低 ¥{{item.nxDgGoodsLowestPrice}}</text>
-            <text>最高 ¥{{item.nxDgGoodsHighestPrice}}</text>
-          </view>
-        </view>
-        <view class="analysis-metric warning"><strong>{{item.goodsPriceFluctuation}}%</strong><text>波动率</text><small>差价 ¥{{item.goodsPriceDiff}}</small></view>
-      </view>
-      <view class="expand-link" wx:if="{{topGoodsPrice.length > 4}}" bind:tap="togglePriceGoodsList">
-        <text>{{showAllPriceGoods ? '收起商品' : '展开更多商品（共' + topGoodsPrice.length + '个）'}}</text><image class="expand-btn {{showAllPriceGoods ? 'expanded' : ''}}" src="/images/arrow-down-3.png"></image>
-      </view>
-      <view class="expand-tip" wx:elif="{{topGoodsPrice.length > 0}}">共 {{topGoodsPrice.length}} 个商品，已全部展示</view>
-    </view>
-
-    <view class="analysis-section">
-      <view class="analysis-title-row">
-        <view><strong>采购次数排名</strong><text>一眼看清最常采购的商品</text></view>
-        <text class="section-count">前 10</text>
-      </view>
-      <view class="analysis-goods-card" wx:for="{{topTimesGoods}}" wx:key="nxDistributerGoodsId" wx:if="{{index < (showAllGoods ? topTimesGoods.length : 4)}}" data-id="{{item.nxDistributerGoodsId}}" bind:tap="toGoodsPage" data-goods="{{item}}" hover-class="analysis-card-hover">
-        <image src="{{item.goodsImageUrl}}" mode="aspectFill" class="analysis-goods-image"></image>
-        <view class="analysis-goods-main"><strong>{{item.nxDgGoodsName}}</strong><text>{{item.goodsSpecificationText}}</text><small>点击查看采购明细</small></view>
-        <view class="analysis-metric"><strong>{{item.nxDgQuantityDays}}</strong><text>次采购</text></view>
-      </view>
-      <view class="expand-link" wx:if="{{topTimesGoods.length > 4}}" bind:tap="toggleGoodsList">
-        <text>{{showAllGoods ? '收起商品' : '展开更多商品（共' + topTimesGoods.length + '个）'}}</text><image class="expand-btn {{showAllGoods ? 'expanded' : ''}}" src="/images/arrow-down-3.png"></image>
-      </view>
-      <view class="expand-tip" wx:elif="{{topTimesGoods.length > 0}}">共 {{topTimesGoods.length}} 个商品，已全部展示</view>
-    </view>
-
-    <view class="analysis-section">
-      <view class="analysis-title-row">
-        <view><strong>采购金额排名</strong><text>前 10 商品合计 ¥{{topSubtotalGoodsSubtotal}}，占总额 {{topSubtotalGoodsPercent}}%</text></view>
-        <text class="section-total">总额 ¥{{purTotal}}</text>
-      </view>
-      <view class="analysis-goods-card" wx:for="{{topSubtotalGoods}}" wx:key="nxDistributerGoodsId" wx:if="{{index < (showAllSubtotalGoods ? topSubtotalGoods.length : 4)}}" data-id="{{item.nxDistributerGoodsId}}" bind:tap="toGoodsPage" data-goods="{{item}}" hover-class="analysis-card-hover">
-        <image src="{{item.goodsImageUrl}}" mode="aspectFill" class="analysis-goods-image"></image>
-        <view class="analysis-goods-main"><strong>{{item.nxDgGoodsName}}</strong><text>{{item.goodsSpecificationText}}</text><small>点击查看采购明细</small></view>
-        <view class="analysis-metric amount"><strong>¥{{item.goodsPurTotalSubtotal}}</strong><text>采购金额</text></view>
-      </view>
-      <view class="expand-link" wx:if="{{topSubtotalGoods.length > 4}}" bind:tap="toggleSubtotalGoodsList">
-        <text>{{showAllSubtotalGoods ? '收起商品' : '展开更多商品（共' + topSubtotalGoods.length + '个）'}}</text><image class="expand-btn {{showAllSubtotalGoods ? 'expanded' : ''}}" src="/images/arrow-down-3.png"></image>
-      </view>
-      <view class="expand-tip" wx:elif="{{topSubtotalGoods.length > 0}}">共 {{topSubtotalGoods.length}} 个商品，已全部展示</view>
-    </view>
-
-
-
-
-
-     <view style="height: 100rpx;"></view>
-
   </view>
 
-
-  <view wx:else="" style="height: {{windowHeight - 360}}rpx;">
-
-    <view class="center-content flex-column" style="padding-top: 200rpx;">
-      <image class="empty_image" src="/images/cart-Empty.png"></image>
-      <text class="big">无数据</text>
+  <view wx:if="{{hasData}}" class="content">
+    <view class="overview-card">
+      <view class="overview-head">
+        <view><view class="overview-title">本期采购概况</view><view class="overview-subtitle">新鲜食材，助力美好餐桌</view></view>
+        <view class="purchase-times">一共采购 <text>{{purchaseCount}}</text> 次</view>
+      </view>
+      <view class="hero-heart">♥</view>
+      <image src="/subPackage-charts/images/purchase/keaibaicai.png" mode="aspectFit" class="cabbage"></image>
+      <view class="metric-grid">
+        <view class="metric-item"><view class="metric-icon icon-yellow"><image src="{{imageRoot}}money_bag.png"></image></view><view class="metric-body"><view class="metric-label">采购总金额</view><view class="metric-value">￥{{purTotalDisplay}}</view><view class="metric-note" wx:if="{{totalTrend}}">较上期 <text class="trend-{{totalTrend.direction}}">{{totalTrend.direction == 'up' ? '+' : '-'}}{{totalTrend.value}}%</text></view></view></view>
+        <view class="metric-item"><view class="metric-icon icon-blue"><image src="{{imageRoot}}cart_blue.png"></image></view><view class="metric-body"><view class="metric-label">自采金额</view><view class="metric-value">￥{{selfTotalDisplay}}</view><view class="metric-note">占比 {{selfPercent}}%</view></view></view>
+        <view class="metric-item"><view class="metric-icon icon-sky"><image src="{{imageRoot}}truck_blue.png"></image></view><view class="metric-body"><view class="metric-label">供货金额</view><view class="metric-value">￥{{supplierTotalDisplay}}</view><view class="metric-note">占比 {{supplierPercent}}%</view></view></view>
+        <view class="metric-item"><view class="metric-icon icon-green"><image src="{{imageRoot}}menu_green.png"></image></view><view class="metric-body"><view class="metric-label">采购次数</view><view class="metric-value">{{purchaseCount}} <text class="metric-unit">次</text></view><view class="metric-note" wx:if="{{countTrend}}">较上期 <text class="trend-{{countTrend.direction}}">{{countTrend.direction == 'up' ? '+' : '-'}}{{countTrend.value}}%</text></view></view></view>
+      </view>
     </view>
 
+    <view class="analysis-card core-card" bindtap="toInventoryBusinessAnalysis" hover-class="core-card-hover">
+      <view class="section-head core-head">
+        <view class="section-title"><view class="title-mark"></view>采购核心指标</view>
+        <view class="more">查看详情 <image src="{{imageRoot}}arrow_right.png"></image></view>
+      </view>
+      <view class="core-grid">
+        <view class="core-item core-loss">
+          <view class="core-icon"><image src="/images/warn.png"></image></view>
+          <view class="core-label">损耗率</view>
+          <view class="core-value">{{lossRateDisplay}}%</view>
+          <view class="core-note" wx:if="{{lossRateTrend}}">较上期 <text class="trend-{{lossRateTrend.direction}}">{{lossRateTrend.direction == 'up' ? '+' : '-'}}{{lossRateTrend.value}}%</text></view>
+          <view class="core-note" wx:else>暂无上期数据</view>
+        </view>
+        <view class="core-item core-waste">
+          <view class="core-icon"><image src="/images/delete.png"></image></view>
+          <view class="core-label">废弃率</view>
+          <view class="core-value">{{wasteRateDisplay}}%</view>
+          <view class="core-note" wx:if="{{wasteRateTrend}}">较上期 <text class="trend-{{wasteRateTrend.direction}}">{{wasteRateTrend.direction == 'up' ? '+' : '-'}}{{wasteRateTrend.value}}%</text></view>
+          <view class="core-note" wx:else>暂无上期数据</view>
+        </view>
+        <view class="core-item core-return">
+          <view class="core-icon"><image src="/images/zhuanhuan.svg"></image></view>
+          <view class="core-label">退货金额</view>
+          <view class="core-value">￥{{returnAmountDisplay}}</view>
+          <view class="core-note" wx:if="{{returnAmountTrend}}">较上期 <text class="trend-{{returnAmountTrend.direction}}">{{returnAmountTrend.direction == 'up' ? '+' : '-'}}{{returnAmountTrend.value}}%</text></view>
+          <view class="core-note" wx:else>暂无上期数据</view>
+        </view>
+        <view class="core-item core-meal">
+          <view class="core-icon"><image src="/images/qiandaizi.png"></image></view>
+          <view class="core-label">员工餐金额</view>
+          <view class="core-value">￥{{employeeMealAmountDisplay}}</view>
+          <view class="core-note" wx:if="{{employeeMealAmountTrend}}">较上期 <text class="trend-{{employeeMealAmountTrend.direction}}">{{employeeMealAmountTrend.direction == 'up' ? '+' : '-'}}{{employeeMealAmountTrend.value}}%</text></view>
+          <view class="core-note" wx:else>暂无上期数据</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="analysis-card">
+      <view class="section-head"><view class="section-title"><image src="{{imageRoot}}basket_green.png"></image>自采分析</view><view class="more" bindtap="toPurchaser">查看更多 <image src="{{imageRoot}}arrow_right.png"></image></view></view>
+      <view class="self-content">
+        <view class="donut-wrap"><ec-canvas id="selfDonutChart" canvas-id="self-donut-chart" ec="{{ecSelf}}" class="self-donut-chart"></ec-canvas><view class="donut-center"><text>{{selfPercent}}%</text><view>自采占比</view></view></view>
+        <view class="self-amounts"><view><view class="dot dot-green"></view><text>自采金额</text><text class="strong">￥{{selfTotalDisplay}}</text></view><view><view class="dot dot-gray"></view><text>供货金额</text><text class="strong">￥{{supplierTotalDisplay}}</text></view></view>
+        <view class="self-summary"><view><image src="{{imageRoot}}user.png"></image><view><text>主要采购人</text><text class="strong">{{mainPurchaser}}</text></view></view><view><image src="{{imageRoot}}leaf.png"></image><view><text>采购金额最高</text><text class="strong">{{mainGoodsName}}</text></view></view></view>
+      </view>
+    </view>
+
+    <view class="analysis-card">
+      <view class="section-head"><view class="section-title" bindtap="toSupplier"><image src="{{imageRoot}}truck_green.png"></image>供货商分析</view><view class="more" bindtap="toSupplier">查看更多 <image src="{{imageRoot}}arrow_right.png"></image></view></view>
+      <scroll-view class="supplier-scroll" scroll-x enhanced show-scrollbar="{{false}}" wx:if="{{supplierCards.length}}"><view class="supplier-list"><view class="supplier-item supplier-rank-{{item.rank}}" wx:for="{{supplierCards}}" wx:key="supplierName" bindtap="toSupplier"><view class="supplier-name"><text wx:if="{{item.rank == 1}}">★</text>{{item.supplierName || item.name || '未命名供货商'}}</view><view class="supplier-money">￥{{item.totalAmountDisplay}}</view><view class="supplier-meta">{{item.purchaseCountDisplay}} 次</view><view class="mini-ring">{{item.sharePercent}}%</view></view></view></scroll-view>
+      <view class="empty-inline" wx:else>暂无供货商采购数据</view>
+    </view>
+
+    <view class="two-column">
+      <view class="analysis-card half-card">
+        <view class="section-head compact-head"><view class="section-title"><image src="{{imageRoot}}trend_up.png"></image>单价波动</view><view class="more" bindtap="togglePriceGoodsList">{{showAllPriceGoods ? '收起' : '更多'}}</view></view>
+        <view class="compact-row" wx:for="{{topGoodsPrice}}" wx:key="nxDistributerGoodsId" wx:if="{{index < (showAllPriceGoods ? 10 : 3)}}" data-id="{{item.nxDistributerGoodsId}}" data-goods="{{item}}" bindtap="toGoodsPage"><image src="{{item.goodsImageUrl}}" mode="aspectFill"></image><view class="compact-main"><text>{{item.nxDgGoodsName}}</text><text class="small">￥{{item.nxDgGoodsLowestPrice}} - ￥{{item.nxDgGoodsHighestPrice}}</text></view><view class="fluctuation">{{item.fluctuationDisplay}}%</view></view>
+        <view class="empty-inline small-empty" wx:if="{{!topGoodsPrice.length}}">暂无波动数据</view>
+      </view>
+      <view class="analysis-card half-card">
+        <view class="section-head compact-head"><view class="section-title"><image src="{{imageRoot}}cart_green.png"></image>采购次数</view><view class="more" bindtap="toggleGoodsList">{{showAllGoods ? '收起' : '更多'}}</view></view>
+        <view class="times-row" wx:for="{{topTimesGoods}}" wx:key="nxDistributerGoodsId" wx:if="{{index < (showAllGoods ? 10 : 3)}}" data-id="{{item.nxDistributerGoodsId}}" data-goods="{{item}}" bindtap="toGoodsPage"><image src="{{item.goodsImageUrl}}" mode="aspectFill"></image><view class="times-main"><text>{{item.nxDgGoodsName}}</text><view class="bar-track"><view class="bar-fill" style="width: {{item.barWidth}}%;"></view></view></view><text class="strong">{{item.nxDgQuantityDays}}次</text></view>
+        <view class="empty-inline small-empty" wx:if="{{!topTimesGoods.length}}">暂无次数数据</view>
+      </view>
+    </view>
+
+    <view class="analysis-card">
+      <view class="section-head"><view class="section-title"><image src="{{imageRoot}}bar_chart.png"></image>采购金额</view><view class="more" bindtap="toggleSubtotalGoodsList">{{showAllSubtotalGoods ? '收起' : '查看更多'}} <image src="{{imageRoot}}arrow_right.png"></image></view></view>
+      <scroll-view class="amount-scroll" scroll-x enhanced show-scrollbar="{{false}}" wx:if="{{topSubtotalGoods.length}}"><view class="amount-list"><view class="amount-item" wx:for="{{topSubtotalGoods}}" wx:key="nxDistributerGoodsId" wx:if="{{index < (showAllSubtotalGoods ? 10 : 5)}}" data-id="{{item.nxDistributerGoodsId}}" data-goods="{{item}}" bindtap="toGoodsPage"><view class="amount-bar amount-color-{{index % 5}}" style="height: {{150 - index * 14}}rpx;"></view><image src="{{item.goodsImageUrl}}" mode="aspectFill"></image><text>{{item.nxDgGoodsName}}</text><text class="strong">￥{{item.subtotalDisplay}}</text></view></view></scroll-view>
+      <view class="empty-inline" wx:else>暂无采购金额数据</view>
+    </view>
+
+    <view class="reminder-card"><image src="{{imageRoot}}light_bulb.png"></image><view class="reminder-title">本期提醒</view><view class="reminder-text">{{reminderText}}</view></view>
+    <view class="bottom-space"></view>
   </view>
-  <!-- ./empty -->
 
-</view>
-
-
-
-<view class="overlay {{showStar ? 'show' : 'hide'}}" bind:tap="hideMask">
-
-  <view class="flex-column font-md popup p-20">
-    <view class="flex-row p-20">
-      <text>{{showGoods.nxDgGoodsName}}</text>
-      <text>(<block wx:if="{{showGoods.nxDgCartonUnit && showGoods.nxDgCartonUnit !== '' && showGoods.nxDgCartonUnit !== 'null' && showGoods.nxDgItemsPerCarton > 0}}">{{showGoods.nxDgCartonUnit}}</block><block wx:else>{{showGoods.nxDgGoodsStandardname}}</block>)</text>
-    </view>
-
-    <view class="flex-column p-30">
-      <view class="flex-row p-10" wx:if="{{showGoods.goodsData.starsCount.starsFive > 0}}">
-        <view class="flex-row-default" style="width: {{windowWidth / 6}}rpx; ">
-          <image wx:for="11111" src="/images/starGreen.png" mode="aspectFill" class="icon-sm" />
-        </view>
-
-        <text class="ml-20">{{showGoods.goodsData.starsCount.starsFive}}次</text>
-      </view>
-
-
-      <view class="flex-row  p-10" wx:if="{{showGoods.goodsData.starsCount.starsFour > 0}}">
-
-        <view class="flex-row-default" style="width: {{windowWidth / 6}}rpx; ">
-          <image wx:for="1111" src="/images/starGreen.png" mode="aspectFill" class="icon-sm" />
-          <image src="/images/starGray.png" mode="aspectFill" class="icon-sm" />
-        </view>
-        <text class="ml-20">{{showGoods.goodsData.starsCount.starsFour}}次</text>
-      </view>
-
-
-      <view class="flex-row  p-10" wx:if="{{showGoods.goodsData.starsCount.starsThree > 0}}">
-        <view class="flex-row-default" style="width: {{windowWidth / 6}}rpx; ">
-          <image wx:for="111" src="/images/starGreen.png" mode="aspectFill" class="icon-sm" />
-          <image wx:for="11" src="/images/starGray.png" mode="aspectFill" class="icon-sm" />
-        </view>
-        <text class="ml-20">{{showGoods.goodsData.starsCount.starsThree}}次</text>
-      </view>
-
-
-      <view class="flex-row  p-10" wx:if="{{showGoods.goodsData.starsCount.starsTwo > 0}}">
-        <view class="flex-row-default" style="width: {{windowWidth / 6}}rpx; ">
-          <image wx:for="11" src="/images/starGreen.png" mode="aspectFill" class="icon-sm" />
-          <image wx:for="111" src="/images/starGray.png" mode="aspectFill" class="icon-sm" />
-
-        </view>
-        <text class="ml-20">{{showGoods.goodsData.starsCount.starsTwo}}次</text>
-      </view>
-      <view class=" p-10 flex-row" wx:if="{{showGoods.goodsData.starsCount.starsOne > 0}}">
-        <image src="/images/starGreen.png" mode="aspectFill" class="icon-sm" />
-        <image wx:for="1111" src="/images/starGray.png" mode="aspectFill" class="icon-sm" />
-        <text class="ml-20">{{showGoods.goodsData.starsCount.starsOne}}次</text>
-      </view>
-
-    </view>
-
-  </view>
+  <view wx:elif="{{!loading}}" class="empty-state" style="min-height: {{windowHeight - 300}}rpx;"><image src="/subPackage-charts/images/purchase/keaibaicai.png" mode="aspectFit"></image><text>本期暂无采购数据</text><view bindtap="toDatePageSearch">切换日期查看</view></view>
 </view>

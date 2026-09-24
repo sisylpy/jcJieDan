@@ -187,6 +187,12 @@
       
       "pages/mangement/costGoodsFenxi/costGoodsFenxi",
       "pages/mangement/purGoodsFenxi/purGoodsFenxi",
+      "pages/mangement/inventoryBusinessAnalysis/inventoryBusinessAnalysis",
+      "pages/mangement/selfPurchaseAnalysis/selfPurchaseAnalysis",
+      "pages/mangement/supplierAnalysis/supplierAnalysis",
+      "pages/mangement/unitPriceAnalysis/unitPriceAnalysis",
+      "pages/mangement/purchaseCountAnalysis/purchaseCountAnalysis",
+      "pages/mangement/purchaseCategoryDetail/purchaseCategoryDetail",
       "pages/mangement/goodsFenxiCost/goodsFenxiCost",
       "pages/mangement/goodsFenxiPurchase/goodsFenxiPurchase",
 
