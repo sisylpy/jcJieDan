@@ -71,7 +71,8 @@ function decorateLine(item) {
     sourceLabel: [item.purchaseBatchNo, item.businessDate].filter(Boolean).join(' · '),
     quantityText: quantity === '—' ? quantity : quantity + (item.actualUom || ''),
     unitPriceText: price === '—' ? price : ('¥' + price + '/' + (item.actualUom || '单位')),
-    subtotalText: money(item.sourceSubtotal === undefined ? item.sourceAmount : item.sourceSubtotal)
+    subtotalText: money(item.sourceSubtotal === undefined ? item.sourceAmount : item.sourceSubtotal),
+    payableText: money(item.payableAmount)
   })
 }
 function decoratePayment(item) {
