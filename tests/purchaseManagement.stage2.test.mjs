@@ -30,7 +30,13 @@ for (const legacy of ['disGetPurchaseDetailType', 'getPurUserDate', 'disUserGetP
   assert.ok(!stage2.includes(legacy), `new management pages must not use ${legacy}`)
 }
 
-const allJs = required.map(page => read(`subPackage/${page}.js`)).join('\n')
+const purchaserListLogic = read('utils/purchaseManagementPurchaserListPage.js')
+const purchaserDetailLogic = read('utils/purchaseManagementPurchaserDetailPage.js')
+assert.match(read('subPackage/pages/management/purchaseManagement/purchaserList/purchaserList.js'),
+  /createPurchaserListPage/,
+  'subpackage keeps only the purchaser list entry while page logic lives in the main package')
+const allJs = required.map(page => read(`subPackage/${page}.js`)).join('\n') +
+  '\n' + purchaserListLogic + '\n' + purchaserDetailLogic
 assert.ok(!/lossRate\s*=|margin\s*=|actualNetPurchaseAmount\s*=/.test(allJs),
   'Boss pages must render server ViewModels instead of calculating business metrics')
 
@@ -110,7 +116,10 @@ assert.match(allJs, /pageSize:\s*20/)
 // Stage5 direct-purchase record contracts on the purchaser detail page.
 assert.match(api, /purchaseManagementRequest\('purchasers\/' \+ id \+ '\/direct-purchases'/,
   'detail page must read batchless direct purchases from their own endpoint, never as fake batches')
-const purchaserDetailJs = read('subPackage/pages/management/purchaseManagement/purchaserDetail/purchaserDetail.js')
+const purchaserDetailEntryJs = read('subPackage/pages/management/purchaseManagement/purchaserDetail/purchaserDetail.js')
+const purchaserDetailJs = purchaserDetailEntryJs + '\n' + purchaserDetailLogic
+assert.match(purchaserDetailEntryJs, /createPurchaserDetailPage/,
+  'subpackage keeps only the purchaser detail entry while page logic lives in the main package')
 assert.match(purchaserDetailJs, /getPurchaseManagementPurchaserTasks/,
   'detail page must load current tasks from their own date-independent endpoint')
 assert.match(purchaserDetailWxml, /自采记录（\{\{directTotal\}\}）/,
