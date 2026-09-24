@@ -176,7 +176,6 @@
       "pages/statistic/index/index",
       "pages/statistic/indexRetail/indexRetail",
       "pages/statistic/costGoodsByDate/costGoodsByDate",
-      "pages/statistic/indexGoods/indexGoods",
       "pages/statistic/purchaseDeatil/purchaseDeatil",
       "pages/statistic/purGoodsByDate/purGoodsByDate",
       "pages/statistic/stockPurGoods/stockPurGoods",

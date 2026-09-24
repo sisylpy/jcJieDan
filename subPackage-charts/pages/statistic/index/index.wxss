@@ -1,31 +1,152 @@
+.dashboard-page {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
 
+.dashboard-tabs {
+  display: flex;
+  padding: 0 32rpx;
+  border-bottom: 1rpx solid #eeeeee;
+}
 
-
-.dateGroupSmall{
-  width:100rpx;
-  height:110rpx;
-  border: 1px solid rgba(211, 211, 211, 0.7) ;
-  border-radius: 10rpx;
+.dashboard-tab {
+  position: relative;
+  flex: 1;
+  height: 88rpx;
+  color: #7a817f;
+  font-size: 30rpx;
+  line-height: 88rpx;
   text-align: center;
-  flex-grow: 0;
-
-
 }
 
-#week{
-  font-size: 26rpx;
-  color: red;
-  margin-top: 10rpx;
-  /* background: green; */
+.dashboard-tab.is-active {
+  color: #187e6e;
+  font-weight: 600;
 }
 
-#date{
-  font-size: 45rpx;
-  margin-top: -6rpx;
-
+.dashboard-tab.is-active::after {
+  position: absolute;
+  right: 34%;
+  bottom: 0;
+  left: 34%;
+  height: 6rpx;
+  border-radius: 6rpx;
+  background-color: #187e6e;
+  content: '';
 }
 
-/* 定义hover效果，覆盖内联样式 */
+.date-filter {
+  min-height: 104rpx;
+}
+
+.date-filter-action {
+  color: #187e6e;
+  font-size: 24rpx;
+}
+
+.daily-summary {
+  padding-bottom: 40rpx;
+}
+
+.daily-chart {
+  height: 400rpx;
+  margin-top: 20rpx;
+}
+
+.purchase-color {
+  color: #007aff;
+}
+
+.cost-color {
+  color: #05c0a7;
+}
+
+.daily-item {
+  background-color: #f5f5f5;
+}
+
+.daily-columns,
+.goods-columns {
+  gap: 20rpx;
+}
+
+.daily-column,
+.goods-column {
+  flex: 1;
+  min-width: 0;
+}
+
+.metric-card {
+  border-radius: 12rpx;
+  background-color: #ffffff;
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.1);
+}
+
+.metric-icon {
+  width: 32rpx;
+  height: 32rpx;
+  margin-right: 8rpx;
+}
+
+.goods-list {
+  min-height: 100vh;
+  padding: 20rpx;
+  background-color: #f5f5f5;
+}
+
+.goods-card {
+  margin-bottom: 20rpx;
+  padding: 30rpx;
+  border-radius: 16rpx;
+  background-color: #ffffff;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+}
+
+.goods-card-header {
+  align-items: center;
+  margin-bottom: 24rpx;
+}
+
+.donut-chart {
+  position: relative;
+  display: flex;
+  width: 60rpx;
+  height: 60rpx;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  margin-left: 20rpx;
+  border-radius: 50%;
+}
+
+.donut-percent {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  width: 60%;
+  height: 60%;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background-color: #ffffff;
+  color: #333333;
+  font-size: 18rpx;
+  font-weight: bold;
+}
+
+.goods-list-end {
+  height: 160rpx;
+  line-height: 160rpx;
+  text-align: center;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 200rpx;
+}
+
 .hover {
   background-color: #f0f0f0 !important;
 }

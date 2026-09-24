@@ -7,7 +7,8 @@ import * as echarts from '../../../ec-canvas/echarts';
 
 import {
 
-  disGetPurchaseDate
+  disGetPurchaseDate,
+  disGetPurchaseCata
 
 } from '../../../../lib/apiDepOrder'
 
@@ -17,6 +18,7 @@ Page({
    * 页面的初始数据
    */
   data: {
+    activeTab: 'date',
     ecDaily: {
       lazyLoad: false // 每日进货总额图表不使用延迟加载
     },
@@ -40,33 +42,20 @@ Page({
     purchasePerDay: 0,
     windowWidth: 0,
     windowHeight: 0,
+    outArr: [],
+    searchDepId: -1,
+    purUserId: -1,
+    supplierId: -1,
 
   },
 
   onShow() {
- 
-    if(this.data.update){
-      var myDate = wx.getStorageSync('myDate');
-      if (myDate) {
-        // 如果是自定义日期，传递具体的开始和结束日期
-        var dateRange;
-        if (myDate.name === 'custom' ) {
-          dateRange = dateUtils.getDateRange(myDate.name, myDate.startDate, myDate.stopDate);
-        } else {
-          dateRange = dateUtils.getDateRange(myDate.name);
-        }
-        this.setData({
-          startDate: dateRange.startDate,
-          stopDate: dateRange.stopDate,
-          dateType: myDate.dateType,
-          hanzi: myDate.hanzi || dateRange.name,
-          update: false
-        })
-      } 
-  
-      this._initListData();
+    if (this.data.update) {
+      this.setDateStateFromStorage();
+      this.setData({ update: false }, () => {
+        this.loadActiveTabData();
+      });
     }
- 
   },
 
 
@@ -75,42 +64,65 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad: function (options) {
+    var disInfo = wx.getStorageSync('disInfo');
+    var disId = options.disId || (disInfo && disInfo.nxDistributerId);
+
     this.setData({
       windowWidth: globalData.windowWidth * globalData.rpxR,
       windowHeight: globalData.windowHeight * globalData.rpxR,
       navBarHeight: globalData.navBarHeight * globalData.rpxR,
       url: apiUrl.server,
-      disId: options.disId
-    
-    })
+      disId: disId,
+      disInfo: disInfo || {},
+      activeTab: options.tab === 'goods' ? 'goods' : 'date'
+    });
 
+    this.setDateStateFromStorage();
+    this.loadActiveTabData();
+  },
+
+  setDateStateFromStorage() {
     var myDate = wx.getStorageSync('myDate');
-    if(myDate){
-      // 如果是自定义日期，传递具体的开始和结束日期
+    if (myDate) {
       var dateRange;
-      if (myDate.name === 'custom' ) {
+      if (myDate.name === 'custom') {
         dateRange = dateUtils.getDateRange(myDate.name, myDate.startDate, myDate.stopDate);
       } else {
         dateRange = dateUtils.getDateRange(myDate.name);
       }
-      
+
       this.setData({
         startDate: dateRange.startDate,
         stopDate: dateRange.stopDate,
         dateType: myDate.dateType,
-        hanzi: myDate.hanzi || dateRange.name,
-      })
-    }else{
-      this.setData({
-        dateType: 'month',
-        startDate: dateUtils.getFirstDateInMonth(),
-        stopDate: dateUtils.getArriveDate(0),
-        hanzi:  "本月",
-      })
+        hanzi: myDate.hanzi || dateRange.name
+      });
+      return;
     }
 
+    this.setData({
+      dateType: 'month',
+      startDate: dateUtils.getFirstDateInMonth(),
+      stopDate: dateUtils.getArriveDate(0),
+      hanzi: '本月'
+    });
+  },
 
-   
+  switchDashboardTab(e) {
+    var activeTab = e.currentTarget.dataset.tab;
+    if (activeTab === this.data.activeTab) {
+      return;
+    }
+    this.setData({ activeTab: activeTab }, () => {
+      this.loadActiveTabData();
+    });
+  },
+
+  loadActiveTabData() {
+    if (this.data.activeTab === 'goods') {
+      this._initCostCataData();
+      return;
+    }
     this._initListData();
   },
 
@@ -135,7 +147,7 @@ Page({
       
         // 字段映射：GB → NX
         console.log("统计接口返回的数据:", res.result.data);
-        console.log("第一条数据:", res.result.data.arr[0]);
+        console.log("第一条数据:", res.result.data.arr && res.result.data.arr[0]);
         
         this.setData({
           allTotal: res.result.data.allTotal,
@@ -149,17 +161,20 @@ Page({
           // GB字段（兼容）
           purchaseTotal: res.result.data.zicaiTotal,
           orderTotal: res.result.data.dinghuoTotal,
-          arr: res.result.data.arr,
+          arr: res.result.data.arr || [],
         }, () => {
           // setData 完成后再初始化图表，确保数据已更新
           console.log('setData 完成，开始初始化图表');
           console.log('当前 arr 数据:', this.data.arr);
           // 延迟一下确保 DOM 更新完成
-          setTimeout(() => {
-            this.init_combined_chart();
-          }, 100);
+          if (this.data.activeTab === 'date') {
+            setTimeout(() => {
+              this.init_combined_chart();
+            }, 100);
+          }
         });
       }else{
+        load.hideLoading();
         this.setData({
           arr: []
         })
@@ -172,6 +187,67 @@ Page({
     })
 
 
+  },
+
+  _initCostCataData() {
+    var data = {
+      startDate: this.data.startDate,
+      stopDate: this.data.stopDate,
+      disId: this.data.disId,
+      supplierId: this.data.supplierId,
+      purUserId: this.data.purUserId
+    };
+
+    load.showLoading("获取数据中");
+    disGetPurchaseCata(data).then(res => {
+      load.hideLoading();
+      if (res.result.code == 0) {
+        var arr = res.result.data.arr || [];
+        arr.forEach(item => {
+          var dailyData = item.dailyData || {};
+          var greatPercent = dailyData.greatPercent || 0;
+          var costPercent = dailyData.costPercent || 0;
+          item.conicGradient = `conic-gradient(#007aff ${greatPercent}%, #e0e0e0 ${greatPercent}%)`;
+          item.costConicGradient = `conic-gradient(#05c0a7 ${costPercent}%, #e0e0e0 ${costPercent}%)`;
+        });
+
+        this.setData({
+          outArr: arr,
+          purUserList: res.result.data.purUserList || [],
+          supplierList: res.result.data.supplierList || []
+        });
+        return;
+      }
+
+      this.setData({ outArr: [] });
+      if (res.result.msg) {
+        wx.showToast({
+          title: res.result.msg,
+          icon: 'none'
+        });
+      }
+    });
+  },
+
+  toPurGoodsByGreatId(e) {
+    var item = e.currentTarget.dataset.item;
+    wx.navigateTo({
+      url: '../purGoodsByDate/purGoodsByDate?id=' + e.currentTarget.dataset.id + '&disId=' +
+        this.data.disId + '&name=' + e.currentTarget.dataset.name + '&startDate=' + this.data.startDate +
+        '&stopDate=' + this.data.stopDate + '&hanzi=' + this.data.hanzi + '&dateType=' +
+        this.data.dateType + '&value=' + item.greatPurTotal + '&purTotal=' + item.purTotal
+    });
+  },
+
+  toCostGoodByGreatId(e) {
+    var item = e.currentTarget.dataset.item;
+    wx.navigateTo({
+      url: '../costGoodsByDate/costGoodsByDate?id=' + e.currentTarget.dataset.id + '&disId=' +
+        this.data.disId + '&type=sales&name=' + e.currentTarget.dataset.name + '&startDate=' +
+        this.data.startDate + '&stopDate=' + this.data.stopDate + '&hanzi=' + this.data.hanzi +
+        '&dateType=' + this.data.dateType + '&fenxiType=costEcharts&searchDepId=' +
+        this.data.searchDepId + '&allCostTotal=' + item.costAllTotal + '&value=' + item.costTotal
+    });
   },
 
   // 初始化合并图表（采购+成本）
