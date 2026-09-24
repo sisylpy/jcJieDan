@@ -69,7 +69,7 @@
           <view class="cost-card {{tab1Index == 2 ? 'cost-card-active' : ''}}" data-index='2' bindtap='onTab1Click' data-type="waste">
             <view class="cost-card-header mt-10">
               <view class="cost-icon waste-icon">
-                <image src="/images/delete.png" class="icon-image"></image>
+                <image src="/subPackage-charts/images/purchase/delete.png" class="icon-image"></image>
               </view>
               <view class="cost-title">退货成本</view>
             </view>
@@ -249,7 +249,7 @@
           <view class="cost-card {{tab1Index == 2 ? 'cost-card-active' : ''}}" data-index='2' bindtap='onTab1Click' data-type="waste">
             <view class="cost-card-header mt-10">
               <view class="cost-icon waste-icon">
-                <image src="/images/delete.png" class="icon-image"></image>
+                <image src="/subPackage-charts/images/purchase/delete.png" class="icon-image"></image>
               </view>
               <view class="cost-title">退货成本</view>
             </view>
@@ -431,7 +431,7 @@
           <view class="cost-card {{tab1Index == 2 ? 'cost-card-active' : ''}}" data-index='2' bindtap='onTab1Click' data-type="waste">
             <view class="cost-card-header mt-10">
               <view class="cost-icon waste-icon">
-                <image src="/images/delete.png" class="icon-image"></image>
+                <image src="/subPackage-charts/images/purchase/delete.png" class="icon-image"></image>
               </view>
               <view class="cost-title">退货成本</view>
             </view>

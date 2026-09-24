@@ -49,6 +49,10 @@
         "type": "folder"
       },
       {
+        "value": "tests",
+        "type": "folder"
+      },
+      {
         "value": "cankao",
         "type": "folder"
       },

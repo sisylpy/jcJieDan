@@ -116,7 +116,7 @@
             <image src="../../../../images/kucun.png" class="purchase-info-header-icon"></image>
             <text class="purchase-info-header-title">入库详细信息</text>
           </view>
-          <!-- <image src="/images/search.png" mode="aspectFill" class="icon p-10" /> -->
+          <!-- <image src="/subPackage-charts/images/purchase/search.png" mode="aspectFill" class="icon p-10" /> -->
         </view>
       </view>
 

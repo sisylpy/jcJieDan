@@ -25,7 +25,7 @@
         </view>
 
         <view class="search-box">
-          <image src="/images/search.png" mode="aspectFit" class="search-icon"></image>
+          <image src="/subPackage/images/search.png" mode="aspectFit" class="search-icon"></image>
           <input
             class="search-input"
             value="{{keyword}}"

@@ -184,7 +184,7 @@
       </view>
     </view>
     <!-- <view class="p-30  flex-row " catch:tap="toDeleteSupplier" hover-class="hover">
-      <image src="../../../../images/delete.png" class="icon mr-20"></image>
+      <image src="/subPackage/images/delete.png" class="icon mr-20"></image>
       <text class="font-md">删除供货商</text>
     </view> -->
 

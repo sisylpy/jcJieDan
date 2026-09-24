@@ -84,7 +84,7 @@
             <view class="flex-column daily-column">
               <view class="metric-card flex-column p-20" bindtap="toFenxiDate" data-index="{{index}}" hover-class="hover">
                 <view class="flex-row align-center mb-15">
-                  <image src="/images/qiandaizi.png" class="metric-icon"></image>
+                  <image src="/subPackage-charts/images/purchase/qiandaizi.png" class="metric-icon"></image>
                   <text class="font-sm font-bold">支出</text>
                 </view>
                 <view class="flex-column">
@@ -139,7 +139,7 @@
             <view class="metric-card flex-column p-20" bindtap="toCostGoodByGreatId" data-id="{{great.nxDistributerFatherGoodsId}}" data-name="{{great.nxDfgFatherGoodsName}}" data-item="{{great.dailyData}}" hover-class="hover">
               <view class="flex-row-between mb-10">
                 <view class="flex-row align-center mb-15">
-                  <image src="/images/qiandaizi.png" class="metric-icon"></image>
+                  <image src="/subPackage-charts/images/purchase/qiandaizi.png" class="metric-icon"></image>
                   <text class="font-sm font-bold">支出</text>
                 </view>
                 <view class="donut-chart" style="background: {{great.costConicGradient}};">

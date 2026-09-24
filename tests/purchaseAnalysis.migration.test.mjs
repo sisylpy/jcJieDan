@@ -53,4 +53,15 @@ for (const banner of [
   assert.ok(exists(`subPackage-charts/images/purchase/${banner}`), `${banner} must be local`)
 }
 
+for (const asset of ['delete.png', 'qiandaizi.png', 'search.png', 'warn.png', 'zhuanhuan.svg']) {
+  assert.ok(exists(`subPackage-charts/images/purchase/${asset}`), `${asset} must be in subPackage-charts`)
+  assert.equal(exists(`images/${asset}`), false, `${asset} must not increase the main package`)
+}
+
+const projectConfig = JSON.parse(read('project.config.json'))
+assert.ok(
+  projectConfig.packOptions.ignore.some(item => item.type === 'folder' && item.value === 'tests'),
+  'test sources must not be included in the upload package'
+)
+
 console.log('purchase analysis migration tests passed')

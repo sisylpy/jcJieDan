@@ -64,7 +64,7 @@
       <text class="font-md">订货商品</text>
     </view>
     <view class="p-30  flex-row " catch:tap="toDeleteSupplier" hover-class="hover">
-      <image src="../../../../images/delete.png" class="icon mr-20"></image>
+      <image src="/subPackage-supplier/images/delete.png" class="icon mr-20"></image>
       <text class="font-md">删除供货商</text>
     </view>
 

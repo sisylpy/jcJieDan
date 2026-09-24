@@ -271,7 +271,7 @@
                       <text class="info-header-title">入库信息</text>
                     </view>
                     <view class="flex-row">
-                      <image src="/images/search.png" mode="aspectFill" class="icon p-10" />
+                      <image src="/subPackage-charts/images/purchase/search.png" mode="aspectFill" class="icon p-10" />
                     </view>
                   </view>
 
@@ -343,7 +343,7 @@
                         <text class="info-header-title">采购信息</text>
                       </view>
                       <view class="flex-row">
-                        <image src="/images/search.png" mode="aspectFill" class="icon p-10" />
+                        <image src="/subPackage-charts/images/purchase/search.png" mode="aspectFill" class="icon p-10" />
                       </view>
                     </view>
                   </view>
@@ -395,7 +395,7 @@
                         <text class="info-header-title">采购信息</text>
                       </view>
                       <view class="flex-row">
-                        <image src="/images/search.png" mode="aspectFill" class="icon p-10" />
+                        <image src="/subPackage-charts/images/purchase/search.png" mode="aspectFill" class="icon p-10" />
                       </view>
                     </view>
 
