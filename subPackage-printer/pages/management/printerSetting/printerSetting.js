@@ -72,7 +72,7 @@ Page({
   // 去连接标签打印机
   goLabelPrinter: function () {
     wx.navigateTo({
-      url: '/subPackage/pages/management/labelPrinter/labelPrinter?from=printerSetting',
+      url: '/subPackage-printer/pages/management/labelPrinter/labelPrinter?from=printerSetting',
     });
   },
 

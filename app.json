@@ -94,10 +94,6 @@
       "pages/management/userNameEdit/userNameEdit",
       "pages/management/myBills/myBills",
   
-      "pages/management/printerSet/printerSet",
-      "pages/management/printerSetting/printerSetting",
-      "pages/management/labelPrinter/labelPrinter",
-
       "pages/management/staff/staff",
       "pages/management/staffCustomers/staffCustomers",
     
@@ -164,6 +160,14 @@
     "pages": [
       "pages/routeDispatch/manualDispatchDrivers/manualDispatchDrivers",
       "pages/routeDispatch/driverRouteEdit/driverRouteEdit"
+    ]
+    }, {
+    "root": "subPackage-printer/",
+    "name": "printer",
+    "pages": [
+      "pages/management/printerSet/printerSet",
+      "pages/management/printerSetting/printerSetting",
+      "pages/management/labelPrinter/labelPrinter"
     ]
     }, {
     "root": "subPackage-charts/",

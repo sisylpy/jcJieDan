@@ -363,14 +363,14 @@ Component({
     // 跳转到统一打印机设置页面（标签打印机和尺寸已迁移到该页面）
     setPrint() {
       wx.navigateTo({
-        url: '/subPackage/pages/management/printerSetting/printerSetting',
+        url: '/subPackage-printer/pages/management/printerSetting/printerSetting',
       });
     },
     
     // 设置标签尺寸已迁移到打印机设置页面
     setPaperSize() {
       wx.navigateTo({
-        url: '/subPackage/pages/management/printerSetting/printerSetting',
+        url: '/subPackage-printer/pages/management/printerSetting/printerSetting',
       });
     },
 
@@ -2840,7 +2840,7 @@ Component({
         success: (res) => {
           if (res.confirm) {
             wx.navigateTo({
-              url: '/subPackage/pages/management/printerSetting/printerSetting',
+              url: '/subPackage-printer/pages/management/printerSetting/printerSetting',
             });
           }
         }
@@ -3022,7 +3022,7 @@ Component({
           success: function(res) {
             if (res.confirm) {
               wx.navigateTo({
-                url: '/subPackage/pages/management/printerSetting/printerSetting',
+                url: '/subPackage-printer/pages/management/printerSetting/printerSetting',
               });
             }
           }
@@ -3071,7 +3071,7 @@ Component({
                     success: function(res) {
                       if (res.confirm) {
                         wx.navigateTo({
-                          url: '/subPackage/pages/management/printerSetting/printerSetting',
+                          url: '/subPackage-printer/pages/management/printerSetting/printerSetting',
                         });
                       }
                     }

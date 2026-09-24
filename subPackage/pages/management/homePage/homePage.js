@@ -453,7 +453,7 @@ Page({
 
   toPrinterSetting() {
     wx.navigateTo({
-      url: '/subPackage/pages/management/printerSetting/printerSetting',
+      url: '/subPackage-printer/pages/management/printerSetting/printerSetting',
     })
   },
 
