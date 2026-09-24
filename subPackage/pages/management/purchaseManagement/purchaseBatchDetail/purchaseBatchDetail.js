@@ -35,10 +35,24 @@ Page({
   },
   openBuyerConfirmation() {
     const detail = this.data.detail || {}
-    if (!detail.buyerConfirmationRequired || !detail.batchId) return
+    if (!detail.buyerConfirmationRequired || detail.purchasePurpose !== 'CUSTOMER_ORDER' || !detail.batchId) return
     const path = '/pkgPurchase/pages/txs/disOrderBatch/disOrderBatch?batchId=' + encodeURIComponent(detail.batchId) +
       '&disId=' + encodeURIComponent(detail.distributerId || '') +
       '&purUserId=' + encodeURIComponent(detail.purchaserUserId || '') + '&fromBuyer=1&fromBoss=1'
+    wx.navigateToMiniProgram({
+      appId: PURCHASE_APP_ID,
+      path,
+      envVersion: 'trial',
+      fail() { wx.showToast({ title: '暂时无法打开精彩订货', icon: 'none' }) }
+    })
+  },
+  openInventoryReceipt() {
+    const detail = this.data.detail || {}
+    if (!detail.inventoryReceiptRequired || detail.purchasePurpose !== 'INVENTORY_REPLENISHMENT' || !detail.batchId) return
+    const path = '/pkgPurchase/pages/txs/disOrderBatch/disOrderBatch?batchId=' + encodeURIComponent(detail.batchId) +
+      '&disId=' + encodeURIComponent(detail.distributerId || '') +
+      '&purUserId=' + encodeURIComponent(detail.purchaserUserId || '') +
+      '&demandScope=SHELF_REPLENISHMENT&fromBuyer=1&fromBoss=1'
     wx.navigateToMiniProgram({
       appId: PURCHASE_APP_ID,
       path,

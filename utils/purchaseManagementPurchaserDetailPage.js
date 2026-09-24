@@ -187,6 +187,12 @@ export function createPurchaserDetailPage() {
         '&disId=' + encodeURIComponent(task.distributerId) +
         '&purUserId=' + encodeURIComponent(task.purchaserUserId) +
         '&buyerUserId=' + encodeURIComponent(task.buyerJrdhUserId) + '&fromBuyer=1&fromBoss=1'
+    } else if (task.actionCode === 'OPEN_JRDH_INVENTORY_RECEIPT') {
+      path = '/pkgPurchase/pages/txs/disOrderBatch/disOrderBatch?batchId=' + encodeURIComponent(task.batchId) +
+        '&disId=' + encodeURIComponent(task.distributerId) +
+        '&purUserId=' + encodeURIComponent(task.purchaserUserId) +
+        '&buyerUserId=' + encodeURIComponent(task.buyerJrdhUserId) +
+        '&demandScope=SHELF_REPLENISHMENT&fromBuyer=1&fromBoss=1'
     }
     if (!path) return this.openBatchById(task.batchId)
     this._returningFromBusiness = true

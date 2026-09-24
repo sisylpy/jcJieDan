@@ -12,8 +12,10 @@
         <view wx:if="{{detail.supplyAmountStatus==='PARTIAL'}}" class="notice">部分商品金额待核对，以上仅合计已识别金额</view>
         <view wx:if="{{detail.purchasePurpose==='UNRESOLVED'}}" class="notice">采购用途来源不完整，以下仅展示当前能够核实的业务记录</view>
         <view class="progress-row"><text>当前进度</text><text class="progress-value">{{detail.businessProgressText}}</text></view>
-        <text wx:if="{{detail.buyerConfirmationRequired}}" class="role-note">{{detail.buyerConfirmationRoleText}}</text>
-        <text wx:if="{{detail.buyerConfirmationRequired}}" class="confirm-button" bindtap="openBuyerConfirmation">前往精彩订货确认供货信息</text>
+        <text wx:if="{{detail.buyerConfirmationRequired&&detail.purchasePurpose==='CUSTOMER_ORDER'}}" class="role-note">{{detail.buyerConfirmationRoleText}}</text>
+        <text wx:if="{{detail.buyerConfirmationRequired&&detail.purchasePurpose==='CUSTOMER_ORDER'}}" class="confirm-button" bindtap="openBuyerConfirmation">前往精彩订货确认供货信息</text>
+        <text wx:if="{{detail.inventoryReceiptRequired&&detail.purchasePurpose==='INVENTORY_REPLENISHMENT'}}" class="role-note">{{detail.inventoryReceiptRoleText}}</text>
+        <text wx:if="{{detail.inventoryReceiptRequired&&detail.purchasePurpose==='INVENTORY_REPLENISHMENT'}}" class="confirm-button" bindtap="openInventoryReceipt">前往精彩订货库存备货接收</text>
       </view>
 
       <view wx:if="{{detail.purchasePurpose==='CUSTOMER_ORDER'}}" class="context-card"><text class="context-title">为客户订单采购</text><text class="context-text" wx:if="{{detail.customerCount}}">关联{{detail.customerCount}}个客户：{{detail.customerNamesText}}</text><text class="context-text" wx:else>尚未取得可核对的客户订单关联</text></view>
