@@ -562,12 +562,6 @@ Page({
 
 
 
-toPurchaseGoods(){
-  wx.navigateTo({
-    url: '/subPackage-charts/pages/statistic/index/index?tab=goods&disId=' + this.data.disId,
-  })
-},
-
 toMyPurchase(){
   wx.navigateTo({
     url: '/subPackage-charts/pages/statistic/index/index?disId=' + this.data.disId,
