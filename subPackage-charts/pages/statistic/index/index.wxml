@@ -3,13 +3,8 @@
 <view class="dashboard-page flex flex-column">
   <back-navbar style="height: {{navBarHeight}}rpx;" title="经营看板" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
-  <view class="dashboard-tabs bg-white">
-    <view class="dashboard-tab {{activeTab == 'date' ? 'is-active' : ''}}" data-tab="date" bindtap="switchDashboardTab">日期</view>
-    <view class="dashboard-tab {{activeTab == 'goods' ? 'is-active' : ''}}" data-tab="goods" bindtap="switchDashboardTab">商品</view>
-  </view>
-
-  <view class="date-filter flex-row-between pl-20 pr-20 border-bottom bg-white" bindtap="toDatePage">
-    <view class="flex-row">
+  <view class="date-filter flex-row-between pl-20 pr-20 border-bottom bg-white">
+    <view class="date-filter-main flex-row" bindtap="toDatePage">
       <view class="p-20">
         <image src="/images/calender.png" class="icon"></image>
       </view>
@@ -25,7 +20,10 @@
         </view>
       </view>
     </view>
-    <text class="date-filter-action">选择日期</text>
+    <view class="dashboard-tabs">
+      <view class="dashboard-tab {{activeTab == 'date' ? 'is-active' : ''}}" data-tab="date" catchtap="switchDashboardTab">日期</view>
+      <view class="dashboard-tab {{activeTab == 'goods' ? 'is-active' : ''}}" data-tab="goods" catchtap="switchDashboardTab">商品</view>
+    </view>
   </view>
 
   <view wx:if="{{activeTab == 'date'}}" class="flex-column">

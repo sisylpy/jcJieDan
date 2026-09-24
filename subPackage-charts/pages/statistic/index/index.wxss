@@ -5,43 +5,36 @@
 
 .dashboard-tabs {
   display: flex;
-  padding: 0 32rpx;
-  border-bottom: 1rpx solid #eeeeee;
+  flex-shrink: 0;
+  padding: 6rpx;
+  border: 1rpx solid #d8e8e4;
+  border-radius: 12rpx;
+  background-color: #f3f8f7;
 }
 
 .dashboard-tab {
-  position: relative;
-  flex: 1;
-  height: 88rpx;
+  width: 72rpx;
+  height: 56rpx;
+  border-radius: 8rpx;
   color: #7a817f;
-  font-size: 30rpx;
-  line-height: 88rpx;
+  font-size: 26rpx;
+  line-height: 56rpx;
   text-align: center;
 }
 
 .dashboard-tab.is-active {
-  color: #187e6e;
+  background-color: #187e6e;
+  color: #ffffff;
   font-weight: 600;
 }
 
-.dashboard-tab.is-active::after {
-  position: absolute;
-  right: 34%;
-  bottom: 0;
-  left: 34%;
-  height: 6rpx;
-  border-radius: 6rpx;
-  background-color: #187e6e;
-  content: '';
-}
-
 .date-filter {
-  min-height: 104rpx;
+  min-height: 120rpx;
 }
 
-.date-filter-action {
-  color: #187e6e;
-  font-size: 24rpx;
+.date-filter-main {
+  min-width: 0;
+  flex: 1;
 }
 
 .daily-summary {
