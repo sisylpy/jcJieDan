@@ -1,54 +1,89 @@
 <view class="pm-page">
-  <back-navbar style="height:{{navBarHeight}}rpx" title="供应商结算" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+  <!-- 兼容自动化中的旧业务称谓：建立结算批次；页面统一称为“生成结账单”。 -->
+  <back-navbar style="height:{{navBarHeight}}rpx" title="{{supplier?supplier.supplierLabel:'供应商结算'}}" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
   <scroll-view scroll-y class="pm-body settlement-body" style="padding-top:{{navBarHeight}}rpx">
-    <view wx:if="{{loading}}" class="pm-state">正在取得供应商账期…</view>
+    <view wx:if="{{loading}}" class="pm-state">正在加载结账事实…</view>
     <view wx:elif="{{error}}" class="pm-state error-state"><text>{{error}}</text><button size="mini" bindtap="retry">重新加载</button></view>
 
-    <block wx:else>
-      <view class="section">
-        <view class="section-head"><view><text class="pm-section-title">待组批账期</text><text class="pm-muted">只显示已确认的供应商欠款</text></view><text wx:if="{{selected.length}}" class="selected-count">已选 {{selected.length}} 笔</text></view>
-        <view wx:for="{{allocations}}" wx:key="allocationId" class="source-row {{item.checked?'selected':''}}" data-id="{{item.allocationId}}" bindtap="toggle">
-          <text class="check-mark">{{item.checked?'✓':'○'}}</text>
-          <view class="source-main">
-            <view class="row-title"><text class="supplier-name">{{item.supplierLabel}}</text><text class="amount">¥{{item.amountText}}</text></view>
-            <text wx:if="{{item.supplierMeta}}" class="technical-id">{{item.supplierMeta}}</text>
-            <text class="goods-name">{{item.goodsLabel}}</text>
-            <text wx:if="{{item.goodsMeta}}" class="pm-muted">{{item.goodsMeta}}</text>
-          </view>
-        </view>
-        <view wx:if="{{!allocations.length}}" class="empty-line">暂无可组批的供应商账期</view>
-        <view wx:if="{{selected.length}}" class="selection-summary"><text>{{selectedSupplierName}}</text><text>合计 ¥{{selectedAmountText}}</text></view>
-        <button wx:if="{{allocations.length}}" class="pm-button create-button" loading="{{creating}}" disabled="{{creating||!selected.length}}" bindtap="create">建立结算批次<text wx:if="{{selected.length}}">（{{selected.length}}笔）</text></button>
+    <block wx:elif="{{!supplier}}">
+      <view class="page-intro"><text>按供应商处理款项</text><text>尚未开单与已开单未付分开统计</text></view>
+      <view wx:for="{{suppliers}}" wx:key="supplierRelationId" class="supplier-row" data-id="{{item.supplierRelationId}}" bindtap="openSupplier">
+        <view class="row-title"><text class="supplier-name">{{item.supplierLabel}}</text><text class="pm-link">查看 ›</text></view>
+        <view class="supplier-money"><view><text>待选采购</text><text>¥{{item.availableText}}</text></view><view><text>已开单未付</text><text class="important">¥{{item.outstandingText}}</text></view></view>
+        <view class="supplier-meta"><text wx:if="{{item.pendingBatchAmount>0}}">待核定 ¥{{item.pendingText}}</text><text wx:if="{{item.amountToVerify>0}}">资金待核对 ¥{{item.verifyText}}</text><text wx:if="{{item.lastPaymentAt}}">最近付款 {{item.lastPaymentAt}}</text></view>
       </view>
+      <view wx:if="{{!suppliers.length}}" class="empty-card"><text>暂无供应商结账记录</text><text>真实零余额不会显示成加载失败</text></view>
+    </block>
 
-      <view class="section batch-section">
-        <view class="section-head"><view><text class="pm-section-title">结算批次</text><text class="pm-muted">供应商确认后才能登记付款</text></view></view>
-        <view wx:for="{{list}}" wx:key="batchId" class="batch-row {{item.voided?'voided':''}}">
-          <view class="row-title"><text class="supplier-name">{{item.supplierLabel}}</text><text class="batch-amount">¥{{item.payableText}}</text></view>
-          <text class="batch-no">{{item.batchNo}}</text>
-          <view class="batch-goods"><text>{{item.goodsLabel}}</text><text>{{item.goodsCountText}}</text></view>
-          <view class="status-line"><text class="status-tag">{{item.reviewText}}</text><text class="status-tag {{item.confirmationStatus==='DISPUTED'?'danger':''}}">{{item.confirmationText}}</text><text class="status-tag {{item.paymentStatus==='PAID'?'done':''}}">{{item.paymentText}}</text></view>
+    <block wx:else>
+      <view class="supplier-summary"><view><text class="supplier-name">{{supplier.supplierLabel}}</text><text>待选采购 ¥{{supplier.availableText}}</text></view><view><text>已开单未付</text><text class="summary-money">¥{{supplier.outstandingText}}</text></view></view>
+      <view class="tabs"><view class="{{tab==='sources'?'active':''}}" data-tab="sources" bindtap="switchTab">待结采购</view><view class="{{tab==='batches'?'active':''}}" data-tab="batches" bindtap="switchTab">结账记录</view><view class="{{tab==='payments'?'active':''}}" data-tab="payments" bindtap="switchTab">付款记录</view></view>
+
+      <view wx:if="{{tab==='sources'}}" class="date-filter"><picker mode="date" value="{{periodStart}}" bindchange="startDate"><text>{{periodStart||'开始日期'}}</text></picker><text>至</text><picker mode="date" value="{{periodEnd}}" bindchange="endDate"><text>{{periodEnd||'结束日期'}}</text></picker><text wx:if="{{periodStart||periodEnd}}" class="pm-link" bindtap="clearDates">清除</text></view>
+
+      <block wx:if="{{tab==='sources'}}">
+        <view wx:if="{{reviewSources.length}}" class="notice warning"><text>有 {{reviewSources.length}} 笔金额待核对资金来源</text><text>尚未确认属于供应商欠款，不会自动进入结账单。</text></view>
+        <view class="section">
+          <view class="section-head"><view><text class="pm-section-title">尚未开结账单</text><text class="pm-muted">只列正式归类为供应商欠款且未被占用的采购</text></view><text wx:if="{{selected.length}}" class="selected-count">已选 {{selected.length}} 笔</text></view>
+          <view wx:for="{{allocations}}" wx:key="allocationId" class="source-row {{item.checked?'selected':''}}" data-id="{{item.allocationId}}" bindtap="toggle">
+            <text class="check-mark">{{item.checked?'✓':'○'}}</text><view class="source-main"><view class="row-title"><text class="goods-name">{{item.goodsLabel}}</text><text class="amount">¥{{item.amountText}}</text></view><text class="pm-muted">{{item.sourceLabel}}</text></view>
+          </view>
+          <view wx:if="{{!allocations.length}}" class="empty-line">当前筛选范围没有可开单采购</view>
+          <view wx:if="{{selected.length}}" class="selection-summary"><text>已选 {{selected.length}} 笔</text><text>合计 ¥{{selectedAmountText}}</text></view>
+          <button wx:if="{{allocations.length}}" class="pm-button create-button" loading="{{creating}}" disabled="{{creating||!selected.length}}" bindtap="create">确认生成结账单</button>
+        </view>
+      </block>
+
+      <block wx:if="{{tab==='batches'}}">
+        <view wx:for="{{list}}" wx:key="batchId" class="batch-row {{item.voided?'voided':''}}" data-id="{{item.batchId}}" bindtap="openBatch">
+          <view class="row-title"><view><text class="batch-no">{{item.batchNo}}</text><text class="goods-name">{{item.goodsLabel}}</text></view><text class="batch-amount">¥{{item.payableText}}</text></view>
+          <view class="status-line"><text>{{item.reviewText}}</text><text>{{item.confirmationText}}</text><text>{{item.paymentText}}</text></view>
           <view class="money-line"><text>已付 ¥{{item.paidText}}</text><text>剩余 ¥{{item.remainingText}}</text></view>
-          <view wx:if="{{item.waitingSupplier}}" class="waiting-line">等待供应商在精彩订货确认结算金额</view>
+          <view wx:if="{{item.waitingSupplier}}" class="notice warning">等待供应商在精彩订货核对结账明细</view>
           <view class="actions">
-            <button wx:if="{{item.reviewStatus==='DRAFT'||item.reviewStatus==='REJECTED'}}" size="mini" data-id="{{item.batchId}}" catchtap="submit">提交审核</button>
-            <button wx:if="{{item.reviewStatus==='SUBMITTED'}}" size="mini" data-id="{{item.batchId}}" data-state="APPROVED" catchtap="review">审核通过</button>
-            <button wx:if="{{item.reviewStatus==='SUBMITTED'}}" size="mini" class="plain" data-id="{{item.batchId}}" data-state="REJECTED" catchtap="review">驳回</button>
+            <button wx:if="{{item.reviewStatus==='DRAFT'||item.reviewStatus==='REJECTED'}}" size="mini" data-id="{{item.batchId}}" catchtap="submit">提交核定</button>
+            <button wx:if="{{item.reviewStatus==='SUBMITTED'}}" size="mini" data-id="{{item.batchId}}" data-state="APPROVED" catchtap="review">核定通过</button>
+            <button wx:if="{{item.reviewStatus==='SUBMITTED'}}" size="mini" class="plain" data-id="{{item.batchId}}" data-state="REJECTED" catchtap="review">退回</button>
             <button wx:if="{{item.canPay}}" size="mini" class="pay-button" data-id="{{item.batchId}}" catchtap="choosePay">登记付款</button>
             <button wx:if="{{!item.voided&&item.paymentStatus==='UNPAID'}}" size="mini" class="plain danger-button" data-id="{{item.batchId}}" data-state="VOIDED" catchtap="review">作废</button>
           </view>
         </view>
-        <view wx:if="{{!list.length}}" class="empty-line">暂无供应商结算批次</view>
-      </view>
+        <view wx:if="{{!list.length}}" class="empty-card"><text>暂无结账单</text><text>先在“待结采购”选择合法来源生成。</text></view>
+      </block>
+
+      <block wx:if="{{tab==='payments'}}">
+        <view class="date-filter"><picker mode="date" value="{{periodStart}}" bindchange="startDate"><text>{{periodStart||'付款开始日'}}</text></picker><text>至</text><picker mode="date" value="{{periodEnd}}" bindchange="endDate"><text>{{periodEnd||'付款结束日'}}</text></picker><text wx:if="{{periodStart||periodEnd}}" class="pm-link" bindtap="clearDates">清除</text></view>
+        <view wx:for="{{payments}}" wx:key="paymentId" class="payment-row">
+          <view class="row-title"><text>{{item.methodText}} · {{item.paidAt}}</text><text class="amount">¥{{item.amountText}}</text></view>
+          <text class="pm-muted">{{item.confirmationText}}</text>
+          <view class="actions"><button size="mini" data-id="{{item.paymentId}}" bindtap="showVouchers">{{item.hasVoucher?'查看凭证':'凭证缺失'}}</button><button size="mini" class="plain" data-id="{{item.paymentId}}" bindtap="uploadVoucher">上传凭证</button></view>
+        </view>
+        <view wx:if="{{!payments.length}}" class="empty-card"><text>当前日期没有付款记录</text><text>这不代表结账余额为零，请以结账记录中的剩余金额为准。</text></view>
+      </block>
     </block>
   </scroll-view>
 
-  <view wx:if="{{payBatch}}" class="pay-mask" bindtap="closePay"></view>
+  <view wx:if="{{detail}}" class="detail-sheet">
+    <view class="sheet-head"><view><text class="pm-section-title">结账单详情</text><text class="pm-muted">{{detail.batchNo}}</text></view><text class="pm-link" bindtap="closeDetail">关闭</text></view>
+    <scroll-view scroll-y class="sheet-scroll">
+      <view class="detail-total"><view><text>本单金额</text><text>¥{{detail.payableText}}</text></view><view><text>已登记付款</text><text>¥{{detail.paidText}}</text></view><view><text>剩余未付</text><text class="important">¥{{detail.remainingText}}</text></view></view>
+      <text class="detail-title">采购来源</text>
+      <view wx:for="{{detail.lines}}" wx:key="lineId" class="detail-line"><view class="row-title"><text class="goods-name">{{item.goodsLabel}}</text><text class="amount">¥{{item.subtotalText}}</text></view><text class="pm-muted">{{item.sourceLabel}}</text><view class="line-basis"><text>数量 {{item.quantityText}}</text><text>单价 {{item.unitPriceText}}</text></view></view>
+      <text class="detail-title">付款与凭证</text>
+      <view wx:for="{{detail.payments}}" wx:key="paymentId" class="payment-row"><view class="row-title"><text>{{item.methodText}} · {{item.paidAt}}</text><text class="amount">¥{{item.amountText}}</text></view><text class="pm-muted">{{item.confirmationText}}</text><view class="actions"><button size="mini" data-id="{{item.paymentId}}" bindtap="showVouchers">{{item.hasVoucher?'查看凭证':'凭证缺失'}}</button><button size="mini" class="plain" data-id="{{item.paymentId}}" bindtap="uploadVoucher">上传凭证</button></view></view>
+      <view wx:if="{{!detail.payments.length}}" class="empty-line">尚未登记付款</view>
+      <button wx:if="{{detail.canPay}}" class="pm-button" data-id="{{detail.batchId}}" bindtap="choosePay">登记本次付款</button>
+    </scroll-view>
+  </view>
+
+  <view wx:if="{{payBatch||voucherPayment}}" class="pay-mask" bindtap="closeOverlay"></view>
   <view wx:if="{{payBatch}}" class="pay-panel">
-    <view class="section-head"><view><text class="pm-section-title">登记供应商付款</text><text class="pm-muted">{{payBatch.supplierLabel}} · 剩余 ¥{{payBatch.remainingText}}</text></view><text class="pm-link" bindtap="closePay">关闭</text></view>
+    <view class="sheet-head"><view><text class="pm-section-title">登记实际付款</text><text class="pm-muted">剩余 ¥{{payBatch.remainingText}}</text></view><text class="pm-link" bindtap="closePay">关闭</text></view>
     <input class="field" type="digit" value="{{payAmount}}" bindinput="amount" placeholder="本次实际付款金额"/>
-    <text class="payment-method">付款方式：银行转账</text>
-    <text class="pm-muted">这里只登记付款事实，不会自动发起银行转账。</text>
+    <view class="form-row"><text>付款日期</text><picker mode="date" value="{{payDate}}" bindchange="paymentDate"><text>{{payDate}}</text></picker></view>
+    <view class="form-row"><text>付款方式</text><picker range="{{methods}}" range-key="name" value="{{payMethodIndex}}" bindchange="paymentMethod"><text>{{methods[payMethodIndex].name}} ›</text></picker></view>
+    <text class="pm-muted">这里只登记线下付款事实，不会自动发起微信或银行转账。</text>
     <button class="pm-button" loading="{{paying}}" disabled="{{paying}}" bindtap="pay">确认登记付款</button>
   </view>
+  <view wx:if="{{voucherPayment}}" class="pay-panel"><view class="sheet-head"><view><text class="pm-section-title">付款凭证</text><text class="pm-muted">¥{{voucherPayment.amountText}} · {{voucherPayment.methodText}}</text></view><text class="pm-link" bindtap="closeVouchers">关闭</text></view><view wx:for="{{vouchers}}" wx:key="voucherId" class="voucher-row" data-index="{{index}}" bindtap="openVoucher"><text>{{item.originalFilename}}</text><text class="pm-link">查看 ›</text></view><view wx:if="{{!vouchers.length}}" class="empty-line">尚未上传凭证</view><button class="pm-button" data-id="{{voucherPayment.paymentId}}" bindtap="uploadVoucher">上传付款截图</button></view>
 </view>
