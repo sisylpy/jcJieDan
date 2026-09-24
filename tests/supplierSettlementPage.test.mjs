@@ -9,6 +9,7 @@ test('supplier settlement page uses business names and explicit workflow states'
   const logic = read('subPackage/pages/management/purchaseManagement/settlementList/settlementList.js')
   assert.match(page, /supplierLabel/)
   assert.match(page, /goodsLabel/)
+  assert.match(page, /goodsCountText/)
   assert.match(page, /等待供应商在精彩订货确认结算金额/)
   assert.match(page, /登记供应商付款/)
   assert.doesNotMatch(page, /供应商 \{\{item\.supplierRelationId\}\} · 商品 \{\{item\.purchaseGoodsId\}\}/)

@@ -26,6 +26,7 @@
         <view wx:for="{{list}}" wx:key="batchId" class="batch-row {{item.voided?'voided':''}}">
           <view class="row-title"><text class="supplier-name">{{item.supplierLabel}}</text><text class="batch-amount">¥{{item.payableText}}</text></view>
           <text class="batch-no">{{item.batchNo}}</text>
+          <view class="batch-goods"><text>{{item.goodsLabel}}</text><text>{{item.goodsCountText}}</text></view>
           <view class="status-line"><text class="status-tag">{{item.reviewText}}</text><text class="status-tag {{item.confirmationStatus==='DISPUTED'?'danger':''}}">{{item.confirmationText}}</text><text class="status-tag {{item.paymentStatus==='PAID'?'done':''}}">{{item.paymentText}}</text></view>
           <view class="money-line"><text>已付 ¥{{item.paidText}}</text><text>剩余 ¥{{item.remainingText}}</text></view>
           <view wx:if="{{item.waitingSupplier}}" class="waiting-line">等待供应商在精彩订货确认结算金额</view>

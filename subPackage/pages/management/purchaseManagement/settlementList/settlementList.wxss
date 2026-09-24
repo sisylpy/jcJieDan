@@ -23,6 +23,9 @@
 .batch-row:last-of-type{border-bottom:0}
 .batch-row.voided{opacity:.56}
 .batch-no{display:block;color:#87938f;font-size:20rpx;margin:7rpx 0 12rpx;word-break:break-all}
+.batch-goods{display:flex;align-items:center;justify-content:space-between;gap:16rpx;margin-bottom:12rpx;color:#344741;font-size:24rpx}
+.batch-goods text:first-child{font-weight:650}
+.batch-goods text:last-child{color:#87938f;font-size:21rpx;white-space:nowrap}
 .status-line{display:flex;gap:8rpx;flex-wrap:wrap}
 .status-tag{font-size:20rpx;color:#49675f;background:#edf5f2;padding:5rpx 9rpx}
 .status-tag.done{background:#e8f6ef;color:#08765f}

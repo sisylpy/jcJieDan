@@ -43,6 +43,8 @@ function decorateSettlement(item) {
   const remaining = Number(item.remainingAmount || 0)
   return Object.assign({}, item, {
     supplierLabel: item.supplierName || '供应商名称待补全',
+    goodsLabel: item.goodsSummary || '商品名称待补全',
+    goodsCountText: Number(item.goodsCount || 0) > 0 ? Number(item.goodsCount) + '种商品' : '商品明细待补全',
     reviewText: reviewNames[item.reviewStatus] || item.reviewStatus,
     confirmationText: confirmationNames[item.confirmationStatus] || item.confirmationStatus,
     paymentText: paymentNames[item.paymentStatus] || item.paymentStatus,
