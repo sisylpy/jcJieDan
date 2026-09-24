@@ -45,8 +45,8 @@ Page({
    * 页面的初始数据
    */
   data: {
-   
-    
+    purUserArr: [],
+    supplierArr: [],
     // 筛选相关数据
     supplierIds: -1,
     purUserIds: -1,
@@ -58,19 +58,23 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad: function (options) {
-
+    var disInfo = wx.getStorageSync('disInfo');
+    var type = Number(options.type);
+    var pageTitle = type === 0 ? '自采明细' : (type === 1 ? '订货明细' : '入库明细');
 
     this.setData({
       windowWidth: globalData.windowWidth * globalData.rpxR,
       windowHeight: globalData.windowHeight * globalData.rpxR,
       navBarHeight: globalData.navBarHeight * globalData.rpxR,
       url: apiUrl.server,
-      type: options.type,
-      disId: options.disId,
+      type: type,
+      pageTitle: pageTitle,
+      disId: options.disId || (disInfo && disInfo.nxDistributerId),
       startDate: options.startDate,
       stopDate: options.stopDate,
       hanzi: options.hanzi,
-      greatId :options.id,
+      greatId: options.id || options.greatId || -1,
+      userInfo: wx.getStorageSync('userInfo') || {},
 
     })
 
@@ -160,12 +164,12 @@ Page({
           
             total: res.result.data.total,
           })
-          if(this.data.type < 12){
+          if (this.data.type === 0 || this.data.type === 10) {
             // 为用户添加展开状态 - NX系统
             const purUserArr = (res.result.data.purUserArr || []).map(user => ({
               ...user,
               expanded: false, // 用户级别的展开状态
-              arr: user.arr.map(goods => ({
+              arr: (user.arr || []).map(goods => ({
                 ...goods,
                 showPurchaseList: false, // 商品级别的采购列表展开状态
                 // NX使用 nxDistributerPurchaseGoodsEntities
@@ -181,12 +185,12 @@ Page({
             })
           } 
           
-          if(this.data.type == 12){
+          if (this.data.type === 1) {
             // 为供货商添加展开状态 - NX系统
             const supplierArr = (res.result.data.supplierArr || []).map(supplier => ({
               ...supplier,
               expanded: false, // 供货商级别的展开状态
-              arr: supplier.arr.map(goods => ({
+              arr: (supplier.arr || []).map(goods => ({
                 ...goods,
                 showPurchaseList: false, // 商品级别的采购列表展开状态
                 // NX使用 nxDistributerPurchaseGoodsEntities
@@ -398,7 +402,7 @@ Page({
   // 跳转到筛选页面
   toFilter() {
     var type = "";
-    if(this.data.type == 12){
+    if (this.data.type === 1) {
       type = "supplier";
     }else{
       type = "purchaser"
@@ -462,7 +466,7 @@ Page({
     let dataArray = [];
     let dataKey = '';
     
-    if (this.data.type < 12) {
+    if (this.data.type !== 1) {
       dataArray = this.data.purUserArr;
       dataKey = 'purUserArr';
     } else  {
@@ -508,7 +512,7 @@ Page({
     let dataArray = [];
     let dataKey = '';
     
-    if (this.data.type < 12) {
+    if (this.data.type !== 1) {
       dataArray = this.data.purUserArr;
       dataKey = 'purUserArr';
     } else {
@@ -599,7 +603,7 @@ Page({
     let dataArray = [];
     let dataKey = '';
 
-    if (this.data.type < 12) {
+    if (this.data.type !== 1) {
       dataArray = this.data.purUserArr;
       dataKey = 'purUserArr';
     } else {
@@ -644,7 +648,7 @@ Page({
     let dataArray = [];
     let dataKey = '';
     
-    if (this.data.type < 12) {
+    if (this.data.type !== 1) {
       dataArray = this.data.purUserArr;
       dataKey = 'purUserArr';
     } else  {

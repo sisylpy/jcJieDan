@@ -466,13 +466,13 @@ Page({
       // 自采 
       wx.navigateTo({
         url: '../purchaseDeatil/purchaseDeatil?startDate=' + this.data.startDate + '&stopDate=' + 
-        this.data.stopDate + '&type=0&hanzi=' + this.data.hanzi + '&greatId=' + this.data.greatId,
+        this.data.stopDate + '&type=0&hanzi=' + this.data.hanzi + '&disId=' + this.data.disId + '&id=' + this.data.greatId,
       })
     } else if (type === '1') {
       // 订货 - 跳转到订货详情页面
       wx.navigateTo({
         url: '../purchaseDeatil/purchaseDeatil?startDate=' + this.data.startDate + '&stopDate=' + 
-        this.data.stopDate + '&type=1&hanzi=' + this.data.hanzi  + '&greatId=' + this.data.greatId,
+        this.data.stopDate + '&type=1&hanzi=' + this.data.hanzi + '&disId=' + this.data.disId + '&id=' + this.data.greatId,
       })
     }
   },
