@@ -185,7 +185,7 @@
               <view class="flex-cloumn" style="width: {{windowWidth - 140}}rpx; ">
                 <view class="flex-row-wrap align-center">
                   <text wx:if="{{order.isPlatformOrder == 1}}" class="platform-tag mr-10">{{order.platformLabel || '平台'}}</text>
-                  <text class="font-xs mainColor" wx:if="{{order.nxDistributerGoodsEntity.nxDgDistributerId !== nxDisId}}">[{{order.nxDistributerGoodsEntity.nxDgDistributerName}}]</text>
+                  <text class="font-xs mainColor" wx:if="{{order.nxDistributerGoodsEntity.nxDgDistributerId !== nxDisId && order.nxDistributerGoodsEntity.nxDgDistributerName && order.nxDistributerGoodsEntity.nxDgDistributerName !== 'null'}}">[{{order.nxDistributerGoodsEntity.nxDgDistributerName}}]</text>
                   <text class="brand" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsBrand !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0}}">{{order.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
                   <text class="font-bold mr-10">{{order.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
                   <text class="font-xs" wx:if="{{order.nxDepartmentDisGoodsEntity !== null && order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName !== order.nxDistributerGoodsEntity.nxDgGoodsName && order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName !== order.nxDoGoodsName}}">({{order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName}})</text>

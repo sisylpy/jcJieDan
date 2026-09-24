@@ -25,3 +25,10 @@ test('GB客户要求复用普通订单页的视觉层级', () => {
   assert.match(wxss, /border-left:\s*6rpx solid #178f83/)
   assert.match(wxss, /\.customer-standard-text\s*\{[\s\S]*font-size:\s*27rpx/)
 })
+
+test('协作商家名称为空时不显示空方括号', () => {
+  assert.match(
+    wxml,
+    /nxDgDistributerId !== nxDisId && order\.nxDistributerGoodsEntity\.nxDgDistributerName && order\.nxDistributerGoodsEntity\.nxDgDistributerName !== 'null'/
+  )
+})
