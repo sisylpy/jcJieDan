@@ -24,7 +24,7 @@
       <view class="boss-timeline-stop-card {{stop.driverLocked ? 'boss-timeline-stop-card-locked' : ''}}">
         <view class="boss-stop-head" catchtap="onHeadTap">
           <view class="boss-stop-head-main">
-            <image class="boss-stop-pin" src="/images/app-shop.png" mode="aspectFit"></image>
+            <image class="boss-stop-pin" src="/subPackage-routeDispatch/images/app-shop.png" mode="aspectFit"></image>
             <text class="boss-stop-name">{{stop.customerName}}</text>
             <text
               class="boss-stop-return-name-tag"
@@ -138,7 +138,7 @@
       <view class="boss-timeline-stop-card {{stop.driverLocked ? 'boss-timeline-stop-card-locked' : ''}}">
         <view class="boss-stop-head">
           <view class="boss-stop-head-main">
-            <image class="boss-stop-pin" src="/images/app-shop.png" mode="aspectFit"></image>
+            <image class="boss-stop-pin" src="/subPackage-routeDispatch/images/app-shop.png" mode="aspectFit"></image>
             <text class="boss-stop-name">{{stop.customerName}}</text>
             <text
               class="boss-stop-return-name-tag"

@@ -2,7 +2,7 @@ var load=require('../../../../lib/load.js');
 var dateUtils=require('../../../../utils/dateUtil');
 import config from '../../../../config.js';
 import * as echarts from '../../../ec-canvas/echarts';
-import { getNxUnitPriceAnalysis } from '../../../../lib/apiDepOrder.js';
+import { getNxUnitPriceAnalysis } from '../../../lib/purchaseAnalysisApi.js';
 var globalData=getApp().globalData;
 var ICON_ROOT='/subPackage-charts/images/purchase/icon_pack/';
 function num(v){var n=Number(v);return isNaN(n)?0:n;}

@@ -11,7 +11,7 @@
   <view class=" flex-row-between pr-10 pl-10 border-bottom bg-white">
     <view class="flex-row">
       <view class="p-20" bindtap="toDatePage">
-        <image src="../../../../images/calender.png" class="icon"></image>
+        <image src="/subPackage/images/calender.png" class="icon"></image>
       </view>
       <view class="flex-column">
         <view class="flex-row" wx:if="{{startDate == stopDate}}">

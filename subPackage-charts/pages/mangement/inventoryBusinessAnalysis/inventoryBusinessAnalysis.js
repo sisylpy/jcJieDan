@@ -1,7 +1,7 @@
 var load = require('../../../../lib/load.js');
 var dateUtils = require('../../../../utils/dateUtil');
 import * as echarts from '../../../ec-canvas/echarts';
-import { getNxInventoryBusinessAnalysis } from '../../../../lib/apiDepOrder.js';
+import { getNxInventoryBusinessAnalysis } from '../../../lib/purchaseAnalysisApi.js';
 var globalData = getApp().globalData;
 
 var BUSINESS_TYPES = [

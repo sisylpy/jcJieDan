@@ -2,7 +2,7 @@ var load = require('../../../../lib/load.js');
 var dateUtils = require('../../../../utils/dateUtil');
 import config from '../../../../config.js';
 import * as echarts from '../../../ec-canvas/echarts';
-import { getNxPurchaseCountAnalysis } from '../../../../lib/apiDepOrder.js';
+import { getNxPurchaseCountAnalysis } from '../../../lib/purchaseAnalysisApi.js';
 var globalData = getApp().globalData;
 var ICON_ROOT = '/subPackage-charts/images/purchase/icon_pack/';
 var COLORS = ['#25c687', '#ff9d3e', '#48a2ff', '#ff7790', '#8e87e8'];

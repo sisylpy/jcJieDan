@@ -6,7 +6,7 @@
   <view class="date-filter flex-row-between pl-20 pr-20 border-bottom bg-white">
     <view class="date-filter-main flex-row" bindtap="toDatePage">
       <view class="p-20">
-        <image src="/images/calender.png" class="icon"></image>
+        <image src="/subPackage-charts/images/purchase/calender.png" class="icon"></image>
       </view>
       <view class="flex-column pt-10">
         <view class="font-yuan">{{hanzi}}</view>

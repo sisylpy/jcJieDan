@@ -5,10 +5,8 @@ var dateUtils = require('../../../../utils/dateUtil');
 import apiUrl from '../../../../config.js';
 import * as echarts from '../../../ec-canvas/echarts';
 import { decorateGoodsVisual } from '../../../../utils/goodsImageView.js';
-import {
-  getNxInventoryBusinessAnalysis,
-  getNxPurGoodsStatisticsForDis
-} from '../../../../lib/apiDepOrder.js';
+import { getNxPurGoodsStatisticsForDis } from '../../../../lib/apiDepOrder.js';
+import { getNxInventoryBusinessAnalysis } from '../../../lib/purchaseAnalysisApi.js';
 
 const PURCHASE_IMAGES = '/subPackage-charts/images/purchase/icon_pack/';
 

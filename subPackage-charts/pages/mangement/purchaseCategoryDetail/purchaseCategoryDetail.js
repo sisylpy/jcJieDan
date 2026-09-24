@@ -1,7 +1,7 @@
 var load = require('../../../../lib/load.js');
 var dateUtils = require('../../../../utils/dateUtil');
 import config from '../../../../config.js';
-import { getNxPurchaseCategoryDetail } from '../../../../lib/apiDepOrder.js';
+import { getNxPurchaseCategoryDetail } from '../../../lib/purchaseAnalysisApi.js';
 var globalData = getApp().globalData;
 var ICON_ROOT = '/subPackage-charts/images/purchase/icon_pack/';
 

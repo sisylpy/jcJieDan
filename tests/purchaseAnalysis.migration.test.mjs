@@ -27,7 +27,7 @@ for (const pageName of pageNames) {
   }
 }
 
-const apiSource = read('lib/apiDepOrder.js')
+const apiSource = read('subPackage-charts/lib/purchaseAnalysisApi.js')
 for (const endpoint of [
   'getNxSelfPurchaseAnalysis',
   'getNxPurchaseCountAnalysis',
@@ -56,6 +56,15 @@ for (const banner of [
 for (const asset of ['delete.png', 'qiandaizi.png', 'search.png', 'warn.png', 'zhuanhuan.svg']) {
   assert.ok(exists(`subPackage-charts/images/purchase/${asset}`), `${asset} must be in subPackage-charts`)
   assert.equal(exists(`images/${asset}`), false, `${asset} must not increase the main package`)
+}
+
+for (const [source, destination] of [
+  ['images/calender.png', 'subPackage-charts/images/purchase/calender.png'],
+  ['images/user-group.png', 'subPackage/images/user-group.png'],
+  ['images/app-shop.png', 'subPackage-routeDispatch/images/app-shop.png']
+]) {
+  assert.equal(exists(source), false, `${source} must not increase the main package`)
+  assert.ok(exists(destination), `${destination} must exist`)
 }
 
 const projectConfig = JSON.parse(read('project.config.json'))

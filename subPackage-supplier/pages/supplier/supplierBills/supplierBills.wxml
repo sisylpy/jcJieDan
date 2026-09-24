@@ -8,7 +8,7 @@
 <view class=" flex-row-between border-bottom bg-white"  style="margin-top: {{navBarHeight}}rpx;">
   <view class="flex-row">
     <view class="p-20" bindtap="toDatePage">
-      <image src="../../../../images/calender.png" class="icon"></image>
+      <image src="/subPackage-supplier/images/calender.png" class="icon"></image>
     </view>
     <view class="flex-column font-xs">
       <view class="font-yuan">{{hanzi}}</view>
@@ -35,7 +35,7 @@
   <view class="supplier-stats-card">
     <view class="stats-item">
       <view class="stats-icon supplier-orders-icon">
-        <image src="/images/calender.png" class="stats-icon-image"></image>
+        <image src="/subPackage-supplier/images/calender.png" class="stats-icon-image"></image>
       </view>
       <view class="stats-content">
         <text class="stats-label">订单</text>

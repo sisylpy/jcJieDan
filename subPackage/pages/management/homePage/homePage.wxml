@@ -69,7 +69,7 @@
           <text class="tile-title">采购管理</text>
         </view>
         <view class="menu-tile" bindtap="toMyPurchase" hover-class="hover">
-          <image src="/images/calender.png" class="tile-icon"></image>
+          <image src="/subPackage/images/calender.png" class="tile-icon"></image>
           <text class="tile-title">经营看板</text>
         </view>
       </view>

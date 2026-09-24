@@ -5,7 +5,7 @@
 
   <view class="date-toolbar">
     <view class="date-selector" bindtap="toDatePage" hover-class="date-selector-hover">
-      <view class="date-calendar"><image src="/images/calender.png"></image></view>
+      <view class="date-calendar"><image src="/subPackage-charts/images/purchase/calender.png"></image></view>
       <view class="date-copy">
         <view class="date-title">{{hanzi}}</view>
         <view class="date-values" wx:if="{{startDate == stopDate}}"><text>{{tool.transferDateString(startDate)}}</text></view>

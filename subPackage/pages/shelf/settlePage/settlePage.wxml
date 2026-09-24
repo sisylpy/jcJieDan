@@ -16,7 +16,7 @@
               data-staff="{{item}}">
           <view class="flex-row">
             <view class="staff-avatar mr-20">
-              <image src="{{item.nxDiuUrlChange == 1 ? url + item.nxDiuWxAvartraUrl : (item.nxDiuWxAvartraUrl || '/images/user-group.png')}}" mode="aspectFill" class="avatar"></image>
+              <image src="{{item.nxDiuUrlChange == 1 ? url + item.nxDiuWxAvartraUrl : (item.nxDiuWxAvartraUrl || '/subPackage/images/user-group.png')}}" mode="aspectFill" class="avatar"></image>
             </view>
             <view class="flex-column">
               <view class="flex-row">

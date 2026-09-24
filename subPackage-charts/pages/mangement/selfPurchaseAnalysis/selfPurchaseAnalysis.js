@@ -2,7 +2,7 @@ var load = require('../../../../lib/load.js');
 var dateUtils = require('../../../../utils/dateUtil');
 import apiUrl from '../../../../config.js';
 import * as echarts from '../../../ec-canvas/echarts';
-import { getNxSelfPurchaseAnalysis } from '../../../../lib/apiDepOrder.js';
+import { getNxSelfPurchaseAnalysis } from '../../../lib/purchaseAnalysisApi.js';
 var globalData = getApp().globalData;
 
 var COLORS = ['#31c88b', '#ffbd34', '#ff8d91', '#64a7ff', '#a68cf6', '#77d4c4'];

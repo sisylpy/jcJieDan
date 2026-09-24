@@ -22,11 +22,11 @@
       </view>
       <view class="invite-card">
         <view class="invite-detail-row">
-          <image src="/images/user-group.png" class="invite-detail-icon"></image>
+          <image src="/subPackage/images/user-group.png" class="invite-detail-icon"></image>
           <text class="invite-detail-text">邀请方: {{disInfo && disInfo.nxDistributerName ? disInfo.nxDistributerName : disName}}</text>
         </view>
         <view class="invite-detail-row">
-          <image src="/images/calender.png" class="invite-detail-icon"></image>
+          <image src="/subPackage/images/calender.png" class="invite-detail-icon"></image>
           <text class="invite-detail-text">邀请时间: {{inviteTime}}</text>
         </view>
         <view class="invite-detail-row">
@@ -59,11 +59,11 @@
       </view>
       <view class="invite-card">
         <view class="invite-detail-row">
-          <image src="/images/user-group.png" class="invite-detail-icon"></image>
+          <image src="/subPackage/images/user-group.png" class="invite-detail-icon"></image>
           <text class="invite-detail-text">发起方: {{disName}}</text>
         </view>
         <view class="invite-detail-row">
-          <image src="/images/calender.png" class="invite-detail-icon"></image>
+          <image src="/subPackage/images/calender.png" class="invite-detail-icon"></image>
           <text class="invite-detail-text">邀请时间: {{inviteTime}}</text>
         </view>
         <view class="invite-detail-row">
