@@ -1,9 +1,69 @@
-<view class="pm-page"><back-navbar style="height:{{navBarHeight}}rpx" title="采购员详情" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar><scroll-view scroll-y class="pm-body" style="padding-top:{{navBarHeight}}rpx" bindscrolltolower="more">
-<view wx:if="{{loading}}" class="pm-state">正在加载…</view><view wx:elif="{{error}}" class="pm-state">{{error}}</view><block wx:else>
-<view class="pm-card"><view class="pm-row"><text class="pm-name">{{detail.purchaserName||'历史采购员'}}</text><text class="pm-badge">{{detail.purchaserStatusText}}</text></view><text wx:if="{{detail.summary.totalBatchCount||detail.summary.directSelfBuyRecordCount}}" class="pm-muted">{{detail.accountStatusText}} · <text wx:if="{{detail.summary.totalBatchCount}}">{{detail.summary.dataCompletenessText}} · 有效批次 {{detail.summary.effectiveBatchCount||0}}/{{detail.summary.totalBatchCount}} · 覆盖率 {{detail.summary.dataCoverageRateText||'—'}}</text><text wx:if="{{detail.summary.directSelfBuyRecordCount}}">{{detail.summary.totalBatchCount?' · ':''}}直接采购 {{detail.summary.directSelfBuyRecordCount}} 条（待采购 {{detail.summary.directSelfBuyPendingCount||0}} 条 · 已采购 {{detail.summary.directSelfBuyPurchaseCount||0}} 条 · 已入库 {{detail.summary.directSelfBuyStockInCount||0}} 条）</text></text><text wx:else class="pm-muted">{{detail.accountStatusText}} · 当前范围暂无采购记录</text><view class="pm-grid"><view class="pm-metric"><text class="pm-label">批次 / 商品行</text><text>{{detail.summary.totalBatchCount||0}} / {{detail.summary.goodsLineCount||0}}</text></view><view class="pm-metric"><text class="pm-label">预计金额</text><text>{{detail.summary.expectedAmount==null?'—':'¥'+detail.summary.expectedAmount}}</text></view><view class="pm-metric"><text class="pm-label">实际收货</text><text>{{detail.summary.actualReceiptAmount==null?'—':'¥'+detail.summary.actualReceiptAmount}}</text></view><view class="pm-metric"><text class="pm-label">实际净采购 / 退货</text><text class="pm-money">{{detail.summary.actualNetPurchaseAmount==null?'—':'¥'+detail.summary.actualNetPurchaseAmount}} / {{detail.summary.supplierReturnAmount==null?'—':'¥'+detail.summary.supplierReturnAmount}}</text></view><view class="pm-metric"><text class="pm-label">损耗 / 降价影响</text><text>{{detail.summary.lossCost==null?'—':'¥'+detail.summary.lossCost}} / {{detail.summary.markdownImpact==null?'—':'¥'+detail.summary.markdownImpact}}</text></view><view class="pm-metric"><text class="pm-label">当前 / 最终毛利</text><text>{{detail.summary.currentRealizedMargin==null?'—':'¥'+detail.summary.currentRealizedMargin}} / {{detail.summary.completedFinalMargin==null?'—':'¥'+detail.summary.completedFinalMargin}}</text></view></view></view>
-<view class="pm-card"><text class="pm-section-title">需求来源</text><view class="pm-tabs"><text class="pm-tab {{!demandSource?'on':''}}" data-value="" bindtap="chooseSource">全部</text><text class="pm-tab {{demandSource==='ORDER_GENERATED'?'on':''}}" data-value="ORDER_GENERATED" bindtap="chooseSource">订单</text><text class="pm-tab {{demandSource==='SHELF_REPLENISHMENT'?'on':''}}" data-value="SHELF_REPLENISHMENT" bindtap="chooseSource">货架</text><text class="pm-tab {{demandSource==='SMART_REPLENISHMENT'?'on':''}}" data-value="SMART_REPLENISHMENT" bindtap="chooseSource">智能备货</text></view><text class="pm-section-title">执行方式</text><view class="pm-tabs"><text class="pm-tab {{!procurementMode?'on':''}}" data-value="" bindtap="chooseMode">全部</text><text class="pm-tab {{procurementMode==='SELF_BUY'?'on':''}}" data-value="SELF_BUY" bindtap="chooseMode">自采</text><text class="pm-tab {{procurementMode==='AUTO_SUPPLIER'?'on':''}}" data-value="AUTO_SUPPLIER" bindtap="chooseMode">自动供应商</text><text class="pm-tab {{procurementMode==='EXTERNAL_SUPPLIER'?'on':''}}" data-value="EXTERNAL_SUPPLIER" bindtap="chooseMode">供应商采购</text></view></view>
-<block wx:if="{{showDirect && !listEmpty}}"><view class="pm-card"><view class="pm-row"><text class="pm-section-title">直接采购记录（{{directTotal}}）</text></view><view wx:if="{{!directItems.length && !directLoading}}" class="pm-state">当前筛选暂无直接采购记录</view><view class="batch" wx:for="{{directItems}}" wx:key="purchaseGoodsId"><view class="pm-row"><text class="pm-name">{{item.goodsName}}</text><text class="pm-badge">{{item.recordKindText}}</text></view><text class="pm-muted">{{item.purchaseStatusText}} · {{item.demandSourceText}} · 规格 {{item.specText||'—'}}</text><view class="pm-line"><text>数量 {{item.quantityText}}</text><text>单价 {{item.priceText}}</text></view><view class="pm-line"><text>小计 {{item.subtotalText}}</text><text>{{item.timeText}}</text></view><view class="pm-line"><text>入库位置 {{item.shelfText}}</text></view></view><view wx:if="{{directLoading && directItems.length}}" class="pm-state">正在加载更多…</view></view></block>
-<view wx:if="{{!listEmpty}}"><view class="pm-card"><view class="pm-row"><text class="pm-section-title">订货批次（{{total}}）</text></view><view wx:if="{{!items.length && !batchLoading}}" class="pm-state">当前筛选暂无订货批次</view><view class="batch" wx:for="{{items}}" wx:key="batchId" data-id="{{item.batchId}}" bindtap="openBatch"><view class="pm-row"><text class="pm-name">{{item.batchNumber}}</text><text class="pm-link">{{item.businessDate}} ›</text></view><text class="pm-muted">{{item.supplierName||'自采/无固定供应商'}} · {{item.procurementModeText}} · {{item.demandSources}}</text><view class="pm-line"><text>计划 {{item.expectedAmount==null?'—':'¥'+item.expectedAmount}}</text><text>实际净额 {{item.actualNetPurchaseAmount==null?'—':'¥'+item.actualNetPurchaseAmount}}</text></view><view class="pm-line"><text>{{item.receiptStatusText}} / {{item.putawayStatusText}}</text><text>{{item.dataCompletenessText}}</text></view></view><view wx:if="{{batchLoading && items.length}}" class="pm-state">正在加载更多…</view></view></view>
-<view wx:if="{{listEmpty}}" class="pm-state">当前筛选暂无采购记录</view>
-</block>
-</scroll-view></view>
+<view class="pm-page">
+  <back-navbar style="height:{{navBarHeight}}rpx" title="采购员详情" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+  <scroll-view scroll-y class="pm-body" style="padding-top:{{navBarHeight}}rpx" bindscrolltolower="more">
+    <view wx:if="{{error}}" class="pm-state error-state"><text>{{error}}</text><text class="retry" bindtap="retry">重新加载</text></view>
+    <block wx:else>
+      <view class="person-summary">
+        <view class="pm-row">
+          <view><text class="pm-name">{{detail.purchaserName||('历史采购员 #'+purchaserId)}}</text><text class="pm-badge name-badge">{{detail.purchaserStatusText}}</text></view>
+          <text class="pm-muted">{{detail.accountStatusText}}</text>
+        </view>
+        <view class="date-line">
+          <picker mode="date" value="{{startDate}}" bindchange="changeStart"><text class="pm-date">{{startDate}}</text></picker>
+          <text>至</text>
+          <picker mode="date" value="{{stopDate}}" bindchange="changeStop"><text class="pm-date">{{stopDate}}</text></picker>
+        </view>
+        <view class="summary-line">
+          <view><text class="summary-label">当前任务</text><text class="summary-number">{{detail.summary.currentTaskCount||0}} 项</text></view>
+          <view><text class="summary-label">本期采购记录</text><text class="summary-number">{{detail.summary.periodPurchaseRecordCount||0}} 条</text></view>
+          <view class="amount-summary"><text class="summary-label">本期采购金额</text><text class="summary-money">{{detail.summary.periodPurchaseAmount==null?'—':'¥'+detail.summary.periodPurchaseAmount}}</text></view>
+        </view>
+        <text wx:if="{{detail.summary.periodUnresolvedAmountCount}}" class="amount-note">另有 {{detail.summary.periodUnresolvedAmountCount}} 条采购记录金额尚未形成</text>
+      </view>
+
+      <view class="detail-tabs">
+        <text class="detail-tab {{activeTab==='TASKS'?'on':''}}" data-value="TASKS" bindtap="chooseTab">当前任务</text>
+        <text class="detail-tab {{activeTab==='RECORDS'?'on':''}}" data-value="RECORDS" bindtap="chooseTab">采购记录</text>
+      </view>
+
+      <block wx:if="{{activeTab==='TASKS'}}">
+        <text class="section-note">当前未结束任务，不受上方历史日期范围限制</text>
+        <view wx:if="{{taskError}}" class="pm-state small-state"><text>{{taskError}}</text><text class="retry" bindtap="retryTasks">重新加载</text></view>
+        <view wx:elif="{{!taskLoading&&!tasks.length}}" class="pm-state">当前没有待处理任务</view>
+        <view class="task-card" wx:for="{{tasks}}" wx:key="taskKey">
+          <view class="pm-row"><text class="purpose">{{item.purchasePurposeText}}</text><text class="task-progress {{item.currentHandlerRole==='PURCHASER'?'attention':''}}">{{item.progressText}}</text></view>
+          <text class="goods-summary">{{item.goodsSummary}}</text>
+          <view class="task-meta"><text>{{item.batchNumber||('商品记录 #'+item.purchaseGoodsId)}}</text><text>{{item.businessDate||'业务日期待核对'}}</text></view>
+          <view class="task-meta"><text>{{item.supplierName}}</text><text>{{item.goodsLineCount}} 条商品记录</text></view>
+          <view class="handler-line"><text>当前处理：{{item.currentHandlerText}}（{{item.handlerClientText}}）</text><text wx:if="{{item.canOperate||item.actionCode==='OPEN_BOSS_BATCH'}}" class="task-action" data-item="{{item}}" bindtap="openTask">{{item.actionText}} ›</text><text wx:else class="route-note">{{item.actionText}}</text></view>
+        </view>
+        <view wx:if="{{taskLoading}}" class="pm-state small-state">正在加载任务…</view>
+      </block>
+
+      <block wx:else>
+        <text class="section-note">采购记录按 {{startDate}} 至 {{stopDate}} 查询</text>
+        <view wx:if="{{batchError||directError}}" class="pm-state small-state"><text>{{batchError||directError}}</text><text class="retry" bindtap="retryRecords">重新加载</text></view>
+        <view wx:elif="{{recordsLoaded&&!batchLoading&&!directLoading&&!batches.length&&!directItems.length}}" class="pm-state">所选日期内暂无采购记录</view>
+
+        <view wx:if="{{batches.length}}" class="record-section">
+          <text class="record-title">采购批次（{{batchTotal}}）</text>
+          <view class="record-row" wx:for="{{batches}}" wx:key="batchId" data-id="{{item.batchId}}" bindtap="openBatch">
+            <view class="pm-row"><text class="pm-name">{{item.goodsSummary||item.batchNumber}}</text><text class="pm-link">{{item.businessDate}} ›</text></view>
+            <text class="pm-muted">{{item.purchasePurposeText}} · {{item.supplierName||'自采/尚未关联供应方'}} · {{item.goodsLineCount}} 条商品记录</text>
+            <view class="record-amount"><text>{{item.businessProgressText||item.executionStatusText}}</text><text>{{item.recognizedSupplyAmount==null?'金额待形成':'¥'+item.recognizedSupplyAmount}}</text></view>
+          </view>
+        </view>
+
+        <view wx:if="{{directItems.length}}" class="record-section">
+          <text class="record-title">自采记录（{{directTotal}}）</text>
+          <view class="record-row" wx:for="{{directItems}}" wx:key="purchaseGoodsId">
+            <view class="pm-row"><text class="pm-name">{{item.goodsName}}</text><text>{{item.purchaseDate||'日期待核对'}}</text></view>
+            <text class="pm-muted">{{item.purchasePurposeText}} · {{item.purchaseStatusText}} · 规格 {{item.specText||'—'}}</text>
+            <view class="record-amount"><text>{{item.quantityText}} · {{item.priceText}}</text><text>{{item.subtotalText}}</text></view>
+          </view>
+        </view>
+        <view wx:if="{{batchLoading||directLoading}}" class="pm-state small-state">正在加载采购记录…</view>
+      </block>
+    </block>
+  </scroll-view>
+</view>
