@@ -110,7 +110,9 @@ Page({
     pendingVoucherPath: '', pendingVoucherName: '', vouchers: [], voucherPayment: null
   },
 
-  onLoad() {
+  onLoad(options) {
+    this.requestedSupplierId = options && options.supplierRelationId ? Number(options.supplierRelationId) : null
+    this.requestedBatchId = options && options.batchId ? Number(options.batchId) : null
     this.setData({ navBarHeight: app.globalData.navBarHeight * app.globalData.rpxR, payDate: today() })
     this.loadSuppliers()
   },
@@ -126,7 +128,19 @@ Page({
   loadSuppliers() {
     this.setData({ loading: true, error: '' })
     getSupplierSettlementPeople({ pageSize: 100 }).then(response => {
-      this.setData({ suppliers: (responseData(response) || []).map(decorateSupplier) })
+      const suppliers = (responseData(response) || []).map(decorateSupplier)
+      const supplier = this.requestedSupplierId
+        ? suppliers.find(item => Number(item.supplierRelationId) === this.requestedSupplierId) : null
+      this.setData({ suppliers, supplier: supplier || this.data.supplier })
+      if (supplier) {
+        this.requestedSupplierId = null
+        return this.loadSupplier().then(() => {
+          if (!this.requestedBatchId) return
+          const batchId = this.requestedBatchId
+          this.requestedBatchId = null
+          return this.openBatch({ currentTarget: { dataset: { id: batchId } } })
+        })
+      }
     }).catch(error => this.setData({ error: error.message || '供应商结算加载失败' }))
       .then(() => this.setData({ loading: false }))
   },

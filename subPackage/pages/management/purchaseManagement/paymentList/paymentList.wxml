@@ -1,1 +1,36 @@
-<view class="pm-page"><back-navbar style="height:{{navBarHeight}}rpx" title="付款与凭证" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar><scroll-view scroll-y class="pm-body" style="padding-top:{{navBarHeight}}rpx"><view wx:for="{{list}}" wx:key="paymentId" class="pm-card" data-index="{{index}}" bindtap="show"><view class="pm-row"><text>{{item.paymentNo}}</text><text class="pm-money">¥{{item.paymentAmount}}</text></view><text class="pm-muted">{{item.businessType}} · {{item.paymentMethod}} · 收款确认 {{item.confirmationStatus}}</text></view><view wx:if="{{selected}}" class="pm-card"><text class="pm-section-title">凭证（{{vouchers.length}}）</text><view wx:for="{{vouchers}}" wx:key="voucherId" class="pm-row line" data-index="{{index}}" bindtap="openVoucher"><text>{{item.originalFilename}}</text><view><text>{{item.status}} · 查看</text><button wx:if="{{item.status==='ACTIVE'}}" size="mini" data-index="{{index}}" catchtap="voidVoucher">作废</button></view></view><view class="actions"><button size="mini" bindtap="upload">上传凭证</button><button wx:if="{{!selected.reversalOfPaymentId}}" size="mini" bindtap="reverse">冲正付款</button></view></view></scroll-view></view>
+<view class="pm-page">
+  <back-navbar style="height:{{navBarHeight}}rpx" title="统一付款记录" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+  <scroll-view scroll-y class="pm-body" style="padding-top:{{navBarHeight}}rpx" bindscrolltolower="loadMore">
+    <view class="pm-card filters">
+      <view class="date-row"><picker mode="date" value="{{periodStart}}" bindchange="startDate"><view class="pm-date">{{periodStart}}</view></picker><text>至</text><picker mode="date" value="{{periodEnd}}" bindchange="endDate"><view class="pm-date">{{periodEnd}}</view></picker></view>
+      <view class="select-row"><picker range="{{typeOptions}}" range-key="name" value="{{typeIndex}}" bindchange="typeChange"><view class="pm-date">{{typeOptions[typeIndex].name}}⌄</view></picker><picker range="{{recipientOptions}}" range-key="name" value="{{recipientIndex}}" bindchange="recipientChange"><view class="pm-date">{{recipientOptions[recipientIndex].name}}⌄</view></picker></view>
+      <view class="search-row"><input placeholder="搜索采购员或供应商" value="{{keyword}}" bindinput="keywordInput" confirm-type="search" bindconfirm="search"/><button size="mini" bindtap="search">查询</button><text bindtap="clearFilters">重置</text></view>
+      <text class="scope-text">本页只按实际付款日期统计；用途包括采购员报销、供应商货款和公司直付采购。当前欠付请回采购资金首页查看。</text>
+    </view>
+    <view class="summary-bar"><view><text>净付款</text><text class="summary-value">¥{{summary.netAmount||0}}</text></view><view><text>付款笔数</text><text class="summary-value">{{summary.paymentCount||0}}</text></view><view><text>冲正金额</text><text class="summary-value">¥{{summary.reversedAmount||0}}</text></view><view><text>缺凭证</text><text class="summary-value">{{summary.missingVoucherCount||0}}</text></view></view>
+    <view wx:if="{{loading}}" class="pm-state">正在加载付款记录…</view>
+    <view wx:elif="{{error}}" class="pm-state">{{error}}</view>
+    <view wx:elif="{{!list.length}}" class="pm-state">所选范围没有付款记录</view>
+    <view wx:for="{{list}}" wx:key="paymentId" class="pm-card payment-row" data-id="{{item.paymentId}}" bindtap="show">
+      <view class="pm-row"><view><text class="pm-name">{{item.recipientName||'收款对象待补全'}}</text><text class="type-line">{{item.typeName}} · {{item.recipientTypeName}}</text></view><view class="row-amount {{item.directionName==='冲正'?'negative':''}}"><text>{{item.directionName}} ¥{{item.amountText}}</text><text>›</text></view></view>
+      <view class="meta-line"><text>{{item.paidAt}} · {{item.methodName}}</text><text class="{{item.voucherCount>0?'':'warn-text'}}">{{item.voucherText}}</text></view>
+      <view class="meta-line"><text>{{item.paymentNo}}</text><text>{{item.confirmationText}}</text></view>
+    </view>
+    <view wx:if="{{loadingMore}}" class="load-more">正在加载…</view><view wx:elif="{{hasMore}}" class="load-more" bindtap="loadMore">加载更多</view>
+  </scroll-view>
+
+  <view wx:if="{{detail || detailLoading}}" class="overlay" bindtap="closeDetail"><view class="detail-panel" catchtap="noop">
+    <view class="detail-head"><text class="pm-section-title">付款详情</text><text class="close" bindtap="closeDetail">关闭</text></view>
+    <view wx:if="{{detailLoading}}" class="pm-state">正在读取付款详情…</view>
+    <scroll-view wx:else scroll-y class="detail-scroll">
+      <view class="detail-block"><view class="pm-row"><text class="pm-name">{{detail.recipientName||'收款对象待补全'}}</text><text class="detail-money">¥{{detail.amountText}}</text></view><text class="detail-no">{{detail.paymentNo}}</text><view class="detail-grid"><text>用途</text><text class="detail-value">{{detail.typeName}}</text><text>付款日期</text><text class="detail-value">{{detail.paidAt}}</text><text>付款方式</text><text class="detail-value">{{detail.methodName}}</text><text>到账状态</text><text class="detail-value">{{detail.confirmationText}}</text></view></view>
+      <view class="detail-block"><view class="pm-row"><text class="pm-section-title">对应来源单据</text><text wx:if="{{detail.sourceType!=='COMPANY_DIRECT'}}" class="pm-link" bindtap="openSource">进入原单 ›</text></view>
+        <block wx:if="{{detail.sourceType==='REIMBURSEMENT'}}"><text class="source-title">{{detail.source.batchNo}} · {{detail.source.purchaserName}}</text><text class="pm-muted">应报 ¥{{detail.source.payableText}} · 已付 ¥{{detail.source.paidText}} · 剩余 ¥{{detail.source.remainingText}}</text></block>
+        <block wx:elif="{{detail.sourceType==='SETTLEMENT'}}"><text class="source-title">{{detail.source.batchNo}} · {{detail.source.supplierName}}</text><text class="pm-muted">应付 ¥{{detail.source.payableText}} · 已付 ¥{{detail.source.paidText}} · 剩余 ¥{{detail.source.remainingText}}</text></block>
+        <block wx:else><text class="source-title">{{detail.source.goodsName||'采购商品'}} · {{detail.source.purchaseBatchNo}}</text><text class="pm-muted">公司直付依据 ¥{{detail.source.allocationText}} · {{detail.source.businessDate}}</text></block>
+        <view wx:for="{{detail.source.lines}}" wx:key="lineId" class="source-line"><view><text>{{item.title}}</text><text class="pm-muted">{{item.meta}}</text></view><text>¥{{item.amountText}}</text></view>
+      </view>
+      <view class="detail-block"><text class="pm-section-title">付款凭证（{{detail.vouchers.length}}）</text><view wx:if="{{!detail.vouchers.length}}" class="voucher-empty">尚未上传付款凭证</view><view wx:for="{{detail.vouchers}}" wx:key="voucherId" class="voucher-row" data-index="{{index}}" bindtap="openVoucher"><view><text>{{item.originalFilename}}</text><text class="pm-muted">{{item.status}} · 点击查看</text></view><button wx:if="{{item.status==='ACTIVE'}}" size="mini" data-index="{{index}}" catchtap="voidVoucher">作废</button></view><view class="actions"><button size="mini" bindtap="upload">上传凭证</button><button wx:if="{{!detail.reversalOfPaymentId && detail.status==='EFFECTIVE'}}" size="mini" bindtap="reverse">冲正付款</button></view></view>
+    </scroll-view>
+  </view></view>
+</view>

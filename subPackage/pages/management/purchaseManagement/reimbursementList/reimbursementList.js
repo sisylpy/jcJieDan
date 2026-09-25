@@ -98,7 +98,9 @@ Page({
     lastPaymentId: null
   },
 
-  onLoad() {
+  onLoad(options) {
+    this.requestedPurchaserId = options && options.purchaserUserId ? Number(options.purchaserUserId) : null
+    this.requestedBatchId = options && options.batchId ? Number(options.batchId) : null
     this.setData({ navBarHeight: app.globalData.navBarHeight * app.globalData.rpxR })
   },
 
@@ -117,9 +119,17 @@ Page({
       const people = (responseData(response) || []).map(decoratePerson)
       const selected = keepSelection && this.data.selectedPerson
         ? people.find(item => Number(item.purchaserUserId) === Number(this.data.selectedPerson.purchaserUserId))
-        : null
+        : (this.requestedPurchaserId ? people.find(item => Number(item.purchaserUserId) === this.requestedPurchaserId) : null)
       this.setData({ people, selectedPerson: selected || null })
-      if (selected) return this.loadPerson(selected.purchaserUserId, false)
+      if (selected) {
+        this.requestedPurchaserId = null
+        return this.loadPerson(selected.purchaserUserId, false).then(() => {
+          if (!this.requestedBatchId) return
+          const batchId = this.requestedBatchId
+          this.requestedBatchId = null
+          return this.openBatchById(batchId)
+        })
+      }
     }).catch(error => {
       this.setData({ error: error.message || '采购员报销加载失败' })
     }).then(() => this.setData({ loading: false }))
