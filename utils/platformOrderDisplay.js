@@ -26,6 +26,12 @@ function formatPrice(v) {
   return v;
 }
 
+function formatUnitPrice(v) {
+  if (v === null || v === undefined || v === '' || v === '0.1') return '-';
+  var n = Number(v);
+  return isNaN(n) ? String(v) : n.toFixed(1);
+}
+
 function formatPriceDiff(v) {
   if (v === null || v === undefined || v === '') return '-';
   var n = parseFloat(v);
@@ -65,7 +71,9 @@ function normalizeKgDisplay(order) {
   if (!order) return order;
   var price = order.nxDoPrice;
   order._unpriced = price === 0.1 || price === '0.1' || price === '' || price == null;
-  order._displayPrice = order._unpriced ? '-' : (order.nxDoPriceKg ? order.nxDoPriceKg : price);
+  order._displayPrice = order._unpriced
+    ? '-'
+    : formatUnitPrice(order.nxDoPriceKg ? order.nxDoPriceKg : price);
   order._displayWeight = order.nxDoWeightKg ? order.nxDoWeightKg : order.nxDoWeight;
   order._weightDanger = (order.nxDoWeight === '' || order.nxDoWeight == null);
   return order;

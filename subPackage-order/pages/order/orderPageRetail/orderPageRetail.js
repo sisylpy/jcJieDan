@@ -1,6 +1,7 @@
 var load = require('../../../../lib/load.js');
 var esc = require("../../../../utils/GPutils/esc.js");
 var dateUtils = require('../../../../utils/dateUtil');
+var platformDisplay = require('../../../../utils/platformOrderDisplay.js');
 
 import apiUrl from '../../../../config.js'
 
@@ -316,8 +317,8 @@ Page({
             console.log("[判断斤/公斤模式] 数据数组为空，使用默认值: false (斤模式)");
           }
 
-          var arr = res.result.data.arr;
-          this.setData({
+          var arr = this._normalizeRetailOrders(res.result.data.arr);
+          var nextData = {
             tradeNo: res.result.data.tradeNo,
             total: res.result.data.total,
             totalHanzi: res.result.data.totalHanzi,
@@ -326,9 +327,16 @@ Page({
             hasPriceCount: res.result.data.hasPriceCount,
             hasWeightCount: res.result.data.hasWeightCount,
             isKgMode: isKgMode,
-            depArr: arr,
-          });
-          this._syncRetailDepInfoSubsFromDepArr(arr);
+          };
+          if (Number(this.data.depHasSubs) > 0) {
+            nextData.depArr = arr;
+          } else {
+            nextData.applyArr = arr;
+          }
+          this.setData(nextData);
+          if (Number(this.data.depHasSubs) > 0) {
+            this._syncRetailDepInfoSubsFromDepArr(arr);
+          }
 
         } else {
      
@@ -342,6 +350,22 @@ Page({
       })
 
 
+  },
+
+  _normalizeRetailOrders(arr) {
+    var list = Array.isArray(arr) ? arr : [];
+    if (Number(this.data.depHasSubs) > 0) {
+      return list.map(function (dep) {
+        var normalizedDep = Object.assign({}, dep);
+        normalizedDep.depOrders = (dep.depOrders || []).map(function (order) {
+          return platformDisplay.normalizeOrder(order);
+        });
+        return normalizedDep;
+      });
+    }
+    return list.map(function (order) {
+      return platformDisplay.normalizeOrder(order);
+    });
   },
 
   toChangeKg() {
@@ -377,14 +401,14 @@ Page({
             hasWeightCount: res.result.data.hasWeightCount,
           })
           if (this.data.depHasSubs > 0) {
-            var arrKg = res.result.data.arr;
+            var arrKg = this._normalizeRetailOrders(res.result.data.arr);
             this.setData({
               depArr: arrKg,
             });
             this._syncRetailDepInfoSubsFromDepArr(arrKg);
           } else {
             this.setData({
-              applyArr: res.result.data.arr,
+              applyArr: this._normalizeRetailOrders(res.result.data.arr),
             })
           }
 

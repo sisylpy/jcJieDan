@@ -166,7 +166,7 @@
 
                   <view class="third-row" bind:tap="showPrintStandardTip" data-order="{{order}}" data-index="{{applyIndex}}" style="position: relative;">
                     <text class=" text-secondary">单价:</text>
-                    <text class="{{order.nxDoPrice == '0.1'   ||  order.nxDoPrice == '' ? 'text-danger' : ''}}" wx:if="{{order.nxDoPrice !== null}}">{{order.nxDoPrice == 0.1 ||  order.nxDoPrice == ''  ?  '-' : order.nxDoPrice }}</text>
+                    <text class="{{order._unpriced ? 'text-danger' : ''}}" wx:if="{{order.nxDoPrice !== null}}">{{order._displayPrice}}</text>
                     <text>/{{order.nxDoPrintStandard}}</text>
 
                   </view>
@@ -289,8 +289,8 @@
                   <view class="third-row" bind:tap="showPrintStandardTip" data-order="{{order}}"
                     data-index="{{depIndex}}_{{applyIndex}}" style="position: relative;">
                     <text class=" text-secondary">单价:</text>
-                    <text class="{{order.nxDoPrice == '0.1' ||  order.nxDoPrice == ''  ? 'text-danger' : ''}}"
-                      wx:if="{{order.nxDoPrice !== null}}">{{order.nxDoPrice == 0.1  ||  order.nxDoPrice == '' ?  '-' : order.nxDoPrice }}</text>
+                    <text class="{{order._unpriced ? 'text-danger' : ''}}"
+                      wx:if="{{order.nxDoPrice !== null}}">{{order._displayPrice}}</text>
                     <text>/{{order.nxDoPrintStandard}}</text>
                   </view>
 
