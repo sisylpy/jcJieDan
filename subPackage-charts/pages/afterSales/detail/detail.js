@@ -650,7 +650,7 @@ Page({
 
   toCompensationManagement() {
     wx.navigateTo({
-      url: '../../management/compensationCoupon/compensationCoupon?disId=' + this.data.distributerId
+      url: '/subPackage-coupon/pages/management/compensationCoupon/compensationCoupon?disId=' + this.data.distributerId
     })
   },
 

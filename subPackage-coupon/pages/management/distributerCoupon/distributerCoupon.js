@@ -56,14 +56,14 @@ Page({
 
   toAdd() {
     wx.navigateTo({
-      url: '/subPackage/pages/management/distributerCoupon/couponEdit?disId=' + this.data.disId
+      url: '/subPackage-coupon/pages/management/distributerCoupon/couponEdit?disId=' + this.data.disId
     });
   },
 
   toEdit(e) {
     const id = Number(e.currentTarget.dataset.id);
     wx.navigateTo({
-      url: '/subPackage/pages/management/distributerCoupon/couponEdit?disId=' + this.data.disId + '&id=' + id
+      url: '/subPackage-coupon/pages/management/distributerCoupon/couponEdit?disId=' + this.data.disId + '&id=' + id
     });
   },
 

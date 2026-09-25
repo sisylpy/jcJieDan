@@ -104,11 +104,6 @@
       "pages/management/payPageMarket/payPageMarket",
       "pages/management/payDetail/payDetail",
       "pages/management/deliveryStrategy/deliveryStrategy",
-      "pages/management/distributerCoupon/distributerCoupon",
-      "pages/management/distributerCoupon/couponEdit",
-      "pages/management/distributerCoupon/couponGoodsPicker",
-      "pages/management/compensationCoupon/compensationCoupon",
-      "pages/management/compensationCoupon/compensationCouponEdit",
 
       "pages/announcement/index/index",
       "pages/announcement/detail/detail",
@@ -168,6 +163,16 @@
       "pages/management/printerSet/printerSet",
       "pages/management/printerSetting/printerSetting",
       "pages/management/labelPrinter/labelPrinter"
+    ]
+    }, {
+    "root": "subPackage-coupon/",
+    "name": "coupon",
+    "pages": [
+      "pages/management/distributerCoupon/distributerCoupon",
+      "pages/management/distributerCoupon/couponEdit",
+      "pages/management/distributerCoupon/couponGoodsPicker",
+      "pages/management/compensationCoupon/compensationCoupon",
+      "pages/management/compensationCoupon/compensationCouponEdit"
     ]
     }, {
     "root": "subPackage-charts/",

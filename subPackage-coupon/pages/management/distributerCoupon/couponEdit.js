@@ -356,7 +356,7 @@ Page({
 
   openGoodsPicker() {
     wx.navigateTo({
-      url: '/subPackage/pages/management/distributerCoupon/couponGoodsPicker?disId=' + this.data.disId,
+      url: '/subPackage-coupon/pages/management/distributerCoupon/couponGoodsPicker?disId=' + this.data.disId,
       events: {
         onSelected: (data) => {
           const ids = (data.selectedIds || []).slice();

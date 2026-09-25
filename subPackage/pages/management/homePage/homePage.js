@@ -529,13 +529,13 @@ Page({
 
   toCoupon(){
     wx.navigateTo({
-      url: '../distributerCoupon/distributerCoupon?disId=' + this.data.disId,
+      url: '/subPackage-coupon/pages/management/distributerCoupon/distributerCoupon?disId=' + this.data.disId,
     })
   },
 
   toCompensationCoupon(){
     wx.navigateTo({
-      url: '../compensationCoupon/compensationCoupon?disId=' + this.data.disId,
+      url: '/subPackage-coupon/pages/management/compensationCoupon/compensationCoupon?disId=' + this.data.disId,
     })
   },
 
