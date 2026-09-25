@@ -56,7 +56,7 @@
         </view>
 
         <view class="flex-row-between p-20" wx:if="{{averageBuyPrice}}">
-          <text class="margin-l-right">平均单价:</text>
+          <text class="margin-l-right">平均采购价:</text>
           <view class="flex-row">
             <text>{{averageBuyPrice}}元/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
           </view>
@@ -66,14 +66,15 @@
           <text class="margin-l-right">建议售价:</text>
           <view class="flex-row">
             <view class="inputView" style="width: 200rpx; margin-right: 10rpx;">
-              <input class='input' type='digit' value="{{cartonExpectPrice || item.nxDpgExpectPrice}}" disabled="{{receiptOnly}}" bindinput="getPurchaseExpectPrice" bindblur="_checkPrice" bindconfirm="hideKeyboard" confirm-type="done"></input>
+              <input class='input' type='digit' value="{{receiptOnly ? receiptExpectedBasePrice : (cartonExpectPrice || item.nxDpgExpectPrice)}}" bindinput="getPurchaseExpectPrice" bindblur="_checkPrice" bindconfirm="hideKeyboard" confirm-type="done"></input>
             </view>
-            <text wx:if="{{hasPurchasableCarton}}" class="unit-switch" bindtap="togglePurchaseUnit">元/{{purchaseUseCartonUnit ? item.nxDistributerGoodsEntity.nxDgCartonUnit : item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+            <text wx:if="{{receiptOnly}}">元/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+            <text wx:elif="{{hasPurchasableCarton}}" class="unit-switch" bindtap="togglePurchaseUnit">元/{{purchaseUseCartonUnit ? item.nxDistributerGoodsEntity.nxDgCartonUnit : item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
             <text wx:else>元/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
           </view>
         </view>
 
-        <view class="flex-row-between p-20" wx:if="{{averageExpectPrice}}">
+        <view class="flex-row-between p-20" wx:if="{{!receiptOnly && averageExpectPrice}}">
           <text class="margin-l-right">平均建议售价:</text>
           <view class="flex-row">
             <text>{{averageExpectPrice}}元/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>

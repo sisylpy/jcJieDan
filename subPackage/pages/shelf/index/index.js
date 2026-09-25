@@ -31,6 +31,13 @@ import {cancleDownDisGoods} from '../../../lib/apiibook'
 const tabBarHeight = 50; // 根据实际情况调整
 const viewBarHeight = 60;
 
+function scalePriceToPurchaseUnit(baseUnitPrice, factor) {
+  if (baseUnitPrice == null || String(baseUnitPrice).trim() === '') return '';
+  const scaled = Number(baseUnitPrice) * Number(factor);
+  if (!Number.isFinite(scaled)) return baseUnitPrice;
+  return scaled.toFixed(6).replace(/\.?0+$/, '');
+}
+
 Page({
 
   onShow() {
@@ -1704,6 +1711,15 @@ Page({
       nxDpgBuyUserId: null,
       nxDpgPurUserId: item.nxDpgPurUserId
     });
+    const disGoods = item.nxDistributerGoodsEntity || {};
+    const factor = Number(payload.nxDpgBuyScale);
+    const purchaseUnit = String(payload.nxDpgStandard || '').trim();
+    const baseUnit = String(disGoods.nxDgGoodsStandardname || '').trim();
+    if (Number.isFinite(factor) && factor > 0 && purchaseUnit && baseUnit
+        && purchaseUnit !== baseUnit) {
+      // 页面按基础单位录入建议售价；服务端采购快照按原采购单位保存。
+      payload.nxDpgExpectPrice = scalePriceToPurchaseUnit(payload.nxDpgExpectPrice, factor);
+    }
     delete payload.nxDistributerGoodsEntity;
     const submission = directStockSubmission.begin(this, saveShelfGoodsStock, payload);
     if (!submission.started) return;

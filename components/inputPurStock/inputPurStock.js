@@ -46,6 +46,7 @@ Component({
     averageBuyPrice: '', // 平均单价（最小单位单价）
     cartonExpectPrice: '', // 箱零售价（用户输入的原始值）
     averageExpectPrice: '', // 平均建议售价（最小单位零售价）
+    receiptExpectedBasePrice: '', // 接收入库时按商品基础单位录入的建议售价
     shelfLifeUnitOptions: [{ label: '天', value: '天' }, { label: '月', value: '月' }, { label: '年', value: '年' }],
     shelfLifeUnitIndex: 0,
     calculatedExpiryDate: '', // 根据生产日期+保质期自动计算的过期日期，仅用于展示
@@ -67,6 +68,7 @@ Component({
           averageBuyPrice: '',
           cartonExpectPrice: '',
           averageExpectPrice: '',
+          receiptExpectedBasePrice: '',
           calculatedExpiryDate: '',
           shelfLifeUnitIndex: 0
         })
@@ -88,6 +90,7 @@ Component({
           hasPurchasableCarton: hasCarton,
           purchaseUseCartonUnit: purchaseUseCarton
         };
+        Object.assign(openPatch, this._receiptDisplayPatch(item));
         if (item && qtyU !== '') {
           openPatch['item.nxDpgBuyQuantity'] = qtyU;
           openPatch['item.nxDpgQuantity'] = qtyU;
@@ -121,10 +124,12 @@ Component({
           averageBuyPrice: '',
           cartonExpectPrice: '',
           averageExpectPrice: '',
+          receiptExpectedBasePrice: '',
           shelfLifeUnitIndex: idx,
           hasPurchasableCarton: hasCarton,
           purchaseUseCartonUnit: purchaseUseCarton
         };
+        Object.assign(patch, this._receiptDisplayPatch(item));
         if (qtyU !== '') {
           patch['item.nxDpgBuyQuantity'] = qtyU;
           patch['item.nxDpgQuantity'] = qtyU;
@@ -191,6 +196,35 @@ Component({
     /** 当前是否按箱录入（与展示单位一致） */
     _useCartonPurchaseMode() {
       return this.data.hasPurchasableCarton && this.data.purchaseUseCartonUnit;
+    },
+
+    _receiptConversionFactor(item) {
+      if (!this.data.receiptOnly || !item || !item.nxDistributerGoodsEntity) return null;
+      const factor = Number(item.nxDpgBuyScale);
+      const purchaseUnit = String(item.nxDpgStandard || '').trim();
+      const baseUnit = String(item.nxDistributerGoodsEntity.nxDgGoodsStandardname || '').trim();
+      if (!Number.isFinite(factor) || factor <= 0 || !purchaseUnit || !baseUnit
+          || purchaseUnit === baseUnit) {
+        return null;
+      }
+      return factor;
+    },
+
+    _receiptDisplayPatch(item) {
+      if (!this.data.receiptOnly || !item) return {};
+      const factor = this._receiptConversionFactor(item);
+      const purchasePrice = Number(item.nxDpgBuyScalePrice || item.nxDpgBuyPrice);
+      const rawExpectedPrice = item.nxDpgExpectPrice;
+      const hasExpectedPrice = rawExpectedPrice != null
+        && String(rawExpectedPrice).trim() !== '';
+      return {
+        averageBuyPrice: factor && Number.isFinite(purchasePrice)
+          ? (purchasePrice / factor).toFixed(1) : '',
+        receiptExpectedBasePrice: hasExpectedPrice
+          ? this._fmtPrice(factor ? Number(rawExpectedPrice) / factor : Number(rawExpectedPrice))
+          : '',
+        averageExpectPrice: ''
+      };
     },
 
     _isNearlyInteger(n, eps) {
@@ -447,6 +481,14 @@ Component({
     // 获取建议售价
     getPurchaseExpectPrice(e) {
       var price = e.detail.value;
+      if (this.data.receiptOnly) {
+        this.setData({
+          receiptExpectedBasePrice: price,
+          cartonExpectPrice: '',
+          averageExpectPrice: ''
+        });
+        return;
+      }
       const disGoods = this.data.item.nxDistributerGoodsEntity;
       let averagePrice = ''; // 平均建议售价（最小单位零售价，仅用于显示）
       
@@ -626,7 +668,9 @@ Component({
         const qtyStr = this._quantityInputStr(this.data.item);
         this.data.item.nxDpgBuyQuantity = qtyStr;
         this.data.item.nxDpgQuantity = qtyStr;
-        if (disGoods) {
+        if (this.data.receiptOnly) {
+          this.data.item.nxDpgExpectPrice = this.data.receiptExpectedBasePrice;
+        } else if (disGoods) {
           if (this._useCartonPurchaseMode()) {
             this.data.item.nxDpgStandard = String(disGoods.nxDgCartonUnit || '').trim();
           } else {
