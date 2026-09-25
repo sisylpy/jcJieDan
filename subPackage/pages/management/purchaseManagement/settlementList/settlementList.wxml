@@ -82,6 +82,9 @@
     <input class="field" type="digit" value="{{payAmount}}" bindinput="amount" placeholder="本次实际付款金额"/>
     <view class="form-row"><text>付款日期</text><picker mode="date" value="{{payDate}}" bindchange="paymentDate"><text>{{payDate}}</text></picker></view>
     <view class="form-row"><text>付款方式</text><picker range="{{methods}}" range-key="name" value="{{payMethodIndex}}" bindchange="paymentMethod"><text>{{methods[payMethodIndex].name}} ›</text></picker></view>
+    <view class="voucher-picker"><view><text>付款凭证</text><text class="pm-muted">可选择微信付款截图</text></view><button size="mini" class="plain" bindtap="choosePaymentVoucher">{{pendingVoucherPath?'重新选择':'选择付款截图'}}</button></view>
+    <view wx:if="{{pendingVoucherPath}}" class="selected-voucher"><text>已选择：{{pendingVoucherName}}</text><text class="pm-link" bindtap="clearPaymentVoucher">移除</text></view>
+    <text class="pm-muted">截图会在付款记录成功生成后上传；上传失败不影响已经登记的付款。</text>
     <text class="pm-muted">这里只登记线下付款事实，不会自动发起微信或银行转账。</text>
     <button class="pm-button" loading="{{paying}}" disabled="{{paying}}" bindtap="pay">确认登记付款</button>
   </view>

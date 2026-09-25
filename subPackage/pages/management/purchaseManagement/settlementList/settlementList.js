@@ -106,7 +106,8 @@ Page({
     periodStart: '', periodEnd: '', allocations: [], reviewSources: [], list: [], payments: [],
     selected: [], selectedAmountText: '0.00', creating: false, createRequestKey: '',
     detail: null, detailLoading: false, payBatch: null, payAmount: '', payDate: '',
-    payMethodIndex: 0, methods, paying: false, paymentRequestKey: '', vouchers: [], voucherPayment: null
+    payMethodIndex: 0, methods, paying: false, paymentRequestKey: '',
+    pendingVoucherPath: '', pendingVoucherName: '', vouchers: [], voucherPayment: null
   },
 
   onLoad() {
@@ -205,29 +206,58 @@ Page({
     const batch = this.data.list.find(item => Number(item.batchId) === Number(event.currentTarget.dataset.id)) || this.data.detail
     if (!batch || !batch.canPay) return
     this.setData({ payBatch: batch, payAmount: batch.remainingText, payDate: today(), payMethodIndex: 0,
-      paymentRequestKey: 'boss-pay-sb-' + batch.batchId + '-' + Date.now() })
+      paymentRequestKey: 'boss-pay-sb-' + batch.batchId + '-' + Date.now(),
+      pendingVoucherPath: '', pendingVoucherName: '' })
   },
-  closePay() { if (!this.data.paying) this.setData({ payBatch: null, payAmount: '', paymentRequestKey: '' }) },
+  closePay() {
+    if (!this.data.paying) this.setData({ payBatch: null, payAmount: '', paymentRequestKey: '',
+      pendingVoucherPath: '', pendingVoucherName: '' })
+  },
   closeOverlay() { this.data.payBatch ? this.closePay() : this.closeVouchers() },
   amount(event) { this.setData({ payAmount: event.detail.value }) },
   paymentDate(event) { this.setData({ payDate: event.detail.value }) },
   paymentMethod(event) { this.setData({ payMethodIndex: Number(event.detail.value) }) },
+  choosePaymentVoucher() {
+    if (this.data.paying) return
+    wx.chooseMedia({ count: 1, mediaType: ['image'], success: result => {
+      const file = result.tempFiles && result.tempFiles[0]
+      if (!file || !file.tempFilePath) return wx.showToast({ title: '未读取到付款截图', icon: 'none' })
+      const parts = file.tempFilePath.split('/')
+      this.setData({ pendingVoucherPath: file.tempFilePath, pendingVoucherName: parts[parts.length - 1] || '微信付款截图' })
+    }, fail: error => {
+      if (!error || String(error.errMsg || '').indexOf('cancel') < 0) wx.showToast({ title: '付款截图选择失败', icon: 'none' })
+    } })
+  },
+  clearPaymentVoucher() {
+    if (!this.data.paying) this.setData({ pendingVoucherPath: '', pendingVoucherName: '' })
+  },
   pay() {
     if (this.data.paying || !this.data.payBatch) return
     const amount = Number(this.data.payAmount)
     if (!(amount > 0)) return wx.showToast({ title: '请输入本次付款金额', icon: 'none' })
     if (amount > Number(this.data.payBatch.remainingAmount || 0)) return wx.showToast({ title: '不能超过剩余金额', icon: 'none' })
     const method = this.data.methods[this.data.payMethodIndex]
+    const voucherPath = this.data.pendingVoucherPath
     this.setData({ paying: true })
     recordPurchaseFinancePayment('SUPPLIER_SETTLEMENT', this.data.payBatch.batchId, {
       amount: money(amount), paymentMethod: method.value, paidAt: paidAt(this.data.payDate), reason: '老板登记外部供应商付款'
     }, this.data.paymentRequestKey).then(response => {
       const payment = decoratePayment(responseData(response) || {})
-      this.setData({ payBatch: null, payAmount: '', paymentRequestKey: '', detail: null })
-      wx.showModal({ title: '付款已登记', content: '是否现在上传微信付款截图或其他付款凭证？',
-        confirmText: '上传凭证', cancelText: '稍后上传', success: result => { if (result.confirm) this.uploadVoucherFor(payment) } })
-      return this.loadSupplier()
-    }).catch(error => wx.showToast({ title: error.message || '付款登记失败', icon: 'none' }))
+      this.setData({ payBatch: null, payAmount: '', paymentRequestKey: '', pendingVoucherPath: '',
+        pendingVoucherName: '', detail: null })
+      if (!voucherPath) {
+        wx.showModal({ title: '付款已登记', content: '本次未上传凭证，可在付款记录中随时补传。',
+          confirmText: '知道了', showCancel: false })
+        return this.loadSupplier()
+      }
+      return this.uploadVoucherPath(payment, voucherPath).then(() => {
+        wx.showToast({ title: '付款和凭证已登记', icon: 'success' })
+      }).catch(error => {
+        wx.showModal({ title: '付款已登记，凭证待补传',
+          content: (error.message || '凭证上传失败') + '。付款记录已经保存，请到付款记录中重新上传。',
+          confirmText: '知道了', showCancel: false })
+      }).then(() => this.loadSupplier())
+    }, error => wx.showToast({ title: error.message || '付款登记失败', icon: 'none' }))
       .then(() => this.setData({ paying: false }))
   },
   showVouchers(event) {
@@ -245,10 +275,14 @@ Page({
   },
   uploadVoucherFor(payment) {
     wx.chooseMedia({ count: 1, mediaType: ['image'], success: result => {
-      uploadPurchasePaymentVoucher(payment.paymentId, result.tempFiles[0].tempFilePath, 'boss-supplier-voucher-' + payment.paymentId + '-' + Date.now())
-        .then(responseData).then(() => { wx.showToast({ title: '凭证已上传', icon: 'success' }); this.loadSupplier() })
+      this.uploadVoucherPath(payment, result.tempFiles[0].tempFilePath)
+        .then(() => { wx.showToast({ title: '凭证已上传', icon: 'success' }); this.loadSupplier() })
         .catch(error => wx.showToast({ title: error.message || '凭证上传失败', icon: 'none' }))
     } })
+  },
+  uploadVoucherPath(payment, filePath) {
+    return uploadPurchasePaymentVoucher(payment.paymentId, filePath,
+      'boss-supplier-voucher-' + payment.paymentId + '-' + Date.now()).then(responseData)
   },
   openVoucher(event) {
     const voucher = this.data.vouchers[event.currentTarget.dataset.index]
