@@ -2,6 +2,7 @@ const innerAudioContext = wx.createInnerAudioContext();
 const app = getApp()
 var load = require('../../../../lib/load.js');
 var dateUtils = require('../../../../utils/dateUtil')
+var platformDisplay = require('../../../../utils/platformOrderDisplay.js');
 
 import {
   getOrderPageByDis,
@@ -76,7 +77,7 @@ Page({
         if (res.result.code == 0) {
           load.hideLoading();
           this.setData({
-            applyArr: res.result.data.arr,
+            applyArr: this._formatEditablePriceRows(res.result.data.arr),
           })
 
         } else {
@@ -86,6 +87,21 @@ Page({
           })
         }
       })
+  },
+
+  _formatEditablePriceRows(rows) {
+    if (!Array.isArray(rows)) return [];
+    return rows.map(function (row) {
+      if (row && Array.isArray(row.list)) {
+        row.list = row.list.map(function (order) {
+          order.nxDoPrice = platformDisplay.formatEditableUnitPrice(order.nxDoPrice);
+          return order;
+        });
+      } else if (row) {
+        row.nxDoPrice = platformDisplay.formatEditableUnitPrice(row.nxDoPrice);
+      }
+      return row;
+    });
   },
 
 
@@ -122,15 +138,14 @@ Page({
         oldValue = this.data.applyArr[this.data.focusIndex].nxDoPrice;
       }
 
-      // 检查当前值是否已经有小数点，且小数点后已经有2位
+      // 单价统一只保留 1 位小数。
       var oldValueStr = String(oldValue || "");
       if (oldValueStr.indexOf(".") !== -1) {
         var dotIndex = oldValueStr.indexOf(".");
         var decimalPlaces = oldValueStr.length - dotIndex - 1;
-        if (decimalPlaces >= 2) {
-          // 小数点后已经有2位，阻止继续输入
+        if (decimalPlaces >= 1) {
           wx.showToast({
-            title: '小数点后只能保留两位',
+            title: '小数点后只能保留一位',
             icon: 'none'
           })
           this.try("tishi"); // read 提示
@@ -153,17 +168,16 @@ Page({
         newValue = '';
       }
       
-      // 再次检查新值的小数点位数，确保不超过2位（防止字符串拼接导致的问题）
+      // 再次检查新值的小数点位数，确保不超过 1 位。
       var newValueStr = String(newValue);
       if (newValueStr.indexOf(".") !== -1) {
         var dotIndex = newValueStr.indexOf(".");
         var decimalPlaces = newValueStr.length - dotIndex - 1;
-        if (decimalPlaces > 2) {
-          // 如果超过2位，截取到2位
+        if (decimalPlaces > 1) {
           var parts = newValueStr.split(".");
-          newValue = parts[0] + "." + parts[1].substring(0, 2);
+          newValue = parts[0] + "." + parts[1].substring(0, 1);
           wx.showToast({
-            title: '小数点后只能保留两位',
+            title: '小数点后只能保留一位',
             icon: 'none'
           })
         }
@@ -379,7 +393,8 @@ Page({
       this._save();
     }
     var index = e.currentTarget.dataset.index;
-    var orderData = this.data.applyArr[index].nxDepartmentDisGoodsEntity.nxDdgOrderPrice;
+    var orderData = platformDisplay.formatEditableUnitPrice(
+      this.data.applyArr[index].nxDepartmentDisGoodsEntity.nxDdgOrderPrice);
     var orderPrice = "applyArr[" + index + "].nxDoPrice";
     this.setData({
       focusIndex: index,
@@ -395,7 +410,8 @@ Page({
     }
     var index = e.currentTarget.dataset.index;
     var parentIndex = e.currentTarget.dataset.depindex;
-    var orderData = this.data.applyArr[parentIndex].list[index].nxDepartmentDisGoodsEntity.nxDdgOrderPrice;
+    var orderData = platformDisplay.formatEditableUnitPrice(
+      this.data.applyArr[parentIndex].list[index].nxDepartmentDisGoodsEntity.nxDdgOrderPrice);
     var orderPrice = "applyArr[" + parentIndex + "].list[" + index + "].nxDoPrice";
     this.setData({
       focusParentIndex: parentIndex,

@@ -32,6 +32,38 @@ function formatUnitPrice(v) {
   return isNaN(n) ? String(v) : n.toFixed(1);
 }
 
+function formatEditableUnitPrice(v) {
+  if (v === null || v === undefined || v === '') return '';
+  var n = Number(v);
+  if (!isNaN(n) && (n === 0.1 || n === -1)) return '';
+  return isNaN(n) ? String(v) : n.toFixed(1);
+}
+
+function formatMoneyOne(v) {
+  if (v === null || v === undefined || v === '') return '-';
+  var n = Number(v);
+  return isNaN(n) ? String(v) : n.toFixed(1);
+}
+
+function resolveDisplaySubtotal(order) {
+  if (!order || order._unpriced) return '-';
+  var orderStandard = String(order.nxDoStandard || '').trim();
+  var printStandard = String(order.nxDoPrintStandard || '').trim();
+  var sameBillingUnit = !orderStandard || !printStandard || orderStandard === printStandard;
+  if (sameBillingUnit) {
+    var price = order.nxDoPriceKg ? order.nxDoPriceKg : order.nxDoPrice;
+    var quantity = order.nxDoWeightKg ? order.nxDoWeightKg
+      : (order.nxDoWeight !== null && order.nxDoWeight !== undefined && order.nxDoWeight !== ''
+        ? order.nxDoWeight : order.nxDoQuantity);
+    var priceNumber = Number(price);
+    var quantityNumber = Number(quantity);
+    if (!isNaN(priceNumber) && !isNaN(quantityNumber)) {
+      return (priceNumber * quantityNumber).toFixed(1);
+    }
+  }
+  return formatMoneyOne(order.nxDoSubtotal);
+}
+
 function formatPriceDiff(v) {
   if (v === null || v === undefined || v === '') return '-';
   var n = parseFloat(v);
@@ -76,6 +108,7 @@ function normalizeKgDisplay(order) {
     : formatUnitPrice(order.nxDoPriceKg ? order.nxDoPriceKg : price);
   order._displayWeight = order.nxDoWeightKg ? order.nxDoWeightKg : order.nxDoWeight;
   order._weightDanger = (order.nxDoWeight === '' || order.nxDoWeight == null);
+  order._displaySubtotal = resolveDisplaySubtotal(order);
   return order;
 }
 
@@ -245,5 +278,8 @@ module.exports = {
   resolvePlatformDisplayName: resolvePlatformDisplayName,
   depSectionHeader: depSectionHeader,
   formatPrice: formatPrice,
+  formatUnitPrice: formatUnitPrice,
+  formatEditableUnitPrice: formatEditableUnitPrice,
   formatPriceDiff: formatPriceDiff,
+  resolveDisplaySubtotal: resolveDisplaySubtotal,
 };

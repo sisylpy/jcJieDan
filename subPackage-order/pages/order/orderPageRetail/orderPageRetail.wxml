@@ -173,7 +173,7 @@
 
                   <view class="third-row" wx:if="{{order.nxDoSubtotal !== null || order.nxDoSubtotal == '' }}">
                     <text class="text-secondary">小计:</text>
-                    <text class="{{order.nxDoPrice == '0.1' ||  order.nxDoPrice == ''  ? 'text-danger' : ''}}">{{order.nxDoPrice == 0.1 ||  order.nxDoPrice == '' ?  '-' : order.nxDoSubtotal}}</text>
+                    <text class="{{order._unpriced ? 'text-danger' : ''}}">{{order._displaySubtotal}}</text>
                     <text>元</text>
                   </view>
                 </view>
@@ -296,8 +296,7 @@
 
                   <view class="third-row" wx:if="{{order.nxDoSubtotal !== null || order.nxDoSubtotal == '' }}">
                     <text class="text-secondary">小计:</text>
-                    <text
-                      class="{{order.nxDoPrice == '0.1' ||  order.nxDoPrice == ''  ? 'text-danger' : ''}}">{{order.nxDoPrice == 0.1  ||  order.nxDoPrice == ''  ?  '-' : order.nxDoSubtotal}}</text>
+                    <text class="{{order._unpriced ? 'text-danger' : ''}}">{{order._displaySubtotal}}</text>
                     <text>元</text>
                   </view>
                 </view>
