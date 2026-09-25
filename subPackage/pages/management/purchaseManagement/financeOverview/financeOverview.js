@@ -44,8 +44,12 @@ Page({
     this.setData({ loading: true, error: '' })
     return getPurchaseFinanceOverview({ periodStart: this.data.periodStart, periodEnd: this.data.periodEnd }).then(response => {
       const summary = responseData(response)
-      const purchasers = (summary.purchasers || []).map(decoratePerson)
-      const suppliers = (summary.suppliers || []).map(decorateSupplier)
+      const purchasers = (summary.purchasers || []).map(decoratePerson).filter(item =>
+        Number(item.availableAmount || 0) + Number(item.approvedOutstandingAmount || 0) +
+        Number(item.pendingReviewAmount || 0) + Number(item.pendingConfirmationAmount || 0) > 0)
+      const suppliers = (summary.suppliers || []).map(decorateSupplier).filter(item =>
+        Number(item.availableAmount || 0) + Number(item.outstandingAmount || 0) +
+        Number(item.pendingBatchAmount || 0) + Number(item.amountToVerify || 0) > 0)
       this.setData({ summary, purchasers, suppliers, recentPayments: (summary.recentPayments || []).map(decoratePayment),
         purchaserAvailableText: money(summary.pendingReimbursementAmount),
         purchaserOutstandingText: money(summary.reimbursementOutstandingAmount),

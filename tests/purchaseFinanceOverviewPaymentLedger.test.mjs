@@ -12,6 +12,8 @@ test('purchase finance overview separates current obligations from payment perio
   assert.match(logic, /periodStart.*periodEnd/)
   assert.match(logic, /pendingReimbursementAmount/)
   assert.match(logic, /settlementOutstandingAmount/)
+  assert.match(logic, /pendingReviewAmount/)
+  assert.match(logic, /amountToVerify/)
   assert.match(view, /尚未生成报销单/)
   assert.match(view, /报销单尚未付清/)
   assert.match(view, /尚未生成结账单/)
