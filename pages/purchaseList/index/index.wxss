@@ -531,6 +531,21 @@
   background: #fff2d6;
 }
 
+.source-tag.unshelved {
+  color: #586864;
+  background: #edf2f0;
+}
+
+.source-tag.voice {
+  color: #b83f37;
+  background: #fff0ee;
+}
+
+.source-tag.unresolved {
+  color: #7b6b57;
+  background: #f5f1eb;
+}
+
 .goods-name {
   color: #182d28;
   font-size: 31rpx;

@@ -57,4 +57,11 @@ test('确认页携带原始叫法并展示采购习惯自动匹配结果', () =>
   assert.match(confirmTemplate, /已按您的采购习惯自动选择/);
 });
 
+test('备货列表区分货架、无货架、语音和智能备货来源', () => {
+  assert.match(purchasePage, /UNSHELVED_REPLENISHMENT:\s*\{ text: '无货架'/);
+  assert.match(purchasePage, /VOICE_PURCHASE:\s*\{ text: '语音采购'/);
+  assert.match(purchasePage, /SMART_REPLENISHMENT:\s*\{ text: '智能备货'/);
+  assert.match(purchaseTemplate, /货架、无货架、语音采购和智能备货任务/);
+});
+
 console.log('PASS voice purchase flow: 语音解析、候选确认和采购商品提交链路已接通');

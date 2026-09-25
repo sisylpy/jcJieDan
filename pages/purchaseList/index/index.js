@@ -12,6 +12,12 @@ import {
 
 const DEMAND_SCOPE = 'SHELF_REPLENISHMENT'
 const PURCHASE_APP_ID = 'wx1ea78d3f33234284'
+const PURCHASE_SOURCE_PRESENTATION = {
+  SHELF_REPLENISHMENT: { text: '货架采购', className: 'shelf' },
+  UNSHELVED_REPLENISHMENT: { text: '无货架', className: 'unshelved' },
+  VOICE_PURCHASE: { text: '语音采购', className: 'voice' },
+  SMART_REPLENISHMENT: { text: '智能备货', className: 'smart' }
+}
 
 Page({
   data: {
@@ -197,6 +203,9 @@ Page({
     var standardName = this._cleanText(goods.nxDgGoodsStandardname || item.nxDgGoodsStandardname)
     var demandSource = item.nxDpgDemandSource || item.demandSource || DEMAND_SCOPE
     var mode = item.nxDpgProcurementMode || item.procurementMode || 'UNASSIGNED'
+    var sourcePresentation = PURCHASE_SOURCE_PRESENTATION[demandSource] || {
+      text: '来源待核对', className: 'unresolved'
+    }
     item.selected = false
     item.goodsNameText = [goods.nxDgGoodsBrand, goods.nxDgGoodsName].filter(function (v) {
       return v && v !== 'null'
@@ -205,8 +214,8 @@ Page({
       ? standardWeight + (standardName ? '/' + standardName : '')
       : ''
     item.demandSource = demandSource
-    item.sourceText = demandSource === 'SMART_REPLENISHMENT' ? '智能备货' : '货架采购'
-    item.sourceClass = demandSource === 'SMART_REPLENISHMENT' ? 'smart' : 'shelf'
+    item.sourceText = sourcePresentation.text
+    item.sourceClass = sourcePresentation.className
     item.procurementMode = mode
     item.isSelfBuy = mode === 'SELF_BUY'
     item.waitingStockIn = item.isSelfBuy && Number(item.nxDpgStatus) === 2
@@ -215,7 +224,7 @@ Page({
     // 已完成采购的待入库商品统一回到货架页接收，不再从采购列表重复入库。
     item.canSelect = item.canSupplierOrder
     item.canEditPurchase = (Number(item.nxDpgStatus) === 0 || Number(item.nxDpgStatus) === 1) &&
-      (demandSource === 'SHELF_REPLENISHMENT' || demandSource === 'SMART_REPLENISHMENT')
+      Boolean(PURCHASE_SOURCE_PRESENTATION[demandSource])
     return item
   },
 

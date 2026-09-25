@@ -1345,8 +1345,8 @@ Page({
     const isUnshelf = isUnshelfEdit || this.data.isUnshelfSelected;
     const shelfGoodsId = !isUnshelf && this.data.shelfGoods?.nxDistributerGoodsShelfGoodsId;
 
-    // 无货架订货与智能备货同属“无指定货架的库存补货”；货架商品保留货架补货来源。
-    purGoods.nxDpgDemandSource = isUnshelf ? 'SMART_REPLENISHMENT' : 'SHELF_REPLENISHMENT';
+    // 无货架订货保留自己的正式来源，不能冒充智能备货。
+    purGoods.nxDpgDemandSource = isUnshelf ? 'UNSHELVED_REPLENISHMENT' : 'SHELF_REPLENISHMENT';
 
     // 非货架商品没有申请货架，不能沿用用户上一次浏览的 shelfId。
     if (!isUnshelf && Number(this.data.shelfId) > 0) {

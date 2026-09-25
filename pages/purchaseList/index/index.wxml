@@ -53,7 +53,7 @@
     <view class="empty" wx:elif="{{purchaseGoods.length === 0}}">
       <view class="empty-icon">✓</view>
       <text class="empty-title">今天没有待采购商品</text>
-      <text class="empty-copy">货架采购和智能备货任务会出现在这里</text>
+      <text class="empty-copy">货架、无货架、语音采购和智能备货任务会出现在这里</text>
     </view>
 
     <view class="category-main" wx:else>
