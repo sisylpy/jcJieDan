@@ -1,4 +1,4 @@
-var load = require('../../lib/load.js');
+var load = require('../../../lib/load.js');
 const app = getApp();
 
 import {
@@ -6,14 +6,14 @@ import {
   disAndUserSave,
   disLogin,
   jjshGetMarket
-} from '../../lib/apiDistributer'
+} from '../../../lib/apiDistributer'
 
 // 新增企业微信API导入
 import {
   wxworkLogin,
   wxworkRegister
-} from '../../lib/apiWxwork'
-import { describeOwnerRequestError } from '../../lib/ownerRequest'
+} from '../../../lib/apiWxwork'
+import { describeOwnerRequestError } from '../../../lib/ownerRequest'
 
 Page({
 
@@ -86,7 +86,7 @@ Page({
 
     app.globalData.userInfo = userInfo;
     wx.switchTab({
-      url: '../order/index/index',
+      url: '/pages/order/index/index',
       fail: () => {
         // 页面恢复失败不展示注册页，改用微信身份重新换取Owner会话。
         this._login();
@@ -428,7 +428,7 @@ Page({
         wx.setStorageSync('disInfo',jsonObject.data.disInfo);
         wx.setStorageSync('userInfo',jsonObject.data.userInfo);
         wx.switchTab({
-          url: '../order/index/index',
+          url: '/pages/order/index/index',
         })
 
       }  else {
@@ -471,7 +471,7 @@ Page({
         wx.setStorageSync('disInfo', jsonObject.data.disInfo);
         wx.setStorageSync('userInfo', jsonObject.data.userInfo);
         wx.switchTab({
-          url: '../order/index/index',
+          url: '/pages/order/index/index',
         })
       } else {
         load.hideLoading();
@@ -531,7 +531,7 @@ Page({
       loginFailed: false
     });
     wx.switchTab({
-      url: '../order/index/index',
+      url: '/pages/order/index/index',
       fail: () => this._showLoginFailure('进入首页失败，请重试')
     });
   },
@@ -678,7 +678,7 @@ Page({
                     wx.setStorageSync('disInfo', res.result.data.disInfo)
                     app.globalData.userInfo = res.result.data.userInfo;
                     wx.switchTab({
-                      url: '../order/index/index',
+                      url: '/pages/order/index/index',
                     })
                   } else { //注册失败
                    
@@ -787,7 +787,7 @@ Page({
                       wx.setStorageSync('loginType', 'wxwork'); // 存储登录类型
                       app.globalData.userInfo = res.result.data.userInfo;
                       wx.switchTab({
-                        url: '../order/index/index',
+                        url: '/pages/order/index/index',
                       })
                     } else { //注册失败
                       wx.showToast({
@@ -859,7 +859,7 @@ Page({
                 wx.setStorageSync('loginType', 'wxwork'); // 存储登录类型
                 app.globalData.userInfo = res.result.data.userInfo;
                 wx.switchTab({
-                  url: '../order/index/index',
+                  url: '/pages/order/index/index',
                 })
               } else { // 登陆失败
                 if (!this._requireInviteForRegistration()) return;

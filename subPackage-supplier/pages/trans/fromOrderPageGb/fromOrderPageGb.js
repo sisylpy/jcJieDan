@@ -84,7 +84,7 @@ Page({
                   pageError: (res.result && res.result.msg) || '当前微信尚未登录配送商账号',
                 })
                 wx.navigateTo({
-                  url: '/pages/inviteCode/inviteCode',
+                  url: '/subPackage-auth/pages/inviteCode/inviteCode',
                 })
               }
             })

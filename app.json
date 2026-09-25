@@ -7,9 +7,7 @@
     "pages/purchaseList/index/index",
     "pages/stock/index/index",
     "pages/dispatch/index/index",
-    "pages/printLogin/printLogin",
-    "pages/inviteCode/inviteCode",
-    "pages/login/login"
+    "pages/printLogin/printLogin"
   ],
   
   "subPackages": [{
@@ -147,6 +145,13 @@
       "pages/order/editDepApplyGoods/editDepApplyGoods",
       "pages/order/purGoods/purGoods",
       "pages/order/aiHelpGoods/aiHelpGoods"
+    ]
+    }, {
+    "root": "subPackage-auth/",
+    "name": "auth",
+    "pages": [
+      "pages/inviteCode/inviteCode",
+      "pages/login/login"
     ]
     }, {
     "root": "subPackage-purchase-management/",

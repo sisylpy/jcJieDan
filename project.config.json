@@ -21,6 +21,10 @@
         "type": "suffix"
       },
       {
+        "value": "**/.DS_Store",
+        "type": "glob"
+      },
+      {
         "value": "node_modules",
         "type": "folder"
       },

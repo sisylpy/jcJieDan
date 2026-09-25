@@ -1,9 +1,9 @@
-var load = require('../../lib/load.js');
+var load = require('../../../lib/load.js');
 const app = getApp();
 
 import {
   getInviteCode
-} from '../../lib/apiDistributer'
+} from '../../../lib/apiDistributer'
 
 Page({
   data: {
@@ -24,7 +24,7 @@ Page({
     const userInfo = wx.getStorageSync('userInfo');
     if (userInfo && userInfo.nxDistributerEntity && userInfo.nxDistributerEntity.nxDistributerId != null) {
       wx.switchTab({
-        url: '../order/index/index'
+        url: '/pages/order/index/index'
       })
       return;
     }
@@ -170,4 +170,3 @@ Page({
     })
   }
 })
-

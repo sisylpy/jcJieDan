@@ -628,7 +628,7 @@ logoutOwner(){
       load.showLoading('正在退出')
       app.ownerLogout().then(() => {
         load.hideLoading()
-        wx.reLaunch({ url: '/pages/login/login' })
+        wx.reLaunch({ url: '/subPackage-auth/pages/login/login' })
       })
     }
   })

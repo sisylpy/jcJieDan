@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 
-const js = readFileSync('pages/login/login.js', 'utf8')
-const wxml = readFileSync('pages/login/login.wxml', 'utf8')
+const js = readFileSync('subPackage-auth/pages/login/login.js', 'utf8')
+const wxml = readFileSync('subPackage-auth/pages/login/login.wxml', 'utf8')
 
 assert.match(js, /checkingLogin:\s*true/)
 assert.match(js, /registrationReady:\s*false/)

@@ -98,7 +98,7 @@ Page({
     if (!app.hasUsableOwnerToken() || !userInfo || !disInfo
         || (role !== 0 && role !== 1) || !disInfo.nxDistributerId) {
       app.clearOwnerLoginState()
-      wx.reLaunch({ url: '/pages/login/login' })
+      wx.reLaunch({ url: '/subPackage-auth/pages/login/login' })
       return
     }
     this.setData({

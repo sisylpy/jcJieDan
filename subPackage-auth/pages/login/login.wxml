@@ -102,7 +102,7 @@
 			<input class='inputHalf middle'  placeholder='定位坐标' name='zuobiao' value='{{latitude}}  {{longitude}}'  disabled="false"></input>
 			 </view>
 			 <view  style="width: 100rpx;">
-          <image src="../../images/location.png" class="icon" style="margin-left: 30rpx;"> </image>
+          <image src="../../../images/location.png" class="icon" style="margin-left: 30rpx;"> </image>
         </view>
 			</view>
 		</view> -->
@@ -172,7 +172,7 @@
       <view class='flex-row-between p-30'>
         <text> 请选择您的经营方式。</text>
         <view bindtap="closeType">
-          <image src="../../images/del.png" class="icon"></image>
+          <image src="../../../images/del.png" class="icon"></image>
         </view>
       </view>
       <view class='flex-row p-10'>
@@ -193,7 +193,7 @@
       <view class='flex-row-between p-30'>
         <text>请选择所在市场</text>
         <view bindtap="closeMarket">
-          <image src="../../images/del.png" class="icon"></image>
+          <image src="../../../images/del.png" class="icon"></image>
         </view>
       </view>
       <view class='flex-row'>
