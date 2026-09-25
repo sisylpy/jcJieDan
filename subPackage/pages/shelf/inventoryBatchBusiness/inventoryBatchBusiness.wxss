@@ -347,6 +347,16 @@ page {
   font-size: 21rpx;
 }
 
+.final-result {
+  margin-top: 14rpx;
+  padding: 14rpx 16rpx;
+  display: flex;
+  justify-content: space-between;
+  background: #eef7f5;
+  color: #36564f;
+  font-size: 21rpx;
+}
+
 .fact-section {
   margin-top: 20rpx;
 }

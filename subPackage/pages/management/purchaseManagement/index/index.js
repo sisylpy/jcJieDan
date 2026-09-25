@@ -103,6 +103,12 @@ Page({
     })
   },
 
+  openQuality() {
+    wx.navigateTo({
+      url: '/subPackage-purchase-management/pages/purchasePerformance/purchasePerformance?tab=pending'
+    })
+  },
+
   open(event) {
     wx.navigateTo({
       url: event.currentTarget.dataset.url

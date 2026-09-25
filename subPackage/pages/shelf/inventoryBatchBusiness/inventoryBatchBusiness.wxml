@@ -75,11 +75,11 @@
             <view class="batch-info-grid">
               <view class="batch-info-item">
                 <text class="info-label">采购单价</text>
-                <text class="info-value">¥{{batch.unitCostText}}/{{batch.baseUom}}</text>
+                <text class="info-value">{{batch.unitCostDisplay}}</text>
               </view>
               <view class="batch-info-item">
                 <text class="info-label">当前售价</text>
-                <text class="info-value">¥{{batch.currentSellingPriceText}}/{{batch.baseUom}}</text>
+                <text class="info-value">{{batch.currentSellingPriceDisplay}}</text>
               </view>
               <view class="batch-info-item">
                 <text class="info-label">入库日期</text>
@@ -109,11 +109,13 @@
                 <view><text>退货</text><text>{{batch.supplierReturnQuantityText}}{{batch.baseUom}}</text></view>
                 <view><text>损耗</text><text>{{batch.lossQuantityText}}{{batch.baseUom}}</text></view>
                 <view><text>报废</text><text>{{batch.discardQuantityText}}{{batch.baseUom}}</text></view>
-                <view><text>实现毛利</text><text>¥{{batch.currentRealizedMarginText}}</text></view>
+                <view><text>当前经营结果</text><text>{{batch.currentRealizedMarginText}}</text></view>
               </view>
+              <view class="conservation-warning" wx:if="{{batch.quantityConserved == null}}">数量或金额依据不足，未按0计算。</view>
               <view class="conservation-warning" wx:if="{{batch.quantityConserved === false}}">
                 数量差异 {{batch.quantityConservationDelta}}，请核对历史变动
               </view>
+              <view class="final-result"><text>最终经营结果</text><text>{{batch.finalMarginText}}</text></view>
               <view class="fact-section">
                 <text class="fact-section-title">损耗 / 报废记录</text>
                 <view class="fact-row" wx:for="{{batch.lossFacts}}" wx:key="factId" wx:for-item="fact">
@@ -140,8 +142,8 @@
 
       <view class="performance-entry" bindtap="toPerformance" wx:if="{{batches.length > 0}}">
         <view>
-          <text class="performance-title">采购经营绩效</text>
-          <text class="performance-desc">查看采购员与供货商的批次经营结果</text>
+          <text class="performance-title">采购质量与经营</text>
+          <text class="performance-desc">查看待处理事项与库存批次经营结果</text>
         </view>
         <text class="performance-arrow">›</text>
       </view>

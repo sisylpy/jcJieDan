@@ -158,13 +158,15 @@ Page({
       ))
       const successful = results.filter(result => !result.failed)
       const firstNamedBatch = batches.find(batch => batch.goodsName)
-      const totalRemaining = batches.reduce((sum, batch) => sum + Number(batch.remainingQuantity || 0), 0)
+      const remainingKnown = batches.length > 0 && batches.every(batch => !batch.loadFailed && batch.remainingQuantity !== null)
+      const totalRemaining = remainingKnown
+        ? batches.reduce((sum, batch) => sum + Number(batch.remainingQuantity), 0) : null
 
       this.setData({
         batches,
         goodsName: firstNamedBatch ? firstNamedBatch.goodsName : this.data.goodsName,
         standardName: firstNamedBatch ? firstNamedBatch.baseUom : this.data.standardName,
-        totalRemainingText: this._formatNumber(totalRemaining, 3),
+        totalRemainingText: totalRemaining === null ? '依据不足' : this._formatNumber(totalRemaining, 3),
         errorText: successful.length === 0 ? '批次经营数据暂时无法加载，请稍后重试' : '',
         loading: false
       })
@@ -204,15 +206,22 @@ Page({
       supplierReturnQuantityText: this._formatNumber(detail.supplierReturnQuantity, 3),
       unitCost,
       unitCostText: this._formatNumber(unitCost, 2),
+      unitCostDisplay: unitCost === null ? '依据不足' : '¥' + this._formatNumber(unitCost, 2) + '/' + baseUom,
       currentSellingPrice: sellingPrice,
       currentSellingPriceText: this._formatNumber(sellingPrice, 2),
-      currentRealizedMarginText: this._formatNumber(detail.currentRealizedMargin, 2),
-      stockInDate: raw.nxDgssDate || raw.nxDgssInventoryDate || '',
+      currentSellingPriceDisplay: sellingPrice === null ? '依据不足' : '¥' + this._formatNumber(sellingPrice, 2) + '/' + baseUom,
+      currentRealizedMarginText: detail.currentRealizedMargin === null || detail.currentRealizedMargin === undefined
+        ? '依据不足' : '¥' + this._formatNumber(detail.currentRealizedMargin, 2),
+      finalMarginText: detail.businessStatus !== 'COMPLETED' ? '经营中，尚无最终结果'
+        : detail.finalMargin === null || detail.finalMargin === undefined
+          ? '依据不足' : '¥' + this._formatNumber(detail.finalMargin, 2),
+      stockInDate: detail.stockInDate || raw.nxDgssDate || raw.nxDgssInventoryDate || '',
       produceDate: raw.nxDgssProduceDate || '',
       expiryDate: raw.nxDgssExpiryDate || '',
-      purchaserName: detail.purchaserName || '未分配采购员',
-      supplierName: detail.supplierName || '未关联供货商',
-      businessStatusText: detail.businessStatus === 'COMPLETED' ? '已完结' : '经营中',
+      purchaserName: this._responsibilityText('采购员', detail.purchaserUserId, detail.purchaserName),
+      supplierName: this._responsibilityText('供应方', detail.supplierRelationId, detail.supplierName),
+      businessStatusText: detail.businessStatus === 'COMPLETED' ? '已符合数量完结条件'
+        : detail.businessStatus === 'DATA_INCOMPLETE' ? '状态依据不足' : '经营中',
       isCompleted: detail.businessStatus === 'COMPLETED',
       lossFacts,
       expanded,
@@ -225,6 +234,12 @@ Page({
     return found ? found.label : (code || '未填写')
   },
 
+  _responsibilityText(role, id, currentName) {
+    if (!id) return '未关联' + role
+    if (!currentName) return '历史' + role + ' #' + id + '（名称未留存）'
+    return currentName + '（当前主档，责任ID #' + id + '）'
+  },
+
   _firstNumber() {
     for (let index = 0; index < arguments.length; index += 1) {
       const value = arguments[index]
@@ -232,12 +247,12 @@ Page({
         return Number(value)
       }
     }
-    return 0
+    return null
   },
 
   _formatNumber(value, digits) {
     const number = Number(value)
-    if (!Number.isFinite(number)) return '0'
+    if (value === null || value === undefined || value === '' || !Number.isFinite(number)) return '—'
     return number.toFixed(digits).replace(/\.0+$/, '').replace(/(\.\d*?)0+$/, '$1')
   },
 
@@ -252,6 +267,10 @@ Page({
     const batch = this.data.batches[index]
     if (!batch || batch.loadFailed) {
       wx.showToast({ title: '批次数据尚未加载', icon: 'none' })
+      return
+    }
+    if (batch.remainingQuantity === null) {
+      wx.showToast({ title: '剩余数量依据不足，不能直接盘点修改', icon: 'none' })
       return
     }
     this.setData({
@@ -357,14 +376,14 @@ Page({
     const value = e.detail.value
     const price = Number(value)
     const batch = this.data.selectedBatch || {}
-    const cost = Number(batch.unitCost || 0)
+    const cost = batch.unitCost === null ? null : Number(batch.unitCost)
     const remaining = Number(batch.remainingQuantity || 0)
     this.setData({
       newSellingPrice: value,
-      expectedTailMargin: value !== '' && Number.isFinite(price)
+      expectedTailMargin: value !== '' && Number.isFinite(price) && cost !== null
         ? this._formatNumber((price - cost) * remaining, 2)
         : null,
-      belowCost: value !== '' && Number.isFinite(price) && price < cost
+      belowCost: value !== '' && Number.isFinite(price) && cost !== null && price < cost
     })
   },
 
@@ -435,7 +454,7 @@ Page({
   },
 
   toPerformance() {
-    wx.navigateTo({ url: '/subPackage/pages/management/purchasePerformance/purchasePerformance' })
+    wx.navigateTo({ url: '/subPackage-purchase-management/pages/purchasePerformance/purchasePerformance?tab=inventory' })
   }
 })
 

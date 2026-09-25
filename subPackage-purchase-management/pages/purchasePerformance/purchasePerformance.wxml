@@ -1,0 +1,104 @@
+<template name="pendingSection">
+  <view class="section" wx:if="{{items.length}}">
+    <view class="section-title-row">
+      <view><text class="section-title">{{title}}</text><text class="section-note">{{note}}</text></view>
+      <text class="section-count {{tone}}">{{items.length}}</text>
+    </view>
+    <view class="pending-card" wx:for="{{items}}" wx:key="resourceId">
+      <view class="card-head">
+        <view class="subject-block"><text class="subject">{{item.subjectName||item.title}}</text><text class="meta">{{item.businessDateText}} · {{item.exceptionTypeText}}</text></view>
+        <text class="status {{item.statusCode}}">{{item.statusText}}</text>
+      </view>
+      <text class="event-title">{{item.title}}</text>
+      <view class="fact-line"><text class="fact-label">发生了什么</text><text class="fact-value">{{item.detailText}}</text></view>
+      <view class="fact-line"><text class="fact-label">业务影响</text><text class="fact-value">{{item.impactText}}</text></view>
+      <view class="responsibility"><text>当前负责：{{item.responsibleRole||'仅核查'}}</text></view>
+      <view class="actions" wx:if="{{item.canAssign||item.canView}}">
+        <button wx:if="{{item.canAssign}}" class="primary-button" data-relation="{{item.supplierRelationId}}" data-subject="{{item.subjectName}}" bindtap="beginAssign">分配采购负责人</button>
+        <button wx:if="{{item.canView}}" class="text-button" data-resource="{{item.resourceType}}" data-id="{{item.resourceId}}" bindtap="openPending">{{item.actionLabel}}</button>
+      </view>
+      <text wx:else class="no-action">当前没有安全的直接处理入口，请按原因联系对应角色或查看来源资料。</text>
+    </view>
+  </view>
+</template>
+
+<view class="page">
+  <back-navbar style="height:{{navBarHeight}}rpx" title="采购质量与经营" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+  <view class="main-tabs" style="top:{{navBarHeight}}rpx">
+    <text class="main-tab {{activeTab==='PENDING'?'on':''}}" data-value="PENDING" bindtap="changeTab">待处理</text>
+    <text class="main-tab {{activeTab==='INVENTORY'?'on':''}}" data-value="INVENTORY" bindtap="changeTab">库存经营</text>
+  </view>
+
+  <scroll-view wx:if="{{activeTab==='PENDING'}}" scroll-y class="body" style="padding-top:{{navBarHeight + 90}}rpx">
+    <view class="intro">
+      <text class="intro-title">按真实状态处理事情</text>
+      <text>正常采购中、等待供货和正常分次到货不会自动算作异常。来源状态推进后，本页会重新读取并更新。</text>
+    </view>
+    <view wx:if="{{pendingError}}" class="state error-state"><text>{{pendingError}}</text><text class="retry" bindtap="retryPending">重新加载</text></view>
+    <view wx:elif="{{pendingLoading}}" class="state">正在读取当前事项…</view>
+    <view wx:elif="{{!pendingTotal}}" class="state success-state">当前没有待处理、等待或历史提示</view>
+    <block wx:else>
+      <template is="pendingSection" data="{{...actionSection}}"></template>
+      <template is="pendingSection" data="{{...waitingSection}}"></template>
+      <template is="pendingSection" data="{{...blockedSection}}"></template>
+      <template is="pendingSection" data="{{...historySection}}"></template>
+    </block>
+    <view class="bottom-space"></view>
+  </scroll-view>
+
+  <scroll-view wx:else scroll-y class="body" style="padding-top:{{navBarHeight + 90}}rpx">
+    <view class="filter-card">
+      <text class="filter-title">库存批次来源</text>
+      <view class="dimension-tabs">
+        <text class="dimension-tab {{dimension==='PURCHASER'?'on':''}}" data-value="PURCHASER" bindtap="changeDimension">按采购员</text>
+        <text class="dimension-tab {{dimension==='SUPPLIER'?'on':''}}" data-value="SUPPLIER" bindtap="changeDimension">按供应方</text>
+      </view>
+      <text class="filter-label">入库日期范围</text>
+      <view class="dates"><picker mode="date" value="{{startDate}}" bindchange="changeStart"><text>{{startDate}}</text></picker><text>至</text><picker mode="date" value="{{stopDate}}" bindchange="changeStop"><text>{{stopDate}}</text></picker></view>
+      <text class="time-note">{{timeBasisText||'按入库日期筛选库存批次；批次内经营事实显示截至当前的累计结果'}}</text>
+    </view>
+
+    <view wx:if="{{inventoryError}}" class="state error-state"><text>{{inventoryError}}</text><text class="retry" bindtap="retryInventory">重新加载</text></view>
+    <view wx:elif="{{inventoryLoading}}" class="state">正在读取库存批次…</view>
+    <view wx:elif="{{!groups.length}}" class="state">所选入库日期范围没有可核实的库存批次</view>
+    <block wx:else>
+      <view class="coverage-note" wx:if="{{excludedCount}}">另有 {{excludedCount}} 条记录因不属于库房库存或来源未解析而未纳入；未按0计算。</view>
+      <view class="source-card" wx:for="{{groups}}" wx:key="id">
+        <view class="source-head"><view><text class="source-name">{{item.name}}</text><text class="source-meta">{{item.stockBatchCount}} 个库存批次 · 经营中 {{item.operatingStockBatchCount}} · 完结 {{item.completedStockBatchCount}}</text></view><text wx:if="{{item.attentionCount}}" class="attention">{{item.attentionCount}} 项注意</text></view>
+        <view class="summary-line"><text>入库成本 {{item.grossPurchaseCostText}}</text><text>当前经营结果 {{item.currentRealizedMarginText}}</text></view>
+        <view class="summary-line"><text>损耗成本 {{item.lossCostText}}（{{item.lossCostRateText}}）</text><text>废弃成本 {{item.discardCostText}}（{{item.discardCostRateText}}）</text></view>
+        <text class="basis-note" wx:if="{{item.costBasisUnknownCount}}">{{item.costBasisUnknownCount}} 个批次成本依据不足，来源合计和损耗成本率未强行补0。</text>
+
+        <view class="unit-block" wx:for="{{item.unitSummaries}}" wx:key="uom" wx:for-item="unit">
+          <text class="unit-title">{{unit.uom}}口径</text>
+          <text>入库 {{unit.stockInText}} · 剩余 {{unit.remainingText}}</text>
+          <text>损耗 {{unit.lossText}} · 废弃 {{unit.discardText}}</text>
+          <text wx:if="{{unit.basisStatus==='PARTIAL'}}" class="basis-note">同单位仍有数量依据缺失，未合计为0。</text>
+        </view>
+
+        <view class="stock-card" wx:for="{{item.stockBatches}}" wx:key="stockBatchId" wx:for-item="batch" data-id="{{batch.stockBatchId}}" bindtap="openBatch">
+          <view class="stock-head"><view><text class="goods-name">{{batch.goodsName||('库存批次 #'+batch.stockBatchId)}}</text><text class="stock-meta">库存批次 #{{batch.stockBatchId}} · 入库 {{batch.stockInDate||'日期未记录'}}</text></view><text class="stock-status">{{batch.businessStatusText}}</text></view>
+          <view class="stock-quantities"><text>入库 {{batch.stockInText}}</text><text>当前剩余 {{batch.remainingText}}</text></view>
+          <view class="stock-quantities"><text>损耗 {{batch.lossText}}</text><text>废弃 {{batch.discardText}}</text></view>
+          <text class="stock-source">{{batch.purchaserText}} · {{batch.supplierText}}</text>
+          <view class="issue" wx:for="{{batch.issues}}" wx:key="*this" wx:for-item="issue">{{issue}}</view>
+          <view class="result-line"><text>当前结果 {{batch.currentResultText}}</text><text>{{batch.resultStatusText}}</text></view>
+          <view class="result-line"><text>最终结果 {{batch.finalResultText}}</text><text class="detail-link">查看库存详情 ›</text></view>
+        </view>
+      </view>
+    </block>
+    <view class="bottom-space"></view>
+  </scroll-view>
+
+  <view wx:if="{{showAssignment}}" class="mask" bindtap="closeAssignment">
+    <view class="assignment-panel" catchtap="noop">
+      <view class="panel-head"><view><text class="panel-title">分配采购负责人</text><text class="panel-note">{{assignItem.subjectName}}</text></view><text class="panel-close" bindtap="closeAssignment">关闭</text></view>
+      <text class="panel-explain">这是供应关系负责人设置。保存后服务端会按正式规则恢复待处理的自动订货，不会直接改采购批次负责人。</text>
+      <view wx:if="{{purchasersLoading}}" class="state">正在读取当前采购员…</view>
+      <view wx:elif="{{!purchasers.length}}" class="state">没有可分配的当前采购员</view>
+      <scroll-view wx:else scroll-y class="purchaser-list">
+        <view class="purchaser-row" wx:for="{{purchasers}}" wx:key="purchaserUserId" data-id="{{item.purchaserUserId}}" data-name="{{item.purchaserName}}" bindtap="choosePurchaser"><view><text class="purchaser-name">{{item.purchaserName||('采购员 #'+item.purchaserUserId)}}</text><text class="purchaser-status">{{item.accountStatusText}}</text></view><text>{{assigning?'保存中…':'选择 ›'}}</text></view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

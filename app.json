@@ -73,7 +73,6 @@
       "pages/management/homePage/homePage",
       "pages/management/dispatchPerformance/dispatchPerformance",
       "pages/management/dispatchPerformanceDetail/dispatchPerformanceDetail",
-      "pages/management/purchasePerformance/purchasePerformance",
       "pages/management/purchaseManagement/index/index",
       "pages/management/purchaseManagement/pendingStockInList/pendingStockInList",
       "pages/management/purchaseManagement/purchaseAmountDetail/purchaseAmountDetail",
@@ -83,7 +82,6 @@
       "pages/management/purchaseManagement/supplierDetail/supplierDetail",
       "pages/management/purchaseManagement/purchaseBatchList/purchaseBatchList",
       "pages/management/purchaseManagement/purchaseBatchDetail/purchaseBatchDetail",
-      "pages/management/purchaseManagement/purchaseExceptionList/purchaseExceptionList",
       "pages/management/purchaseManagement/financeOverview/financeOverview",
       "pages/management/purchaseManagement/fundingClassification/fundingClassification",
       "pages/management/purchaseManagement/reimbursementList/reimbursementList",
@@ -149,6 +147,12 @@
       "pages/order/editDepApplyGoods/editDepApplyGoods",
       "pages/order/purGoods/purGoods",
       "pages/order/aiHelpGoods/aiHelpGoods"
+    ]
+    }, {
+    "root": "subPackage-purchase-management/",
+    "name": "purchaseManagement",
+    "pages": [
+      "pages/purchasePerformance/purchasePerformance"
     ]
     }, {
     "root": "subPackage-routeDispatch/",

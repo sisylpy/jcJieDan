@@ -7,12 +7,14 @@ const must = (condition, message) => { if (!condition) throw new Error(message) 
 
 const app = JSON.parse(read('app.json'))
 const pages = app.subPackages.find(item => item.root === 'subPackage/').pages
+const qualityPages = app.subPackages.find(item => item.root === 'subPackage-purchase-management/').pages
 must(pages.includes('pages/shelf/inventoryBatchBusiness/inventoryBatchBusiness'), '库存批次经营页未注册')
-must(pages.includes('pages/management/purchasePerformance/purchasePerformance'), '采购绩效页未注册')
+must(qualityPages.includes('pages/purchasePerformance/purchasePerformance'), '采购质量与经营页未注册')
 
 const api = read('lib/apiDistributer.js')
 ;['getInventoryBatchBusiness', 'addInventoryBatchLossFact', 'changeInventoryBatchPrice',
-  'reverseInventoryBatchLossFact', 'getInventoryPurchasePerformance'].forEach(name =>
+  'reverseInventoryBatchLossFact', 'getInventoryPurchasePerformance',
+  'assignSupplierPurchaseOwner'].forEach(name =>
   must(api.includes('export const ' + name), '缺少 API: ' + name))
 must(api.includes("getApp().ownerRequest"), '采购批次 API 必须使用 Owner 鉴权请求')
 must(api.includes("'X-Idempotency-Key'"), '事实写入必须携带幂等键')
@@ -28,9 +30,17 @@ const detailWxml = read('subPackage/pages/shelf/inventoryBatchBusiness/inventory
 must(detailJs.includes('actual > current'), '批次页必须阻止绕过入库直接增加库存')
 must(detailWxml.includes('reverseFact'), '损耗事实必须支持冲销而非删除')
 
-const performance = read('subPackage/pages/management/purchasePerformance/purchasePerformance.wxml')
-must(performance.includes('按采购员') && performance.includes('按供货商'), '绩效维度不完整')
-must(performance.includes('降价影响') && performance.includes('供货商品质'), '绩效指标不完整')
+const performance = read('subPackage-purchase-management/pages/purchasePerformance/purchasePerformance.wxml')
+const performanceJs = read('subPackage-purchase-management/pages/purchasePerformance/purchasePerformance.js')
+must(performance.includes('待处理') && performance.includes('库存经营'), '联合模块页签不完整')
+must(performance.includes('按采购员') && performance.includes('按供应方'), '库存来源维度不完整')
+must(performance.includes('入库日期范围'), '库存批次时间口径未说明')
+must(performance.includes('损耗成本') && performance.includes('废弃成本'), '库存经营成本指标不完整')
+must(!performance.includes('总损耗率'), '跨商品指标不能继续叫数量损耗率')
+must(performanceJs.includes('unitSummaries'), '不同单位必须分组展示')
+must(performanceJs.includes("'依据不足'"), '缺失事实必须和真实零值区分')
+must(!performance.includes('purchaseBatchCount'), '库存批次数不能继续使用采购批次数字段')
+must(detailJs.includes("return null"), '库存详情不能把缺失数量自动格式化成0')
 const shelfWxml = read('subPackage/pages/shelf/index/index.wxml')
 const shelfJs = read('subPackage/pages/shelf/index/index.js')
 const shelfJson = JSON.parse(read('subPackage/pages/shelf/index/index.json'))

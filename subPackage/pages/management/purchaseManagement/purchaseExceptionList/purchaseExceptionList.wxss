@@ -1,2 +1,0 @@
-@import "../common.wxss";
-.exception{padding:18rpx 0;border-bottom:1rpx solid #edf1ef}.exception:last-child{border-bottom:0}

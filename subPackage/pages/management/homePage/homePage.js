@@ -596,7 +596,7 @@ toSalesAnalysis(){
 
 toPurchasePerformance(){
   wx.navigateTo({
-    url: '/subPackage/pages/management/purchasePerformance/purchasePerformance',
+    url: '/subPackage-purchase-management/pages/purchasePerformance/purchasePerformance',
   })
 },
 

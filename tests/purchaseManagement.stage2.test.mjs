@@ -13,10 +13,14 @@ const required = [
   'pages/management/purchaseManagement/supplierList/supplierList',
   'pages/management/purchaseManagement/supplierDetail/supplierDetail',
   'pages/management/purchaseManagement/purchaseBatchList/purchaseBatchList',
-  'pages/management/purchaseManagement/purchaseBatchDetail/purchaseBatchDetail',
-  'pages/management/purchaseManagement/purchaseExceptionList/purchaseExceptionList'
+  'pages/management/purchaseManagement/purchaseBatchDetail/purchaseBatchDetail'
 ]
 required.forEach(page => assert.ok(pages.includes(page), `missing page registration: ${page}`))
+const qualityPackage = app.subPackages.find(item => item.root === 'subPackage-purchase-management/')
+assert.ok(qualityPackage && qualityPackage.pages.includes('pages/purchasePerformance/purchasePerformance'),
+  'the unified quality page must live in its own package so the legacy subpackage remains below 2MB')
+assert.ok(!pages.includes('pages/management/purchaseManagement/purchaseExceptionList/purchaseExceptionList'),
+  'the old standalone exception page must be removed after navigation replacement')
 
 const api = read('lib/apiDistributer.js')
 assert.match(api, /purchaseManagementRequest\('overview'/)
@@ -27,6 +31,8 @@ assert.match(api, /purchaseManagementRequest\('purchasers\/' \+ id \+ '\/tasks'/
 assert.match(api, /purchaseManagementRequest\('suppliers'/)
 assert.match(api, /purchaseManagementRequest\('batches'/)
 assert.match(api, /purchaseManagementRequest\('exceptions'/)
+assert.match(api, /assignSupplierPurchaseOwner/)
+assert.match(api, /purchase\/supplier-ownership\/relations/)
 for (const legacy of ['disGetPurchaseDetailType', 'getPurUserDate', 'disUserGetPurchaserDateBill']) {
   const stage2 = required.map(page => read(`subPackage/${page}.js`)).join('\n')
   assert.ok(!stage2.includes(legacy), `new management pages must not use ${legacy}`)
@@ -69,6 +75,7 @@ assert.match(overviewWxml, /tasks\.collaborationPendingOrderLines/)
 assert.match(overviewWxml, /openCollaborationPending/)
 assert.match(managementIndexJs, /openCollaborationPending\(\)[\s\S]*?\/pages\/doing\/index\/index/,
   'collaboration task must drill into the live unshipped collaboration workspace')
+assert.match(managementIndexJs, /openQuality\(\)[\s\S]*?purchasePerformance\/purchasePerformance\?tab=pending/)
 assert.match(overviewWxml, /查看采购明细/)
 assert.match(overviewWxml, /按采购需求日期归期/)
 assert.match(overviewWxml, /历史账单/)
@@ -76,10 +83,10 @@ assert.doesNotMatch(overviewWxml, /期间金额|实际收货|实际净采购/,
   'overview must not keep the misleading period amount grid')
 assert.match(overviewWxml, /\{\{item\.batchCount\}\} 批次 · \{\{item\.goodsLineCount\}\} 商品行/,
   'procurement-mode structure must expose batchless goods lines as well as real batch counts')
-assert.match(overviewWxml, /当前实现毛利 \/ 率[\s\S]*?period\.currentRealizedMarginRateText\|\|'—'/,
-  'overview must render the server-formatted current margin percentage')
-assert.match(overviewWxml, /完结最终毛利 \/ 率[\s\S]*?period\.completedFinalMarginRateText\|\|'—'/,
-  'overview must render the server-formatted completed margin percentage')
+assert.doesNotMatch(overviewWxml, />经营结果</,
+  'overview must not keep a second inventory-economics formula block')
+assert.equal((overviewWxml.match(/>采购质量与经营</g) || []).length, 1,
+  'purchase management must expose one unified quality and economics entry')
 assert.doesNotMatch(overviewWxml, /period\.(?:currentRealizedMarginRate|completedFinalMarginRate)(?!Text)/,
   'overview must not render or format raw decimal margin rates')
 assert.match(purchaserListWxml, /当前 \{\{item\.currentTaskCount\}\} 项任务/)
@@ -118,10 +125,22 @@ assert.match(batchDetail, /前往精彩订货库存备货接收/)
 const purchaserDetailPage = read('utils/purchaseManagementPurchaserDetailPage.js')
 assert.match(purchaserDetailPage, /OPEN_JRDH_INVENTORY_RECEIPT/)
 assert.match(purchaserDetailPage, /demandScope=SHELF_REPLENISHMENT/)
-const exceptionWxml = read('subPackage/pages/management/purchaseManagement/purchaseExceptionList/purchaseExceptionList.wxml')
-assert.match(exceptionWxml, /采购待办与异常/)
-assert.doesNotMatch(exceptionWxml, /WAITING_STOCK_IN|>待入库</,
-  'normal pending stock-in work must live in its dedicated list, not in exception tabs')
+const qualityJs = read('subPackage-purchase-management/pages/purchasePerformance/purchasePerformance.js')
+const qualityWxml = read('subPackage-purchase-management/pages/purchasePerformance/purchasePerformance.wxml')
+assert.match(qualityWxml, />待处理</)
+assert.match(qualityWxml, />库存经营</)
+for (const section of ['当前可处理', '等待其他角色', '阻断与核查', '历史只读提示']) {
+  assert.ok((qualityJs + qualityWxml).includes(section), `unified page missing section: ${section}`)
+}
+assert.match(qualityWxml, /入库日期范围/)
+assert.doesNotMatch(qualityWxml, /九宫格|总损耗率/)
+assert.match(qualityJs, /getPurchaseManagementExceptions/)
+assert.match(qualityJs, /getInventoryPurchasePerformance/)
+assert.match(qualityJs, /ASSIGN_SUPPLIER_PURCHASER/)
+assert.match(qualityJs, /assignSupplierPurchaseOwner/)
+assert.match(qualityJs, /pendingError/)
+assert.match(qualityJs, /inventoryError/)
+assert.match(qualityJs, /result\.total/)
 const pendingStockInJs = read('subPackage/pages/management/purchaseManagement/pendingStockInList/pendingStockInList.js')
 const pendingStockInWxml = read('subPackage/pages/management/purchaseManagement/pendingStockInList/pendingStockInList.wxml')
 assert.match(pendingStockInJs, /getPurchaseManagementPendingStockIns/)
