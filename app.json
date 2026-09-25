@@ -75,6 +75,7 @@
       "pages/management/dispatchPerformanceDetail/dispatchPerformanceDetail",
       "pages/management/purchasePerformance/purchasePerformance",
       "pages/management/purchaseManagement/index/index",
+      "pages/management/purchaseManagement/pendingStockInList/pendingStockInList",
       "pages/management/purchaseManagement/purchaseAmountDetail/purchaseAmountDetail",
       "pages/management/purchaseManagement/purchaserList/purchaserList",
       "pages/management/purchaseManagement/purchaserDetail/purchaserDetail",

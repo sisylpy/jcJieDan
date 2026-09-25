@@ -6,6 +6,7 @@ const app = JSON.parse(read('app.json'))
 const pages = app.subPackages.find(item => item.root === 'subPackage/').pages
 const required = [
   'pages/management/purchaseManagement/index/index',
+  'pages/management/purchaseManagement/pendingStockInList/pendingStockInList',
   'pages/management/purchaseManagement/purchaseAmountDetail/purchaseAmountDetail',
   'pages/management/purchaseManagement/purchaserList/purchaserList',
   'pages/management/purchaseManagement/purchaserDetail/purchaserDetail',
@@ -19,6 +20,7 @@ required.forEach(page => assert.ok(pages.includes(page), `missing page registrat
 
 const api = read('lib/apiDistributer.js')
 assert.match(api, /purchaseManagementRequest\('overview'/)
+assert.match(api, /purchaseManagementRequest\('pending-stock-ins'/)
 assert.match(api, /purchaseManagementRequest\('purchase-amount-records'/)
 assert.match(api, /purchaseManagementRequest\('purchasers'/)
 assert.match(api, /purchaseManagementRequest\('purchasers\/' \+ id \+ '\/tasks'/)
@@ -57,6 +59,11 @@ for (const markup of purchaserWxml) {
     'nullable amount values must not render as ¥null')
 }
 assert.match(overviewWxml, /本期采购金额/)
+assert.match(overviewWxml, /待接收入库/)
+assert.match(overviewWxml, /tasks\.waitingStockInGoodsLines/)
+assert.match(overviewWxml, /waitingStockInAmountText/)
+assert.match(overviewWxml, /waitingStockInUnresolvedAmountCount/)
+assert.match(overviewWxml, /openPendingStockIns/)
 assert.match(overviewWxml, /查看采购明细/)
 assert.match(overviewWxml, /按采购需求日期归期/)
 assert.match(overviewWxml, /历史账单/)
@@ -106,7 +113,19 @@ assert.match(batchDetail, /前往精彩订货库存备货接收/)
 const purchaserDetailPage = read('utils/purchaseManagementPurchaserDetailPage.js')
 assert.match(purchaserDetailPage, /OPEN_JRDH_INVENTORY_RECEIPT/)
 assert.match(purchaserDetailPage, /demandScope=SHELF_REPLENISHMENT/)
-assert.match(read('subPackage/pages/management/purchaseManagement/purchaseExceptionList/purchaseExceptionList.wxml'), /采购待办与异常/)
+const exceptionWxml = read('subPackage/pages/management/purchaseManagement/purchaseExceptionList/purchaseExceptionList.wxml')
+assert.match(exceptionWxml, /采购待办与异常/)
+assert.doesNotMatch(exceptionWxml, /WAITING_STOCK_IN|>待入库</,
+  'normal pending stock-in work must live in its dedicated list, not in exception tabs')
+const pendingStockInJs = read('subPackage/pages/management/purchaseManagement/pendingStockInList/pendingStockInList.js')
+const pendingStockInWxml = read('subPackage/pages/management/purchaseManagement/pendingStockInList/pendingStockInList.wxml')
+assert.match(pendingStockInJs, /getPurchaseManagementPendingStockIns/)
+assert.match(pendingStockInJs, /subPackage\/pages\/shelf\/index\/index\?from=pendingStockIn/)
+assert.match(pendingStockInWxml, /采购完成，集中接收入库/)
+assert.match(pendingStockInWxml, /item\.goodsName/)
+assert.match(pendingStockInWxml, /item\.amountText/)
+assert.match(pendingStockInWxml, /item\.purchaserText/)
+assert.match(pendingStockInWxml, /前往货架接收入库/)
 const batchList = read('subPackage/pages/management/purchaseManagement/purchaseBatchList/purchaseBatchList.wxml')
 const batchListJs = read('subPackage/pages/management/purchaseManagement/purchaseBatchList/purchaseBatchList.js')
 for (const filter of ['客户订单订货', '库存备货', '用途待核对', '全部供应方', '最近采购', '供货金额']) {

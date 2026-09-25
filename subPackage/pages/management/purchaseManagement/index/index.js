@@ -13,6 +13,7 @@ Page({
     error: '',
     period: {},
     warehouseStockInAmountText: '—',
+    waitingStockInAmountText: '¥0.00',
     purchaseAmount: normalizePurchaseAmount({}),
     tasks: {},
     structures: {}
@@ -61,11 +62,16 @@ Page({
       const purchaseAmount = normalizePurchaseAmount(data.purchaseAmount)
       if (!purchaseAmount.contractValid) throw new Error('本期采购金额状态无法识别')
       const period = data.period || {}
+      const tasks = data.currentTasks || {}
+      const allWaitingAmountsUnresolved = Number(tasks.waitingStockInGoodsLines || 0) > 0 &&
+        Number(tasks.waitingStockInUnresolvedAmountCount || 0) >= Number(tasks.waitingStockInGoodsLines || 0)
       this.setData({
         period,
         warehouseStockInAmountText: formatPurchaseMoney(period.warehouseStockInAmount),
+        waitingStockInAmountText: allWaitingAmountsUnresolved
+          ? '金额待核对' : formatPurchaseMoney(tasks.waitingStockInAmount || 0),
         purchaseAmount,
-        tasks: data.currentTasks || {},
+        tasks,
         structures: data.structures || {},
         startDate: data.startDate || '',
         stopDate: data.stopDate || ''
@@ -82,6 +88,12 @@ Page({
       url: '/subPackage/pages/management/purchaseManagement/purchaseAmountDetail/purchaseAmountDetail'
         + '?startDate=' + encodeURIComponent(this.data.startDate)
         + '&stopDate=' + encodeURIComponent(this.data.stopDate)
+    })
+  },
+
+  openPendingStockIns() {
+    wx.navigateTo({
+      url: '/subPackage/pages/management/purchaseManagement/pendingStockInList/pendingStockInList'
     })
   },
 

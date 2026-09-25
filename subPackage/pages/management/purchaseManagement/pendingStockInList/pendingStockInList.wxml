@@ -1,0 +1,24 @@
+<view class="pm-page">
+  <back-navbar style="height:{{navBarHeight}}rpx" title="待接收入库" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+  <scroll-view scroll-y class="pm-body" style="padding-top:{{navBarHeight}}rpx" bindscrolltolower="more">
+    <view class="receive-intro">
+      <text class="intro-title">采购完成，集中接收入库</text>
+      <text class="intro-copy">这里显示采购员已经完成采购、但老板尚未在货架接收的商品。完成接收后，商品会从本清单移除并进入库房入库统计。</text>
+      <view class="intro-summary"><text>{{total}} 件待接收</text><text>不受历史日期筛选影响</text></view>
+    </view>
+
+    <view wx:if="{{error}}" class="pm-state error-state"><text>{{error}}</text><text class="retry" bindtap="retry">重新加载</text></view>
+    <view wx:elif="{{!loading&&!items.length}}" class="pm-state"><text>当前没有待接收入库商品</text></view>
+
+    <view class="receive-card" wx:for="{{items}}" wx:key="purchaseGoodsId">
+      <view class="receive-heading"><view><text class="goods-name">{{item.goodsName}}</text><text wx:if="{{item.specification}}" class="goods-spec">{{item.specification}}</text></view><text class="goods-amount">{{item.amountText}}</text></view>
+      <text class="stage-label">{{item.waitingStageText}}</text>
+      <view class="detail-grid"><view><text class="field-label">采购数量</text><text class="field-value">{{item.quantityText}}</text></view><view><text class="field-label">采购单价</text><text class="field-value">{{item.unitPriceText}}</text></view><view><text class="field-label">采购员</text><text class="field-value">{{item.purchaserText}}</text></view><view><text class="field-label">采购日期</text><text class="field-value">{{item.businessDate||'待核对'}}</text></view></view>
+      <view class="location-line"><text>{{item.shelfText}}</text><text class="purpose">{{item.purchasePurposeText}}</text></view>
+      <view class="receive-action" bindtap="openShelf">前往货架接收入库</view>
+    </view>
+
+    <view wx:if="{{loading||loadingMore}}" class="pm-state small-state">正在加载…</view>
+    <view wx:elif="{{items.length&&items.length>=total}}" class="pm-state small-state">已显示全部待接收商品</view>
+  </scroll-view>
+</view>
