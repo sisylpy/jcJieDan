@@ -166,14 +166,16 @@
                   <text class="font-xs mainColor" wx:if="{{order.nxDistributerGoodsEntity.nxDgDistributerId !== nxDisId}}">[{{order.nxDistributerGoodsEntity.nxDgDistributerName}}]</text>
                   <text class="brand" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsBrand !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0}}">{{order.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
                   <text class="font-bold mr-10">{{order.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
-                  <text class="font-xs" wx:if="{{order.nxDepartmentDisGoodsEntity !== null && order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName !== order.nxDistributerGoodsEntity.nxDgGoodsName && order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName !== order.nxDoGoodsName}}">({{order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName}})</text>
-                  <text class="font-xs ml-10 mr-10" wx:if="{{order.nxDoGoodsName !== '' && order.nxDoGoodsName !== order.nxDistributerGoodsEntity.nxDgGoodsName}}">({{order.nxDoGoodsName}})</text>
+                  <text class="font-xs" wx:if="{{order.nxDepartmentDisGoodsEntity && order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName && order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName !== 'null' && order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName !== order.nxDistributerGoodsEntity.nxDgGoodsName && order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName !== order.nxDoGoodsName}}">({{order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName}})</text>
+                  <text class="font-xs ml-10 mr-10" wx:if="{{order.nxDoGoodsName && order.nxDoGoodsName !== 'null' && order.nxDoGoodsName !== order.nxDistributerGoodsEntity.nxDgGoodsName}}">({{order.nxDoGoodsName}})</text>
                   <text class="font-sm" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsPlace !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsPlace.length > 0}}">({{order.nxDistributerGoodsEntity.nxDgGoodsPlace}})</text>
 
                   <text class="font-sm" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsDetail.length > 0 && order.nxDistributerGoodsEntity.nxDgGoodsDetail !==  'null'}}">{{order.nxDistributerGoodsEntity.nxDgGoodsDetail}}</text>
 
                   <block wx:if="{{order.nxDistributerGoodsEntity.nxDgItemsPerCarton !== null &&  order.nxDistributerGoodsEntity.nxDgItemsPerCarton !== ''}}">
-                    <text class="" style="font-size: 30rpx;" >({{order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight}}*{{order.nxDistributerGoodsEntity.nxDgItemsPerCarton}}{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+                    <text class="" style="font-size: 30rpx;" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight && order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null'}}">({{order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight}}*{{order.nxDistributerGoodsEntity.nxDgItemsPerCarton}}{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+                    <text class="" style="font-size: 30rpx;" wx:elif="{{order.nxDistributerGoodsEntity.nxDgCartonUnit && order.nxDistributerGoodsEntity.nxDgCartonUnit !== 'null'}}">({{order.nxDistributerGoodsEntity.nxDgItemsPerCarton}}{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname}}/{{order.nxDistributerGoodsEntity.nxDgCartonUnit}})</text>
+                    <text class="" style="font-size: 30rpx;" wx:else="">({{order.nxDistributerGoodsEntity.nxDgItemsPerCarton}}{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
                   </block>
 
                   <block wx:else="">
@@ -183,7 +185,7 @@
                  
                   </block>
                  
-                  <text class="mr-20" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname !== order.nxDoPrintStandard}}">({{order.nxDoPrintStandard}})</text>
+                  <text class="mr-20" wx:if="{{order.nxDoPrintStandard && order.nxDoPrintStandard !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsStandardname !== order.nxDoPrintStandard}}">({{order.nxDoPrintStandard}})</text>
 
                   <text class="">订:{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
                   <text class="text-danger font-sl" wx:if="{{order.nxDoRemark !== null  && order.nxDoRemark.length > 0}}">({{order.nxDoRemark}})</text>
@@ -288,20 +290,22 @@
                     <text wx:if="{{order.isPlatformOrder == 1}}" class="platform-tag mr-10">{{order.platformLabel || '平台'}}</text>
                     <text class="brand" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsBrand !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0}}">{{order.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
                     <text class="font-bold ">{{order.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
-                    <text class="font-xs" wx:if="{{order.nxDepartmentDisGoodsEntity !== null && order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName !== order.nxDistributerGoodsEntity.nxDgGoodsName}}">({{order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName}})</text>
-                    <text class="font-xs ml-10 mr-10" wx:if="{{order.nxDoGoodsName !== '' && order.nxDoGoodsName !== order.nxDistributerGoodsEntity.nxDgGoodsName}}">({{order.nxDoGoodsName}})</text>
+                    <text class="font-xs" wx:if="{{order.nxDepartmentDisGoodsEntity && order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName && order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName !== 'null' && order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName !== order.nxDistributerGoodsEntity.nxDgGoodsName && order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName !== order.nxDoGoodsName}}">({{order.nxDepartmentDisGoodsEntity.nxDdgOrderGoodsName}})</text>
+                    <text class="font-xs ml-10 mr-10" wx:if="{{order.nxDoGoodsName && order.nxDoGoodsName !== 'null' && order.nxDoGoodsName !== order.nxDistributerGoodsEntity.nxDgGoodsName}}">({{order.nxDoGoodsName}})</text>
                     <text class="" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsPlace !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsPlace.length > 0}}">{{order.nxDistributerGoodsEntity.nxDgGoodsPlace}}</text>
                     <text class="" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsDetail.length > 0 && order.nxDistributerGoodsEntity.nxDgGoodsDetail !==  'null'}}">{{order.nxDistributerGoodsEntity.nxDgGoodsDetail}}</text>
-                    <block wx:if="{{order.nxDistributerGoodsEntity.nxDgCartonUnit !== null }}">
-                    <text class="" style="font-size: 30rpx;" wx:if="{{order.nxDistributerGoodsEntity.nxDgItemsPerCarton !== null &&  order.nxDistributerGoodsEntity.nxDgItemsPerCarton !== ''}}">{{order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight}}*{{order.nxDistributerGoodsEntity.nxDgItemsPerCarton}}{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname}}/</text>
-                  </block>
-                  <block wx:else="">
+                    <block wx:if="{{order.nxDistributerGoodsEntity.nxDgItemsPerCarton !== null && order.nxDistributerGoodsEntity.nxDgItemsPerCarton !== ''}}">
+                      <text class="" style="font-size: 30rpx;" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight && order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null'}}">({{order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight}}*{{order.nxDistributerGoodsEntity.nxDgItemsPerCarton}}{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+                      <text class="" style="font-size: 30rpx;" wx:elif="{{order.nxDistributerGoodsEntity.nxDgCartonUnit && order.nxDistributerGoodsEntity.nxDgCartonUnit !== 'null'}}">({{order.nxDistributerGoodsEntity.nxDgItemsPerCarton}}{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname}}/{{order.nxDistributerGoodsEntity.nxDgCartonUnit}})</text>
+                      <text class="" style="font-size: 30rpx;" wx:else="">({{order.nxDistributerGoodsEntity.nxDgItemsPerCarton}}{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
+                    </block>
+                    <block wx:else="">
                     <block wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight.length > 0}}">
                       <text class="mr-20" style="font-size: 30rpx;">({{order.nxDistributerGoodsEntity.nxDgGoodsStandardWeight}}/{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname}})</text>
                     </block>
                   </block>
                  
-                  <text class="mr-20" wx:if="{{order.nxDistributerGoodsEntity.nxDgGoodsStandardname !== order.nxDoPrintStandard}}">({{order.nxDoPrintStandard}})</text>  
+                  <text class="mr-20" wx:if="{{order.nxDoPrintStandard && order.nxDoPrintStandard !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsStandardname !== order.nxDoPrintStandard}}">({{order.nxDoPrintStandard}})</text>
                     <text class="">订:{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
                     <text class="text-danger font-sl" wx:if="{{order.nxDoRemark !== null  && order.nxDoRemark.length > 0}}">({{order.nxDoRemark}})</text>
                   </view>
