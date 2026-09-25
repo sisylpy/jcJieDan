@@ -9,6 +9,16 @@ import { getNxPurGoodsStatisticsForDis } from '../../../../lib/apiDepOrder.js';
 import { getNxInventoryBusinessAnalysis } from '../../../lib/purchaseAnalysisApi.js';
 
 const PURCHASE_IMAGES = '/subPackage-charts/images/purchase/icon_pack/';
+const PURCHASE_DATE_PRESETS = {
+  '今天': 'today',
+  '昨天': 'yesterday',
+  '过去7天': 'lastSevenDays',
+  '本周': 'thisWeek',
+  '上周': 'lastWeek',
+  '过去30天': 'lastThirtyDays',
+  '本月': 'thisMonth',
+  '上月': 'lastMonth'
+};
 
 function numberValue(value) {
   var num = Number(value);
@@ -66,6 +76,7 @@ Page({
     ecSelf: { lazyLoad: true },
     supplierIds: -1,
     purUserIds: -1,
+    dateName: 'thisMonth',
     loading: true,
     hasData: false,
     purchaseHasData: false,
@@ -133,7 +144,7 @@ Page({
 
   _rememberDate: function () {
     wx.setStorageSync('purchaseAnalysisDate', {
-      name: 'custom',
+      name: this.data.dateName || 'custom',
       dateType: this.data.dateType || 'month',
       startDate: this.data.startDate,
       stopDate: this.data.stopDate,
@@ -144,18 +155,24 @@ Page({
   _syncDatesFromMyDateStorage: function () {
     var myDate = wx.getStorageSync('purchaseAnalysisDate') || wx.getStorageSync('myDate');
     if (myDate) {
-      var dateRange = myDate.name === 'custom'
-        ? dateUtils.getDateRange(myDate.name, myDate.startDate, myDate.stopDate)
-        : dateUtils.getDateRange(myDate.name);
+      // 旧版本把所有预设都误存成 custom；用中文标签安全恢复预设，让日期每天自动滚动。
+      var dateName = myDate.name === 'custom'
+        ? (PURCHASE_DATE_PRESETS[myDate.hanzi] || 'custom')
+        : myDate.name;
+      var dateRange = dateName === 'custom'
+        ? dateUtils.getDateRange(dateName, myDate.startDate, myDate.stopDate)
+        : dateUtils.getDateRange(dateName);
       this.setData({
         startDate: dateRange.startDate,
         stopDate: dateRange.stopDate,
         dateType: myDate.dateType,
+        dateName: dateName || 'custom',
         hanzi: myDate.hanzi || dateRange.name
       });
     } else {
       this.setData({
         dateType: 'month',
+        dateName: 'thisMonth',
         startDate: dateUtils.getFirstDateInMonth(),
         stopDate: dateUtils.getArriveDate(0),
         hanzi: '本月'
@@ -407,7 +424,7 @@ Page({
 
   toDatePageSearch: function () {
     this.setData({ update: true });
-    wx.navigateTo({ url: '/subPackage-charts/pages/sel/searchDate/searchDate?startDate=' + this.data.startDate + '&stopDate=' + this.data.stopDate + '&dateType=' + this.data.dateType });
+    wx.navigateTo({ url: '/subPackage-charts/pages/sel/searchDate/searchDate?startDate=' + this.data.startDate + '&stopDate=' + this.data.stopDate + '&dateType=' + this.data.dateType + '&dateName=' + (this.data.dateName || '') });
   },
 
   toGoodsPage: function (e) {

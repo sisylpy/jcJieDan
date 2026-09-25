@@ -45,6 +45,15 @@ const migratedSource = pageNames
   .join('\n')
 assert.doesNotMatch(migratedSource, /getGb|gbDistributer|pages\/cost|grainservice\.club/)
 
+const purchaseOverviewSource = read('subPackage-charts/pages/mangement/purGoodsFenxi/purGoodsFenxi.js')
+const purchaseDateSource = read('subPackage-charts/pages/sel/searchDate/searchDate.js')
+assert.match(purchaseOverviewSource, /name: this\.data\.dateName \|\| 'custom'/)
+assert.match(purchaseOverviewSource, /PURCHASE_DATE_PRESETS\[myDate\.hanzi\] \|\| 'custom'/)
+assert.match(purchaseOverviewSource, /dateName: dateName \|\| 'custom'/)
+assert.match(purchaseOverviewSource, /&dateName=' \+ \(this\.data\.dateName \|\| ''\)/)
+assert.match(purchaseDateSource, /prevPage\.setData\(\{[\s\S]*?dateName: dateName,[\s\S]*?startDate: startDate/)
+assert.match(purchaseDateSource, /dateName: "custom"/)
+
 for (const banner of [
   'self-purchase-analysis-banner.jpg',
   'purchase-count-analysis-banner.jpg',

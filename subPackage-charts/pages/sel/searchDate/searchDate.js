@@ -256,6 +256,7 @@ Page({
     // searchDate 页面是临时查询，不缓存到 storage，只通过页面传递数据
     console.log('准备传递的日期数据:', {
       dateType: dateType,
+      dateName: dateName,
       startDate: startDate,
       stopDate: stopDate,
       hanzi: hanzi
@@ -268,6 +269,7 @@ Page({
     // 使用回调确保数据设置完成后再返回
     prevPage.setData({
       dateType: dateType,
+      dateName: dateName,
       startDate: startDate,
       stopDate: stopDate,
       hanzi: hanzi,
@@ -572,6 +574,7 @@ Page({
       startDate: this.data.startDate,
       stopDate: this.data.stopDate,
       dateType: "customer",
+      dateName: "custom",
       hanzi: "自定义",
       update: true,
     }, () => {
