@@ -1,6 +1,7 @@
 var load = require('../../../lib/load.js');
 var tabBar = require('../../../lib/routeDispatchTabBar.js');
 var prepareOutViewMode = require('../../../utils/prepareOutViewMode.js');
+var selfPurchaseDraft = require('../../../utils/selfPurchaseDraft.js');
 
 const tabBarHeight = 50; // 根据实际情况调整
 const mergedWorkBarHeight = 88; // rpx，与 app.wxss 中一级业务页签高度一致
@@ -88,6 +89,9 @@ module.exports = function purchaseComponent() {
 
   methods: {
     _onPageShow() {
+      // 自采草稿只用于一次页面跳转。返回采购页时清掉旧手机本地残留，
+      // 并同时重置两套选择数组，避免已进入供应商批次的商品再次混入自采。
+      wx.removeStorageSync(selfPurchaseDraft.STORAGE_KEY);
       // 采购页作为第 2 个入口的内部页面，使用页面内挂载的同款底栏。
       this._updateVisibleTabBar({
         selected: tabBar.getTabIndex('pages/purchase/index/index')
@@ -136,6 +140,9 @@ module.exports = function purchaseComponent() {
         isLoading: false,
         purGoodsArr: [],
         purCataArr: [],
+        selectedArr: [],
+        selectedPrintArr: [],
+        isAllDepartmentSelected: false,
         selectedSubWx: 0,
         toViewWx: '',
         scrollTopLeftWx: 0,
@@ -768,6 +775,7 @@ module.exports = function purchaseComponent() {
           // 切换部门时，清空选择数组
           this.setData({
             selectedArr: [],
+            selectedPrintArr: [],
             isAllDepartmentSelected: false
           });
           
@@ -2420,19 +2428,21 @@ module.exports = function purchaseComponent() {
     },
 
     toSelfPurchase() {
-      var selected = this.data.selectedPrintArr || [];
+      var selected = selfPurchaseDraft.intersectCurrent(
+        this.data.selectedPrintArr || [],
+        this.data.purGoodsArr || []
+      );
       if (!selected.length) {
+        wx.removeStorageSync(selfPurchaseDraft.STORAGE_KEY);
+        this.setData({ selectedArr: [], selectedPrintArr: [] });
+        this.hideButton();
         wx.showToast({ title: '请先选择采购商品', icon: 'none' });
         return;
       }
-      var seen = {};
-      var goods = selected.filter(function (item) {
-        var id = item && item.nxDistributerPurchaseGoodsId;
-        if (!id || seen[id]) return false;
-        seen[id] = true;
-        return true;
-      });
-      wx.setStorageSync('bossSelfPurchaseDraft', goods);
+      wx.setStorageSync(
+        selfPurchaseDraft.STORAGE_KEY,
+        selfPurchaseDraft.create(selected, this.data.disId)
+      );
       wx.navigateTo({
         url: '/subPackage/pages/prepare/selfPurchase/selfPurchase'
       });

@@ -52,7 +52,7 @@
     </view>
   </view>
 
-  <view class="empty" wx:if="{{goods.length === 0}}">没有选择采购商品</view>
+  <view class="empty" wx:if="{{goods.length === 0}}">{{emptyText}}</view>
   <view class="bottom-space"></view>
 </view>
 

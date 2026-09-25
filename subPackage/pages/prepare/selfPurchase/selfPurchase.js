@@ -1,18 +1,26 @@
 import { completeBossSelfPurchase } from '../../../../lib/apiDepOrder'
 const selfPurchaseUnit = require('../../../../utils/selfPurchaseUnit')
+const selfPurchaseDraft = require('../../../../utils/selfPurchaseDraft')
 
 Page({
   data: {
     goods: [],
     submitting: false,
     totalAmount: '0.00',
-    idempotencyKey: ''
+    idempotencyKey: '',
+    emptyText: '没有可自采的商品，请返回刷新后重新选择'
   },
 
   onLoad() {
     const app = getApp()
     const globalData = app.globalData || {}
-    const draft = wx.getStorageSync('bossSelfPurchaseDraft') || []
+    const storedDraft = wx.getStorageSync(selfPurchaseDraft.STORAGE_KEY)
+    // 页面交接数据必须一次性消费，不能成为跨页面、跨业务状态的长期缓存。
+    wx.removeStorageSync(selfPurchaseDraft.STORAGE_KEY)
+    const userInfo = wx.getStorageSync('userInfo') || {}
+    const distributerId = wx.getStorageSync('ownerDistributerId') ||
+      (userInfo.nxDistributerEntity && userInfo.nxDistributerEntity.nxDistributerId)
+    const draft = selfPurchaseDraft.consume(storedDraft, distributerId)
     const goods = draft.map((item, goodsIndex) => this._prepareGoods(item, goodsIndex))
     this.setData({
       navBarHeight: (globalData.navBarHeight || 44) * (globalData.rpxR || 2),
@@ -144,7 +152,7 @@ Page({
       this.setData({ submitting: false })
       if (res.result && res.result.code === 0) {
         this.setData({ idempotencyKey: '' })
-        wx.removeStorageSync('bossSelfPurchaseDraft')
+        wx.removeStorageSync(selfPurchaseDraft.STORAGE_KEY)
         wx.showToast({ title: '自采已完成', icon: 'success' })
         setTimeout(() => wx.navigateBack(), 700)
         return
@@ -159,5 +167,9 @@ Page({
 
   toBack() {
     wx.navigateBack()
+  },
+
+  onUnload() {
+    wx.removeStorageSync(selfPurchaseDraft.STORAGE_KEY)
   }
 })
