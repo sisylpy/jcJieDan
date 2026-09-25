@@ -29,7 +29,7 @@ function decoratePayment(item) {
 Page({
   data: { navBarHeight: 0, loading: false, error: '', summary: {}, purchasers: [], suppliers: [], recentPayments: [],
     periodStart: '', periodEnd: '', purchaserAvailableText: '0.00', purchaserOutstandingText: '0.00',
-    supplierAvailableText: '0.00', supplierOutstandingText: '0.00' },
+    supplierAvailableText: '0.00', supplierOutstandingText: '0.00', companyDirectOutstandingText: '0.00' },
   onLoad() {
     const today = new Date()
     this.setData({ navBarHeight: app.globalData.navBarHeight * app.globalData.rpxR,
@@ -54,7 +54,8 @@ Page({
         purchaserAvailableText: money(summary.pendingReimbursementAmount),
         purchaserOutstandingText: money(summary.reimbursementOutstandingAmount),
         supplierAvailableText: money(summary.pendingSettlementAmount),
-        supplierOutstandingText: money(summary.settlementOutstandingAmount) })
+        supplierOutstandingText: money(summary.settlementOutstandingAmount),
+        companyDirectOutstandingText: money(summary.companyDirectOutstandingAmount) })
     }).catch(error => this.setData({ error: error.message || '采购资金加载失败' }))
       .then(() => this.setData({ loading: false }))
   },

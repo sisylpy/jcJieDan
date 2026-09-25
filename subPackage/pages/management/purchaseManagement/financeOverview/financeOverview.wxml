@@ -19,6 +19,10 @@
         <view wx:if="{{!suppliers.length}}" class="empty">当前没有供应商待处理款项</view>
         <view wx:for="{{suppliers}}" wx:key="supplierRelationId" class="person-row" data-id="{{item.supplierRelationId}}" bindtap="openSupplier"><view class="person-main"><text class="pm-name">{{item.displayName}}</text><text class="pm-muted">最近处理 {{item.lastProcessedTime||'—'}}</text></view><view class="person-money"><text>待开单 ¥{{item.availableText}}</text><text wx:if="{{item.pendingBatchAmount>0}}">核定中 ¥{{item.pendingBatchText}}</text><text>未付 ¥{{item.outstandingText}}</text><text wx:if="{{item.amountToVerify>0}}">金额待核对 ¥{{item.verifyText}}</text></view><text class="chevron">›</text></view>
       </view>
+      <view class="pm-card work-card direct-card">
+        <view class="section-head"><view><text class="pm-section-title">公司直付</text><text class="pm-muted">已归类给公司、尚未登记实际付款</text></view><text class="pm-link" bindtap="openFunding">处理 ›</text></view>
+        <view class="obligation-row" bindtap="openFunding"><view><text class="obligation-label">公司直付待付款</text><text class="pm-muted">{{summary.companyDirectOutstandingCount||0}}笔；付款后进入统一付款与凭证记录</text></view><text class="amount">¥{{companyDirectOutstandingText}} ›</text></view>
+      </view>
       <view wx:if="{{summary.unclassifiedAmount>0 || summary.disputedSettlementCount>0 || summary.openAdjustmentCount>0}}" class="pm-card attention" bindtap="openExceptions"><view class="section-head"><text class="pm-section-title">待核对事项</text><text class="pm-link">查看 ›</text></view><text class="pm-muted">未归类 ¥{{summary.unclassifiedAmount||0}} · 争议 {{summary.disputedSettlementCount||0}} · 待处理调整 {{summary.openAdjustmentCount||0}}</text><text class="explain">这些金额尚未形成明确欠付，不计入上方待报销或待结账。</text></view>
       <view class="pm-card payment-card">
         <view class="section-head"><view><text class="pm-section-title">已登记付款</text><text class="pm-muted">按实际付款日期筛选</text></view><text class="pm-link" bindtap="openPayments">付款记录 ›</text></view>
