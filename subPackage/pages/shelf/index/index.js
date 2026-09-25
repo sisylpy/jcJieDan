@@ -1656,10 +1656,6 @@ Page({
       return;
     }
 
-    if (purGoods.nxDpgProcurementMode !== 'SELF_BUY') {
-      wx.showToast({ title: '采购方式不支持直接入库，请刷新后重试', icon: 'none' });
-      return;
-    }
     const disGoods = shelfGoods.nxDistributerGoodsEntity;
     this.setData({
       item: Object.assign({}, purGoods, {
