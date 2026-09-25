@@ -97,6 +97,12 @@ Page({
     })
   },
 
+  openCollaborationPending() {
+    wx.navigateTo({
+      url: '/pages/doing/index/index'
+    })
+  },
+
   open(event) {
     wx.navigateTo({
       url: event.currentTarget.dataset.url
