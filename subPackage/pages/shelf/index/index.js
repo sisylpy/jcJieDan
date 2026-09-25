@@ -172,6 +172,7 @@ Page({
     showPlanPurchase: false,
     showInputPurGoods: false,
     showInputPurStock: false,
+    receivingExistingPurchase: false,
     showEditPurGoods: false,
     isEditPurchase: false,
     isUnshelfEdit: false,
@@ -1451,6 +1452,10 @@ Page({
   confirmInputPurStock(e) {
     // 从组件获取数据
     const item = e.detail.item;
+    if (this.data.receivingExistingPurchase) {
+      this._confirmExistingPurchaseReceipt(item);
+      return;
+    }
 
     // 获取商品基本信息
     const disGoods = this.data.disGoods || item.nxDistributerGoodsEntity;
@@ -1633,23 +1638,68 @@ Page({
    */
   receivePurGoods() {
     const shelfGoods = this.data.shelfGoods;
-    if (shelfGoods.shelfPurGoods.nxDpgStatus == 1) {
+    const purGoods = shelfGoods && shelfGoods.shelfPurGoods;
+    if (!purGoods || Number(purGoods.nxDpgStatus) !== 2) {
       wx.showToast({
-        title: '采购未完成',
+        title: '当前商品不是待入库状态',
         icon: 'none'
       });
       return;
     }
 
-    const purGoods = shelfGoods.shelfPurGoods;
-    if (!purGoods || !purGoods.nxDpgBatchId) {
-      wx.showToast({ title: '采购批次信息不完整', icon: 'none' });
+    if (Number(purGoods.nxDpgBatchId) > 0) {
+      this.setData({ showOperation: false, needsRefreshOnShow: true });
+      wx.navigateTo({
+        url: '/subPackage/pages/prepare/purchaseReceipt/purchaseReceipt?batchId=' +
+          purGoods.nxDpgBatchId
+      });
       return;
     }
-    wx.navigateTo({
-      url: '/subPackage/pages/prepare/purchaseReceipt/purchaseReceipt?batchId=' +
-        purGoods.nxDpgBatchId
+
+    if (purGoods.nxDpgProcurementMode !== 'SELF_BUY') {
+      wx.showToast({ title: '采购方式不支持直接入库，请刷新后重试', icon: 'none' });
+      return;
+    }
+    const disGoods = shelfGoods.nxDistributerGoodsEntity;
+    this.setData({
+      item: Object.assign({}, purGoods, {
+        nxDistributerGoodsEntity: disGoods,
+        isShowTools: false
+      }),
+      disGoods: disGoods,
+      showInputPurStock: true,
+      receivingExistingPurchase: true,
+      showOperation: false
     });
+  },
+
+  _confirmExistingPurchaseReceipt(item) {
+    const payload = Object.assign({}, item, {
+      isShowTools: false,
+      nxDpgProcurementMode: 'SELF_BUY',
+      nxDpgBuyUserId: null,
+      nxDpgPurUserId: item.nxDpgPurUserId
+    });
+    delete payload.nxDistributerGoodsEntity;
+    const submission = directStockSubmission.begin(this, saveShelfGoodsStock, payload);
+    if (!submission.started) return;
+    load.showLoading('正在接收入库');
+    submission.promise.then((res) => {
+      const result = res && res.result;
+      if (!result || result.code != 0) {
+        throw new Error((result && result.msg) || '接收入库失败');
+      }
+      this.setData({
+        showInputPurStock: false,
+        receivingExistingPurchase: false,
+        showOperation: false,
+        item: null
+      });
+      wx.showToast({ title: '接收入库完成', icon: 'success' });
+      this.updateShelfGoodsData(null, true);
+    }).catch((error) => {
+      wx.showToast({ title: error.message || '接收入库失败', icon: 'none' });
+    }).then(() => load.hideLoading());
   },
 
 
@@ -2608,6 +2658,7 @@ Page({
 
     this.setData({
       showInputPurStock: true,
+      receivingExistingPurchase: false,
     })
 
    
@@ -2619,6 +2670,7 @@ Page({
   cancleInputPurStock() {
     this.setData({
       showInputPurStock: false,
+      receivingExistingPurchase: false,
       item: null, // 清空item对象，避免下次打开弹窗时遗留数据
     })
   },

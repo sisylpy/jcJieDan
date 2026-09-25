@@ -130,7 +130,7 @@
                   catchtap="openEditPurchase">
                   <image class="purchase-edit-icon" src="/images/edit-3.png" mode="aspectFit"></image>
                 </view>
-                <text class="unavailable-text" wx:if="{{!item.canSelect}}">{{item.waitingStockIn ? '待入库' : '不可订货'}}</text>
+                <text class="unavailable-text" wx:if="{{!item.canSelect}}">{{item.waitingStockIn ? '请到货架接收入库' : '不可订货'}}</text>
               </view>
               <view class="goods-select-area" wx:if="{{item.canSelect}}">
                 <view class="custom-checkbox {{item.selected ? 'checked' : ''}}">

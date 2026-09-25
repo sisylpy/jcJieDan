@@ -2,6 +2,7 @@
   <view class='modal-content flex-column'>
     <view class="top">
       <view class='goodsTitle flex-row'>
+        <text wx:if="{{receiptOnly}}">接收入库 · </text>
         <text class="brand" wx:if="{{item.nxDistributerGoodsEntity.nxDgGoodsBrand.length > 0 && item.nxDistributerGoodsEntity.nxDgGoodsBrand !== 'null'}}">{{item.nxDistributerGoodsEntity.nxDgGoodsBrand}}</text>
         <text>{{item.nxDistributerGoodsEntity.nxDgGoodsName}}</text>
         <text wx:for="{{item.nxDistributerGoodsEntity.nxAliasEntities}}" wx:for-item="alias">={{alias.nxDaAliasName}}</text>
@@ -29,7 +30,7 @@
           <text class="margin-l-right">采购数量:</text>
           <view class="flex-row">
             <view class="inputView" style="width: 200rpx; margin-right: 10rpx;">
-              <input class='input' type='digit' value="{{item.nxDpgBuyQuantity}}" bindinput="getPurchaseQuantity" bindblur="_checkQuantity" bindconfirm="hideKeyboard" confirm-type="done"></input>
+              <input class='input' type='digit' value="{{item.nxDpgBuyQuantity}}" disabled="{{receiptOnly}}" bindinput="getPurchaseQuantity" bindblur="_checkQuantity" bindconfirm="hideKeyboard" confirm-type="done"></input>
             </view>
             <text wx:if="{{hasPurchasableCarton}}" class="unit-switch" bindtap="togglePurchaseUnit">{{purchaseUseCartonUnit ? item.nxDistributerGoodsEntity.nxDgCartonUnit : item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
             <text wx:else>{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
@@ -40,7 +41,7 @@
           <text class="margin-l-right">采购单价:</text>
           <view class="flex-row">
             <view class="inputView" style="width: 200rpx; margin-right: 10rpx;">
-              <input class='input' type='digit' value="{{cartonBuyPrice || item.nxDpgBuyPrice}}" bindinput="getPurchasePrice" bindblur="_checkPrice" bindconfirm="hideKeyboard" confirm-type="done"></input>
+              <input class='input' type='digit' value="{{cartonBuyPrice || item.nxDpgBuyPrice}}" disabled="{{receiptOnly}}" bindinput="getPurchasePrice" bindblur="_checkPrice" bindconfirm="hideKeyboard" confirm-type="done"></input>
             </view>
             <text wx:if="{{hasPurchasableCarton}}" class="unit-switch" bindtap="togglePurchaseUnit">元/{{purchaseUseCartonUnit ? item.nxDistributerGoodsEntity.nxDgCartonUnit : item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
             <text wx:else>元/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
@@ -58,7 +59,7 @@
           <text class="margin-l-right">建议售价:</text>
           <view class="flex-row">
             <view class="inputView" style="width: 200rpx; margin-right: 10rpx;">
-              <input class='input' type='digit' value="{{cartonExpectPrice || item.nxDpgExpectPrice}}" bindinput="getPurchaseExpectPrice" bindblur="_checkPrice" bindconfirm="hideKeyboard" confirm-type="done"></input>
+              <input class='input' type='digit' value="{{cartonExpectPrice || item.nxDpgExpectPrice}}" disabled="{{receiptOnly}}" bindinput="getPurchaseExpectPrice" bindblur="_checkPrice" bindconfirm="hideKeyboard" confirm-type="done"></input>
             </view>
             <text wx:if="{{hasPurchasableCarton}}" class="unit-switch" bindtap="togglePurchaseUnit">元/{{purchaseUseCartonUnit ? item.nxDistributerGoodsEntity.nxDgCartonUnit : item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
             <text wx:else>元/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
@@ -114,13 +115,16 @@
           </picker>
         </view>
 
-        <view class="flex-row-between p-20">
+        <view class="flex-row-between p-20" wx:if="{{!receiptOnly}}">
           <text class="margin-l-right">等待入库:</text>
           <view class="flex-row">
             <view class="inputView1" style="width: 200rpx; margin-right: 10rpx;">
               <switch checked="{{item.isShowTools}}" bindchange="changeWait"/>
             </view>
           </view>
+        </view>
+        <view class="p-20" wx:if="{{receiptOnly}}">
+          <text class="gray">采购数量、单价和小计已由采购员确认，本页只完成接收并生成库存批次。</text>
         </view>
       </view>
 
@@ -129,14 +133,14 @@
           <view class="finish-btn hidden flex-row"></view>
           <view class="btn_row_finish">
             <text class='cancel-btn' bindtap="cancle" hover-class="hoverBtn">关闭</text>
-            <text class='confirm-btn' catchtap='confirm' hover-class="hoverBtn">完成</text>
+            <text class='confirm-btn' catchtap='confirm' hover-class="hoverBtn">{{receiptOnly ? '确认接收入库' : '完成'}}</text>
           </view>
         </view>
         <view class="btn_row" wx:else>
           <view class=" flex-row"></view>
           <view class=" btn_row_finish">
             <text class='cancel-btn' bindtap="cancle" hover-class="hoverBtn">关闭</text>
-            <text class='confirm-btn' catchtap='confirm' hover-class="hoverBtn">完成</text>
+            <text class='confirm-btn' catchtap='confirm' hover-class="hoverBtn">{{receiptOnly ? '确认接收入库' : '完成'}}</text>
           </view>
         </view>
       </view>

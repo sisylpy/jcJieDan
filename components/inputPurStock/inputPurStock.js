@@ -27,6 +27,10 @@ Component({
     scaleInput: {
       type: Boolean,
       value: "false"
+    },
+    receiptOnly: {
+      type: Boolean,
+      value: false
     }
   },
 
@@ -281,6 +285,7 @@ Component({
     /** 有外包装时点击单位：箱 ↔ 最小单位，并按每件/每箱数换算数量与单价 */
     togglePurchaseUnit() {
       this._hideKeyboard();
+      if (this.data.receiptOnly) return;
       if (!this.data.hasPurchasableCarton) return;
       const disGoods = this.data.item.nxDistributerGoodsEntity;
       console.log('[inputPurStock] togglePurchaseUnit', {

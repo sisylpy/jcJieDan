@@ -533,7 +533,7 @@
 <input-pur-goods show="{{showInputPurGoods}}" bindconfirm="confirmInputPurGoods" bindcancle="cancleInputPurGoods" bindfinish="cancleInputPurGoods" item="{{item}}" windowHeight="{{windowHeight}}" windowWidth="{{windowWidth}}" />
 
 
-<input-pur-stock show="{{showInputPurStock}}" bindconfirm="confirmInputPurStock" bindcancle="cancleInputPurStock" item="{{item}}" windowHeight="{{windowHeight}}" windowWidth="{{windowWidth}}" />
+<input-pur-stock show="{{showInputPurStock}}" receipt-only="{{receivingExistingPurchase}}" bindconfirm="confirmInputPurStock" bindcancle="cancleInputPurStock" item="{{item}}" windowHeight="{{windowHeight}}" windowWidth="{{windowWidth}}" />
 
 <disEditPurchase show="{{showEditPurGoods}}" item="{{item}}" planOrder="{{planOrder}}" applyStandardName="{{applyStandardName}}" purchaseGoods="{{purchaseGoods}}" priceLevel="{{priceLevel}}" bindconfirmEditGoods="confirmEditPurGoods" bindcancle="closeEditPurGoods" binddelPurGoods="deletePurGoods" />
 
@@ -610,13 +610,13 @@
         </block>
 
 
-        <view class="p-30 flex-row border-bottom" catchtap="toOpenInputPurSock" hover-class="hover">
+        <view class="p-30 flex-row border-bottom" catchtap="toOpenInputPurSock" hover-class="hover" wx:if="{{shelfGoods.shelfPurGoods == null}}">
         <image src="/images/gouwuche-4.png" mode="aspectFill" class="icon mr-20" />
-        <text>采购入库</text>
+        <text>直接采购入库</text>
       </view>
-      <view class="p-30 flex-row border-bottom" catchtap="receivePurGoods" hover-class="popup-item-hover" wx:if="{{shelfGoods.shelfPurGoods !== null && shelfGoods.shelfPurGoods.nxDpgStatus > 0}}" hover-class="hover">
+      <view class="p-30 flex-row border-bottom" catchtap="receivePurGoods" hover-class="popup-item-hover" wx:if="{{shelfGoods.shelfPurGoods !== null && shelfGoods.shelfPurGoods.nxDpgStatus == 2}}" hover-class="hover">
         <image src="/images/tab_classification-2.png" mode="aspectFill" class="icon mr-20" />
-        <text class="{{shelfGoods.shelfPurGoods.nxDpgStatus == 1 ? 'text-secondary' : ''}}"> 确定收货</text>
+        <text> 接收入库</text>
       </view>
 
       </block>

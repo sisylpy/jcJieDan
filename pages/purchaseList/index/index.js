@@ -212,7 +212,8 @@ Page({
     item.waitingStockIn = item.isSelfBuy && Number(item.nxDpgStatus) === 2
     // 库存采购接口会同时返回未采购和已采购待入库商品；只有 status=0 可转成供应商批次。
     item.canSupplierOrder = Number(item.nxDpgStatus) === 0 && !(Number(item.nxDpgBatchId) > 0)
-    item.canSelect = item.canSupplierOrder || (item.waitingStockIn && !(Number(item.nxDpgBatchId) > 0))
+    // 已完成采购的待入库商品统一回到货架页接收，不再从采购列表重复入库。
+    item.canSelect = item.canSupplierOrder
     item.canEditPurchase = (Number(item.nxDpgStatus) === 0 || Number(item.nxDpgStatus) === 1) &&
       (demandSource === 'SHELF_REPLENISHMENT' || demandSource === 'SMART_REPLENISHMENT')
     return item

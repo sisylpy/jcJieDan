@@ -60,6 +60,11 @@ test('多选商品进入统一采购入库页', () => {
   assert.match(app, /pages\/prepare\/inventoryPurchase\/inventoryPurchase/)
 })
 
+test('采购员已完成的待入库商品只允许从货架接收', () => {
+  assert.match(page, /item\.canSelect = item\.canSupplierOrder/)
+  assert.match(wxml, /请到货架接收入库/)
+})
+
 test('统一采购页逐商品弹窗录入后再批量提交', () => {
   assert.match(confirmWxml, /data-index="\{\{index\}\}" bindtap="openEditor"/)
   assert.match(confirmWxml, /class="editor-mask"/)
