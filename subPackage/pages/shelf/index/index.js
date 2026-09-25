@@ -255,6 +255,7 @@ Page({
       scrollTop: 0,
       shelfIndex: 0,
       url: apiUrl.server,
+      shelfGoodsType: e && e.from === 'pendingStockIn' ? '5' : '99',
     })
     // 
     var disInfo = wx.getStorageSync('disInfo');
@@ -405,7 +406,7 @@ Page({
       showFilterMenu: false,
       currentPage: 1
     };
-    if (String(type) === '99') {
+    if (String(type) === '99' || String(type) === '5') {
       patch.shelfGoodsQuerySort = 0;
     }
     this.setData(patch);
@@ -431,10 +432,14 @@ Page({
       const idx = shelfList.findIndex(s => s.nxDistributerGoodsShelfId == currentShelfId);
       // shelfArr 为空时（如从「无库存」切换），currentShelfIndex===shelfArr.length 会误判为非货架，应选第一个货架
       const wasViewingUnshelf = this.data.shelfArr.length > 0 && currentShelfIndex === this.data.shelfArr.length;
-      const newShelfIndex = idx >= 0 ? idx : (wasViewingUnshelf ? shelfList.length : 0);
+      const canViewUnshelf = Number(unShelfTotalCount || 0) > 0 &&
+        (String(this.data.shelfGoodsType) === '99' || String(this.data.shelfGoodsType) === '5');
+      const newShelfIndex = idx >= 0 ? idx : (wasViewingUnshelf && canViewUnshelf ? shelfList.length : 0);
       const newShelfItem = newShelfIndex < shelfList.length ? shelfList[newShelfIndex] : null;
       const newShelfId = newShelfItem ? newShelfItem.nxDistributerGoodsShelfId : -1;
       const willCallGetShelfGoods = newShelfId > 0 && newShelfIndex < shelfList.length;
+      const willCallGetUnshelfGoods = !willCallGetShelfGoods && Number(unShelfTotalCount || 0) > 0 &&
+        (String(this.data.shelfGoodsType) === '99' || String(this.data.shelfGoodsType) === '5');
       console.log('[_refreshShelfListWithType] disGetShelfListByType 成功, shelfList.length:', shelfList.length, 'currentShelfId:', currentShelfId, 'idx:', idx, 'newShelfIndex:', newShelfIndex, 'newShelfId:', newShelfId, 'willCallGetShelfGoods:', willCallGetShelfGoods);
       this.setData({
         shelfArr: shelfList,
@@ -446,9 +451,11 @@ Page({
         if (willCallGetShelfGoods) {
           console.log('[_refreshShelfListWithType] setData 回调，调用 updateShelfGoodsData, shelfId:', this.data.shelfId, 'shelfGoodsType:', this.data.shelfGoodsType);
           this.updateShelfGoodsData();
-         
+        } else if (willCallGetUnshelfGoods) {
+          this.getUnShelfGoods();
         } else {
           console.log('[_refreshShelfListWithType] setData 回调，跳过 getShelfGoods');
+          this.setData({ shelfGoodsList: [], unShelfGoodsList: [], totalCount: 0, totalPage: 0 });
         }
       });
     });
@@ -1543,7 +1550,7 @@ Page({
     var loadingText = this.data.isEditPurchase ? "修改进货商品" : "保存进货商品";
     var successText = this.data.isEditPurchase ? "进货商品修改成功" : "进货商品保存成功";
 
-    const isUnshelf = this.data.unShelfGoodsList.length > 0;
+    const isUnshelf = this.data.isUnshelfSelected || !this.data.shelfGoods;
     const shelfGoodsId = !isUnshelf && this.data.shelfGoods?.nxDistributerGoodsShelfGoodsId;
 
     const submission = directStockSubmission.begin(this, disSavePurGoodsSaveStock, purGoods);
@@ -1616,16 +1623,36 @@ Page({
       if (res.result.code === 0) {
         console.log("rrr", res.result.data);
         const shelfList = res.result.data.shelfArr || [];
+        const unShelfTotalCount = Number(res.result.data.unShelfTotalCount || 0);
         if (shelfList.length > 0) {
           this.setData({
             shelfItem: res.result.data.shelfArr[0],
             shelfIndex: 0,
             shelfArr: shelfList,
-            unShelfTotalCount: res.result.data.unShelfTotalCount,
+            unShelfTotalCount,
             shelfId: res.result.data.shelfArr[0].nxDistributerGoodsShelfId,
           }, () => {
             // 2. 拉第一个货架的商品
             this._getShelfGoods();
+          });
+        } else if (unShelfTotalCount > 0 &&
+          (String(this.data.shelfGoodsType) === '99' || String(this.data.shelfGoodsType) === '5')) {
+          this.setData({
+            shelfArr: [],
+            shelfItem: null,
+            shelfIndex: 0,
+            shelfId: -1,
+            unShelfTotalCount
+          }, () => this.getUnShelfGoods());
+        } else {
+          this.setData({
+            shelfArr: [],
+            shelfGoodsList: [],
+            unShelfGoodsList: [],
+            shelfItem: null,
+            shelfIndex: 0,
+            shelfId: -1,
+            unShelfTotalCount: 0
           });
         }
       }
@@ -1637,8 +1664,10 @@ Page({
    * 接收采购商品
    */
   receivePurGoods() {
+    const isUnshelf = this.data.isUnshelfSelected || !this.data.shelfGoods;
     const shelfGoods = this.data.shelfGoods;
-    const purGoods = shelfGoods && shelfGoods.shelfPurGoods;
+    const disGoods = isUnshelf ? this.data.disGoods : shelfGoods && shelfGoods.nxDistributerGoodsEntity;
+    const purGoods = isUnshelf ? disGoods && disGoods.shelfPurGoods : shelfGoods && shelfGoods.shelfPurGoods;
     if (!purGoods || Number(purGoods.nxDpgStatus) !== 2) {
       wx.showToast({
         title: '当前商品不是待入库状态',
@@ -1656,7 +1685,6 @@ Page({
       return;
     }
 
-    const disGoods = shelfGoods.nxDistributerGoodsEntity;
     this.setData({
       item: Object.assign({}, purGoods, {
         nxDistributerGoodsEntity: disGoods,
@@ -1692,7 +1720,11 @@ Page({
         item: null
       });
       wx.showToast({ title: '接收入库完成', icon: 'success' });
-      this.updateShelfGoodsData(null, true);
+      if (this.data.isUnshelfSelected || !this.data.shelfGoods) {
+        this._refreshShelfListWithType();
+      } else {
+        this.updateShelfGoodsData(null, true);
+      }
     }).catch((error) => {
       wx.showToast({ title: error.message || '接收入库失败', icon: 'none' });
     }).then(() => load.hideLoading());
@@ -2274,7 +2306,7 @@ Page({
     }
 
     load.showLoading("获取数据中");
-    disGetUnshelfGoods(this.data.disId, 1, this.data.limit).then(res => {
+    disGetUnshelfGoods(this.data.disId, 1, this.data.limit, this.data.shelfGoodsType).then(res => {
       if (res.result.code == 0) {
         load.hideLoading();
         const pageData = res.result.page || {};
@@ -2315,7 +2347,7 @@ Page({
     let allGoods = [];
 
     const loadPage = (page) => {
-      return disGetUnshelfGoods(disId, page, limit).then(res => {
+      return disGetUnshelfGoods(disId, page, limit, this.data.shelfGoodsType).then(res => {
         if (res.result.code == 0) {
           const pageData = res.result.page || {};
           const pageGoods = this._formatUnShelfGoodsList(pageData.list || []);
@@ -2373,7 +2405,7 @@ Page({
       });
 
       const nextPage = this.data.currentPage + 1;
-      disGetUnshelfGoods(this.data.disId, nextPage, this.data.limit).then(res => {
+      disGetUnshelfGoods(this.data.disId, nextPage, this.data.limit, this.data.shelfGoodsType).then(res => {
         this.setData({
           isLoading: false
         });
@@ -2622,7 +2654,14 @@ Page({
 
   // 打开采购入库弹窗（直接生成采购商品并入库）
   toOpenInputPurSock() {
-    const disGoods = this.data.shelfGoods.nxDistributerGoodsEntity;
+    const isUnshelf = this.data.isUnshelfSelected || !this.data.shelfGoods;
+    const disGoods = isUnshelf
+      ? this.data.disGoods
+      : this.data.shelfGoods.nxDistributerGoodsEntity;
+    if (!disGoods) {
+      wx.showToast({ title: '商品数据异常，请刷新后重试', icon: 'none' });
+      return;
+    }
     // 根据 nxDgCartonUnit 是否为 null 决定使用哪个规格
     const standardName = disGoods.nxDgCartonUnit !== null && disGoods.nxDgCartonUnit !== undefined && disGoods.nxDgCartonUnit !== '' ?
       disGoods.nxDgCartonUnit :
@@ -2690,7 +2729,7 @@ Page({
     }
     // 外包装采购单价和外包装建议零售价已经在组件的 confirm 方法中添加（nxDgssPriceCarton 和 nxDgssSellingPriceCarton）
 
-    const isUnshelf = this.data.unShelfGoodsList.length > 0;
+    const isUnshelf = this.data.isUnshelfSelected || !this.data.shelfGoods;
     const goodsId = disGoods?.nxDistributerGoodsId;
     const shelfGoodsId = !isUnshelf && this.data.shelfGoods?.nxDistributerGoodsShelfGoodsId;
 

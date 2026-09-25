@@ -13,6 +13,7 @@
 <text class="" wx:elif="{{shelfGoodsType == '1'}}">多货架商品</text>
 <text class="" wx:elif="{{shelfGoodsType == '2'}}">有库存</text>
 <text class="" wx:elif="{{shelfGoodsType == '3'}}">无库存</text>
+<text class="" wx:elif="{{shelfGoodsType == '5'}}">待入库</text>
 <view class="" style="border-radius: 50%;" bindtap="openFilterMenu" hover-class="hover">
   <image src="/images/points.png" class="icon mr-10 ml-10"></image>
 </view>
@@ -24,6 +25,7 @@
     <view class="filter-menu-item {{shelfGoodsType == '1' ? 'active' : ''}}" bindtap="selectShelfGoodsType" data-type="1">多货架商品</view>
     <view class="filter-menu-item {{shelfGoodsType == '2' ? 'active' : ''}}" bindtap="selectShelfGoodsType" data-type="2">有库存</view>
     <view class="filter-menu-item {{shelfGoodsType == '3' ? 'active' : ''}}" bindtap="selectShelfGoodsType" data-type="3">无库存</view>
+    <view class="filter-menu-item {{shelfGoodsType == '5' ? 'active' : ''}}" bindtap="selectShelfGoodsType" data-type="5">待入库</view>
   </view>
 </block>
 </view>
@@ -69,24 +71,24 @@
       </view>
     </view>
 
-    <view class="flex-column {{shelfArr.length == 0  ? 'show' : 'hide'}}" style="height: {{contentHeight }}rpx; ">
+    <view class="flex-column {{shelfArr.length == 0 && unShelfTotalCount == 0 ? 'show' : 'hide'}}" style="height: {{contentHeight }}rpx; ">
       <view class="font-lg p-30 popEmpty">
         <view class="center-content flex-column">
           <image class="empty_image" src="../../../../images/paste.png"></image>
-          <text class="font-md text-secondary">暂时无货架</text>
+          <text class="font-md text-secondary">{{shelfGoodsType == '5' ? '当前没有待入库商品' : '暂时无货架'}}</text>
         </view>
       </view>
 
     </view>
 
-    <view class="main" wx:if="{{shelfArr.length > 0}}">
+    <view class="main" wx:if="{{shelfArr.length > 0 || unShelfTotalCount > 0}}">
 
       <scroll-view class="left-menu" scroll-y="true" style="height: {{contentHeight }}rpx; width: {{leftMenuWidth}}rpx;">
         <view class="left-item border-bottom {{shelfIndex == leftIndex ? 'left-active' : ''}}" wx:key="nxDistributerGoodsShelfId" wx:for="{{shelfArr}}" wx:for-item="grand" bindtap="changeShelfId" data-item="{{grand}}" wx:for-index="leftIndex" data-index="{{leftIndex}}" data-id="{{grand.nxDistributerGoodsShelfId}}">
           <text>{{grand.nxDistributerGoodsShelfName}}({{grand.goodsCount}})</text>
         </view>
 
-        <view class="left-item border-bottom {{shelfIndex == shelfArr.length ? 'left-active' : ''}}" bind:tap="getUnShelfGoods" wx:if="{{shelfGoodsType == '99'}}">
+        <view class="left-item border-bottom {{shelfIndex == shelfArr.length ? 'left-active' : ''}}" bind:tap="getUnShelfGoods" wx:if="{{shelfGoodsType == '99' || shelfGoodsType == '5'}}">
           <text class="font-xs text-danger">非货架({{unShelfTotalCount}})</text>
         </view>
         <view style="height: 100rpx;">
@@ -558,6 +560,18 @@
         class="p-30 flex-row border-bottom" catchtap="showInputOrder" hover-class="hover">
         <image src="/images/add-active.png" mode="aspectFill" class="icon mr-20" />
         <text> 订货</text>
+      </view>
+
+      <view wx:if="{{disInfo.nxDistributerBusinessTypeId > 2 && disGoods.shelfPurGoods == null}}"
+        class="p-30 flex-row border-bottom" catchtap="toOpenInputPurSock" hover-class="hover">
+        <image src="/images/gouwuche-4.png" mode="aspectFill" class="icon mr-20" />
+        <text> 直接采购入库</text>
+      </view>
+
+      <view wx:if="{{disInfo.nxDistributerBusinessTypeId > 2 && disGoods.shelfPurGoods !== null && disGoods.shelfPurGoods.nxDpgStatus == 2}}"
+        class="p-30 flex-row border-bottom" catchtap="receivePurGoods" hover-class="hover">
+        <image src="/images/tab_classification-2.png" mode="aspectFill" class="icon mr-20" />
+        <text> 接收入库</text>
       </view>
 
       <view class="p-30 flex-row border-bottom" catchtap="changeShelf" hover-class="hover">
