@@ -29,9 +29,9 @@
           <text wx:if="{{item.purchaseUom}}" class="goods-spec">规格/单位 {{item.purchaseUom}}</text>
           <view class="quantity-grid">
             <view><text class="field-label">订购数量</text><text class="field-value">{{item.plannedQuantity==null?'—':item.plannedQuantity}}{{item.purchaseUom||''}}</text></view>
-            <view><text class="field-label">{{item.purchasePurpose==='CUSTOMER_ORDER'?'供应方填报数量':'采购来源数量'}}</text><text class="field-value">{{item.sourceQuantity==null?'—':item.sourceQuantity}}{{item.sourceUom||item.purchaseUom||''}}</text></view>
-            <view><text class="field-label">供货单价</text><text class="field-value">{{item.sourceUnitPrice==null?'—':'¥'+item.sourceUnitPrice+(item.sourceUom?'/'+item.sourceUom:'')}}</text></view>
-            <view><text class="field-label">供货小计</text><text class="field-value amount-inline">{{item.sourceSubtotal==null?'—':'¥'+item.sourceSubtotal}}</text></view>
+            <view><text class="field-label">{{item.procurementMode==='SELF_BUY'?'实际采购数量':(item.purchasePurpose==='CUSTOMER_ORDER'?'供应方填报数量':'采购来源数量')}}</text><text class="field-value">{{item.sourceQuantity==null?'—':item.sourceQuantity}}{{item.sourceUom||item.purchaseUom||''}}</text></view>
+            <view><text class="field-label">{{item.procurementMode==='SELF_BUY'?'采购单价':'供货单价'}}</text><text class="field-value">{{item.sourceUnitPrice==null?'—':'¥'+item.sourceUnitPrice+(item.sourceUom?'/'+item.sourceUom:'')}}</text></view>
+            <view><text class="field-label">{{item.procurementMode==='SELF_BUY'?'采购小计':'供货小计'}}</text><text class="field-value amount-inline">{{item.sourceSubtotal==null?'—':'¥'+item.sourceSubtotal}}</text></view>
           </view>
           <text class="source-status {{item.sourceFactStatus==='MISSING'?'warn-text':''}}">{{item.sourceFactStatusText}}</text>
           <view wx:if="{{item.purchasePurpose==='CUSTOMER_ORDER'}}" class="source-toggle" data-id="{{item.purchaseGoodsId}}" bindtap="toggleSource"><text>订单来源</text><text>{{item.sourceExpanded?'收起⌃':'展开⌄'}}</text></view>
