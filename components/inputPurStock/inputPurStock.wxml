@@ -25,6 +25,11 @@
           <text class="font-xs">{{item.nxDistributerGoodsEntity.nxDgItemsPerCarton}}{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}/{{item.nxDistributerGoodsEntity.nxDgCartonUnit}}</text>
         </view>
         </block>
+
+        <view class="flex-row-between p-20" wx:if="{{receiptOnly && item.nxDpgBuyScale && item.nxDpgStandard && item.nxDpgStandard !== item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}">
+          <text>规格换算:</text>
+          <text class="font-xs">1{{item.nxDpgStandard}} = {{item.nxDpgBuyScale}}{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+        </view>
       
         <view class="flex-row-between p-20">
           <text class="margin-l-right">采购数量:</text>
@@ -32,7 +37,8 @@
             <view class="inputView" style="width: 200rpx; margin-right: 10rpx;">
               <input class='input' type='digit' value="{{item.nxDpgBuyQuantity}}" disabled="{{receiptOnly}}" bindinput="getPurchaseQuantity" bindblur="_checkQuantity" bindconfirm="hideKeyboard" confirm-type="done"></input>
             </view>
-            <text wx:if="{{hasPurchasableCarton}}" class="unit-switch" bindtap="togglePurchaseUnit">{{purchaseUseCartonUnit ? item.nxDistributerGoodsEntity.nxDgCartonUnit : item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+            <text wx:if="{{receiptOnly}}">{{item.nxDpgStandard || item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+            <text wx:elif="{{hasPurchasableCarton}}" class="unit-switch" bindtap="togglePurchaseUnit">{{purchaseUseCartonUnit ? item.nxDistributerGoodsEntity.nxDgCartonUnit : item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
             <text wx:else>{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
           </view>
         </view>
@@ -43,7 +49,8 @@
             <view class="inputView" style="width: 200rpx; margin-right: 10rpx;">
               <input class='input' type='digit' value="{{cartonBuyPrice || item.nxDpgBuyPrice}}" disabled="{{receiptOnly}}" bindinput="getPurchasePrice" bindblur="_checkPrice" bindconfirm="hideKeyboard" confirm-type="done"></input>
             </view>
-            <text wx:if="{{hasPurchasableCarton}}" class="unit-switch" bindtap="togglePurchaseUnit">元/{{purchaseUseCartonUnit ? item.nxDistributerGoodsEntity.nxDgCartonUnit : item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+            <text wx:if="{{receiptOnly}}">元/{{item.nxDpgStandard || item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
+            <text wx:elif="{{hasPurchasableCarton}}" class="unit-switch" bindtap="togglePurchaseUnit">元/{{purchaseUseCartonUnit ? item.nxDistributerGoodsEntity.nxDgCartonUnit : item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
             <text wx:else>元/{{item.nxDistributerGoodsEntity.nxDgGoodsStandardname}}</text>
           </view>
         </view>
