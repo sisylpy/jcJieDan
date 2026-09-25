@@ -31,6 +31,10 @@ Component({
     receiptOnly: {
       type: Boolean,
       value: false
+    },
+    showWaitOption: {
+      type: Boolean,
+      value: false
     }
   },
 

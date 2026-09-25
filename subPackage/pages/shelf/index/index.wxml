@@ -533,7 +533,7 @@
 <input-pur-goods show="{{showInputPurGoods}}" bindconfirm="confirmInputPurGoods" bindcancle="cancleInputPurGoods" bindfinish="cancleInputPurGoods" item="{{item}}" windowHeight="{{windowHeight}}" windowWidth="{{windowWidth}}" />
 
 
-<input-pur-stock show="{{showInputPurStock}}" receipt-only="{{receivingExistingPurchase}}" bindconfirm="confirmInputPurStock" bindcancle="cancleInputPurStock" item="{{item}}" windowHeight="{{windowHeight}}" windowWidth="{{windowWidth}}" />
+<input-pur-stock show="{{showInputPurStock}}" receipt-only="{{receivingExistingPurchase}}" show-wait-option="{{false}}" bindconfirm="confirmInputPurStock" bindcancle="cancleInputPurStock" item="{{item}}" windowHeight="{{windowHeight}}" windowWidth="{{windowWidth}}" />
 
 <disEditPurchase show="{{showEditPurGoods}}" item="{{item}}" planOrder="{{planOrder}}" applyStandardName="{{applyStandardName}}" purchaseGoods="{{purchaseGoods}}" priceLevel="{{priceLevel}}" bindconfirmEditGoods="confirmEditPurGoods" bindcancle="closeEditPurGoods" binddelPurGoods="deletePurGoods" />
 

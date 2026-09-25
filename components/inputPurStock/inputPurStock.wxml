@@ -115,7 +115,7 @@
           </picker>
         </view>
 
-        <view class="flex-row-between p-20" wx:if="{{!receiptOnly}}">
+        <view class="flex-row-between p-20" wx:if="{{!receiptOnly && showWaitOption}}">
           <text class="margin-l-right">等待入库:</text>
           <view class="flex-row">
             <view class="inputView1" style="width: 200rpx; margin-right: 10rpx;">
