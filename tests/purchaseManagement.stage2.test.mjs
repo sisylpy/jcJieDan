@@ -29,6 +29,7 @@ assert.match(api, /purchaseManagementRequest\('pending-stock-ins'/)
 assert.match(api, /purchaseManagementRequest\('purchase-amount-records'/)
 assert.match(api, /purchaseManagementRequest\('purchasers'/)
 assert.match(api, /purchaseManagementRequest\('purchasers\/' \+ id \+ '\/tasks'/)
+assert.match(api, /purchaseManagementRequest\('purchasers\/' \+ id \+ '\/purchased-goods'/)
 assert.match(api, /purchaseManagementRequest\('suppliers'/)
 assert.match(api, /purchaseManagementRequest\('batches'/)
 assert.match(api, /purchaseManagementRequest\('exceptions'/)
@@ -108,14 +109,12 @@ assert.match(purchaserListWxml, /本期采购金额/)
 assert.match(purchaserListWxml, /所选日期内暂无采购记录/)
 assert.match(purchaserListWxml, /没有符合条件的采购员/)
 assert.doesNotMatch(purchaserListWxml, /损耗率|毛利|拒收率|实际净采购/)
-assert.match(purchaserDetailWxml, /当前未结束任务，不受上方历史日期范围限制/)
-assert.match(purchaserDetailWxml, /当前处理：/)
-assert.match(purchaserDetailWxml, /item\.canOperate\|\|item\.actionCode==='OPEN_BOSS_BATCH'/,
-  'only the responsible owner identity may execute a JRDH purchaser action; Boss batch reads remain available')
 assert.match(purchaserDetailWxml, /class="detail-topbar"[\s\S]*start-date="\{\{startDate\}\}"[\s\S]*stop-date="\{\{stopDate\}\}"/,
   'purchaser detail date range must stay in the top toolbar instead of being repeated in record content')
-assert.match(purchaserDetailWxml, /recordStatusOptions/,
-  'purchase records may be filtered by their formal business status, including waiting for stock-in')
+assert.match(purchaserDetailWxml, /采购完成商品/)
+assert.match(purchaserDetailWxml, /goods-category-tree/)
+assert.doesNotMatch(purchaserDetailWxml, /当前任务|当前处理：|查看采购批次/,
+  'purchaser detail must not duplicate the overview purchase-batch tasks')
 assert.doesNotMatch(purchaserDetailWxml, /确认收货|损耗率|毛利/)
 
 assert.match(read('subPackage/pages/management/homePage/homePage.wxml'), /采购管理/)
@@ -136,9 +135,6 @@ assert.match(batchDetailJs, /purchasePurpose !== 'CUSTOMER_ORDER'/)
 assert.match(batchDetailJs, /demandScope=SHELF_REPLENISHMENT/)
 assert.match(batchDetailJs, /inventoryReceiptRequired/)
 assert.match(batchDetail, /前往精彩订货库存备货接收/)
-const purchaserDetailPage = read('utils/purchaseManagementPurchaserDetailPage.js')
-assert.match(purchaserDetailPage, /OPEN_JRDH_INVENTORY_RECEIPT/)
-assert.match(purchaserDetailPage, /demandScope=SHELF_REPLENISHMENT/)
 const qualityJs = read('subPackage-purchase-management/pages/purchasePerformance/purchasePerformance.js')
 const qualityWxml = read('subPackage-purchase-management/pages/purchasePerformance/purchasePerformance.wxml')
 assert.doesNotMatch(qualityWxml, />待处理</)
@@ -191,32 +187,24 @@ assert.doesNotMatch(batchListJs, /getPurchaseManagementSuppliers|getPurchaseMana
 assert.match(batchListJs, /restoreScrollTop/)
 assert.match(allJs, /pageSize:\s*20/)
 
-// Stage5 direct-purchase record contracts on the purchaser detail page.
+// Stage5 keeps the legacy direct-purchase endpoint but purchaser detail now consumes
+// one completed-goods read model instead of mixing task batches with goods records.
 assert.match(api, /purchaseManagementRequest\('purchasers\/' \+ id \+ '\/direct-purchases'/,
-  'detail page must read batchless direct purchases from their own endpoint, never as fake batches')
+  'batchless direct purchases keep their source-owned endpoint')
 const purchaserDetailEntryJs = read('subPackage/pages/management/purchaseManagement/purchaserDetail/purchaserDetail.js')
 const purchaserDetailJs = purchaserDetailEntryJs + '\n' + purchaserDetailLogic
 assert.match(purchaserDetailEntryJs, /createPurchaserDetailPage/,
   'subpackage keeps only the purchaser detail entry while page logic lives in the main package')
-assert.match(purchaserDetailJs, /getPurchaseManagementPurchaserTasks/,
-  'detail page must load current tasks from their own date-independent endpoint')
-assert.match(purchaserDetailWxml, /recordGroups/,
-  'batch and direct-purchase records must share one categorized purchase-record view')
-assert.match(purchaserDetailWxml, /recordModeOptions/,
-  'the unified record view must expose the purchase-mode filter')
-assert.match(purchaserDetailWxml, /recordStatusOptions/,
-  'the unified record view must expose the business-status filter')
-assert.match(purchaserDetailWxml, /recordSortOptions/,
-  'the unified record view must expose record sorting')
-for (const field of ['imageUrl', 'title', 'sourceText', 'statusText', 'quantityPriceText', 'amountText']) {
-  assert.match(purchaserDetailWxml, new RegExp('item\\.' + field), `unified detail card must render ${field}`)
+assert.match(purchaserDetailJs, /getPurchaseManagementPurchaserPurchasedGoods/,
+  'detail page must load completed goods at goods-line granularity')
+assert.doesNotMatch(purchaserDetailJs, /getPurchaseManagementPurchaserTasks|getPurchaseManagementPurchaserBatches|getPurchaseManagementPurchaserDirectPurchases/)
+assert.match(purchaserDetailWxml, /goodsCategories/,
+  'completed goods must use the shared left category tree')
+assert.match(purchaserDetailWxml, /goodsSourceOptions/)
+assert.match(purchaserDetailWxml, /goodsSortOptions/)
+for (const field of ['imageUrl', 'title', 'sourceText', 'completionText', 'quantityPriceText', 'amountText']) {
+  assert.match(purchaserDetailWxml, new RegExp('item\\.' + field), `completed-goods card must render ${field}`)
 }
-assert.match(purchaserDetailJs, /pkgPurchase\/pages\/purchaseTasks\/purchaseTasks/)
-assert.match(purchaserDetailJs, /pkgPurchase\/pages\/txs\/purPrepareBatch\/purPrepareBatch/)
-assert.match(purchaserDetailJs, /pkgPurchase\/pages\/txs\/disOrderBatch\/disOrderBatch/)
-assert.match(purchaserDetailJs, /fromBuyer=1&fromBoss=1/)
-assert.match(purchaserDetailJs, /onShow\(\)[\s\S]*loadTasks\(true\)/,
-  'returning from a business page must refresh the real task state')
-assert.match(purchaserDetailWxml, /所选日期内暂无采购记录/,
-  'record empty state must be separate from current-task state')
+assert.doesNotMatch(purchaserDetailJs, /pkgPurchase\/pages\/|navigateToMiniProgram/)
+assert.match(purchaserDetailWxml, /所选日期内暂无采购完成商品/)
 console.log('purchase management stage2 contracts passed')

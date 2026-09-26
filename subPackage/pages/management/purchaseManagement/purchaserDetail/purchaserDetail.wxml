@@ -1,6 +1,6 @@
 <view class="pm-page">
   <back-navbar style="height:{{navBarHeight}}rpx" title="采购详细" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
-  <scroll-view scroll-y class="pm-body" style="padding-top:{{navBarHeight}}rpx" bindscrolltolower="more">
+  <scroll-view scroll-y class="pm-body" style="padding-top:{{navBarHeight}}rpx">
     <view wx:if="{{error}}" class="pm-state error-state"><text>{{error}}</text><text class="retry" bindtap="retry">重新加载</text></view>
     <block wx:else>
       <view class="detail-topbar">
@@ -17,103 +17,78 @@
             <text class="summary-kicker">采购员范围</text>
             <text class="summary-title">{{purchaserSelectionText}}</text>
           </view>
-          <text class="scope-status">{{detail.purchaserStatusText}}</text>
+          <text class="scope-status">{{detail.purchaserStatusText||'当前采购员'}}</text>
         </view>
-        <view class="summary-line">
-          <view class="summary-item"><text class="summary-label">当前任务</text><text class="summary-number">{{detail.summary.currentTaskCount||0}}<text class="summary-unit">项</text></text></view>
-          <view class="summary-item"><text class="summary-label">采购记录</text><text class="summary-number">{{detail.summary.periodPurchaseRecordCount||0}}<text class="summary-unit">条</text></text></view>
-          <view class="summary-item amount-summary"><text class="summary-label">采购金额</text><text class="summary-money">{{detail.summary.periodPurchaseAmount==null?'—':'¥'+detail.summary.periodPurchaseAmount}}</text></view>
+        <view class="summary-line completed-summary-line">
+          <view class="summary-item"><text class="summary-label">采购完成商品</text><text class="summary-number">{{completedGoodsCount}}<text class="summary-unit">条</text></text></view>
+          <view class="summary-item amount-summary"><text class="summary-label">已确认金额</text><text class="summary-money">{{completedGoodsAmountText}}</text></view>
         </view>
-        <text wx:if="{{detail.summary.periodUnresolvedAmountCount}}" class="amount-note">另有 {{detail.summary.periodUnresolvedAmountCount}} 条采购记录金额尚未形成</text>
+        <text wx:if="{{completedUnresolvedCount}}" class="amount-note">另有 {{completedUnresolvedCount}} 条已采购商品金额待形成或核对</text>
       </view>
 
-      <view class="detail-tabs">
-        <text class="detail-tab {{activeTab==='TASKS'?'on':''}}" data-value="TASKS" bindtap="chooseTab">当前任务</text>
-        <text class="detail-tab {{activeTab==='RECORDS'?'on':''}}" data-value="RECORDS" bindtap="chooseTab">采购记录</text>
+      <view class="goods-toolbar">
+        <view class="goods-toolbar-head">
+          <view><text class="goods-toolbar-title">已采购商品</text><text class="goods-toolbar-copy">仅展示采购完成的商品明细</text></view>
+          <text class="goods-toolbar-count">{{goodsItems.length}} 条</text>
+        </view>
+        <view class="goods-filters">
+          <picker value="{{goodsSourceIndex}}" range="{{goodsSourceOptions}}" range-key="label" bindchange="changeGoodsSource">
+            <view class="goods-filter">{{goodsSourceOptions[goodsSourceIndex].label}}⌄</view>
+          </picker>
+          <picker value="{{goodsSortIndex}}" range="{{goodsSortOptions}}" range-key="label" bindchange="changeGoodsSort">
+            <view class="goods-filter">{{goodsSortOptions[goodsSortIndex].label}}⌄</view>
+          </picker>
+        </view>
       </view>
 
-      <block wx:if="{{activeTab==='TASKS'}}">
-        <text class="section-note">当前未结束任务，不受上方历史日期范围限制</text>
-        <view wx:if="{{taskError}}" class="pm-state small-state"><text>{{taskError}}</text><text class="retry" bindtap="retryTasks">重新加载</text></view>
-        <view wx:elif="{{!taskLoading&&!tasks.length}}" class="pm-state">当前没有待处理任务</view>
-        <view class="task-card" wx:for="{{tasks}}" wx:key="taskKey">
-          <view class="pm-row"><text class="purpose">{{item.purchasePurposeText}}</text><text class="task-progress {{item.currentHandlerRole==='PURCHASER'?'attention':''}}">{{item.progressText}}</text></view>
-          <text class="goods-summary">{{item.goodsSummary}}</text>
-          <view class="task-meta"><text>{{item.purchaserName||('采购员 #'+item.purchaserUserId)}}</text><text>{{item.businessDate||'业务日期待核对'}}</text></view>
-          <view class="task-meta"><text>{{item.batchNumber||('商品记录 #'+item.purchaseGoodsId)}}</text><text>{{item.goodsLineCount}} 条商品记录</text></view>
-          <view class="task-meta"><text>{{item.supplierName}}</text></view>
-          <view class="handler-line"><text>当前处理：{{item.currentHandlerText}}（{{item.handlerClientText}}）</text><text wx:if="{{item.canOperate||item.actionCode==='OPEN_BOSS_BATCH'}}" class="task-action" data-item="{{item}}" bindtap="openTask">{{item.actionText}} ›</text><text wx:else class="route-note">{{item.actionText}}</text></view>
-        </view>
-        <view wx:if="{{taskLoading}}" class="pm-state small-state">正在加载任务…</view>
-      </block>
+      <view wx:if="{{goodsError}}" class="pm-state small-state"><text>{{goodsError}}</text><text class="retry" bindtap="retryGoods">重新加载</text></view>
+      <view wx:elif="{{!goodsLoading&&!purchasedGoods.length}}" class="pm-state goods-empty-state">所选日期内暂无采购完成商品</view>
 
-      <block wx:else>
-        <view class="record-toolbar">
-          <view class="record-toolbar-head">
-            <text class="record-toolbar-title">采购记录</text>
-            <text class="record-toolbar-copy">按类型、状态和金额筛选</text>
+      <view wx:if="{{purchasedGoods.length}}" class="goods-tree-layout">
+        <scroll-view scroll-y class="goods-category-tree">
+          <view class="goods-category {{activeGoodsCategory===item.key?'on':''}}" wx:for="{{goodsCategories}}" wx:key="key" data-value="{{item.key}}" bindtap="chooseGoodsCategory">
+            <text class="goods-category-name">{{item.name}}</text>
+            <text class="goods-category-count">{{item.count}} 条</text>
           </view>
-          <view class="record-filters">
-            <picker value="{{recordModeIndex}}" range="{{recordModeOptions}}" range-key="label" bindchange="changeRecordMode">
-              <view class="record-filter">{{recordModeOptions[recordModeIndex].label}}⌄</view>
-            </picker>
-            <picker value="{{recordStatusIndex}}" range="{{recordStatusOptions}}" range-key="label" bindchange="changeRecordStatus">
-              <view class="record-filter">{{recordStatusOptions[recordStatusIndex].label}}⌄</view>
-            </picker>
-            <picker value="{{recordSortIndex}}" range="{{recordSortOptions}}" range-key="label" bindchange="changeRecordSort">
-              <view class="record-filter">{{recordSortOptions[recordSortIndex].label}}⌄</view>
-            </picker>
-          </view>
-        </view>
-        <view wx:if="{{batchError||directError}}" class="pm-state small-state"><text>{{batchError||directError}}</text><text class="retry" bindtap="retryRecords">重新加载</text></view>
-        <view wx:elif="{{recordsLoaded&&!batchLoading&&!directLoading&&!batches.length&&!directItems.length}}" class="pm-state">所选日期内暂无采购记录</view>
-
-        <view wx:if="{{batches.length||directItems.length}}" class="record-layout">
-          <scroll-view scroll-y class="record-groups">
-            <view class="record-group {{activeRecordGroup===item.key?'on':''}}" wx:for="{{recordGroups}}" wx:key="key" data-value="{{item.key}}" bindtap="chooseRecordGroup">
-              <text class="record-group-name">{{item.name}}</text>
-              <text class="record-group-count">{{item.count}} 条</text>
-            </view>
-          </scroll-view>
-          <view class="record-list">
-            <view wx:if="{{!recordItems.length&&!batchLoading&&!directLoading}}" class="record-empty">当前筛选条件下暂无记录</view>
-            <view class="purchase-record-card" wx:for="{{recordItems}}" wx:key="key" data-id="{{item.batchId}}" bindtap="openRecord">
-              <image class="record-thumb" src="{{item.imageUrl}}" mode="aspectFill"></image>
-              <view class="record-card-main">
-                <view class="record-card-head">
-                  <text class="record-goods-name">{{item.title}}</text>
-                  <text class="record-date">{{item.businessDate}}</text>
-                </view>
-                <view class="record-badges">
-                  <text class="record-badge purchaser">{{item.purchaserName}}</text>
-                  <text class="record-badge source">{{item.sourceText}}</text>
-                  <text class="record-badge status {{item.statusKey==='WAITING_STOCK'?'attention':''}}">{{item.statusText}}</text>
-                </view>
-                <view class="record-card-foot">
-                  <text class="record-quantity">{{item.quantityPriceText}}</text>
-                  <text class="record-money {{item.amount==null?'unresolved':''}}">{{item.amountText}}</text>
-                </view>
-                <view class="record-purpose-line">
-                  <text>{{item.purposeText}}</text>
-                  <text wx:if="{{item.clickable}}" class="record-link">查看批次 ›</text>
-                </view>
+        </scroll-view>
+        <view class="goods-list">
+          <view wx:if="{{!goodsItems.length&&!goodsLoading}}" class="record-empty">当前筛选条件下暂无商品</view>
+          <view class="purchased-goods-card" wx:for="{{goodsItems}}" wx:key="key">
+            <image class="goods-thumb" src="{{item.imageUrl}}" mode="aspectFill"></image>
+            <view class="goods-card-main">
+              <view class="goods-card-head">
+                <text class="purchased-goods-name">{{item.title}}</text>
+                <text class="goods-date">{{item.businessDate}}</text>
+              </view>
+              <view class="goods-badges">
+                <text class="goods-badge purchaser">{{item.purchaserName}}</text>
+                <text class="goods-badge source">{{item.sourceText}}</text>
+                <text class="goods-badge complete">{{item.completionText}}</text>
+              </view>
+              <view class="goods-card-foot">
+                <text class="goods-quantity">{{item.quantityPriceText}}</text>
+                <text class="goods-money {{item.amount==null?'unresolved':''}}">{{item.amountText}}</text>
+              </view>
+              <view class="goods-purpose-line">
+                <text>{{item.purposeText}}</text>
+                <text class="goods-supplier">{{item.supplierText}}</text>
               </view>
             </view>
           </view>
         </view>
-        <view wx:if="{{batchLoading||directLoading}}" class="pm-state small-state">正在加载采购记录…</view>
-      </block>
+      </view>
+      <view wx:if="{{goodsLoading}}" class="pm-state small-state">正在加载已采购商品…</view>
     </block>
   </scroll-view>
 
   <view wx:if="{{showPurchaserFilter}}" class="purchaser-filter-mask" bindtap="closePurchaserFilter">
     <view class="purchaser-filter-sheet" catchtap="noop">
       <view class="filter-sheet-head">
-        <view><text class="filter-sheet-title">筛选采购员</text><text class="filter-sheet-copy">可选择一位或多位，统计和明细会一起更新</text></view>
+        <view><text class="filter-sheet-title">筛选采购员</text><text class="filter-sheet-copy">可选择一位或多位，汇总和商品明细会一起更新</text></view>
         <view class="filter-sheet-actions"><text class="filter-clear" bindtap="clearDraftPurchasers">清空</text><text class="filter-close" bindtap="closePurchaserFilter">关闭</text></view>
       </view>
       <view class="filter-select-all {{draftAllPurchasers?'selected':''}}" bindtap="selectAllPurchasers">
-        <view><text class="filter-option-name">全部采购员</text><text class="filter-option-copy">查看所有采购员的合计数据</text></view>
+        <view><text class="filter-option-name">全部采购员</text><text class="filter-option-copy">查看所有采购员的已采购商品</text></view>
         <text class="filter-check">{{draftAllPurchasers?'✓':''}}</text>
       </view>
       <scroll-view scroll-y class="filter-options">

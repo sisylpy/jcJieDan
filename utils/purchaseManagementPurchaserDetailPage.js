@@ -1,19 +1,16 @@
 import {
   getPurchaseManagementPurchasers,
-  getPurchaseManagementPurchaserTasks,
-  getPurchaseManagementPurchaserBatches,
-  getPurchaseManagementPurchaserDirectPurchases
+  getPurchaseManagementPurchaserPurchasedGoods
 } from '../lib/apiDistributer.js'
 import apiUrl from '../config.js'
 import {
-  buildPurchaserRecordView,
-  purchaserRecordInitialState
-} from './purchaseManagementPurchaserRecordView.js'
+  buildPurchaserGoodsView,
+  purchaserGoodsInitialState
+} from './purchaseManagementPurchaserGoodsView.js'
 
 const app = getApp()
 const PAGE_SIZE = 100
 const MAX_PAGES = 100
-const PURCHASE_APP_ID = 'wx1ea78d3f33234284'
 
 function today() {
   const date = new Date()
@@ -32,34 +29,32 @@ function positiveId(value) {
   return Number.isInteger(id) && id > 0 ? id : 0
 }
 
-function sum(rows, key) {
-  let hasValue = false
-  const total = (rows || []).reduce((result, row) => {
-    const value = row && row[key]
-    if (value === null || value === undefined || value === '') return result
-    const number = Number(value)
-    if (!isFinite(number)) return result
-    hasValue = true
-    return result + number
-  }, 0)
-  return hasValue ? Number(total.toFixed(2)) : null
-}
-
-function count(rows, key) {
-  return (rows || []).reduce((result, row) => result + Number((row && row[key]) || 0), 0)
-}
-
-function latestFirst(left, right) {
-  const leftDate = String(left.businessDate || left.purchaseDate || '')
-  const rightDate = String(right.businessDate || right.purchaseDate || '')
-  if (leftDate !== rightDate) return rightDate.localeCompare(leftDate)
-  return String(right.taskKey || right.batchId || right.purchaseGoodsId || '')
-    .localeCompare(String(left.taskKey || left.batchId || left.purchaseGoodsId || ''))
+function completedTotals(items) {
+  let recognizedCount = 0
+  let amount = 0
+  let unresolvedCount = 0
+  ;(items || []).forEach(item => {
+    const value = item && item.amount
+    if (item && item.amountStatus === 'RECOGNIZED' && value !== null && value !== undefined && value !== '' && isFinite(Number(value))) {
+      recognizedCount += 1
+      amount += Number(value)
+    } else {
+      unresolvedCount += 1
+    }
+  })
+  const amountText = recognizedCount
+    ? '¥' + Number(amount.toFixed(2)).toString()
+    : '—'
+  return {
+    completedGoodsCount: (items || []).length,
+    completedGoodsAmountText: amountText,
+    completedUnresolvedCount: unresolvedCount
+  }
 }
 
 export function createPurchaserDetailPage() {
   return {
-  data: {
+  data: Object.assign({
     navBarHeight: 0,
     purchaserId: 0,
     purchasers: [],
@@ -70,13 +65,21 @@ export function createPurchaserDetailPage() {
     draftAllPurchasers: true,
     draftPurchasers: [],
     draftSelectedCount: 0,
-    startDate: '', stopDate: '', dateType: 'month', dateName: 'thisMonth', dateLabel: '本月', activeTab: 'TASKS',
-    detail: { summary: {} }, loading: false, error: '',
-    tasks: [], taskPage: 1, taskTotal: 0, taskLoading: false, taskError: '',
-    batches: [], batchPage: 1, batchTotal: 0, batchLoading: false, batchError: '',
-    directItems: [], directPage: 1, directTotal: 0, directLoading: false, directError: '',
-    recordsLoaded: false
-  },
+    startDate: '',
+    stopDate: '',
+    dateType: 'month',
+    dateName: 'thisMonth',
+    dateLabel: '本月',
+    detail: {},
+    loading: false,
+    error: '',
+    purchasedGoods: [],
+    goodsLoading: false,
+    goodsError: '',
+    completedGoodsCount: 0,
+    completedGoodsAmountText: '—',
+    completedUnresolvedCount: 0
+  }, purchaserGoodsInitialState()),
 
   onLoad(options) {
     const stopDate = options.stopDate || today()
@@ -92,34 +95,24 @@ export function createPurchaserDetailPage() {
       dateLabel: decodeURIComponent(options.dateLabel || '本月')
     })
     this.loadHeader().then(loaded => {
-      if (loaded) this.loadTasks(true)
+      if (loaded) this.loadGoods()
     })
   },
 
   onShow() {
-    if (this._dateChanged) {
-      this._dateChanged = false
-      this.reloadPeriod()
-      return
-    }
-    if (!this._returningFromBusiness) return
-    this._returningFromBusiness = false
-    this.loadHeader().then(loaded => {
-      if (!loaded) return
-      this.loadTasks(true)
-      if (this.data.recordsLoaded) this.loadRecords()
-    })
+    if (!this._dateChanged) return
+    this._dateChanged = false
+    this.reloadPeriod()
   },
 
   toBack() { wx.navigateBack({ delta: 1 }) },
   noop() {},
   retry() {
     this.loadHeader().then(loaded => {
-      if (loaded) this.loadTasks(true)
+      if (loaded) this.loadGoods()
     })
   },
-  retryTasks() { this.loadTasks(true) },
-  retryRecords() { this.loadRecords() },
+  retryGoods() { this.loadGoods() },
   toDatePage() {
     wx.navigateTo({ url: '/subPackage-charts/pages/sel/date/date?startDate=' + this.data.startDate + '&stopDate=' + this.data.stopDate + '&dateType=' + this.data.dateType + '&dateName=' + this.data.dateName })
   },
@@ -130,15 +123,8 @@ export function createPurchaserDetailPage() {
   reloadPeriod() {
     this._scopeVersion += 1
     this.loadHeader().then(loaded => {
-      if (loaded && (this.data.recordsLoaded || this.data.activeTab === 'RECORDS')) this.loadRecords()
+      if (loaded) this.loadGoods()
     })
-  },
-  chooseTab(event) {
-    const tab = event.currentTarget.dataset.value
-    const initial = tab === 'RECORDS' && !this.data.recordsLoaded
-      ? purchaserRecordInitialState() : {}
-    this.setData(Object.assign({ activeTab: tab }, initial))
-    if (tab === 'RECORDS' && !this.data.recordsLoaded) this.loadRecords()
   },
 
   loadAllPages(request, params, errorText, page, items) {
@@ -206,17 +192,9 @@ export function createPurchaserDetailPage() {
     const names = selected.map(item => item.purchaserName || ('采购员 #' + item.purchaserUserId))
     const isAll = this.data.selectedAllPurchasers
     const single = selected.length === 1 ? selected[0] : null
-    const summary = {
-      currentTaskCount: count(selected, 'currentTaskCount'),
-      periodPurchaseRecordCount: count(selected, 'periodPurchaseRecordCount'),
-      periodPurchaseAmount: sum(selected, 'periodPurchaseAmount'),
-      periodUnresolvedAmountCount: count(selected, 'periodUnresolvedAmountCount')
-    }
-    const detail = !isAll && single ? Object.assign({}, single, { summary }) : {
+    const detail = !isAll && single ? Object.assign({}, single) : {
       purchaserName: isAll ? '全部采购员' : selected.length + ' 位采购员',
-      purchaserStatusText: isAll ? '全员汇总' : '组合筛选',
-      accountStatusText: isAll ? '共 ' + selected.length + ' 位采购员' : names.slice(0, 2).join('、') + (names.length > 2 ? ' 等' : ''),
-      summary
+      purchaserStatusText: isAll ? '全员汇总' : '组合筛选'
     }
     const selectionText = isAll ? '全部采购员（' + selected.length + '）'
       : single ? names[0] : '已选 ' + selected.length + ' 位采购员'
@@ -281,17 +259,19 @@ export function createPurchaserDetailPage() {
     }
     const selectedAll = ids.length === this.data.purchasers.length
     this._scopeVersion += 1
-    this.setData({
+    this.setData(Object.assign({
       showPurchaserFilter: false,
       selectedAllPurchasers: selectedAll,
       selectedPurchaserIds: selectedAll ? [] : ids,
       purchaserId: selectedAll || ids.length !== 1 ? 0 : ids[0],
-      tasks: [], batches: [], directItems: [],
-      taskError: '', batchError: '', directError: ''
-    })
+      purchasedGoods: [],
+      goodsError: '',
+      completedGoodsCount: 0,
+      completedGoodsAmountText: '—',
+      completedUnresolvedCount: 0
+    }, purchaserGoodsInitialState()))
     this.updateSummary()
-    this.loadTasks(true)
-    if (this.data.recordsLoaded || this.data.activeTab === 'RECORDS') this.loadRecords()
+    this.loadGoods()
   },
 
   purchaserName(purchaserId) {
@@ -308,228 +288,69 @@ export function createPurchaserDetailPage() {
     })
   },
 
-  loadForPurchasers(request, params, errorText, decorator) {
+  loadForPurchasers(request, params, errorText) {
     const ids = this.activePurchaserIds()
     return Promise.all(ids.map(purchaserId => this.loadAllPages(
       data => request(purchaserId, data), params, errorText
-    ).then(items => (items || []).map(item => decorator.call(this, item, purchaserId)))))
+    ).then(items => (items || []).map(item => this.decorateOwner(item, purchaserId)))))
       .then(groups => groups.reduce((all, group) => all.concat(group), []))
   },
 
-  loadTasks(reset) {
+  loadGoods() {
     const token = this._scopeVersion
-    const ids = this.activePurchaserIds()
-    if (!ids.length) {
-      this.setData({ tasks: [], taskTotal: 0, taskLoading: false, taskError: '' })
+    if (!this.activePurchaserIds().length) {
+      this.setData(Object.assign({
+        purchasedGoods: [],
+        goodsLoading: false,
+        goodsError: ''
+      }, purchaserGoodsInitialState(), completedTotals([])))
       return Promise.resolve()
     }
-    this.setData({ taskLoading: true, taskError: '' })
+    this.setData({ goodsLoading: true, goodsError: '' })
     return this.loadForPurchasers(
-      getPurchaseManagementPurchaserTasks,
-      {},
-      '当前任务加载失败',
-      this.decorateOwner
+      getPurchaseManagementPurchaserPurchasedGoods,
+      { startDate: this.data.startDate, stopDate: this.data.stopDate },
+      '已采购商品加载失败'
     ).then(items => {
       if (token !== this._scopeVersion) return
-      const tasks = items.sort(latestFirst)
-      this.setData({ tasks, taskPage: 1, taskTotal: tasks.length })
+      this.setData(Object.assign({ purchasedGoods: items }, completedTotals(items), this.goodsView(items)))
     }).catch(error => {
-      if (token === this._scopeVersion) this.setData({ taskError: error.message || '当前任务加载失败' })
+      if (token === this._scopeVersion) this.setData({ goodsError: error.message || '已采购商品加载失败' })
     }).then(() => {
-      if (token === this._scopeVersion) this.setData({ taskLoading: false })
+      if (token === this._scopeVersion) this.setData({ goodsLoading: false })
     })
   },
 
-  loadRecords() {
-    this.setData(Object.assign({
-      recordsLoaded: true,
-      batches: [],
-      directItems: []
-    }, purchaserRecordInitialState()))
-    this.loadBatches(true)
-    this.loadDirect(true)
-  },
-
-  recordView(batches, directItems, statePatch) {
-    return buildPurchaserRecordView(
-      batches,
-      directItems,
+  goodsView(items, statePatch) {
+    return buildPurchaserGoodsView(
+      items,
       Object.assign({}, this.data, statePatch || {}),
       apiUrl.server
     )
   },
 
-  loadBatches(reset) {
-    const token = this._scopeVersion
-    if (!this.activePurchaserIds().length) {
-      this.setData({ batches: [], batchTotal: 0, batchLoading: false, batchError: '' })
-      return Promise.resolve()
-    }
-    this.setData({ batchLoading: true, batchError: '' })
-    return this.loadForPurchasers(
-      getPurchaseManagementPurchaserBatches,
-      { startDate: this.data.startDate, stopDate: this.data.stopDate, sort: 'LATEST' },
-      '采购批次加载失败',
-      this.decorateOwner
-    ).then(items => {
-      if (token !== this._scopeVersion) return
-      const batches = items.sort(latestFirst)
-      this.setData(Object.assign({
-        batches,
-        batchPage: 1,
-        batchTotal: batches.length
-      }, this.recordView(batches, this.data.directItems)))
-    }).catch(error => {
-      if (token === this._scopeVersion) this.setData({ batchError: error.message || '采购批次加载失败' })
-    }).then(() => {
-      if (token === this._scopeVersion) this.setData({ batchLoading: false })
-    })
-  },
-
-  loadDirect(reset) {
-    const token = this._scopeVersion
-    if (!this.activePurchaserIds().length) {
-      this.setData({ directItems: [], directTotal: 0, directLoading: false, directError: '' })
-      return Promise.resolve()
-    }
-    this.setData({ directLoading: true, directError: '' })
-    return this.loadForPurchasers(
-      getPurchaseManagementPurchaserDirectPurchases,
-      { startDate: this.data.startDate, stopDate: this.data.stopDate, sort: 'LATEST' },
-      '自采记录加载失败',
-      function (item, purchaserId) {
-        return this.decorateDirect(this.decorateOwner(item, purchaserId))
-      }
-    ).then(items => {
-      if (token !== this._scopeVersion) return
-      const directItems = items.sort(latestFirst)
-      this.setData(Object.assign({
-        directItems,
-        directPage: 1,
-        directTotal: directItems.length
-      }, this.recordView(this.data.batches, directItems)))
-    }).catch(error => {
-      if (token === this._scopeVersion) this.setData({ directError: error.message || '自采记录加载失败' })
-    }).then(() => {
-      if (token === this._scopeVersion) this.setData({ directLoading: false })
-    })
-  },
-
-  decorateDirect(source) {
-    const item = Object.assign({}, source)
-    const unit = (item.purchaseUnit || item.purchaseStandard || '').trim()
-    const quantity = this.numberText(item.quantity)
-    const planned = this.numberText(item.plannedQuantity)
-    const demandSource = item.demandSource
-    item.quantityText = quantity != null ? quantity + (unit ? unit : '')
-      : planned != null ? '计划 ' + planned + (unit ? unit : '') : '—'
-    item.priceText = this.moneyText(item.purchasePrice)
-    item.subtotalText = this.moneyText(item.purchaseSubtotal)
-    item.specText = (item.purchaseStandard || item.purchaseUnit || item.goodsStandard || '').trim()
-    item.purchasePurposeText = demandSource === 'ORDER_GENERATED' ? '客户订单订货'
-      : (demandSource === 'SHELF_REPLENISHMENT' || demandSource === 'UNSHELVED_REPLENISHMENT' ||
-        demandSource === 'VOICE_PURCHASE' || demandSource === 'SMART_REPLENISHMENT') ? '库存备货' : '用途待核对'
-    return item
-  },
-
-  chooseRecordGroup(event) {
-    const activeRecordGroup = event.currentTarget.dataset.value || 'ALL'
+  chooseGoodsCategory(event) {
+    const activeGoodsCategory = event.currentTarget.dataset.value || 'ALL'
     this.setData(Object.assign(
-      { activeRecordGroup },
-      this.recordView(this.data.batches, this.data.directItems, { activeRecordGroup })
-    ))
-  },
-  changeRecordMode(event) {
-    const recordModeIndex = Number(event.detail.value || 0)
-    this.setData(Object.assign(
-      { recordModeIndex },
-      this.recordView(this.data.batches, this.data.directItems, { recordModeIndex })
-    ))
-  },
-  changeRecordStatus(event) {
-    const recordStatusIndex = Number(event.detail.value || 0)
-    this.setData(Object.assign(
-      { recordStatusIndex },
-      this.recordView(this.data.batches, this.data.directItems, { recordStatusIndex })
-    ))
-  },
-  changeRecordSort(event) {
-    const recordSortIndex = Number(event.detail.value || 0)
-    this.setData(Object.assign(
-      { recordSortIndex },
-      this.recordView(this.data.batches, this.data.directItems, { recordSortIndex })
+      { activeGoodsCategory },
+      this.goodsView(this.data.purchasedGoods, { activeGoodsCategory })
     ))
   },
 
-  openRecord(event) {
-    const batchId = event.currentTarget.dataset.id
-    if (batchId) this.openBatchById(batchId)
+  changeGoodsSource(event) {
+    const goodsSourceIndex = Number(event.detail.value || 0)
+    this.setData(Object.assign(
+      { goodsSourceIndex, activeGoodsCategory: 'ALL' },
+      this.goodsView(this.data.purchasedGoods, { goodsSourceIndex, activeGoodsCategory: 'ALL' })
+    ))
   },
 
-  numberText(value) {
-    if (value == null || value === '') return null
-    const number = Number(value)
-    return isFinite(number) ? String(number) : null
-  },
-  moneyText(value) {
-    const text = this.numberText(value)
-    return text == null ? '—' : '¥' + text
-  },
-
-  openTask(event) {
-    const task = event.currentTarget.dataset.item || {}
-    if (task.actionCode === 'OPEN_BOSS_BATCH') return this.openBatchById(task.batchId)
-    if (!task.canOperate || !task.buyerJrdhUserId) {
-      wx.showToast({ title: '请对应采购员在精彩订货中处理', icon: 'none' })
-      return
-    }
-    let path = ''
-    if (task.actionCode === 'OPEN_JRDH_PURCHASE_TASKS') {
-      path = '/pkgPurchase/pages/purchaseTasks/purchaseTasks?disId=' + encodeURIComponent(task.distributerId) +
-        '&buyerId=' + encodeURIComponent(task.buyerJrdhUserId) +
-        '&purUserId=' + encodeURIComponent(task.purchaserUserId) +
-        '&disName=' + encodeURIComponent(task.buyerDistributerName || '')
-    } else if (task.actionCode === 'OPEN_JRDH_BATCH_SHARE') {
-      const scope = task.purchasePurpose === 'CUSTOMER_ORDER' ? 'ORDER_GENERATED'
-        : task.purchasePurpose === 'INVENTORY_REPLENISHMENT' ? 'SHELF_REPLENISHMENT' : ''
-      path = '/pkgPurchase/pages/txs/purPrepareBatch/purPrepareBatch?batchId=' + encodeURIComponent(task.batchId) +
-        '&disId=' + encodeURIComponent(task.distributerId) +
-        '&purUserId=' + encodeURIComponent(task.purchaserUserId) +
-        '&demandScope=' + encodeURIComponent(scope)
-    } else if (task.actionCode === 'OPEN_JRDH_BUYER_CONFIRM') {
-      path = '/pkgPurchase/pages/txs/disOrderBatch/disOrderBatch?batchId=' + encodeURIComponent(task.batchId) +
-        '&disId=' + encodeURIComponent(task.distributerId) +
-        '&purUserId=' + encodeURIComponent(task.purchaserUserId) +
-        '&buyerUserId=' + encodeURIComponent(task.buyerJrdhUserId) + '&fromBuyer=1&fromBoss=1'
-    } else if (task.actionCode === 'OPEN_JRDH_INVENTORY_RECEIPT') {
-      path = '/pkgPurchase/pages/txs/disOrderBatch/disOrderBatch?batchId=' + encodeURIComponent(task.batchId) +
-        '&disId=' + encodeURIComponent(task.distributerId) +
-        '&purUserId=' + encodeURIComponent(task.purchaserUserId) +
-        '&buyerUserId=' + encodeURIComponent(task.buyerJrdhUserId) +
-        '&demandScope=SHELF_REPLENISHMENT&fromBuyer=1&fromBoss=1'
-    }
-    if (!path) return this.openBatchById(task.batchId)
-    this._returningFromBusiness = true
-    wx.navigateToMiniProgram({
-      appId: PURCHASE_APP_ID,
-      path,
-      envVersion: 'trial',
-      fail() {
-        wx.showToast({ title: '暂时无法打开精彩订货', icon: 'none' })
-      }
-    })
-  },
-
-  openBatch(event) { this.openBatchById(event.currentTarget.dataset.id) },
-  openBatchById(batchId) {
-    if (!batchId) return
-    this._returningFromBusiness = true
-    wx.navigateTo({
-      url: '/subPackage/pages/management/purchaseManagement/purchaseBatchDetail/purchaseBatchDetail?batchId=' + batchId +
-        '&startDate=' + encodeURIComponent(this.data.startDate) + '&stopDate=' + encodeURIComponent(this.data.stopDate)
-    })
-  },
-
-  more() {}
+  changeGoodsSort(event) {
+    const goodsSortIndex = Number(event.detail.value || 0)
+    this.setData(Object.assign(
+      { goodsSortIndex },
+      this.goodsView(this.data.purchasedGoods, { goodsSortIndex })
+    ))
+  }
   }
 }

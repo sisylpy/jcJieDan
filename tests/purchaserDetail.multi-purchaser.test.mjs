@@ -16,8 +16,10 @@ assert.match(homeView, /bindtap="toPurchaserDetail"[\s\S]*采购详细/)
 
 assert.match(detailPage, /getPurchaseManagementPurchasers/,
   '采购详细应先读取全部采购员及其汇总')
+assert.match(detailPage, /getPurchaseManagementPurchaserPurchasedGoods/,
+  '采购详细应读取采购完成的商品行')
 assert.match(detailPage, /loadForPurchasers/,
-  '任务和采购记录应覆盖当前选中的全部采购员')
+  '采购完成商品应覆盖当前选中的全部采购员')
 assert.match(detailPage, /Promise\.all\(ids\.map/,
   '多采购员数据应并行加载')
 assert.match(detailPage, /selectedAllPurchasers/)
@@ -41,13 +43,17 @@ assert.match(detailView, /应用筛选/)
 assert.doesNotMatch(detailView, /purchaser-filter-trigger/,
   '汇总卡片内不应重复显示大块采购员筛选入口')
 assert.match(detailView, /item\.purchaserName/,
-  '合并后的任务和采购记录必须标明采购员')
+  '合并后的采购完成商品必须标明采购员')
+assert.doesNotMatch(detailView, /当前任务|查看采购批次|采购批次/,
+  '采购员详细页不再展示任务批次')
+assert.match(detailView, /采购完成商品/)
+assert.match(detailView, /goods-category-tree/)
 
 const executable = detailPage
   .replace(/import \{[\s\S]*?\} from '\.\.\/lib\/apiDistributer\.js'\n/, '')
   .replace(/import apiUrl from '\.\.\/config\.js'\n/, "const apiUrl={server:''}\n")
-  .replace(/import \{[\s\S]*?\} from '\.\/purchaseManagementPurchaserRecordView\.js'\n/,
-    "const purchaserRecordInitialState=()=>({});const buildPurchaserRecordView=()=>({})\n")
+  .replace(/import \{[\s\S]*?\} from '\.\/purchaseManagementPurchaserGoodsView\.js'\n/,
+    "const purchaserGoodsInitialState=()=>({});const buildPurchaserGoodsView=()=>({})\n")
   .replace(/export function /g, 'function ')
   .concat('\nthis.createPurchaserDetailPage=createPurchaserDetailPage;')
 const context = vm.createContext({
@@ -67,13 +73,10 @@ page.data.purchasers = [
 ]
 page.updateSummary()
 assert.equal(page.data.detail.purchaserName, '全部采购员')
-assert.equal(page.data.detail.summary.currentTaskCount, 3)
-assert.equal(page.data.detail.summary.periodPurchaseRecordCount, 7)
-assert.equal(page.data.detail.summary.periodPurchaseAmount, 35.2)
 page.openPurchaserFilter()
 page.clearDraftPurchasers()
 page.togglePurchaser({ currentTarget: { dataset: { id: 12 } } })
-page.loadTasks = () => Promise.resolve()
+page.loadGoods = () => Promise.resolve()
 page.applyPurchaserFilter()
 assert.deepEqual(page.data.selectedPurchaserIds, [12])
 assert.equal(page.data.detail.purchaserName, '乙')
