@@ -4,19 +4,22 @@ const app = getApp()
 function two(value) { return String(value).padStart(2, '0') }
 function dateText(date) { return date.getFullYear() + '-' + two(date.getMonth() + 1) + '-' + two(date.getDate()) }
 function money(value) { const n = Number(value || 0); return Number.isFinite(n) ? n.toFixed(2) : '0.00' }
+function number(value) { const n = Number(value || 0); return Number.isFinite(n) ? n : 0 }
 function responseData(response) {
   const body = response.result || {}
   if (body.code !== 0) throw new Error(body.msg || '加载失败')
   return body.data || {}
 }
 function decoratePerson(item) {
-  return Object.assign({}, item, { displayName: item.purchaserName || ('采购员 #' + item.purchaserUserId),
+  const displayName = item.purchaserName || ('采购员 #' + item.purchaserUserId)
+  return Object.assign({}, item, { displayName, initial: displayName.slice(0, 1),
     availableText: money(item.availableAmount), outstandingText: money(item.approvedOutstandingAmount),
     pendingReviewText: money(item.pendingReviewAmount), pendingConfirmationText: money(item.pendingConfirmationAmount),
     paidText: money(item.paidAmount) })
 }
 function decorateSupplier(item) {
-  return Object.assign({}, item, { displayName: item.supplierName || ('供应商 #' + item.supplierRelationId),
+  const displayName = item.supplierName || ('供应商 #' + item.supplierRelationId)
+  return Object.assign({}, item, { displayName, initial: displayName.slice(0, 1),
     availableText: money(item.availableAmount), outstandingText: money(item.outstandingAmount),
     pendingBatchText: money(item.pendingBatchAmount), verifyText: money(item.amountToVerify),
     paidText: money(item.paidAmount) })
@@ -25,7 +28,8 @@ function decoratePayment(item) {
   const typeName = item.businessType === 'PURCHASER_REIMBURSEMENT' ? '采购员报销'
     : (item.businessType === 'SUPPLIER_SETTLEMENT' ? '供应商货款' : '公司直付采购')
   const methodName = { WECHAT: '微信', BANK_TRANSFER: '银行转账', CASH: '现金', OTHER: '其他' }[item.paymentMethod] || item.paymentMethod
-  return Object.assign({}, item, { typeName, methodName, amountText: money(item.paymentAmount) })
+  return Object.assign({}, item, { typeName, methodName, amountText: money(item.paymentAmount),
+    paidAtText: item.paidAt ? String(item.paidAt).slice(0, 16) : '时间待补全' })
 }
 
 Page({
@@ -33,7 +37,8 @@ Page({
     periodStart: '', periodEnd: '', dateType: 'month', dateName: 'thisMonth', dateLabel: '本月', purchaserAvailableText: '0.00', purchaserOutstandingText: '0.00',
     supplierAvailableText: '0.00', supplierOutstandingText: '0.00', companyDirectOutstandingText: '0.00',
     unclassifiedAmountText: '0.00', periodPaidText: '0.00', periodPurchaserPaidText: '0.00',
-    periodSupplierPaidText: '0.00', periodCompanyDirectPaidText: '0.00' },
+    periodSupplierPaidText: '0.00', periodCompanyDirectPaidText: '0.00', unclassifiedCount: 0,
+    purchaserPayeeCount: 0, supplierPayeeCount: 0, priorityCount: 0 },
   onLoad() {
     const today = new Date()
     this.setData({ navBarHeight: app.globalData.navBarHeight * app.globalData.rpxR,
@@ -58,6 +63,9 @@ Page({
       const suppliers = (summary.suppliers || []).map(decorateSupplier).filter(item =>
         Number(item.availableAmount || 0) + Number(item.outstandingAmount || 0) +
         Number(item.pendingBatchAmount || 0) + Number(item.amountToVerify || 0) > 0)
+      const purchaserPayeeCount = purchasers.filter(item => number(item.approvedOutstandingAmount) > 0).length
+      const supplierPayeeCount = suppliers.filter(item => number(item.outstandingAmount) > 0).length
+      const unclassifiedCount = number(summary.unclassifiedCount)
       this.setData({ summary, purchasers, suppliers, recentPayments: (summary.recentPayments || []).map(decoratePayment),
         purchaserAvailableText: money(summary.pendingReimbursementAmount),
         purchaserOutstandingText: money(summary.reimbursementOutstandingAmount),
@@ -68,7 +76,9 @@ Page({
         periodPaidText: money(summary.periodPaidAmount),
         periodPurchaserPaidText: money(summary.periodPurchaserPaidAmount),
         periodSupplierPaidText: money(summary.periodSupplierPaidAmount),
-        periodCompanyDirectPaidText: money(summary.periodCompanyDirectPaidAmount) })
+        periodCompanyDirectPaidText: money(summary.periodCompanyDirectPaidAmount),
+        unclassifiedCount, purchaserPayeeCount, supplierPayeeCount,
+        priorityCount: unclassifiedCount + purchaserPayeeCount + supplierPayeeCount })
     }).catch(error => this.setData({ error: error.message || '采购资金加载失败' }))
       .then(() => this.setData({ loading: false }))
   },

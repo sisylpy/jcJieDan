@@ -1,1 +1,79 @@
-<view class="pm-page"><back-navbar style="height:{{navBarHeight}}rpx" title="资金归类" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar><scroll-view scroll-y class="pm-body" style="padding-top:{{navBarHeight}}rpx"><view class="pm-card"><text class="pm-muted">客户订单外采以买方确认的供货数量、单价和小计为依据；库存备货以确认收货为依据。可拆分归类，采购方式不决定资金来源。</text></view><view class="pm-card" wx:if="{{pendingDeclarations.length}}"><text class="pm-section-title">采购员垫付申报待确认</text><view wx:for="{{pendingDeclarations}}" wx:key="allocationId" class="line"><view class="pm-row"><text>采购员 {{item.purchaserUserId}} · 商品 {{item.purchaseGoodsId}}</text><text>¥{{item.allocationAmount}}</text></view><view class="actions"><button size="mini" data-id="{{item.allocationId}}" data-state="CONFIRMED" bindtap="confirmDeclaration">确认</button><button size="mini" data-id="{{item.allocationId}}" data-state="REJECTED" bindtap="confirmDeclaration">驳回</button></view></view></view><view wx:for="{{list}}" wx:key="purchaseGoodsId" class="pm-card source {{selected.purchaseGoodsId===item.purchaseGoodsId?'chosen':''}}" data-index="{{index}}" bindtap="select"><view class="pm-row"><text>{{item.goodsName||('采购商品 '+item.purchaseGoodsId)}}</text><text class="pm-money">可归类 ¥{{item.availableAmount}}</text></view><text class="pm-muted">采购员 {{item.purchaserName||item.purchaserUserId||'未分配'}} · 供应商 {{item.supplierName||item.supplierRelationId||'无'}}</text></view><view wx:if="{{selected}}" class="pm-card editor"><picker range="{{names}}" value="{{typeIndex}}" bindchange="type"><view class="field">资金类型：{{names[typeIndex]}}</view></picker><input class="field" type="digit" value="{{amount}}" bindinput="amount" placeholder="归类金额"/><button class="pm-button" bindtap="submit">确认归类</button></view><view wx:if="{{!loading&&!list.length}}" class="pm-state">没有待归类采购净额</view><view class="pm-card"><view class="direct-title"><text class="pm-section-title">公司直付待付款</text><text class="pm-muted">点击一笔登记已经实际发生的付款</text></view><view wx:for="{{directAllocations}}" wx:key="allocationId" class="pm-row line direct-line" data-index="{{index}}" bindtap="selectDirect"><view class="direct-main"><text class="pm-name">{{item.goodsName||('采购商品 '+item.purchaseGoodsId)}}</text><text class="pm-muted">已付 ¥{{item.directPaidAmount}} · 待付 ¥{{item.directRemainingAmount}}</text></view><text class="pm-money">¥{{item.allocationAmount}} ›</text></view><view wx:if="{{!loading&&!directAllocations.length}}" class="pm-state direct-empty">没有公司直付待付款</view></view><view wx:if="{{directSelected}}" class="pm-card editor"><text class="pm-muted">仅登记已经发生的线下付款，不会自动发起微信或银行转账。</text><picker range="{{methodNames}}" value="{{methodIndex}}" bindchange="paymentMethod"><view class="field">付款方式：{{methodNames[methodIndex]}}</view></picker><input class="field" type="digit" value="{{paymentAmount}}" bindinput="paymentAmount" placeholder="本次付款金额"/><button class="pm-button" bindtap="payDirect">登记实际付款</button></view></scroll-view></view>
+<view class="pm-page funding-page">
+  <back-navbar style="height:{{navBarHeight}}rpx" title="款项分类" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+  <scroll-view scroll-y class="pm-body funding-body" style="padding-top:{{navBarHeight}}rpx">
+    <view wx:if="{{loading && !allSources.length}}" class="pm-state">正在读取待分类款项…</view>
+    <view wx:elif="{{error}}" class="pm-state"><text>{{error}}</text><text class="pm-link retry" bindtap="retry">重新加载</text></view>
+    <block wx:else>
+      <view class="funding-hero">
+        <view class="hero-main"><view class="hero-symbol">¥</view><view><text class="hero-title">当前待分类</text><text>{{unclassifiedCount}}笔采购款，需要确认资金去向</text></view></view>
+        <view class="hero-side"><text class="hero-money">¥{{unclassifiedAmountText}}</text><view class="hero-action" data-tab="unclassified" bindtap="switchTab">立即处理 ›</view></view>
+      </view>
+
+      <view class="funding-tabs">
+        <view class="{{activeTab==='all'?'on':''}}" data-tab="all" bindtap="switchTab">全部 {{allSources.length}}</view>
+        <view class="{{activeTab==='unclassified'?'on':''}}" data-tab="unclassified" bindtap="switchTab">未分类 {{unclassifiedCount}}</view>
+        <view class="{{activeTab==='processed'?'on':''}}" data-tab="processed" bindtap="switchTab">已处理 {{processedCount}}</view>
+      </view>
+
+      <view wx:if="{{pendingDeclarations.length}}" class="funding-section declaration-section">
+        <view class="section-title-row"><text class="section-title">采购员垫付申报待确认</text><text>{{pendingDeclarations.length}}笔</text></view>
+        <view wx:for="{{pendingDeclarations}}" wx:key="allocationId" class="declaration-row">
+          <view class="declaration-main"><text class="goods-name">{{item.goodsLabel}}</text><text>采购员 {{item.purchaserName||item.purchaserUserId}} · ¥{{item.amountText}}</text></view>
+          <view class="declaration-actions"><button size="mini" data-id="{{item.allocationId}}" data-state="REJECTED" bindtap="confirmDeclaration">驳回</button><button class="confirm" size="mini" data-id="{{item.allocationId}}" data-state="CONFIRMED" bindtap="confirmDeclaration">确认垫付</button></view>
+        </view>
+      </view>
+
+      <view wx:if="{{activeTab!=='processed'}}" class="funding-section">
+        <view class="section-title-row"><text class="section-title">{{activeTab==='all'?'采购款项':'未分类款项'}}</text><text>共 {{displaySources.length}} 笔</text></view>
+        <view wx:if="{{!displaySources.length}}" class="empty-state">{{activeTab==='all'?'当前没有可归类采购款':'所有可确认款项均已分类'}}</view>
+        <view wx:for="{{displaySources}}" wx:key="purchaseGoodsId" class="source-card {{selected.purchaseGoodsId===item.purchaseGoodsId?'selected':''}}" data-id="{{item.purchaseGoodsId}}" bindtap="select">
+          <view class="source-head"><view><text class="goods-name">{{item.goodsLabel}}</text><text class="source-no">采购商品 #{{item.purchaseGoodsId}}</text></view><view class="source-amount"><text>{{item.classified?'已分类':'可分类'}}</text><text>¥{{item.classified?item.actualText:item.availableText}}</text></view></view>
+          <view class="source-parties"><text class="party purchaser-party">采购员 {{item.purchaserLabel}}</text><text class="party supplier-party">供应商 {{item.supplierLabel}}</text></view>
+          <view class="source-rule">已核实采购净额 ¥{{item.actualText}}<text wx:if="{{item.allocatedAmount>0}}"> · 已归类 ¥{{item.allocatedText}}</text>；采购方式不决定资金来源。</view>
+          <view wx:if="{{!item.classified}}" class="classify-actions">
+            <view class="{{!item.purchaserUserId?'disabled':''}}" data-id="{{item.purchaseGoodsId}}" data-type="PURCHASER_ADVANCE" catchtap="chooseType"><text class="action-symbol">人</text>归到采购员垫付</view>
+            <view class="{{!item.supplierRelationId?'disabled':''}}" data-id="{{item.purchaseGoodsId}}" data-type="SUPPLIER_CREDIT" catchtap="chooseType"><text class="action-symbol">货</text>归到供应商货款</view>
+            <view data-id="{{item.purchaseGoodsId}}" data-type="COMPANY_DIRECT" catchtap="chooseType"><text class="action-symbol">企</text>归到公司付款</view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:else class="funding-section">
+        <view class="section-title-row"><text class="section-title">已处理款项</text><text>共 {{processedAllocations.length}} 笔</text></view>
+        <view wx:if="{{!processedAllocations.length}}" class="empty-state">暂时没有已处理记录</view>
+        <view wx:for="{{processedAllocations}}" wx:key="allocationId" class="processed-row">
+          <view><text class="goods-name">{{item.goodsLabel}}</text><text class="processed-meta">{{item.typeName}} · {{item.statusName}}</text></view><text class="processed-money">¥{{item.amountText}}</text>
+        </view>
+      </view>
+
+      <view wx:if="{{selected}}" class="editor-card">
+        <view class="editor-head"><view><text class="editor-title">确认款项分类</text><text>{{selected.goodsLabel}} · 待分类 ¥{{selected.availableText}}</text></view><text bindtap="closeEditor">关闭</text></view>
+        <picker range="{{names}}" value="{{typeIndex}}" bindchange="type"><view class="field">资金类型：{{names[typeIndex]}} <text>⌄</text></view></picker>
+        <view class="amount-field"><text>归类金额</text><input type="digit" value="{{amount}}" bindinput="amount" placeholder="请输入金额"/><text>元</text></view>
+        <view class="editor-note">归类只确认资金责任，不会自动登记付款。</view>
+        <button class="pm-button submit-button" bindtap="submit">确认归类</button>
+      </view>
+
+      <view class="funding-section direct-section">
+        <view class="section-title-row"><view><text class="section-title">公司直接付款待补记</text><text class="section-subtitle">仅登记已经实际发生的线下付款</text></view><text>{{directAllocations.length}}笔</text></view>
+        <view wx:if="{{!directAllocations.length}}" class="empty-state">没有公司直付待付款</view>
+        <view wx:for="{{directAllocations}}" wx:key="allocationId" class="direct-row" data-id="{{item.allocationId}}" bindtap="selectDirect"><view><text class="goods-name">{{item.goodsName||item.goodsLabel}}</text><text>已付 ¥{{item.directPaidAmount||0}} · 待付 ¥{{item.directRemainingAmount||0}}</text></view><text class="direct-amount">¥{{item.directRemainingText}} ›</text></view>
+      </view>
+
+      <view wx:if="{{directSelected}}" class="editor-card direct-editor">
+        <view class="editor-head"><view><text class="editor-title">登记公司实际付款</text><text>{{directSelected.goodsLabel}} · 剩余 ¥{{directSelected.directRemainingText}}</text></view><text bindtap="closeDirectEditor">关闭</text></view>
+        <picker range="{{methodNames}}" value="{{methodIndex}}" bindchange="paymentMethod"><view class="field">付款方式：{{methodNames[methodIndex]}} <text>⌄</text></view></picker>
+        <view class="amount-field"><text>本次付款</text><input type="digit" value="{{paymentAmount}}" bindinput="paymentAmount" placeholder="请输入金额"/><text>元</text></view>
+        <view class="editor-note">不会自动发起微信或银行转账；付款凭证可在统一付款记录中补充。</view>
+        <button class="pm-button submit-button" bindtap="payDirect">登记实际付款</button>
+      </view>
+
+      <view class="explain-card">
+        <text class="explain-title">分类说明</text>
+        <view><text>1</text><text><text class="explain-strong">采购员先垫付：</text>归到采购员垫付款</text></view>
+        <view><text>2</text><text><text class="explain-strong">供应商登记账期：</text>归到供应商货款</text></view>
+        <view><text>3</text><text><text class="explain-strong">公司直接付款：</text>归到公司付款待补记</text></view>
+      </view>
+    </block>
+  </scroll-view>
+</view>

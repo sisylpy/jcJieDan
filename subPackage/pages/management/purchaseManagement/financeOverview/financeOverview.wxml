@@ -1,37 +1,95 @@
-<view class="pm-page">
+<view class="pm-page finance-page">
   <back-navbar style="height:{{navBarHeight}}rpx" title="采购资金" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
-  <scroll-view scroll-y class="pm-body" style="padding-top:{{navBarHeight}}rpx">
+  <scroll-view scroll-y class="pm-body finance-body" style="padding-top:{{navBarHeight}}rpx">
     <view wx:if="{{loading && !purchasers.length && !suppliers.length}}" class="pm-state">正在汇总采购资金…</view>
     <view wx:elif="{{error}}" class="pm-state"><text>{{error}}</text><text class="pm-link retry" bindtap="retry">重新加载</text></view>
     <block wx:else>
-      <view class="scope-note">当前待处理金额按全部历史未结事实统计，不随下方付款日期变化。</view>
-      <view class="pm-card work-card">
-        <view class="section-head"><view><text class="pm-section-title">采购员款项</text><text class="pm-muted">垫付报销与已开报销单分开展示</text></view><text class="pm-link" bindtap="openPurchaser">全部 ›</text></view>
-        <view class="obligation-row" bindtap="openPurchaser"><view><text class="obligation-label">尚未生成报销单</text><text class="pm-muted">有正式垫付依据、尚未归入报销单</text></view><text class="amount">¥{{purchaserAvailableText}} ›</text></view>
-        <view class="obligation-row" bindtap="openPurchaser"><view><text class="obligation-label">报销单尚未付清</text><text class="pm-muted">已核定报销单的当前剩余金额</text></view><text class="amount">¥{{purchaserOutstandingText}} ›</text></view>
-        <view wx:if="{{!purchasers.length}}" class="empty">当前没有采购员待处理款项</view>
-        <view wx:for="{{purchasers}}" wx:key="purchaserUserId" class="person-row" data-id="{{item.purchaserUserId}}" bindtap="openPurchaser"><view class="person-main"><text class="pm-name">{{item.displayName}}</text><text class="pm-muted">最近处理 {{item.lastProcessedTime||'—'}}</text></view><view class="person-money"><text>待开单 ¥{{item.availableText}}</text><text wx:if="{{item.pendingReviewAmount>0}}">核定中 ¥{{item.pendingReviewText}}</text><text>未付 ¥{{item.outstandingText}}</text><text wx:if="{{item.pendingConfirmationAmount>0}}">来源待确认 ¥{{item.pendingConfirmationText}}</text></view><text class="chevron">›</text></view>
-      </view>
-      <view class="pm-card work-card">
-        <view class="section-head"><view><text class="pm-section-title">外部供应商款项</text><text class="pm-muted">待结采购与已开结账单分开展示</text></view><text class="pm-link" bindtap="openSupplier">全部 ›</text></view>
-        <view class="obligation-row" bindtap="openSupplier"><view><text class="obligation-label">尚未生成结账单</text><text class="pm-muted">已确认供应商账期、尚未归入结账单</text></view><text class="amount">¥{{supplierAvailableText}} ›</text></view>
-        <view class="obligation-row" bindtap="openSupplier"><view><text class="obligation-label">结账单尚未付清</text><text class="pm-muted">已核定结账单的当前剩余金额</text></view><text class="amount">¥{{supplierOutstandingText}} ›</text></view>
-        <view wx:if="{{!suppliers.length}}" class="empty">当前没有供应商待处理款项</view>
-        <view wx:for="{{suppliers}}" wx:key="supplierRelationId" class="person-row" data-id="{{item.supplierRelationId}}" bindtap="openSupplier"><view class="person-main"><text class="pm-name">{{item.displayName}}</text><text class="pm-muted">最近处理 {{item.lastProcessedTime||'—'}}</text></view><view class="person-money"><text>待开单 ¥{{item.availableText}}</text><text wx:if="{{item.pendingBatchAmount>0}}">核定中 ¥{{item.pendingBatchText}}</text><text>未付 ¥{{item.outstandingText}}</text><text wx:if="{{item.amountToVerify>0}}">金额待核对 ¥{{item.verifyText}}</text></view><text class="chevron">›</text></view>
-      </view>
-      <view class="pm-card work-card direct-card">
-        <view class="section-head"><view><text class="pm-section-title">公司直付</text><text class="pm-muted">已归类给公司、尚未登记实际付款</text></view><text class="pm-link" bindtap="openFunding">处理 ›</text></view>
-        <view class="obligation-row" bindtap="openFunding"><view><text class="obligation-label">公司直付待付款</text><text class="pm-muted">{{summary.companyDirectOutstandingCount||0}}笔；付款后进入统一付款与凭证记录</text></view><text class="amount">¥{{companyDirectOutstandingText}} ›</text></view>
-      </view>
-      <view wx:if="{{summary.unclassifiedAmount>0 || summary.disputedSettlementCount>0 || summary.openAdjustmentCount>0}}" class="pm-card attention" bindtap="openExceptions"><view class="section-head"><text class="pm-section-title">待核对事项</text><text class="pm-link">查看 ›</text></view><text class="pm-muted">未归类 ¥{{summary.unclassifiedAmount||0}} · 争议 {{summary.disputedSettlementCount||0}} · 待处理调整 {{summary.openAdjustmentCount||0}}</text><text class="explain">这些金额尚未形成明确欠付，不计入上方待报销或待结账。</text></view>
-      <view class="pm-card payment-card">
-        <view class="section-head"><view><text class="pm-section-title">已登记付款</text><text class="pm-muted">按实际付款日期筛选</text></view><text class="pm-link" bindtap="openPayments">付款记录 ›</text></view>
+      <view class="date-scope-card">
+        <view class="date-scope-head"><text>付款统计范围</text><text>默认本月</text></view>
         <report-date-filter label="{{dateLabel}}" start-date="{{periodStart}}" stop-date="{{periodEnd}}" bindselect="toDatePage"></report-date-filter>
-        <view class="payment-total" bindtap="openPayments"><view><text class="total-money">¥{{summary.periodPaidAmount||0}}</text><text class="pm-muted">净付款发生额</text></view><view><text class="total-count">{{summary.periodPaymentCount||0}}笔</text><text class="pm-muted">有效付款记录</text></view></view>
-        <view wx:if="{{!recentPayments.length}}" class="empty">所选付款日期内没有记录</view>
-        <view wx:for="{{recentPayments}}" wx:key="paymentId" class="recent-row" data-id="{{item.paymentId}}" bindtap="openPayments"><view><text class="pm-name">{{item.recipientName||'收款对象待补全'}}</text><text class="pm-muted">{{item.typeName}} · {{item.methodName}} · {{item.paidAt}}</text></view><view class="recent-amount"><text>¥{{item.amountText}}</text><text class="chevron">›</text></view></view>
+        <text class="scope-copy">待办按全部历史未结事实统计；下方“本期已付”和付款记录按实际付款日期筛选。</text>
       </view>
-      <view class="quick-links"><view bindtap="openFunding">资金归类</view><view bindtap="openExceptions">异常与待核对</view></view>
+
+      <view class="priority-card">
+        <view class="priority-head">
+          <view class="section-symbol priority-symbol">急</view>
+          <view class="priority-copy"><text class="priority-title">当前优先处理</text><text>以下事项需确认或付款，避免影响采购资金闭环</text></view>
+          <text class="priority-count">{{priorityCount}}项</text>
+        </view>
+        <view class="priority-metrics">
+          <view class="priority-metric classify" bindtap="openFunding"><text class="metric-label">待分类</text><text class="metric-count">{{unclassifiedCount}}笔</text><text class="metric-money">¥{{unclassifiedAmountText}}</text></view>
+          <view class="priority-metric purchaser" bindtap="openPurchaser"><text class="metric-label">采购员待付款</text><text class="metric-count">{{purchaserPayeeCount}}人</text><text class="metric-money">¥{{purchaserOutstandingText}}</text></view>
+          <view class="priority-metric supplier" bindtap="openSupplier"><text class="metric-label">供应商待付款</text><text class="metric-count">{{supplierPayeeCount}}家</text><text class="metric-money">¥{{supplierOutstandingText}}</text></view>
+        </view>
+        <view class="priority-action" bindtap="openFunding">{{unclassifiedCount>0?'去处理资金分类':'查看资金分类'}}<text>›</text></view>
+      </view>
+
+      <view class="finance-card">
+        <view class="section-head">
+          <view class="section-heading"><view class="section-symbol purchaser-symbol">人</view><view><text class="pm-section-title">采购员垫付款</text><text class="pm-muted">采购员先垫付采购款，后续由公司报销</text></view></view>
+          <text class="pm-link" bindtap="openPurchaser">全部 ›</text>
+        </view>
+        <view class="money-metrics">
+          <view bindtap="openPurchaser"><text>尚未生成报销单</text><text class="money orange">¥{{purchaserAvailableText}}</text></view>
+          <view bindtap="openPurchaser"><text>报销单尚未付清</text><text class="money blue">¥{{purchaserOutstandingText}}</text></view>
+          <view bindtap="openPayments"><text>本期已付</text><text class="money green">¥{{periodPurchaserPaidText}}</text></view>
+        </view>
+        <view wx:if="{{!purchasers.length}}" class="empty compact-empty">当前没有采购员待处理款项</view>
+        <view wx:for="{{purchasers}}" wx:key="purchaserUserId" wx:if="{{index<3}}" class="person-row" data-id="{{item.purchaserUserId}}" bindtap="openPurchaser">
+          <view class="person-avatar">{{item.initial}}</view>
+          <view class="person-main"><text class="pm-name">{{item.displayName}}</text><text class="pm-muted">最近处理 {{item.lastProcessedTime||'—'}}</text></view>
+          <view class="person-money"><text wx:if="{{item.availableAmount>0}}">未报销 ¥{{item.availableText}}</text><text wx:if="{{item.approvedOutstandingAmount>0}}">待付款 ¥{{item.outstandingText}}</text><text wx:if="{{item.pendingConfirmationAmount>0}}">来源待确认 ¥{{item.pendingConfirmationText}}</text></view>
+          <text class="chevron">›</text>
+        </view>
+        <view wx:if="{{purchasers.length>3}}" class="more-row" bindtap="openPurchaser">另有 {{purchasers.length-3}} 名采购员待处理 <text>查看全部 ›</text></view>
+      </view>
+
+      <view class="finance-card">
+        <view class="section-head">
+          <view class="section-heading"><view class="section-symbol supplier-symbol">货</view><view><text class="pm-section-title">供应商货款</text><text class="pm-muted">应付给外部供应商的采购货款</text></view></view>
+          <text class="pm-link" bindtap="openSupplier">全部 ›</text>
+        </view>
+        <view class="money-metrics">
+          <view bindtap="openSupplier"><text>尚未生成结账单</text><text class="money orange">¥{{supplierAvailableText}}</text></view>
+          <view bindtap="openSupplier"><text>结账单尚未付清</text><text class="money blue">¥{{supplierOutstandingText}}</text></view>
+          <view bindtap="openPayments"><text>本期已付</text><text class="money green">¥{{periodSupplierPaidText}}</text></view>
+        </view>
+        <view wx:if="{{!suppliers.length}}" class="empty compact-empty">当前没有供应商待处理款项</view>
+        <view wx:for="{{suppliers}}" wx:key="supplierRelationId" wx:if="{{index<3}}" class="person-row" data-id="{{item.supplierRelationId}}" bindtap="openSupplier">
+          <view class="person-avatar supplier-avatar">{{item.initial}}</view>
+          <view class="person-main"><text class="pm-name">{{item.displayName}}</text><text class="pm-muted">最近处理 {{item.lastProcessedTime||'—'}}</text></view>
+          <view class="person-money"><text wx:if="{{item.availableAmount>0}}">待开单 ¥{{item.availableText}}</text><text wx:if="{{item.outstandingAmount>0}}">待付款 ¥{{item.outstandingText}}</text><text wx:if="{{item.amountToVerify>0}}">金额待核对 ¥{{item.verifyText}}</text></view>
+          <text class="chevron">›</text>
+        </view>
+        <view wx:if="{{suppliers.length>3}}" class="more-row" bindtap="openSupplier">另有 {{suppliers.length-3}} 家供应商待处理 <text>查看全部 ›</text></view>
+      </view>
+
+      <view class="finance-card direct-card">
+        <view class="section-head">
+          <view class="section-heading"><view class="section-symbol direct-symbol">企</view><view><text class="pm-section-title">公司直接付款</text><text class="pm-muted">已归类给公司、尚未登记实际付款</text></view></view>
+          <text class="pm-link" bindtap="openFunding">处理 ›</text>
+        </view>
+        <view class="direct-strip" bindtap="openFunding"><text>公司直付待付款</text><text class="direct-separator"></text><text class="direct-money">¥{{companyDirectOutstandingText}}</text><text class="direct-note">{{summary.companyDirectOutstandingCount||0}}笔</text><text class="chevron">›</text></view>
+      </view>
+
+      <view wx:if="{{summary.unclassifiedAmount>0 || summary.disputedSettlementCount>0 || summary.openAdjustmentCount>0}}" class="attention-card" bindtap="openExceptions">
+        <view class="attention-main"><view class="section-symbol attention-symbol">!</view><view><text class="attention-title">待核对事项</text><text>未归类 ¥{{unclassifiedAmountText}} · 争议 {{summary.disputedSettlementCount||0}} · 待处理调整 {{summary.openAdjustmentCount||0}}</text></view></view><text class="pm-link">查看 ›</text>
+      </view>
+
+      <view class="finance-card payment-card">
+        <view class="section-head">
+          <view class="section-heading"><view class="section-symbol payment-symbol">付</view><view><text class="pm-section-title">付款记录</text><text class="pm-muted">按实际付款日期筛选，可追溯来源单据与凭证</text></view></view>
+          <text class="pm-link" bindtap="openPayments">全部 ›</text>
+        </view>
+        <view class="payment-summary" bindtap="openPayments"><view><text>净付款金额</text><text class="payment-total">¥{{periodPaidText}}</text></view><view><text>有效付款记录</text><text class="payment-count">{{summary.periodPaymentCount||0}}笔</text></view></view>
+        <view class="payment-breakdown">
+          <view><text>采购员报销</text><text>¥{{periodPurchaserPaidText}}</text></view>
+          <view><text>供应商货款</text><text>¥{{periodSupplierPaidText}}</text></view>
+          <view><text>公司直付</text><text>¥{{periodCompanyDirectPaidText}}</text></view>
+        </view>
+        <view wx:if="{{!recentPayments.length}}" class="empty compact-empty">所选付款日期内没有记录</view>
+        <view wx:for="{{recentPayments}}" wx:key="paymentId" class="recent-row" data-id="{{item.paymentId}}" bindtap="openPayments"><view><text class="pm-name">{{item.recipientName||'收款对象待补全'}}</text><text class="pm-muted">{{item.typeName}} · {{item.methodName}} · {{item.paidAtText}}</text></view><view class="recent-amount"><text>¥{{item.amountText}}</text><text class="chevron">›</text></view></view>
+      </view>
     </block>
   </scroll-view>
 </view>
