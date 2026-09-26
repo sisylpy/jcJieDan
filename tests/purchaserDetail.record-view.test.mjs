@@ -79,8 +79,15 @@ assert.match(wxml, /recordModeOptions/)
 assert.match(wxml, /recordStatusOptions/)
 assert.match(wxml, /recordSortOptions/)
 assert.match(wxml, /item\.purchaserName/)
+assert.match(wxml, /scroll-view scroll-x class="record-groups-scroll"/,
+  '采购记录分类应横向展示，避免压缩商品卡片宽度')
+assert.doesNotMatch(wxml, /class="record-layout"/)
 assert.doesNotMatch(wxml, /采购批次（|自采记录（/)
 assert.match(wxss, /\.purchase-record-card/)
 assert.match(wxss, /\.record-group\.on/)
+assert.match(wxss, /\.goods-summary\s*\{[\s\S]*?font-size:\s*36rpx/,
+  '当前任务商品名称应使用更大的字号')
+assert.match(wxss, /\.record-goods-name\s*\{[\s\S]*?font-size:\s*34rpx/,
+  '采购记录商品名称应使用更大的字号')
 
 console.log('purchaser detail unified record view tests passed')

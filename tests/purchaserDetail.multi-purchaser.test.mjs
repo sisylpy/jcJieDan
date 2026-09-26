@@ -29,11 +29,17 @@ assert.match(detailPage, /pageSize: PAGE_SIZE/,
   '每位采购员的数据应通过分页完整读取')
 
 assert.match(detailView, /title="采购详细"/)
-assert.match(detailView, /统计采购员/)
+assert.match(detailView, /class="detail-topbar"[\s\S]*report-date-filter[\s\S]*class="top-filter-button/,
+  '日期应位于页面顶部，采购员筛选按钮应位于同一行右侧')
+assert.ok(detailView.indexOf('class="detail-topbar"') < detailView.indexOf('class="person-summary"'),
+  '日期筛选行应显示在汇总卡片之前')
+assert.match(detailView, /采购员范围/)
 assert.match(detailView, /全部采购员/)
 assert.match(detailView, /可选择一位或多位/)
 assert.match(detailView, /draftPurchasers/)
 assert.match(detailView, /应用筛选/)
+assert.doesNotMatch(detailView, /purchaser-filter-trigger/,
+  '汇总卡片内不应重复显示大块采购员筛选入口')
 assert.match(detailView, /item\.purchaserName/,
   '合并后的任务和采购记录必须标明采购员')
 

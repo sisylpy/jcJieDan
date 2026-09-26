@@ -112,7 +112,8 @@ assert.match(purchaserDetailWxml, /当前未结束任务，不受上方历史日
 assert.match(purchaserDetailWxml, /当前处理：/)
 assert.match(purchaserDetailWxml, /item\.canOperate\|\|item\.actionCode==='OPEN_BOSS_BATCH'/,
   'only the responsible owner identity may execute a JRDH purchaser action; Boss batch reads remain available')
-assert.match(purchaserDetailWxml, /采购记录 · \{\{startDate\}\} 至 \{\{stopDate\}\}/)
+assert.match(purchaserDetailWxml, /class="detail-topbar"[\s\S]*start-date="\{\{startDate\}\}"[\s\S]*stop-date="\{\{stopDate\}\}"/,
+  'purchaser detail date range must stay in the top toolbar instead of being repeated in record content')
 assert.match(purchaserDetailWxml, /recordStatusOptions/,
   'purchase records may be filtered by their formal business status, including waiting for stock-in')
 assert.doesNotMatch(purchaserDetailWxml, /确认收货|损耗率|毛利/)

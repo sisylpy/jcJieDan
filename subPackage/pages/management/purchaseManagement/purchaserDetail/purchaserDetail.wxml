@@ -3,20 +3,26 @@
   <scroll-view scroll-y class="pm-body" style="padding-top:{{navBarHeight}}rpx" bindscrolltolower="more">
     <view wx:if="{{error}}" class="pm-state error-state"><text>{{error}}</text><text class="retry" bindtap="retry">重新加载</text></view>
     <block wx:else>
+      <view class="detail-topbar">
+        <report-date-filter class="top-date-filter" style="flex:1;min-width:0;" label="{{dateLabel}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bindselect="toDatePage"></report-date-filter>
+        <view class="top-filter-button {{selectedAllPurchasers?'':'selected'}}" bindtap="openPurchaserFilter">
+          <text class="top-filter-label">筛选</text>
+          <text wx:if="{{!selectedAllPurchasers}}" class="top-filter-count">{{selectedPurchaserIds.length}}</text>
+        </view>
+      </view>
+
       <view class="person-summary">
-        <view class="pm-row">
-          <view><text class="pm-name">{{detail.purchaserName||'全部采购员'}}</text><text class="pm-badge name-badge">{{detail.purchaserStatusText}}</text></view>
-          <text class="pm-muted">{{detail.accountStatusText}}</text>
+        <view class="summary-head">
+          <view class="summary-scope">
+            <text class="summary-kicker">采购员范围</text>
+            <text class="summary-title">{{purchaserSelectionText}}</text>
+          </view>
+          <text class="scope-status">{{detail.purchaserStatusText}}</text>
         </view>
-        <view class="purchaser-filter-trigger" bindtap="openPurchaserFilter">
-          <view><text class="filter-label">统计采购员</text><text class="filter-value">{{purchaserSelectionText}}</text></view>
-          <text class="filter-action">筛选 ›</text>
-        </view>
-        <report-date-filter label="{{dateLabel}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bindselect="toDatePage"></report-date-filter>
         <view class="summary-line">
-          <view><text class="summary-label">当前任务</text><text class="summary-number">{{detail.summary.currentTaskCount||0}} 项</text></view>
-          <view><text class="summary-label">本期采购记录</text><text class="summary-number">{{detail.summary.periodPurchaseRecordCount||0}} 条</text></view>
-          <view class="amount-summary"><text class="summary-label">本期采购金额</text><text class="summary-money">{{detail.summary.periodPurchaseAmount==null?'—':'¥'+detail.summary.periodPurchaseAmount}}</text></view>
+          <view class="summary-item"><text class="summary-label">当前任务</text><text class="summary-number">{{detail.summary.currentTaskCount||0}}<text class="summary-unit">项</text></text></view>
+          <view class="summary-item"><text class="summary-label">采购记录</text><text class="summary-number">{{detail.summary.periodPurchaseRecordCount||0}}<text class="summary-unit">条</text></text></view>
+          <view class="summary-item amount-summary"><text class="summary-label">采购金额</text><text class="summary-money">{{detail.summary.periodPurchaseAmount==null?'—':'¥'+detail.summary.periodPurchaseAmount}}</text></view>
         </view>
         <text wx:if="{{detail.summary.periodUnresolvedAmountCount}}" class="amount-note">另有 {{detail.summary.periodUnresolvedAmountCount}} 条采购记录金额尚未形成</text>
       </view>
@@ -43,7 +49,10 @@
 
       <block wx:else>
         <view class="record-toolbar">
-          <text class="record-period">采购记录 · {{startDate}} 至 {{stopDate}}</text>
+          <view class="record-toolbar-head">
+            <text class="record-toolbar-title">采购记录</text>
+            <text class="record-toolbar-copy">按类型、状态和金额筛选</text>
+          </view>
           <view class="record-filters">
             <picker value="{{recordModeIndex}}" range="{{recordModeOptions}}" range-key="label" bindchange="changeRecordMode">
               <view class="record-filter">{{recordModeOptions[recordModeIndex].label}}⌄</view>
@@ -59,13 +68,15 @@
         <view wx:if="{{batchError||directError}}" class="pm-state small-state"><text>{{batchError||directError}}</text><text class="retry" bindtap="retryRecords">重新加载</text></view>
         <view wx:elif="{{recordsLoaded&&!batchLoading&&!directLoading&&!batches.length&&!directItems.length}}" class="pm-state">所选日期内暂无采购记录</view>
 
-        <view wx:if="{{batches.length||directItems.length}}" class="record-layout">
-          <view class="record-groups">
-            <view class="record-group {{activeRecordGroup===item.key?'on':''}}" wx:for="{{recordGroups}}" wx:key="key" data-value="{{item.key}}" bindtap="chooseRecordGroup">
-              <text class="record-group-name">{{item.name}}</text>
-              <text class="record-group-count">({{item.count}})</text>
+        <view wx:if="{{batches.length||directItems.length}}" class="record-section">
+          <scroll-view scroll-x class="record-groups-scroll">
+            <view class="record-groups">
+              <view class="record-group {{activeRecordGroup===item.key?'on':''}}" wx:for="{{recordGroups}}" wx:key="key" data-value="{{item.key}}" bindtap="chooseRecordGroup">
+                <text class="record-group-name">{{item.name}}</text>
+                <text class="record-group-count">{{item.count}}</text>
+              </view>
             </view>
-          </view>
+          </scroll-view>
           <view class="record-list">
             <view wx:if="{{!recordItems.length&&!batchLoading&&!directLoading}}" class="record-empty">当前筛选条件下暂无记录</view>
             <view class="purchase-record-card" wx:for="{{recordItems}}" wx:key="key" data-id="{{item.batchId}}" bindtap="openRecord">
