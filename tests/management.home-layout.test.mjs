@@ -14,8 +14,9 @@ for (const title of ['客户与销售', '采购管理', '库存管理', '资金�
 }
 
 assert.equal((view.match(/>采购总览</g) || []).length, 1, '采购总览按钮只能出现一次')
+assert.equal((view.match(/>库存经营</g) || []).length, 1, '库存经营按钮只能出现一次')
 assert.match(view, /bindtap="toPurchaseManagement"[\s\S]*?采购总览/)
-assert.match(view, /bindtap="toPurchasePerformance"[\s\S]*?库存经营/)
+assert.match(view, />采购管理<[\s\S]*?bindtap="toPurchasePerformance"[\s\S]*?>库存经营<[\s\S]*?>库存管理</, '库存经营应位于采购管理分组')
 assert.match(view, /purchasePendingCount/)
 assert.match(page, /getPurchaseManagementOverview\(\{ range: 'TODAY' \}\)/)
 
