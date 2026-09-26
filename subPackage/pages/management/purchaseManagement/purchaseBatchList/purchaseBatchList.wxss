@@ -1,5 +1,6 @@
 @import "../common.wxss";
 .query-panel{background:#fff;border:1rpx solid #e0e8e5;margin-bottom:14rpx;padding:16rpx}
+.current-scope{padding:4rpx 2rpx 16rpx;border-bottom:1rpx solid #edf1ef}.current-scope-title,.current-scope-note{display:block}.current-scope-title{color:#193d36;font-size:28rpx;font-weight:700}.current-scope-note{margin-top:5rpx;color:#71807c;font-size:21rpx}
 .date-row,.search-row,.compact-filters,.card-head,.supplier-row,.amount-row{display:flex;align-items:center}.date-row{justify-content:flex-start;gap:12rpx;border-bottom:1rpx solid #edf1ef;padding-bottom:14rpx}
 .date-value{font-size:23rpx;color:#35433f;padding:7rpx 10rpx;border:1rpx solid #dce6e2;background:#fafcfb}.date-separator{font-size:23rpx;color:#7b8985}
 .search-row{margin-top:14rpx;border:1rpx solid #dbe5e1}.search-input{flex:1;height:64rpx;padding:0 15rpx;font-size:24rpx}.search-button{height:64rpx;line-height:64rpx;padding:0 22rpx;color:#fff;background:#15806d;font-size:24rpx}

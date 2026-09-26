@@ -16,7 +16,7 @@ function monthStart(stopDate) {
 
 Page({
   data: {
-    navBarHeight: 0,
+    navBarHeight: 0, listTitle: '采购批次', currentOnly: false, progressGroup: '',
     startDate: '', stopDate: '', dateType: 'month', dateName: 'thisMonth', dateLabel: '本月', page: 1, total: 0, items: [], loading: false, error: '',
     keyword: '', purchasePurpose: '', supplierRelationId: '', supplierIndex: 0,
     supplierOptions: [{ supplierRelationId: '', supplierName: '全部供应方' }],
@@ -27,10 +27,14 @@ Page({
 
   onLoad(options) {
     const stopDate = options.stopDate || today()
+    const currentOnly = options.progressGroup === 'PURCHASING'
     this.setData({
       navBarHeight: app.globalData.navBarHeight * app.globalData.rpxR,
       startDate: options.startDate || monthStart(stopDate),
-      stopDate
+      stopDate,
+      currentOnly,
+      progressGroup: currentOnly ? 'PURCHASING' : '',
+      listTitle: currentOnly ? '采购中批次' : '采购批次'
     })
     this.load(true)
   },
@@ -77,7 +81,8 @@ Page({
     const query = {
       startDate: this.data.startDate, stopDate: this.data.stopDate, page, pageSize: 20,
       keyword: this.data.keyword, purchasePurpose: this.data.purchasePurpose,
-      supplierId: this.data.supplierRelationId, sort: this.data.sort
+      supplierId: this.data.supplierRelationId, sort: this.data.sort,
+      progressGroup: this.data.progressGroup
     }
     this.setData({ loading: true, error: '' })
     getPurchaseManagementBatches(query).then(res => {

@@ -1,8 +1,9 @@
 <view class="pm-page">
-  <back-navbar style="height:{{navBarHeight}}rpx" title="采购批次" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+  <back-navbar style="height:{{navBarHeight}}rpx" title="{{listTitle}}" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
   <scroll-view scroll-y class="pm-body" style="padding-top:{{navBarHeight}}rpx" scroll-top="{{scrollTop}}" bindscroll="recordScroll" bindscrolltolower="more">
     <view class="query-panel">
-      <report-date-filter label="{{dateLabel}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bindselect="toDatePage"></report-date-filter>
+      <report-date-filter wx:if="{{!currentOnly}}" label="{{dateLabel}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bindselect="toDatePage"></report-date-filter>
+      <view wx:else class="current-scope"><text class="current-scope-title">全部采购中批次</text><text class="current-scope-note">未完成任务不受采购总览日期范围限制</text></view>
       <view class="search-row">
         <input class="search-input" value="{{keyword}}" bindinput="input" bindconfirm="search" confirm-type="search" placeholder="搜索商品、供应方或批次编号"></input>
         <text class="search-button" bindtap="search">搜索</text>
@@ -20,7 +21,7 @@
     </view>
 
     <view wx:if="{{error}}" class="state-panel error-state"><text>采购批次加载失败</text><text class="state-detail">{{error}}</text><text class="retry-button" bindtap="retry">重新加载</text></view>
-    <view wx:elif="{{!loading&&!items.length}}" class="state-panel">当前条件下没有采购批次</view>
+    <view wx:elif="{{!loading&&!items.length}}" class="state-panel">{{currentOnly?'当前没有采购中批次':'当前条件下没有采购批次'}}</view>
 
     <view class="batch-card" wx:for="{{items}}" wx:key="batchId" data-id="{{item.batchId}}" bindtap="open">
       <view class="card-head"><view class="head-left"><text class="purpose-badge {{item.purchasePurpose==='UNRESOLVED'?'warn':''}}">{{item.purchasePurposeText}}</text><text class="batch-number">{{item.batchNumber}}</text></view><text class="business-date">{{item.businessDate}} ›</text></view>

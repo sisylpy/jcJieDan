@@ -208,6 +208,12 @@ export function createPurchaseManagementOverviewPage() {
       wx.navigateTo({ url: '/subPackage/pages/management/purchaseManagement/pendingStockInList/pendingStockInList' })
     },
 
+    openPurchasingBatches() {
+      wx.navigateTo({
+        url: '/subPackage/pages/management/purchaseManagement/purchaseBatchList/purchaseBatchList?progressGroup=PURCHASING'
+      })
+    },
+
     openCollaborationPending() {
       wx.navigateTo({ url: '/pages/doing/index/index' })
     }

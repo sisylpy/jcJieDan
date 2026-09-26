@@ -79,6 +79,9 @@ assert.match(overviewWxml, /openPendingStockIns/)
 assert.match(overviewWxml, /协作待出货/)
 assert.match(overviewWxml, /tasks\.collaborationPendingOrderLines/)
 assert.match(overviewWxml, /openCollaborationPending/)
+assert.match(overviewWxml, /openPurchasingBatches/)
+assert.match(managementIndexJs, /openPurchasingBatches\(\)[\s\S]*?purchaseBatchList\?progressGroup=PURCHASING/,
+  'the purchasing-batch metric must open its matching current-task list')
 assert.match(managementIndexJs, /openCollaborationPending\(\)[\s\S]*?\/pages\/doing\/index\/index/,
   'collaboration task must drill into the live unshipped collaboration workspace')
 assert.match(managementIndexJs, /getPurchaseManagementExceptions/)
@@ -185,6 +188,10 @@ assert.match(batchListJs, /supplierId: this\.data\.supplierRelationId/)
 assert.match(batchListJs, /supplierOptions:\s*\[\{ supplierRelationId: '', supplierName: '全部供应方' \}\]/)
 assert.doesNotMatch(batchListJs, /getPurchaseManagementSuppliers|getPurchaseManagementPurchasers/)
 assert.match(batchListJs, /restoreScrollTop/)
+assert.match(batchListJs, /options\.progressGroup === 'PURCHASING'/)
+assert.match(batchListJs, /progressGroup: this\.data\.progressGroup/)
+assert.match(batchList, /全部采购中批次/)
+assert.match(batchList, /未完成任务不受采购总览日期范围限制/)
 assert.match(allJs, /pageSize:\s*20/)
 
 // Stage5 keeps the legacy direct-purchase endpoint but purchaser detail now consumes
