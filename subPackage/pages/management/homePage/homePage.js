@@ -622,9 +622,9 @@ toPurchaseCollaboration(){
   })
 },
 
-toPurchaserList(){
+toPurchaserDetail(){
   wx.navigateTo({
-    url: '/subPackage/pages/management/purchaseManagement/purchaserList/purchaserList',
+    url: '/subPackage/pages/management/purchaseManagement/purchaserDetail/purchaserDetail',
   })
 },
 

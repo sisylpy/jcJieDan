@@ -23,7 +23,7 @@ assert.match(page, /getPurchaseManagementOverview\(\{ range: 'TODAY' \}\)/)
 
 const directRoutes = [
   'purchaseCollaboration/purchaseCollaboration',
-  'purchaserList/purchaserList',
+  'purchaserDetail/purchaserDetail',
   'financeOverview/financeOverview',
   'reimbursementList/reimbursementList',
   'settlementList/settlementList',

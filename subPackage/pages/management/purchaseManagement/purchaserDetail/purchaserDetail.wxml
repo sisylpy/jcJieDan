@@ -1,12 +1,16 @@
 <view class="pm-page">
-  <back-navbar style="height:{{navBarHeight}}rpx" title="采购员详情" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+  <back-navbar style="height:{{navBarHeight}}rpx" title="采购详细" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
   <scroll-view scroll-y class="pm-body" style="padding-top:{{navBarHeight}}rpx" bindscrolltolower="more">
     <view wx:if="{{error}}" class="pm-state error-state"><text>{{error}}</text><text class="retry" bindtap="retry">重新加载</text></view>
     <block wx:else>
       <view class="person-summary">
         <view class="pm-row">
-          <view><text class="pm-name">{{detail.purchaserName||('历史采购员 #'+purchaserId)}}</text><text class="pm-badge name-badge">{{detail.purchaserStatusText}}</text></view>
+          <view><text class="pm-name">{{detail.purchaserName||'全部采购员'}}</text><text class="pm-badge name-badge">{{detail.purchaserStatusText}}</text></view>
           <text class="pm-muted">{{detail.accountStatusText}}</text>
+        </view>
+        <view class="purchaser-filter-trigger" bindtap="openPurchaserFilter">
+          <view><text class="filter-label">统计采购员</text><text class="filter-value">{{purchaserSelectionText}}</text></view>
+          <text class="filter-action">筛选 ›</text>
         </view>
         <report-date-filter label="{{dateLabel}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bindselect="toDatePage"></report-date-filter>
         <view class="summary-line">
@@ -29,8 +33,9 @@
         <view class="task-card" wx:for="{{tasks}}" wx:key="taskKey">
           <view class="pm-row"><text class="purpose">{{item.purchasePurposeText}}</text><text class="task-progress {{item.currentHandlerRole==='PURCHASER'?'attention':''}}">{{item.progressText}}</text></view>
           <text class="goods-summary">{{item.goodsSummary}}</text>
-          <view class="task-meta"><text>{{item.batchNumber||('商品记录 #'+item.purchaseGoodsId)}}</text><text>{{item.businessDate||'业务日期待核对'}}</text></view>
-          <view class="task-meta"><text>{{item.supplierName}}</text><text>{{item.goodsLineCount}} 条商品记录</text></view>
+          <view class="task-meta"><text>{{item.purchaserName||('采购员 #'+item.purchaserUserId)}}</text><text>{{item.businessDate||'业务日期待核对'}}</text></view>
+          <view class="task-meta"><text>{{item.batchNumber||('商品记录 #'+item.purchaseGoodsId)}}</text><text>{{item.goodsLineCount}} 条商品记录</text></view>
+          <view class="task-meta"><text>{{item.supplierName}}</text></view>
           <view class="handler-line"><text>当前处理：{{item.currentHandlerText}}（{{item.handlerClientText}}）</text><text wx:if="{{item.canOperate||item.actionCode==='OPEN_BOSS_BATCH'}}" class="task-action" data-item="{{item}}" bindtap="openTask">{{item.actionText}} ›</text><text wx:else class="route-note">{{item.actionText}}</text></view>
         </view>
         <view wx:if="{{taskLoading}}" class="pm-state small-state">正在加载任务…</view>
@@ -71,6 +76,7 @@
                   <text class="record-date">{{item.businessDate}}</text>
                 </view>
                 <view class="record-badges">
+                  <text class="record-badge purchaser">{{item.purchaserName}}</text>
                   <text class="record-badge source">{{item.sourceText}}</text>
                   <text class="record-badge status {{item.statusKey==='WAITING_STOCK'?'attention':''}}">{{item.statusText}}</text>
                 </view>
@@ -90,4 +96,28 @@
       </block>
     </block>
   </scroll-view>
+
+  <view wx:if="{{showPurchaserFilter}}" class="purchaser-filter-mask" bindtap="closePurchaserFilter">
+    <view class="purchaser-filter-sheet" catchtap="noop">
+      <view class="filter-sheet-head">
+        <view><text class="filter-sheet-title">筛选采购员</text><text class="filter-sheet-copy">可选择一位或多位，统计和明细会一起更新</text></view>
+        <view class="filter-sheet-actions"><text class="filter-clear" bindtap="clearDraftPurchasers">清空</text><text class="filter-close" bindtap="closePurchaserFilter">关闭</text></view>
+      </view>
+      <view class="filter-select-all {{draftAllPurchasers?'selected':''}}" bindtap="selectAllPurchasers">
+        <view><text class="filter-option-name">全部采购员</text><text class="filter-option-copy">查看所有采购员的合计数据</text></view>
+        <text class="filter-check">{{draftAllPurchasers?'✓':''}}</text>
+      </view>
+      <scroll-view scroll-y class="filter-options">
+        <view class="filter-option {{item.selected?'selected':''}}" wx:for="{{draftPurchasers}}" wx:key="purchaserUserId" data-id="{{item.purchaserUserId}}" bindtap="togglePurchaser">
+          <image class="filter-avatar" src="{{item.avatarUrl||'/images/user.png'}}" mode="aspectFill"></image>
+          <view class="filter-option-main"><text class="filter-option-name">{{item.purchaserName||('采购员 #'+item.purchaserUserId)}}</text><text class="filter-option-copy">{{item.purchaserStatusText}} · 本期 {{item.periodPurchaseRecordCount||0}} 条采购</text></view>
+          <text class="filter-check">{{item.selected?'✓':''}}</text>
+        </view>
+      </scroll-view>
+      <view class="filter-sheet-foot">
+        <text class="filter-selected-count">已选 {{draftSelectedCount}} 位</text>
+        <button class="filter-apply" bindtap="applyPurchaserFilter">应用筛选</button>
+      </view>
+    </view>
+  </view>
 </view>

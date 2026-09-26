@@ -22,6 +22,8 @@ new vm.Script(source, { filename: 'purchaseManagementPurchaserRecordView.js' }).
 
 const batches = [{
   batchId: 101,
+  purchaserUserId: 11,
+  purchaserName: '采购员甲',
   goodsSummary: '黄瓜、菜心',
   goodsCategories: '蔬菜类',
   goodsImage: 'goodsImage/cucumber.jpg',
@@ -36,6 +38,8 @@ const batches = [{
 }]
 const directItems = [{
   purchaseGoodsId: 202,
+  purchaserUserId: 12,
+  purchaserName: '采购员乙',
   goodsName: '西兰花',
   goodsCategory: '蔬菜类',
   purchaseDate: '2026-09-24',
@@ -54,7 +58,9 @@ assert.equal(view.recordGroups[0].count, 2)
 assert.equal(view.recordGroups.find(item => item.key === '蔬菜类').count, 2)
 assert.deepEqual(JSON.parse(JSON.stringify(view.recordItems.map(item => item.key))), ['BATCH:101', 'DIRECT:202'])
 assert.equal(view.recordItems[0].statusText, '待入库')
+assert.equal(view.recordItems[0].purchaserName, '采购员甲')
 assert.equal(view.recordItems[1].statusText, '已入库')
+assert.equal(view.recordItems[1].purchaserName, '采购员乙')
 assert.equal(view.recordItems[1].sourceText, '无货架')
 assert.equal(view.recordItems[1].quantityPriceText, '8件 × ¥9')
 
@@ -72,6 +78,7 @@ assert.match(wxml, /record-groups/)
 assert.match(wxml, /recordModeOptions/)
 assert.match(wxml, /recordStatusOptions/)
 assert.match(wxml, /recordSortOptions/)
+assert.match(wxml, /item\.purchaserName/)
 assert.doesNotMatch(wxml, /采购批次（|自采记录（/)
 assert.match(wxss, /\.purchase-record-card/)
 assert.match(wxss, /\.record-group\.on/)
