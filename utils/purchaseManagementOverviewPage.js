@@ -196,9 +196,9 @@ export function createPurchaseManagementOverviewPage() {
       })
     },
 
-    openAmountRecords() {
+    openPurchasePerformance() {
       wx.navigateTo({
-        url: '/subPackage/pages/management/purchaseManagement/purchaseAmountDetail/purchaseAmountDetail'
+        url: '/subPackage-purchase-management/pages/purchasePerformance/purchasePerformance'
           + '?startDate=' + encodeURIComponent(this.data.startDate)
           + '&stopDate=' + encodeURIComponent(this.data.stopDate)
       })

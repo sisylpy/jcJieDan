@@ -610,12 +610,6 @@ toSalesAnalysis(){
   })
 },
 
-toPurchasePerformance(){
-  wx.navigateTo({
-    url: '/subPackage-purchase-management/pages/purchasePerformance/purchasePerformance',
-  })
-},
-
 toPurchaseCollaboration(){
   wx.navigateTo({
     url: '/subPackage/pages/management/purchaseManagement/purchaseCollaboration/purchaseCollaboration',

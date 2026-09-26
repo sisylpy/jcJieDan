@@ -24,13 +24,14 @@ Page({
     error: ''
   },
 
-  onLoad() {
+  onLoad(options) {
     const end = new Date()
-    const start = new Date(end.getFullYear(), end.getMonth(), 1)
+    const defaultStart = new Date(end.getFullYear(), end.getMonth(), 1)
+    const query = options || {}
     this.setData({
       navBarHeight: app.globalData.navBarHeight * app.globalData.rpxR,
-      startDate: formatDate(start),
-      stopDate: formatDate(end)
+      startDate: query.startDate || formatDate(defaultStart),
+      stopDate: query.stopDate || formatDate(end)
     })
     this._firstShow = true
     this._allProducts = []
@@ -92,13 +93,6 @@ Page({
       this.applyProductView(this.data.activeCategoryId)
     }).catch(error => this.setData({ error: error.message || '采购经营分析加载失败' }))
       .then(() => this.setData({ loading: false }))
-  },
-
-  openPurchaseRecords() {
-    wx.navigateTo({
-      url: '/subPackage/pages/management/purchaseManagement/purchaseAmountDetail/purchaseAmountDetail?startDate=' +
-        this.data.startDate + '&stopDate=' + this.data.stopDate
-    })
   },
 
   applyProductView(requestedCategoryId) {

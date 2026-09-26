@@ -56,6 +56,7 @@ must(shelfJs.includes("setStorageSync('inventoryBatchBusinessContext'"), '货架
 must(!shelfJson.usingComponents.editShelfStock && !shelfJson.usingComponents.editShelfStockDetail,
   '货架页仍加载旧库存修改组件')
 must(shelfWxml.includes('toInventoryBatchBusiness'), '货架批次未接单批次详情入口')
-must(read('subPackage/pages/management/homePage/homePage.wxml').includes('toPurchasePerformance'), '管理首页未接绩效入口')
+must(!read('subPackage/pages/management/homePage/homePage.wxml').includes('toPurchasePerformance'), '管理首页仍保留独立采购经营入口')
+must(read('utils/purchaseManagementOverviewPage.js').includes('subPackage-purchase-management/pages/purchasePerformance/purchasePerformance'), '采购总览未接采购经营分析入口')
 
 console.log('inventory batch stage 1C boss contract: PASS')

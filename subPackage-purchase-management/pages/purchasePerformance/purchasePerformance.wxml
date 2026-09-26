@@ -43,7 +43,7 @@
       </view>
 
       <view class="section-card purchase-card">
-        <view class="section-heading"><view><text class="section-title">采购覆盖</text><text class="section-subtitle">采购额用于规模核对，不直接等同期间利润成本</text></view><text class="detail-link" bindtap="openPurchaseRecords">查看明细 ›</text></view>
+        <view class="section-heading"><view><text class="section-title">采购覆盖</text><text class="section-subtitle">采购额用于规模核对，不直接等同期间利润成本</text></view></view>
         <view class="purchase-total"><view><text class="purchase-label">已识别采购额</text><text class="purchase-value">{{purchaseAmount.recognizedAmountText}}</text></view><view class="purchase-counts"><text>{{purchaseAmount.includedRecordCount}} 条已识别</text><text wx:if="{{purchaseAmount.unresolvedAmountCount}}">{{purchaseAmount.unresolvedAmountCount}} 条待形成</text></view></view>
         <view class="purchase-groups">
           <view class="purchase-group" wx:for="{{purchaseAmount.groups}}" wx:key="sourceType"><text class="purchase-group-name">{{item.sourceTypeText}}</text><text class="purchase-group-amount">{{item.recognizedAmountText}}</text><text class="purchase-group-count">{{item.includedRecordCount}} 条<text wx:if="{{item.unresolvedAmountCount}}"> · {{item.unresolvedAmountCount}} 条待核对</text></text></view>

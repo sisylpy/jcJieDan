@@ -14,10 +14,11 @@ for (const title of ['客户与销售', '采购管理', '库存管理', '资金�
 }
 
 assert.equal((view.match(/>采购总览</g) || []).length, 1, '采购总览按钮只能出现一次')
-assert.equal((view.match(/>采购经营</g) || []).length, 1, '采购经营按钮只能出现一次')
+assert.equal((view.match(/>采购经营</g) || []).length, 0, '控制台不再单独显示采购经营按钮')
 assert.equal((view.match(/>采购协同</g) || []).length, 1, '采购批次与供应方必须合并为一个采购协同入口')
 assert.match(view, /bindtap="toPurchaseManagement"[\s\S]*?采购总览/)
-assert.match(view, />采购管理<[\s\S]*?bindtap="toPurchasePerformance"[\s\S]*?>采购经营<[\s\S]*?>库存管理</, '采购经营应位于采购管理分组')
+assert.doesNotMatch(view, /bindtap="toPurchasePerformance"|>采购经营</)
+assert.doesNotMatch(page, /toPurchasePerformance\s*\(/)
 assert.match(view, /purchasePendingCount/)
 assert.match(page, /getPurchaseManagementOverview\(\{ range: 'TODAY' \}\)/)
 

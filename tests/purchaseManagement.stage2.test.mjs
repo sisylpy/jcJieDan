@@ -7,7 +7,6 @@ const pages = app.subPackages.find(item => item.root === 'subPackage/').pages
 const required = [
   'pages/management/purchaseManagement/index/index',
   'pages/management/purchaseManagement/pendingStockInList/pendingStockInList',
-  'pages/management/purchaseManagement/purchaseAmountDetail/purchaseAmountDetail',
   'pages/management/purchaseManagement/purchaserList/purchaserList',
   'pages/management/purchaseManagement/purchaserDetail/purchaserDetail',
   'pages/management/purchaseManagement/purchaseCollaboration/purchaseCollaboration',
@@ -26,7 +25,7 @@ assert.ok(!pages.includes('pages/management/purchaseManagement/purchaseException
 const api = read('lib/apiDistributer.js')
 assert.match(api, /purchaseManagementRequest\('overview'/)
 assert.match(api, /purchaseManagementRequest\('pending-stock-ins'/)
-assert.match(api, /purchaseManagementRequest\('purchase-amount-records'/)
+assert.doesNotMatch(api, /purchase-amount-records/)
 assert.match(api, /purchaseManagementRequest\('purchasers'/)
 assert.match(api, /purchaseManagementRequest\('purchasers\/' \+ id \+ '\/tasks'/)
 assert.match(api, /purchaseManagementRequest\('purchasers\/' \+ id \+ '\/purchased-goods'/)
@@ -86,10 +85,12 @@ assert.match(managementIndexJs, /openCollaborationPending\(\)[\s\S]*?\/pages\/do
   'collaboration task must drill into the live unshipped collaboration workspace')
 assert.match(managementIndexJs, /getPurchaseManagementExceptions/)
 assert.match(managementIndexJs, /assignSupplierPurchaseOwner/)
-for (const section of ['当前可处理', '等待其他角色', '阻断与核查', '历史只读提示']) {
+for (const section of ['现在可处理', '等待其他角色', '阻断与核查', '历史提示']) {
   assert.ok((managementIndexJs + overviewWxml).includes(section), `purchase overview missing pending section: ${section}`)
 }
-assert.match(overviewWxml, /查看采购明细/)
+assert.match(overviewWxml, /查看采购经营分析/)
+assert.doesNotMatch(overviewWxml, /查看采购明细/)
+assert.match(managementIndexJs, /openPurchasePerformance\(\)[\s\S]*?subPackage-purchase-management\/pages\/purchasePerformance\/purchasePerformance/)
 assert.match(overviewWxml, /按采购需求日期归期/)
 assert.match(overviewWxml, /历史账单/)
 assert.doesNotMatch(overviewWxml, /期间金额|实际收货|实际净采购/,
@@ -102,6 +103,12 @@ assert.doesNotMatch(overviewWxml, /管理入口|采购质量与经营|采购员�
   'purchase overview must not duplicate management-console entries')
 assert.match(overviewWxml, /title="采购总览"/)
 assert.match(overviewWxml, /report-date-filter/)
+for (const moduleTitle of ['当前要处理', '待接收入库', '本期采购金额', '采购构成', '事项与核查']) {
+  assert.match(overviewWxml, new RegExp(moduleTitle), `purchase overview missing clear module: ${moduleTitle}`)
+}
+for (const explanation of ['等待采购员购买', '采购尚未完成', '仍未全部完成', '没有明确采购负责人', '业务状态需要确认', '还没有完成出货']) {
+  assert.match(overviewWxml, new RegExp(explanation), `purchase task meaning is not explained: ${explanation}`)
+}
 assert.doesNotMatch(overviewWxml, /period\.(?:currentRealizedMarginRate|completedFinalMarginRate)(?!Text)/,
   'overview must not render or format raw decimal margin rates')
 assert.match(purchaserListWxml, /当前 \{\{item\.currentTaskCount\}\} 项任务/)
@@ -154,6 +161,7 @@ assert.match(qualityWxml, /经营结果/)
 assert.match(qualityWxml, /待核算数据未按 0 计入/)
 assert.doesNotMatch(qualityWxml, /库存经营概况|按入库日期筛选库存批次/)
 assert.match(qualityJs, /getPurchasePerformance/)
+assert.doesNotMatch(qualityJs, /openPurchaseRecords|purchaseAmountDetail/)
 assert.match(qualityJs, /data\.products/)
 assert.match(qualityJs, /categoryOptions/)
 assert.match(qualityJs, /selectCategory/)

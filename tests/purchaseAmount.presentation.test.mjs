@@ -4,7 +4,7 @@ import fs from 'node:fs'
 const read = path => fs.readFileSync(path, 'utf8')
 const presenterSource = read('utils/purchaseAmountPresenter.js')
 const presenterUrl = 'data:text/javascript;base64,' + Buffer.from(presenterSource).toString('base64')
-const { formatPurchaseMoney, normalizePurchaseAmount, normalizePurchaseRecord } = await import(presenterUrl)
+const { formatPurchaseMoney, normalizePurchaseAmount } = await import(presenterUrl)
 
 assert.equal(formatPurchaseMoney(null), '—')
 assert.equal(formatPurchaseMoney(0), '¥0.00', '真实0元不能显示为未知')
@@ -126,63 +126,16 @@ assert.equal(conflictOnly.amountText, '—')
 assert.equal(conflictOnly.groups[0].recognizedAmountText, '待核对')
 assert.match(conflictOnly.stateText, /没有可计入金额/)
 
-const line = normalizePurchaseRecord({
-  recordKey: 'SELF_PURCHASE:42',
-  sourceType: 'SELF_PURCHASE',
-  sourceTypeText: '自采',
-  sourceLineId: 42,
-  supplierName: null,
-  businessDate: '2026-09-19',
-  dateBasis: 'LEGACY_ORDER_APPLY_DATE',
-  dateBasisText: '按采购需求日期归期',
-  historicalDateFallback: true,
-  goodsName: '测试商品',
-  specification: '箱',
-  orderedQuantity: 10,
-  orderedUnit: '斤',
-  actualQuantity: 1,
-  actualUnit: '箱',
-  actualQuantityMeaningText: '采购数量',
-  unitPrice: 0,
-  amount: 0,
-  amountBasisText: '自采商品来源小计',
-  amountStatus: 'RECOGNIZED',
-  amountStatusText: '金额已识别',
-  included: true,
-  businessStatusText: '采购执行完成',
-  purchasePurpose: 'INVENTORY_REPLENISHMENT',
-  relatedCustomerOrderCount: 0
-}, 0)
-assert.equal(line._key, 'SELF_PURCHASE:42')
-assert.equal(line.orderedQuantityText, '10斤')
-assert.equal(line.sourceQuantityText, '1箱', '订购和来源数量必须使用各自单位')
-assert.equal(line.unitPriceText, '¥0.00', '合同未提供单价单位时不得用数量单位猜测')
-assert.equal(line.sourceSubtotalText, '¥0.00')
-assert.equal(line.purposeText, '库存备货')
-assert.equal(line.actionType, '', '自采不得生成假详情链接')
-
-const missingKey = normalizePurchaseRecord({
-  sourceType: 'EXTERNAL_DPB', sourceLineId: 91, externalBatchId: 7,
-  amountStatus: 'UNRESOLVED', included: false
-}, 0)
-assert.equal(missingKey.contractValid, false, '缺少后端稳定recordKey必须暴露合同错误')
-assert.equal(missingKey._key, undefined)
-assert.equal(missingKey.actionType, 'BATCH')
-assert.equal(missingKey.externalBatchId, 7)
-
 const app = JSON.parse(read('app.json'))
 const pages = app.subPackages.find(item => item.root === 'subPackage/').pages
-assert.ok(pages.includes('pages/management/purchaseManagement/purchaseAmountDetail/purchaseAmountDetail'))
+assert.ok(!pages.includes('pages/management/purchaseManagement/purchaseAmountDetail/purchaseAmountDetail'))
 
 const api = read('lib/apiDistributer.js')
-assert.match(api, /purchaseManagementRequest\('purchase-amount-records', data\)/)
+assert.doesNotMatch(api, /purchase-amount-records/)
 
 const homeJs = read('subPackage/pages/management/purchaseManagement/index/index.js') + '\n' +
   read('utils/purchaseManagementOverviewPage.js')
 const homeWxml = read('subPackage/pages/management/purchaseManagement/index/index.wxml')
-const detailJs = read('subPackage/pages/management/purchaseManagement/purchaseAmountDetail/purchaseAmountDetail.js')
-const detailWxml = read('subPackage/pages/management/purchaseManagement/purchaseAmountDetail/purchaseAmountDetail.wxml')
-
 assert.match(homeJs, /normalizePurchaseAmount\(data\.purchaseAmount\)/)
 assert.match(homeJs, /catch\(error => this\.setData\(\{ error:/,
   '首页接口失败必须进入错误态')
@@ -200,24 +153,16 @@ assert.doesNotMatch(homeWxml, /actualReceiptAmount/,
   '结构分析不得继续显示已证明不可靠的混合收货金额')
 assert.doesNotMatch(homeWxml, /1123\.45|213\.95|882\.50/,
   '对账快照不得写死在页面')
+assert.match(homeWxml, /查看采购经营分析/)
+assert.doesNotMatch(homeWxml, /查看采购明细/)
+assert.match(homeJs, /subPackage-purchase-management\/pages\/purchasePerformance\/purchasePerformance/)
+assert.doesNotMatch(homeJs, /purchaseAmountDetail|openAmountRecords/)
 
-assert.match(detailJs, /amountStatus:\s*this\.data\.amountStatus/)
-assert.match(detailJs, /sourceType:\s*this\.data\.sourceType/)
-assert.match(detailJs, /item\.externalBatchId/)
-assert.doesNotMatch(detailJs, /item\.batchId/)
-assert.match(detailJs, /采购明细标识缺失/)
-assert.match(detailJs, /if \(reset\) this\.setData\(\{ error:/,
-  '明细首页请求失败必须进入错误态')
-assert.match(detailWxml, /wx:elif="\{\{error\}\}"[\s\S]*采购明细加载失败/)
-assert.match(detailWxml, /尚未完成采购的需求[\s\S]*不计为金额待形成/)
-assert.match(detailWxml, /summary\.hasAnyRecord/)
-assert.match(detailWxml, /不代表收货、入库、付款或净采购/)
-assert.match(detailWxml, /item\.actionText/)
-
-const detailPresenter = read('utils/purchaseAmountPresenter.js')
+const amountPresenter = read('utils/purchaseAmountPresenter.js')
 for (const legacyAlias of ['sourceSubtotal,', 'grossAmount', 'batchId,', 'supplierRefId', 'EXTERNAL_PURCHASE', 'DIRECT_SELF_BUY']) {
-  assert.ok(!detailPresenter.includes(legacyAlias), 'new amount contract must not read legacy alias ' + legacyAlias)
+  assert.ok(!amountPresenter.includes(legacyAlias), 'new amount contract must not read legacy alias ' + legacyAlias)
 }
+assert.doesNotMatch(amountPresenter, /normalizePurchaseRecord/)
 
 const supplierDetailJs = read('subPackage/pages/management/purchaseManagement/supplierDetail/supplierDetail.js')
 const supplierDetailWxml = read('subPackage/pages/management/purchaseManagement/supplierDetail/supplierDetail.wxml')

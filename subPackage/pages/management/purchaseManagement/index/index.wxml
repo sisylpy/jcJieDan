@@ -1,8 +1,14 @@
 <template name="pendingSection">
   <view class="pending-section" wx:if="{{items.length}}">
-    <view class="pending-heading"><view><text class="pending-title">{{title}}</text><text class="pending-note">{{note}}</text></view><text class="pending-count {{tone}}">{{items.length}}</text></view>
+    <view class="pending-heading">
+      <view><text class="pending-title">{{title}}</text><text class="pending-note">{{note}}</text></view>
+      <text class="pending-count {{tone}}">{{items.length}}</text>
+    </view>
     <view class="pending-item" wx:for="{{items}}" wx:key="resourceId">
-      <view class="pending-item-head"><view><text class="pending-subject">{{item.subjectName||item.title}}</text><text class="pending-meta">{{item.businessDateText}} · {{item.exceptionTypeText}}</text></view><text class="pending-status">{{item.statusText}}</text></view>
+      <view class="pending-item-head">
+        <view><text class="pending-subject">{{item.subjectName||item.title}}</text><text class="pending-meta">{{item.businessDateText}} · {{item.exceptionTypeText}}</text></view>
+        <text class="pending-status">{{item.statusText}}</text>
+      </view>
       <text class="pending-event">{{item.title}}</text>
       <view class="pending-fact"><text>发生了什么</text><text>{{item.detailText}}</text></view>
       <view class="pending-fact"><text>业务影响</text><text>{{item.impactText}}</text></view>
@@ -11,35 +17,121 @@
         <button wx:if="{{item.canAssign}}" data-relation="{{item.supplierRelationId}}" data-subject="{{item.subjectName}}" bindtap="beginAssign">分配采购负责人</button>
         <button wx:if="{{item.canView}}" data-resource="{{item.resourceType}}" data-id="{{item.resourceId}}" bindtap="openPending">{{item.actionLabel}}</button>
       </view>
-      <text wx:else class="pending-no-action">当前没有安全的直接处理入口，请按原因联系对应角色或查看来源资料。</text>
+      <text wx:else class="pending-no-action">当前没有直接处理入口，请按提示联系对应角色或查看来源资料。</text>
     </view>
   </view>
 </template>
 
 <view class="pm-page">
   <back-navbar style="height:{{navBarHeight}}rpx" title="采购总览" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
-  <scroll-view scroll-y class="pm-body" style="padding-top:{{navBarHeight}}rpx">
-    <report-date-filter label="{{dateLabel}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bindselect="toDatePage"></report-date-filter>
-    <text class="date-basis">上方日期仅筛选采购业务与金额；当前未结束事项始终显示。</text>
+  <scroll-view scroll-y class="pm-body overview-body" style="padding-top:{{navBarHeight}}rpx">
+    <view class="date-card">
+      <report-date-filter label="{{dateLabel}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bindselect="toDatePage"></report-date-filter>
+      <text class="date-basis">日期用于本期采购金额和采购构成；未完成事项始终按当前状态显示。</text>
+    </view>
 
-    <view wx:if="{{loading}}" class="pm-state">正在加载采购总览…</view>
-    <view wx:elif="{{error}}" class="pm-state"><text>采购总览加载失败</text><text class="load-error-copy">{{error}}</text><view class="pm-button retry-button" bindtap="retry">重新加载</view></view>
+    <view wx:if="{{loading}}" class="pm-state overview-state">正在加载采购总览…</view>
+    <view wx:elif="{{error}}" class="pm-state overview-state error-state"><text>采购总览加载失败</text><text class="load-error-copy">{{error}}</text><view class="pm-button retry-button" bindtap="retry">重新加载</view></view>
+
     <block wx:else>
-      <view class="pm-card"><text class="pm-section-title">当前待办概况</text><view class="pm-grid"><view class="pm-metric"><text class="pm-label">待采购商品行</text><text class="pm-value">{{tasks.pendingPurchaseGoodsLines||0}}</text></view><view class="pm-metric pm-metric-link" bindtap="openPurchasingBatches"><text class="pm-label">采购中批次</text><view class="metric-action"><text class="pm-value">{{tasks.purchasingBatchCount||0}}</text><text class="pm-link">查看 ›</text></view></view><view class="pm-metric"><text class="pm-label">部分收货批次</text><text class="pm-value">{{tasks.partiallyReceivedBatchCount||0}}</text></view><view class="pm-metric"><text class="pm-label">待分配负责人</text><text class="pm-value">{{tasks.unassignedDemandCount||0}}</text></view><view class="pm-metric"><text class="pm-label">需处理或核查</text><text class="pm-value pm-money">{{tasks.currentExceptionCount||0}}</text></view><view class="pm-metric pm-metric-link" bindtap="openCollaborationPending"><text class="pm-label">协作待出货</text><view class="metric-action"><text class="pm-value">{{tasks.collaborationPendingOrderLines||0}}</text><text class="pm-link">处理 ›</text></view></view></view></view>
-
-      <view class="pm-card pending-stock-card" bindtap="openPendingStockIns"><view class="pending-stock-heading"><view><text class="pm-section-title pending-stock-title">待接收入库</text><text class="pending-stock-copy">采购员已完成采购，等待老板在货架确认接收</text></view><text class="pm-link">集中处理 ›</text></view><view class="pending-stock-summary"><view><text class="pending-stock-number">{{tasks.waitingStockInGoodsLines||0}}</text><text class="pending-stock-unit">件商品</text></view><view class="pending-stock-amount"><text>已记录金额</text><text>{{waitingStockInAmountText}}</text></view></view><text wx:if="{{tasks.waitingStockInUnresolvedAmountCount}}" class="pending-stock-warning">另有 {{tasks.waitingStockInUnresolvedAmountCount}} 件商品金额待核对</text></view>
-
-      <view class="pm-card purchase-amount-card">
-        <view class="amount-heading"><view><text class="pm-section-title amount-title">本期采购金额</text><text class="amount-period">{{startDate}} 至 {{stopDate}}</text></view><text class="purchase-total {{purchaseAmount.hasRecognizedAmount?'':'muted'}}">{{purchaseAmount.amountText}}</text></view><text class="amount-state">{{purchaseAmount.stateText}}</text>
-        <view wx:if="{{purchaseAmount.hasAnyRecord}}" class="amount-groups"><view class="amount-group" wx:for="{{purchaseAmount.groups}}" wx:key="sourceType"><text class="group-name">{{item.sourceText}}</text><text class="group-value">{{item.recognizedAmountText}}</text><text class="group-count">{{item.includedRecordCount}}条</text></view></view>
-        <view wx:if="{{purchaseAmount.unresolvedAmountCount}}" class="amount-notice warn">另有{{purchaseAmount.unresolvedAmountCount}}条采购记录金额尚未形成，未计入上述金额</view><view wx:if="{{purchaseAmount.conflictRecordCount}}" class="amount-notice conflict">另有{{purchaseAmount.conflictRecordCount}}条记录来源信息冲突，未计入本期采购金额</view><view wx:if="{{purchaseAmount.undatedRecordCount}}" class="amount-notice separate">另有{{purchaseAmount.undatedRecordCount}}条记录没有可靠业务日期，无法判断是否属于本期</view><view wx:if="{{purchaseAmount.historicalDateFallbackCount}}" class="amount-notice neutral">包含{{purchaseAmount.historicalDateFallbackCount}}条按采购需求日期归期的历史采购，合计{{purchaseAmount.historicalDateFallbackAmountText}}</view><view wx:if="{{purchaseAmount.historicalBillUnresolvedCount}}" class="amount-notice separate">另有{{purchaseAmount.historicalBillUnresolvedCount}}条历史账单<text wx:if="{{purchaseAmount.historicalBillIssueAmountKnown}}">（{{purchaseAmount.historicalBillIssueAmountText}}）</text>来源待核对，不计入本期采购金额</view>
-        <view class="amount-detail-link" bindtap="openAmountRecords"><text>查看采购明细</text><text>›</text></view><view wx:if="{{period.warehouseStockInAmount!=null}}" class="stock-in-line"><view><text class="stock-label">库房入库金额</text><text class="stock-note">库存口径，未计入上方金额</text></view><text class="stock-value">{{warehouseStockInAmountText}}</text></view>
+      <view class="overview-module task-module">
+        <view class="module-heading">
+          <view class="module-heading-copy"><view class="module-mark task"></view><view><text class="module-title">当前要处理</text><text class="module-subtitle">先处理未完成采购，再核对负责人和异常</text></view></view>
+          <text class="module-tag">实时</text>
+        </view>
+        <view class="task-grid">
+          <view class="task-tile">
+            <text class="task-label">尚未采购</text><view class="task-value-row"><text class="task-value">{{tasks.pendingPurchaseGoodsLines||0}}</text><text class="task-unit">商品行</text></view><text class="task-help">采购需求已经形成，等待采购员购买</text>
+          </view>
+          <view class="task-tile actionable" bindtap="openPurchasingBatches" hover-class="task-tile-hover">
+            <view class="task-label-row"><text class="task-label">采购中批次</text><text class="task-open">查看 ›</text></view><view class="task-value-row"><text class="task-value">{{tasks.purchasingBatchCount||0}}</text><text class="task-unit">批次</text></view><text class="task-help">已经组批，但采购尚未完成</text>
+          </view>
+          <view class="task-tile">
+            <text class="task-label">部分收货</text><view class="task-value-row"><text class="task-value">{{tasks.partiallyReceivedBatchCount||0}}</text><text class="task-unit">批次</text></view><text class="task-help">只收到一部分商品，仍未全部完成</text>
+          </view>
+          <view class="task-tile">
+            <text class="task-label">待分配采购员</text><view class="task-value-row"><text class="task-value">{{tasks.unassignedDemandCount||0}}</text><text class="task-unit">项</text></view><text class="task-help">供应关系还没有明确采购负责人</text>
+          </view>
+          <view class="task-tile warning">
+            <text class="task-label">异常与核查</text><view class="task-value-row"><text class="task-value">{{tasks.currentExceptionCount||0}}</text><text class="task-unit">项</text></view><text class="task-help">信息不完整或业务状态需要确认</text>
+          </view>
+          <view class="task-tile actionable" bindtap="openCollaborationPending" hover-class="task-tile-hover">
+            <view class="task-label-row"><text class="task-label">协作待出货</text><text class="task-open">处理 ›</text></view><view class="task-value-row"><text class="task-value">{{tasks.collaborationPendingOrderLines||0}}</text><text class="task-unit">商品行</text></view><text class="task-help">内部协作供应方还没有完成出货</text>
+          </view>
+        </view>
       </view>
 
-      <view class="pm-card"><text class="pm-section-title">采购结构</text><text class="pm-label">需求来源</text><view wx:for="{{structures.DEMAND_SOURCE}}" wx:key="structureCode" class="pm-line"><text>{{item.structureText}}</text><text>{{item.goodsLineCount||0}} 商品行</text></view><text class="pm-label">采购方式</text><view class="structure" wx:for="{{structures.PROCUREMENT_MODE}}" wx:key="structureCode"><view class="pm-line"><text>{{item.structureText}}</text><text>{{item.batchCount}} 批次 · {{item.goodsLineCount}} 商品行</text></view></view><text class="pm-label">履约模式</text><view class="structure" wx:for="{{structures.FULFILLMENT_MODE}}" wx:key="structureCode"><view class="pm-line"><text>{{item.structureText}}</text><text>{{item.goodsLineCount||0}} 商品行</text></view></view></view>
+      <view class="stock-action-card" bindtap="openPendingStockIns" hover-class="action-card-hover">
+        <view class="stock-action-main">
+          <view class="stock-action-icon">库</view>
+          <view class="stock-action-copy"><text class="stock-action-title">待接收入库</text><text class="stock-action-note">采购员已买完，等待在货架确认接收</text></view>
+          <text class="stock-action-link">集中处理 ›</text>
+        </view>
+        <view class="stock-action-summary">
+          <view><text class="stock-action-number">{{tasks.waitingStockInGoodsLines||0}}</text><text class="stock-action-unit">件待接收商品</text></view>
+          <view class="stock-action-amount"><text>已记录金额</text><text>{{waitingStockInAmountText}}</text></view>
+        </view>
+        <text wx:if="{{tasks.waitingStockInUnresolvedAmountCount}}" class="stock-action-warning">其中 {{tasks.waitingStockInUnresolvedAmountCount}} 件商品的金额仍待核对</text>
+      </view>
+
+      <view class="overview-module amount-module">
+        <view class="module-heading amount-module-heading">
+          <view class="module-heading-copy"><view class="module-mark amount"></view><view><text class="module-title">本期采购金额</text><text class="module-subtitle">按已识别的商品级采购记录汇总</text></view></view>
+          <text class="amount-period">{{startDate}} 至 {{stopDate}}</text>
+        </view>
+        <view class="amount-hero">
+          <view><text class="amount-eyebrow">采购总额</text><text class="purchase-total {{purchaseAmount.hasRecognizedAmount?'':'muted'}}">{{purchaseAmount.amountText}}</text></view>
+          <text class="amount-state">{{purchaseAmount.stateText}}</text>
+        </view>
+        <view wx:if="{{purchaseAmount.hasAnyRecord}}" class="amount-groups">
+          <view class="amount-group" wx:for="{{purchaseAmount.groups}}" wx:key="sourceType"><text class="group-name">{{item.sourceText}}</text><text class="group-value">{{item.recognizedAmountText}}</text><text class="group-count">{{item.includedRecordCount}} 条已识别</text></view>
+        </view>
+        <view class="amount-alerts">
+          <view wx:if="{{purchaseAmount.unresolvedAmountCount}}" class="amount-notice warn">{{purchaseAmount.unresolvedAmountCount}} 条采购记录金额尚未形成，未计入采购总额</view>
+          <view wx:if="{{purchaseAmount.conflictRecordCount}}" class="amount-notice conflict">{{purchaseAmount.conflictRecordCount}} 条记录来源信息冲突，需要核对</view>
+          <view wx:if="{{purchaseAmount.undatedRecordCount}}" class="amount-notice separate">{{purchaseAmount.undatedRecordCount}} 条记录没有可靠业务日期，未归入本期</view>
+          <view wx:if="{{purchaseAmount.historicalDateFallbackCount}}" class="amount-notice neutral">包含 {{purchaseAmount.historicalDateFallbackCount}} 条按采购需求日期归期的历史采购，合计 {{purchaseAmount.historicalDateFallbackAmountText}}</view>
+          <view wx:if="{{purchaseAmount.historicalBillUnresolvedCount}}" class="amount-notice separate">{{purchaseAmount.historicalBillUnresolvedCount}} 条历史账单<text wx:if="{{purchaseAmount.historicalBillIssueAmountKnown}}">（{{purchaseAmount.historicalBillIssueAmountText}}）</text>来源待核对，未计入采购总额</view>
+        </view>
+        <view class="performance-entry" bindtap="openPurchasePerformance" hover-class="performance-entry-hover">
+          <view class="performance-icon">盈</view>
+          <view class="performance-copy"><text class="performance-title">查看采购经营分析</text><text class="performance-note">查看订单毛利、采购成本和库存损耗</text></view>
+          <text class="performance-arrow">›</text>
+        </view>
+        <view wx:if="{{period.warehouseStockInAmount!=null}}" class="stock-in-line"><view><text class="stock-label">库房入库金额</text><text class="stock-note">这是库存入库口径，不计入上方采购总额</text></view><text class="stock-value">{{warehouseStockInAmountText}}</text></view>
+      </view>
+
+      <view class="overview-module structure-module">
+        <view class="module-heading">
+          <view class="module-heading-copy"><view class="module-mark structure"></view><view><text class="module-title">采购构成</text><text class="module-subtitle">分别看采购原因、采购方式和交付方式</text></view></view>
+        </view>
+        <view class="structure-block">
+          <view class="structure-heading"><view class="structure-icon source">需</view><view><text class="structure-title">需求来源</text><text class="structure-note">为什么需要采购</text></view></view>
+          <view class="structure-row" wx:for="{{structures.DEMAND_SOURCE}}" wx:key="structureCode"><text>{{item.structureText}}</text><text>{{item.goodsLineCount||0}} 商品行</text></view>
+        </view>
+        <view class="structure-block">
+          <view class="structure-heading"><view class="structure-icon method">采</view><view><text class="structure-title">采购方式</text><text class="structure-note">由谁完成采购</text></view></view>
+          <view class="structure-row" wx:for="{{structures.PROCUREMENT_MODE}}" wx:key="structureCode"><text>{{item.structureText}}</text><text>{{item.batchCount}} 批次 · {{item.goodsLineCount}} 商品行</text></view>
+        </view>
+        <view class="structure-block">
+          <view class="structure-heading"><view class="structure-icon delivery">交</view><view><text class="structure-title">交付方式</text><text class="structure-note">采购商品最终如何交付</text></view></view>
+          <view class="structure-row" wx:for="{{structures.FULFILLMENT_MODE}}" wx:key="structureCode"><text>{{item.structureText}}</text><text>{{item.goodsLineCount||0}} 商品行</text></view>
+        </view>
+      </view>
     </block>
 
-    <view class="pm-card pending-root"><view class="pending-root-head"><view><text class="pm-section-title">待处理事项</text><text class="pending-root-note">按真实来源状态展示，不复制采购、资金或库存流程</text></view><text class="pending-root-total">{{pendingTotal}}</text></view><view wx:if="{{pendingError}}" class="pending-state"><text>{{pendingError}}</text><text class="pm-link" bindtap="loadPending">重新加载</text></view><view wx:elif="{{pendingLoading}}" class="pending-state">正在读取当前事项…</view><view wx:elif="{{!pendingTotal}}" class="pending-state success">当前没有待处理、等待或历史提示</view><block wx:else><template is="pendingSection" data="{{items:actionItems,title:'当前可处理',note:'当前老板有正式操作入口的事项',tone:'action'}}"></template><template is="pendingSection" data="{{items:waitingItems,title:'等待其他角色',note:'正常业务进度，不计入紧急异常',tone:'waiting'}}"></template><template is="pendingSection" data="{{items:blockedItems,title:'阻断与核查',note:'只查看可靠来源，不允许直接改数字消除问题',tone:'blocked'}}"></template><template is="pendingSection" data="{{items:historyItems,title:'历史只读提示',note:'仅供追溯，不计入当前待办',tone:'history'}}"></template></block></view>
+    <view class="overview-module pending-root">
+      <view class="pending-root-head"><view class="module-heading-copy"><view class="module-mark issues"></view><view><text class="module-title">事项与核查</text><text class="module-subtitle">按紧急程度说明发生了什么、影响什么以及由谁处理</text></view></view><text class="pending-root-total">{{pendingTotal}}</text></view>
+      <view wx:if="{{pendingError}}" class="pending-state"><text>{{pendingError}}</text><text class="pm-link" bindtap="loadPending">重新加载</text></view>
+      <view wx:elif="{{pendingLoading}}" class="pending-state">正在读取当前事项…</view>
+      <view wx:elif="{{!pendingTotal}}" class="pending-state success">当前没有需要处理或核查的事项</view>
+      <block wx:else>
+        <template is="pendingSection" data="{{items:actionItems,title:'现在可处理',note:'老板端已有正式操作入口',tone:'action'}}"></template>
+        <template is="pendingSection" data="{{items:waitingItems,title:'等待其他角色',note:'属于正常业务进度，暂时无需操作',tone:'waiting'}}"></template>
+        <template is="pendingSection" data="{{items:blockedItems,title:'阻断与核查',note:'需要先补充信息或确认来源',tone:'blocked'}}"></template>
+        <template is="pendingSection" data="{{items:historyItems,title:'历史提示',note:'仅供追溯，不计入当前待办',tone:'history'}}"></template>
+      </block>
+    </view>
     <view class="bottom-space"></view>
   </scroll-view>
 
