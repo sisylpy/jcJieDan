@@ -214,7 +214,9 @@ Page({
       data.arr.forEach(function (dep) {
         if (dep.depOrders && dep.depOrders.length) {
           dep.depOrders = dep.depOrders.map(function (order) {
-            return page._decorateCustomerStandards(platformDisplay.normalizeOrder(order));
+            return page._decorateCollaborationState(
+              page._decorateCustomerStandards(platformDisplay.normalizeOrder(order))
+            );
           });
           var platformCount = dep.depOrders.filter(function (o) { return o.isPlatformOrder === 1; }).length;
           console.log('[platformOrder] #' + dep.depName + ' 平台行:', platformCount, '/', dep.depOrders.length);
@@ -222,12 +224,43 @@ Page({
       });
     } else {
       data.arr = data.arr.map(function (order) {
-        return page._decorateCustomerStandards(platformDisplay.normalizeOrder(order));
+        return page._decorateCollaborationState(
+          page._decorateCustomerStandards(platformDisplay.normalizeOrder(order))
+        );
       });
       var platformCount = data.arr.filter(function (o) { return o.isPlatformOrder === 1; }).length;
       console.log('[platformOrder] 平台行:', platformCount, '/', data.arr.length);
     }
     return this._decorateJczbBatchGroups(data);
+  },
+
+  _isCollaborationOrder(order) {
+    var goods = order && order.nxDistributerGoodsEntity;
+    var ownerId = goods && goods.nxDgDistributerId;
+    return ownerId != null
+      && this.data.nxDisId != null
+      && String(ownerId) !== String(this.data.nxDisId);
+  },
+
+  _isCollaborationDemandLocked(order) {
+    if (!this._isCollaborationOrder(order)) return false;
+    var purchaseStatus = Number(order && order.nxDoPurchaseStatus);
+    return Number.isFinite(purchaseStatus) && purchaseStatus >= 1;
+  },
+
+  _decorateCollaborationState(order) {
+    if (!order) return order;
+    order._isCollaborationOrder = this._isCollaborationOrder(order);
+    order._collaborationDemandLocked = this._isCollaborationDemandLocked(order);
+    return order;
+  },
+
+  _showCollaborationDemandLockedToast() {
+    wx.showToast({
+      title: '协作供货方已出库，不能修改或删除订单',
+      icon: 'none',
+      duration: 2800
+    });
   },
 
   _decorateCustomerStandards(order) {
@@ -687,18 +720,8 @@ Page({
   delApply() {
 
     var applyItem = this.data.applyItem || {};
-    var dgEntity = applyItem.nxDistributerGoodsEntity || {};
-    // 协作商家商品：商品归属分销商与当前分销商不同
-    var isCollDis = dgEntity.nxDgDistributerId != null
-      && String(dgEntity.nxDgDistributerId) !== String(this.data.nxDisId);
-    // 协作商家订单且采购状态 == 1 时禁止删除
-    var isCollStatusOne = applyItem.nxDoPurchaseStatus == 1;
-    if (isCollDis && isCollStatusOne) {
-      wx.showToast({
-        title: '协作商家订单不能删除，只能修改数量',
-        icon: 'none',
-        duration: 2500
-      })
+    if (this._isCollaborationDemandLocked(applyItem)) {
+      this._showCollaborationDemandLockedToast();
       this.setData({
         show: false,
         showCash: false,
@@ -1132,6 +1155,10 @@ Page({
   },
 
   editDepApplyGoods(e) {
+    if (this._isCollaborationDemandLocked(this.data.applyItem)) {
+      this._showCollaborationDemandLockedToast();
+      return;
+    }
     this.setData({
       showOperationLinshi: false,
       showOperationGoods: false
@@ -1171,19 +1198,8 @@ Page({
     var id = applyItem.nxDepartmentOrdersId;
     var that = this;
 
-    var dgEntity = applyItem.nxDistributerGoodsEntity || {};
-    // 协作商家商品：商品归属分销商与当前分销商不同
-    var isCollDis = dgEntity.nxDgDistributerId != null
-      && String(dgEntity.nxDgDistributerId) !== String(this.data.nxDisId);
-    // 协作商家订单且采购状态 == 1 时禁止删除
-    var isCollStatusOne = applyItem.nxDoPurchaseStatus == 1;
-
-    if (isCollDis && isCollStatusOne) {
-      wx.showToast({
-        title: '协作商家订单不能删除，只能修改数量',
-        icon: 'none',
-        duration: 2500
-      })
+    if (this._isCollaborationDemandLocked(applyItem)) {
+      this._showCollaborationDemandLockedToast();
       return;
     }
 
@@ -1380,6 +1396,10 @@ Page({
   },
 
   toOpenTask(){
+    if (this._isCollaborationDemandLocked(this.data.applyItem)) {
+      this._showCollaborationDemandLockedToast();
+      return;
+    }
     var id = this.data.applyItem.nxDoOcrTaskId;
     wx.navigateTo({
       url: '../ocrOrder/ocrOrder?taskId=' + id  + '&depFatherId=' + this.data.depFatherId + '&depId=' + this.data.depId + '&depName=' + this.data.depName,
@@ -1391,6 +1411,12 @@ Page({
    * 修改配送商品申请
    */
   toEditApply() {
+    if (this._isCollaborationDemandLocked(this.data.applyItem)) {
+      this._showCollaborationDemandLockedToast();
+      this.hideModal();
+      this.setData({ showOperationGoods: false });
+      return;
+    }
     if (this.data.applyItem.nxDoPurchaseStatus < 3) {
       var applyItem = this.data.applyItem;
       if (this.data.depInfo.nxDepartmentSettleType == 0) {
@@ -1493,6 +1519,11 @@ Page({
    * @param {} e 
    */
   _updateDisOrder(e) {
+    if (this._isCollaborationDemandLocked(this.data.applyItem)) {
+      this._showCollaborationDemandLockedToast();
+      this._initData();
+      return;
+    }
     const std = e.detail.applyStandardName;
     const dis = this.data.applyItem && this.data.applyItem.nxDistributerGoodsEntity;
 

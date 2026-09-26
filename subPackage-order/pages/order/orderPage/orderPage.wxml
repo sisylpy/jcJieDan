@@ -188,6 +188,7 @@
                   <text class="mr-20" wx:if="{{order.nxDoPrintStandard && order.nxDoPrintStandard !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsStandardname !== order.nxDoPrintStandard}}">({{order.nxDoPrintStandard}})</text>
 
                   <text class="">订:{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+                  <text wx:if="{{order._collaborationDemandLocked}}" class="collaboration-lock-tag">协作方已出库</text>
                   <text class="text-danger font-sl" wx:if="{{order.nxDoRemark !== null  && order.nxDoRemark.length > 0}}">({{order.nxDoRemark}})</text>
                 </view>
 
@@ -252,6 +253,7 @@
                     <text class="font-sl text-danger">(未完成)</text>
                     <text class="mr-20 ">{{order.nxDoGoodsName}}</text>
                     <text class="">订:{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+                    <text wx:if="{{order._collaborationDemandLocked}}" class="collaboration-lock-tag">协作方已出库</text>
                     <text class="text-danger font-sl" wx:if="{{order.nxDoRemark !== null  && order.nxDoRemark.length > 0}}">({{order.nxDoRemark}})</text>
                   </view>
                 </view>
@@ -307,6 +309,7 @@
                  
                   <text class="mr-20" wx:if="{{order.nxDoPrintStandard && order.nxDoPrintStandard !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsStandardname !== order.nxDoPrintStandard}}">({{order.nxDoPrintStandard}})</text>
                     <text class="">订:{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+                    <text wx:if="{{order._collaborationDemandLocked}}" class="collaboration-lock-tag">协作方已出库</text>
                     <text class="text-danger font-sl" wx:if="{{order.nxDoRemark !== null  && order.nxDoRemark.length > 0}}">({{order.nxDoRemark}})</text>
                   </view>
                   <view wx:if="{{order._hasCustomerStandards}}" class="customer-standard-line">
@@ -380,6 +383,7 @@
                       <text class="font-sl text-danger">(未完成)</text>
                       <text class="mr-20">{{order.nxDoGoodsName}}</text>
                       <text class="">订:{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+                      <text wx:if="{{order._collaborationDemandLocked}}" class="collaboration-lock-tag">协作方已出库</text>
                       <text class="text-danger font-sl" wx:if="{{order.nxDoRemark !== null  && order.nxDoRemark.length > 0}}">({{order.nxDoRemark}})</text>
                     </view>
                   </view>
@@ -638,16 +642,20 @@
       <text>{{applyItem.nxDoQuantity}}{{applyItem.nxDoStandard}}</text>
     </view>
 
-    <view class="flex-row p-30 border-bottom" bindtap="toOpenTask" hover-class="hover" wx:if="{{applyItem.nxDoPurchaseStatus < 4 && applyItem.nxDoOcrTaskId !== null}}" >
+    <view wx:if="{{applyItem._collaborationDemandLocked}}" class="collaboration-lock-tip">
+      协作供货方已完成出库，订货数量、规格和商品不可再修改，订单也不可删除。
+    </view>
+
+    <view class="flex-row p-30 border-bottom" bindtap="toOpenTask" hover-class="hover" wx:if="{{applyItem.nxDoPurchaseStatus < 4 && !applyItem._collaborationDemandLocked && applyItem.nxDoOcrTaskId !== null}}" >
       <image src="../../../../images/Focus-Auto-2.png" class="icon mr-20 ml-20"></image>
       <text class="">打开识别</text>
     </view>
-    <view class="flex-row p-30 border-bottom" bindtap="toEditApply" hover-class="hover" wx:if="{{applyItem.nxDoPurchaseStatus < 4}}">
+    <view class="flex-row p-30 border-bottom" bindtap="toEditApply" hover-class="hover" wx:if="{{applyItem.nxDoPurchaseStatus < 4 && !applyItem._collaborationDemandLocked}}">
       <image src="../../../../images/edit.png" class="icon mr-20 ml-20"></image>
       <text class="">修改订货</text>
     </view>
 
-    <view class="flex-row p-30" catchtap="editDepApplyGoods" hover-class="hover" data-type="exchange" wx:if="{{applyItem.nxDoPurchaseStatus < 4}}">
+    <view class="flex-row p-30" catchtap="editDepApplyGoods" hover-class="hover" data-type="exchange" wx:if="{{applyItem.nxDoPurchaseStatus < 4 && !applyItem._collaborationDemandLocked}}">
       <image src="/images/exchange.png" class="icon mr-20  ml-20"></image>
       <text class="">替换订货商品</text>
     </view>
@@ -739,26 +747,30 @@
 <view class='overlay {{showOperationLinshi ? "show" : ""}}' catchtouchmove='ture' catchtap="hideMaskLinshi">
   <view class="flex-column nnn bg-white font-lg">
 
+    <view wx:if="{{applyItem._collaborationDemandLocked}}" class="collaboration-lock-tip">
+      协作供货方已完成出库，该订单不可再修改或删除。
+    </view>
+
     <!-- <view class="flex-row p-30 border-bottom" catchtap="toPasteFromGoods" hover-class="hover"  wx:if="{{applyItem.nxDoIsAgent !== 1}}">
       <image src="/images/paste.png" class="icon mr-20"></image>
       <text class="">修改粘贴</text>
     </view> -->
 
-    <view class="flex-row p-30" catchtap="editDepApplyGoods" hover-class="hover" data-type="edit" wx:if="{{applyItem.nxDoIsAgent == 1}}">
+    <view class="flex-row p-30" catchtap="editDepApplyGoods" hover-class="hover" data-type="edit" wx:if="{{applyItem.nxDoIsAgent == 1 && !applyItem._collaborationDemandLocked}}">
       <image src="/images/edit.png" class="icon mr-20"></image>
       <text class="">搜索商品</text>
     </view>
-    <view class="flex-row p-30 border-bottom" bindtap="toOpenTask" hover-class="hover" wx:if="{{applyItem.nxDoPurchaseStatus < 4 && applyItem.nxDoOcrTaskId !== null}}" >
+    <view class="flex-row p-30 border-bottom" bindtap="toOpenTask" hover-class="hover" wx:if="{{applyItem.nxDoPurchaseStatus < 4 && !applyItem._collaborationDemandLocked && applyItem.nxDoOcrTaskId !== null}}" >
       <image src="../../../../images/Focus-Auto-2.png" class="icon mr-20 ml-20"></image>
       <text class="">打开识别</text>
     </view>
 
-    <view class="flex-row p-30" catchtap="confirmDepApplyGoods" hover-class="hover" wx:if="{{applyItem.nxDoIsAgent == 1}}">
+    <view class="flex-row p-30" catchtap="confirmDepApplyGoods" hover-class="hover" wx:if="{{applyItem.nxDoIsAgent == 1 && !applyItem._collaborationDemandLocked}}">
       <image src="/images/add.png" class="icon mr-20"></image>
       <text class="">保存新配送商品</text>
     </view>
 
-    <view class="flex-row p-30" catchtap="delApplyPaste" hover-class="hover">
+    <view class="flex-row p-30" catchtap="delApplyPaste" hover-class="hover" wx:if="{{!applyItem._collaborationDemandLocked}}">
       <image src="/images/del.png" class="icon mr-20"></image>
       <text class="">删除订单</text>
     </view>
