@@ -68,13 +68,11 @@
         <view wx:if="{{batchError||directError}}" class="pm-state small-state"><text>{{batchError||directError}}</text><text class="retry" bindtap="retryRecords">重新加载</text></view>
         <view wx:elif="{{recordsLoaded&&!batchLoading&&!directLoading&&!batches.length&&!directItems.length}}" class="pm-state">所选日期内暂无采购记录</view>
 
-        <view wx:if="{{batches.length||directItems.length}}" class="record-section">
-          <scroll-view scroll-x class="record-groups-scroll">
-            <view class="record-groups">
-              <view class="record-group {{activeRecordGroup===item.key?'on':''}}" wx:for="{{recordGroups}}" wx:key="key" data-value="{{item.key}}" bindtap="chooseRecordGroup">
-                <text class="record-group-name">{{item.name}}</text>
-                <text class="record-group-count">{{item.count}}</text>
-              </view>
+        <view wx:if="{{batches.length||directItems.length}}" class="record-layout">
+          <scroll-view scroll-y class="record-groups">
+            <view class="record-group {{activeRecordGroup===item.key?'on':''}}" wx:for="{{recordGroups}}" wx:key="key" data-value="{{item.key}}" bindtap="chooseRecordGroup">
+              <text class="record-group-name">{{item.name}}</text>
+              <text class="record-group-count">{{item.count}} 条</text>
             </view>
           </scroll-view>
           <view class="record-list">

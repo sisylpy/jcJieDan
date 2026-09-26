@@ -341,70 +341,74 @@
   white-space: nowrap;
 }
 
-.record-section {
-  width: 100%;
-}
-
-.record-groups-scroll {
-  width: 100%;
-  margin-bottom: 12rpx;
-  white-space: nowrap;
+.record-layout {
+  display: flex;
+  align-items: stretch;
+  min-height: 520rpx;
+  overflow: hidden;
+  border: 1rpx solid #e0e9e6;
+  border-radius: 16rpx;
+  background: #ffffff;
 }
 
 .record-groups {
-  display: inline-flex;
-  align-items: center;
-  gap: 10rpx;
-  min-width: 100%;
-  padding: 2rpx 1rpx;
-  box-sizing: border-box;
+  width: 142rpx;
+  max-height: 950rpx;
+  flex-shrink: 0;
+  background: #f2f6f5;
+  border-right: 1rpx solid #e0e9e6;
 }
 
 .record-group {
-  display: inline-flex;
-  align-items: center;
-  gap: 7rpx;
-  flex-shrink: 0;
-  padding: 12rpx 18rpx;
-  border: 1rpx solid #dfe8e5;
-  border-radius: 26rpx;
-  background: #ffffff;
-  color: #61716c;
-  font-size: 21rpx;
+  position: relative;
+  padding: 23rpx 11rpx 22rpx 24rpx;
+  border-bottom: 1rpx solid #e2e9e7;
+  color: #576a64;
+  font-size: 22rpx;
+  line-height: 1.3;
 }
 
 .record-group.on {
-  border-color: #159078;
-  background: #e8f8f3;
-  color: #08765f;
-  font-weight: 650;
+  background: #e5f6f1;
+  color: #08745f;
+  font-weight: 700;
+}
+
+.record-group.on::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 6rpx;
+  background: #139a7f;
+}
+
+.record-group-name,
+.record-group-count {
+  display: block;
 }
 
 .record-group-count {
-  min-width: 28rpx;
-  height: 28rpx;
-  padding: 0 6rpx;
-  border-radius: 14rpx;
-  box-sizing: border-box;
-  background: #edf2f0;
-  color: #71807c;
+  margin-top: 6rpx;
+  color: #8c9a96;
   font-size: 18rpx;
-  line-height: 28rpx;
-  text-align: center;
+  font-weight: 400;
 }
 
 .record-group.on .record-group-count {
-  background: #138b73;
-  color: #ffffff;
+  color: #4e8f81;
 }
 
 .record-list {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
+  padding: 13rpx 12rpx 4rpx;
+  background: #fbfcfc;
 }
 
 .record-empty {
   padding: 60rpx 20rpx;
-  border: 1rpx solid #e1e9e6;
   border-radius: 15rpx;
   background: #ffffff;
   color: #87938f;
@@ -416,7 +420,7 @@
   display: flex;
   align-items: flex-start;
   margin-bottom: 13rpx;
-  padding: 18rpx;
+  padding: 15rpx;
   border: 1rpx solid #dfe9e5;
   border-radius: 16rpx;
   background: #ffffff;
@@ -424,9 +428,9 @@
 }
 
 .record-thumb {
-  width: 108rpx;
-  height: 108rpx;
-  margin-right: 17rpx;
+  width: 86rpx;
+  height: 86rpx;
+  margin-right: 13rpx;
   flex-shrink: 0;
   border-radius: 12rpx;
   background: #f0f4f2;
