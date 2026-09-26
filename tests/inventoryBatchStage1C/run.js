@@ -36,8 +36,13 @@ must(performance.includes('库存经营') && !performance.includes('待处理'),
 must(performance.includes('按采购员') && performance.includes('按供应方'), '库存来源维度不完整')
 must(performance.includes('report-date-filter'), '库存批次必须使用统一日期选择器')
 must(performance.includes('损耗成本') && performance.includes('废弃成本'), '库存经营成本指标不完整')
+;['库存经营概况', '已筛选：', '共 {{products.length}} 种商品', '库存批次 #']
+  .forEach(text => must(performance.includes(text), '新版库存经营布局缺失: ' + text))
+must(!performance.includes('source-card'), '库存经营不应继续以采购员或供应方大卡片为页面主体')
 must(!performance.includes('总损耗率'), '跨商品指标不能继续叫数量损耗率')
 must(performanceJs.includes('unitSummaries'), '不同单位必须分组展示')
+must(performanceJs.includes('productSummaries'), '库存经营必须按商品归集真实库存批次')
+must(performanceJs.includes('categoryOptions'), '库存经营必须提供商品分类导航')
 must(performanceJs.includes("'依据不足'"), '缺失事实必须和真实零值区分')
 must(!performance.includes('purchaseBatchCount'), '库存批次数不能继续使用采购批次数字段')
 must(detailJs.includes("return null"), '库存详情不能把缺失数量自动格式化成0')
