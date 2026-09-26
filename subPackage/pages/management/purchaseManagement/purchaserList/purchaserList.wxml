@@ -1,57 +1,157 @@
 <view class="pm-page">
   <back-navbar style="height:{{navBarHeight}}rpx" title="采购员" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
-  <scroll-view scroll-y class="pm-body" style="padding-top:{{navBarHeight}}rpx" scroll-top="{{scrollTop}}" bindscroll="recordScroll" bindscrolltolower="more">
-    <view class="toolbar">
-      <report-date-filter label="{{dateLabel}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bindselect="toDatePage"></report-date-filter>
-      <view class="search-line">
-        <input value="{{keyword}}" placeholder="搜索采购员姓名" confirm-type="search" bindinput="input" bindconfirm="search"></input>
-        <text class="search-button" bindtap="search">搜索</text>
-      </view>
-      <view class="filter-line">
-        <view class="pm-tabs status-tabs">
-          <text class="pm-tab {{!purchaserStatus?'on':''}}" data-value="" bindtap="chooseStatus">全部人员</text>
-          <text class="pm-tab {{purchaserStatus==='CURRENT'?'on':''}}" data-value="CURRENT" bindtap="chooseStatus">当前人员</text>
-          <text class="pm-tab {{purchaserStatus==='HISTORICAL'?'on':''}}" data-value="HISTORICAL" bindtap="chooseStatus">历史人员</text>
+
+  <scroll-view
+    scroll-y
+    class="pm-body"
+    style="padding-top:{{navBarHeight}}rpx"
+    scroll-top="{{scrollTop}}"
+    bindscroll="recordScroll"
+    bindscrolltolower="more"
+  >
+    <view class="page-content">
+      <view class="toolbar">
+        <view class="date-card">
+          <report-date-filter
+            label="{{dateLabel}}"
+            start-date="{{startDate}}"
+            stop-date="{{stopDate}}"
+            bindselect="toDatePage"
+          ></report-date-filter>
+          <view class="date-arrow" aria-hidden="true">›</view>
         </view>
-        <picker mode="selector" range="{{sortOptions}}" range-key="name" value="{{sortIndex}}" bindchange="changeSort">
-          <text class="sort-picker">{{sortOptions[sortIndex].name}}⌄</text>
-        </picker>
+
+        <view class="search-line">
+          <view class="search-icon" aria-hidden="true"></view>
+          <input
+            value="{{keyword}}"
+            placeholder="搜索采购员姓名"
+            placeholder-class="search-placeholder"
+            confirm-type="search"
+            bindinput="input"
+            bindconfirm="search"
+          ></input>
+          <text class="search-button" bindtap="search">搜索</text>
+        </view>
+
+        <view class="filter-line">
+          <view class="pm-tabs status-tabs">
+            <text class="pm-tab {{!purchaserStatus?'on':''}}" data-value="" bindtap="chooseStatus">全部</text>
+            <text class="pm-tab {{purchaserStatus==='CURRENT'?'on':''}}" data-value="CURRENT" bindtap="chooseStatus">当前人员</text>
+            <text class="pm-tab {{purchaserStatus==='HISTORICAL'?'on':''}}" data-value="HISTORICAL" bindtap="chooseStatus">历史人员</text>
+          </view>
+          <picker mode="selector" range="{{sortOptions}}" range-key="name" value="{{sortIndex}}" bindchange="changeSort">
+            <view class="sort-picker">
+              <text>{{sortOptions[sortIndex].name}}</text>
+              <text class="sort-arrow">⌄</text>
+            </view>
+          </picker>
+        </view>
       </view>
-    </view>
 
-    <view wx:if="{{error}}" class="pm-state error-state">
-      <text>{{error}}</text><text class="retry" bindtap="retry">重新加载</text>
-    </view>
-    <view wx:elif="{{!loading&&!items.length}}" class="pm-state">没有符合条件的采购员</view>
+      <view wx:if="{{error}}" class="pm-state state-card error-state">
+        <view class="state-icon error-icon">!</view>
+        <text class="state-title">采购员列表加载失败</text>
+        <text class="state-copy">{{error}}</text>
+        <text class="retry" bindtap="retry">重新加载</text>
+      </view>
 
-    <view class="person-card" wx:for="{{items}}" wx:key="purchaserUserId" data-id="{{item.purchaserUserId}}" bindtap="open">
-      <view class="person-head">
-        <view class="identity">
-          <image class="avatar" src="{{item.avatarUrl||'/images/user.png'}}"></image>
+      <view wx:elif="{{!loading&&!items.length}}" class="pm-state state-card">
+        <view class="state-icon empty-icon">人</view>
+        <text class="state-title">没有符合条件的采购员</text>
+        <text class="state-copy">可以调整日期、人员状态或搜索关键词后重试</text>
+      </view>
+
+      <block wx:else>
+        <view class="list-heading">
           <view>
-            <view><text class="pm-name">{{item.purchaserName||('历史采购员 #'+item.purchaserUserId)}}</text><text class="pm-badge status-badge">{{item.purchaserStatusText}}</text></view>
-            <text class="pm-muted">{{item.accountStatusText}}</text>
+            <text class="list-title">采购员概览</text>
+            <text class="list-subtitle">任务与所选日期内的采购表现</text>
+          </view>
+          <text class="list-count">共 {{total}} 人</text>
+        </view>
+
+        <view
+          class="person-card"
+          hover-class="person-card-hover"
+          hover-stay-time="80"
+          wx:for="{{items}}"
+          wx:key="purchaserUserId"
+          data-id="{{item.purchaserUserId}}"
+          bindtap="open"
+        >
+          <view class="person-head">
+            <view class="identity">
+              <view class="avatar-wrap">
+                <image class="avatar" src="{{item.avatarUrl||'/images/user.png'}}" mode="aspectFill"></image>
+                <view class="presence-dot {{item.purchaserStatusText==='历史人员'?'off':''}}"></view>
+              </view>
+              <view class="identity-copy">
+                <view class="name-line">
+                  <text class="pm-name">{{item.purchaserName||('历史采购员 #'+item.purchaserUserId)}}</text>
+                  <text class="pm-badge status-badge {{item.purchaserStatusText==='历史人员'?'history':''}}">{{item.purchaserStatusText}}</text>
+                </view>
+                <text class="account-status">{{item.accountStatusText}}</text>
+              </view>
+            </view>
+            <view class="detail-link"><text>详情</text><text class="detail-chevron">›</text></view>
+          </view>
+
+          <view class="metric-strip">
+            <view class="metric-item task-metric">
+              <view class="metric-icon task-icon">✓</view>
+              <view class="metric-copy">
+                <text class="metric-label">待办进度</text>
+                <text class="task-main">当前 {{item.currentTaskCount}} 项任务</text>
+              </view>
+            </view>
+            <view class="metric-item record-metric">
+              <view class="metric-icon record-icon">单</view>
+              <view class="metric-copy">
+                <text class="metric-label">本期采购记录</text>
+                <text class="metric-value">{{item.periodPurchaseRecordCount||0}} 条</text>
+              </view>
+            </view>
+            <view class="metric-item amount-metric">
+              <view class="metric-icon amount-icon">¥</view>
+              <view class="metric-copy">
+                <text class="metric-label">本期采购金额</text>
+                <text class="period-money">{{item.periodPurchaseAmount==null?'—':'¥'+item.periodPurchaseAmount}}</text>
+              </view>
+            </view>
+          </view>
+
+          <view wx:if="{{item.currentTaskCount}}" class="task-line">
+            <text wx:if="{{item.actionRequiredTaskCount}}" class="task-chip attention">待本人处理 {{item.actionRequiredTaskCount}}</text>
+            <text wx:if="{{item.waitingSupplierTaskCount}}" class="task-chip waiting">等待供应商 {{item.waitingSupplierTaskCount}}</text>
+            <text wx:if="{{!item.actionRequiredTaskCount&&!item.waitingSupplierTaskCount}}" class="task-chip normal">任务正常推进中</text>
+          </view>
+          <view wx:else class="task-line no-task-line">
+            <text class="no-task-mark">✓</text>
+            <text>当前无待处理任务</text>
+          </view>
+
+          <view wx:if="{{item.periodUnresolvedAmountCount}}" class="amount-note">
+            <view class="notice-mark">!</view>
+            <text>另有 {{item.periodUnresolvedAmountCount}} 条采购记录金额尚未形成</text>
+            <text class="notice-chevron">›</text>
+          </view>
+          <view wx:elif="{{!item.periodPurchaseFactCount}}" class="card-foot muted-foot">
+            <text>所选日期内暂无采购记录</text>
+            <text>查看详情 ›</text>
+          </view>
+          <view wx:else class="card-foot">
+            <text>最近采购</text>
+            <text>{{item.periodLastPurchaseDate||item.lastPurchaseDate||'日期待核对'}} ›</text>
           </view>
         </view>
-        <text class="pm-link">详情 ›</text>
-      </view>
 
-      <view wx:if="{{item.currentTaskCount}}" class="task-line">
-        <text class="task-main">当前 {{item.currentTaskCount}} 项任务</text>
-        <text wx:if="{{item.actionRequiredTaskCount}}" class="task-attention">待本人处理 {{item.actionRequiredTaskCount}}</text>
-        <text wx:if="{{item.waitingSupplierTaskCount}}" class="task-wait">等待供应商 {{item.waitingSupplierTaskCount}}</text>
-      </view>
-      <view wx:else class="no-task">当前无待处理任务</view>
-
-      <view class="period-line">
-        <view><text class="pm-label">本期采购记录</text><text class="period-value">{{item.periodPurchaseRecordCount||0}} 条</text></view>
-        <view class="amount-block"><text class="pm-label">本期采购金额</text><text class="period-money">{{item.periodPurchaseAmount==null?'—':'¥'+item.periodPurchaseAmount}}</text></view>
-      </view>
-      <text wx:if="{{item.periodUnresolvedAmountCount}}" class="amount-note">另有 {{item.periodUnresolvedAmountCount}} 条采购记录金额尚未形成</text>
-      <text wx:elif="{{!item.periodPurchaseFactCount}}" class="pm-muted">所选日期内暂无采购记录</text>
-      <text wx:else class="pm-muted">最近采购 {{item.periodLastPurchaseDate||item.lastPurchaseDate||'日期待核对'}}</text>
+        <view wx:if="{{loading}}" class="pm-state loading-state">
+          <view class="loading-dot"></view>
+          <text>正在加载…</text>
+        </view>
+        <view wx:elif="{{items.length>=total&&items.length}}" class="list-end">已展示全部采购员</view>
+      </block>
     </view>
-
-    <view wx:if="{{loading}}" class="pm-state">正在加载…</view>
   </scroll-view>
 </view>
