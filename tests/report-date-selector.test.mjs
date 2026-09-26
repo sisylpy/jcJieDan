@@ -10,6 +10,7 @@ assert.match(component, /calendar/)
 const reportPages = [
   'subPackage/pages/management/purchaseManagement/index/index',
   'subPackage/pages/management/purchaseManagement/purchaseAmountDetail/purchaseAmountDetail',
+  'subPackage/pages/management/purchaseManagement/purchaseCollaboration/purchaseCollaboration',
   'subPackage/pages/management/purchaseManagement/purchaseBatchList/purchaseBatchList',
   'subPackage/pages/management/purchaseManagement/purchaserList/purchaserList',
   'subPackage/pages/management/purchaseManagement/purchaserDetail/purchaserDetail',

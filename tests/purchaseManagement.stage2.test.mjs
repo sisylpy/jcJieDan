@@ -10,6 +10,7 @@ const required = [
   'pages/management/purchaseManagement/purchaseAmountDetail/purchaseAmountDetail',
   'pages/management/purchaseManagement/purchaserList/purchaserList',
   'pages/management/purchaseManagement/purchaserDetail/purchaserDetail',
+  'pages/management/purchaseManagement/purchaseCollaboration/purchaseCollaboration',
   'pages/management/purchaseManagement/supplierList/supplierList',
   'pages/management/purchaseManagement/supplierDetail/supplierDetail',
   'pages/management/purchaseManagement/purchaseBatchList/purchaseBatchList',

@@ -1,0 +1,199 @@
+<view class="collaboration-page">
+  <back-navbar style="height:{{navBarHeight}}rpx" title="采购协同" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+
+  <scroll-view scroll-y class="collaboration-scroll" style="padding-top:{{navBarHeight}}rpx" scroll-top="{{scrollTop}}"
+    bindscroll="recordScroll" bindscrolltolower="more">
+    <view class="page-body">
+      <view class="intro-copy">看清采购进度，协同采购员与供应方</view>
+
+      <view class="mode-switch">
+        <view class="mode-option {{mode==='batch'?'active':''}}" data-mode="batch" bindtap="switchMode">
+          <text>采购批次</text><text class="mode-caption">按执行进度</text>
+        </view>
+        <view class="mode-option {{mode==='supplier'?'active':''}}" data-mode="supplier" bindtap="switchMode">
+          <text>供应方</text><text class="mode-caption">按合作关系</text>
+        </view>
+      </view>
+
+      <view class="query-card">
+        <report-date-filter label="{{dateLabel}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bindselect="toDatePage"></report-date-filter>
+
+        <view class="search-bar">
+          <text class="search-mark">⌕</text>
+          <input wx:if="{{mode==='batch'}}" class="search-input" value="{{batchKeyword}}" bindinput="inputKeyword"
+            bindconfirm="search" confirm-type="search" placeholder="搜索商品、供应方、采购员或批次号" />
+          <input wx:else class="search-input" value="{{supplierKeyword}}" bindinput="inputKeyword"
+            bindconfirm="search" confirm-type="search" placeholder="搜索供应方名称" />
+          <text class="search-action" bindtap="search">搜索</text>
+        </view>
+
+        <block wx:if="{{mode==='batch'}}">
+          <scroll-view scroll-x class="progress-scroll" enhanced show-scrollbar="{{false}}">
+            <view class="progress-tabs">
+              <text class="progress-tab {{!progressGroup?'active':''}}" data-value="" bindtap="chooseProgress">全部</text>
+              <text class="progress-tab {{progressGroup==='WAITING_SUPPLIER'?'active':''}}" data-value="WAITING_SUPPLIER" bindtap="chooseProgress">待供应方</text>
+              <text class="progress-tab {{progressGroup==='ACTION_REQUIRED'?'active':''}}" data-value="ACTION_REQUIRED" bindtap="chooseProgress">待我方处理</text>
+              <text class="progress-tab {{progressGroup==='COMPLETED'?'active':''}}" data-value="COMPLETED" bindtap="chooseProgress">已完成</text>
+              <text class="progress-tab {{progressGroup==='CANCELLED'?'active':''}}" data-value="CANCELLED" bindtap="chooseProgress">已取消</text>
+            </view>
+          </scroll-view>
+
+          <view class="filter-row">
+            <picker class="filter-picker" mode="selector" range="{{purchaserOptions}}" range-key="purchaserName"
+              value="{{purchaserIndex}}" bindchange="changePurchaser">
+              <text class="filter-chip {{purchaserUserId?'selected':''}}">{{purchaserOptions[purchaserIndex].purchaserName}}⌄</text>
+            </picker>
+            <picker class="filter-picker" mode="selector" range="{{batchSupplierOptions}}" range-key="supplierName"
+              value="{{batchSupplierIndex}}" bindchange="changeBatchSupplier">
+              <text class="filter-chip {{supplierRelationId?'selected':''}}">{{batchSupplierOptions[batchSupplierIndex].supplierName}}⌄</text>
+            </picker>
+            <text class="filter-chip filter-trigger {{batchFilterCount?'selected':''}}" bindtap="openBatchFilters">筛选{{batchFilterCount?' · '+batchFilterCount:''}}</text>
+          </view>
+        </block>
+
+        <view wx:else class="filter-row supplier-filters">
+          <picker class="filter-picker" mode="selector" range="{{supplierTypeOptions}}" range-key="name"
+            value="{{supplierTypeIndex}}" bindchange="changeSupplierType">
+            <text class="filter-chip {{supplierType?'selected':''}}">{{supplierTypeOptions[supplierTypeIndex].name}}⌄</text>
+          </picker>
+          <picker class="filter-picker" mode="selector" range="{{supplierSortOptions}}" range-key="name"
+            value="{{supplierSortIndex}}" bindchange="changeSupplierSort">
+            <text class="filter-chip">{{supplierSortOptions[supplierSortIndex].name}}⌄</text>
+          </picker>
+          <text class="data-note-link" bindtap="openDataNote">数据说明</text>
+        </view>
+      </view>
+
+      <block wx:if="{{mode==='batch'}}">
+        <view class="summary-grid">
+          <view class="summary-item">
+            <text class="summary-icon batch-icon">▤</text>
+            <view><text class="summary-label">当前批次</text><text class="summary-value">{{statistics.batchCount||0}}</text></view>
+          </view>
+          <view class="summary-item">
+            <text class="summary-icon purchaser-icon">人</text>
+            <view><text class="summary-label">涉及采购员</text><text class="summary-value">{{statistics.purchaserCount||0}}</text></view>
+          </view>
+          <view class="summary-item tappable" bindtap="showSuppliersFromStat">
+            <text class="summary-icon supplier-icon">▥</text>
+            <view><text class="summary-label">涉及供应方</text><text class="summary-value">{{statistics.supplierCount||0}}</text></view>
+            <text class="summary-arrow">›</text>
+          </view>
+        </view>
+
+        <view wx:if="{{batchError}}" class="state-card error-state">
+          <text class="state-title">采购批次加载失败</text><text class="state-copy">{{batchError}}</text>
+          <text class="state-button" bindtap="retryBatch">重新加载</text>
+        </view>
+        <view wx:elif="{{!batchLoading&&!batchItems.length}}" class="state-card">
+          <text class="state-title">当前条件下没有采购批次</text><text class="state-copy">可以调整日期、进度或筛选条件。</text>
+        </view>
+
+        <view class="batch-card" wx:for="{{batchItems}}" wx:key="batchId" data-id="{{item.batchId}}" bindtap="openBatch">
+          <view class="card-topline">
+            <view class="badge-group">
+              <text class="purpose-badge {{item.purchasePurpose==='UNRESOLVED'?'warning':''}}">{{item.purchasePurposeText}}</text>
+              <text class="batch-number">{{item.batchNumber}}</text>
+            </view>
+            <text class="progress-badge {{item.buyerConfirmationRequired||item.inventoryReceiptRequired?'action':''}}">{{item.businessProgressText}}</text>
+          </view>
+
+          <text class="card-title">{{item.supplierName||item.purchaseKindText||'供应方待核对'}}</text>
+
+          <view class="context-grid">
+            <view class="context-line"><text class="context-mark">采</text><text class="context-label">发起采购员</text><text class="context-value">{{item.purchaserName||(item.purchaserUserId?('采购员 #'+item.purchaserUserId):'待分配')}}</text></view>
+            <view class="context-line"><text class="context-mark supplier">供</text><text class="context-label">接单供应方</text><text class="context-value">{{item.supplierName||'待确认'}}</text></view>
+            <view class="context-line wide"><text class="context-mark goods">品</text><text class="context-label">商品</text><text class="context-value">{{item.goodsSummary||'商品信息待核对'}} · {{item.goodsLineCount||0}}条</text></view>
+            <view class="context-line wide"><text class="context-mark date">日</text><text class="context-label">业务日期</text><text class="context-value">{{item.businessDate||'待核对'}}</text></view>
+          </view>
+
+          <view class="metric-row">
+            <view class="metric-cell">
+              <text class="metric-label">{{item.supplyAmountLabel||'供货金额'}}</text>
+              <text wx:if="{{item.recognizedSupplyAmount!=null}}" class="metric-value money">¥{{item.recognizedSupplyAmount}}</text>
+              <text wx:else class="metric-value pending">{{item.supplyAmountStatus==='UNRESOLVED'?'金额待核对':'尚未形成'}}</text>
+            </view>
+            <view class="metric-cell"><text class="metric-label">商品记录</text><text class="metric-value">{{item.goodsLineCount||0}}条</text></view>
+            <view class="metric-cell progress-cell"><text class="metric-label">当前进度</text><text class="metric-value progress-value">{{item.businessProgressText}}</text></view>
+            <view class="detail-entry"><text>查看详情</text><text>›</text></view>
+          </view>
+
+          <view wx:if="{{item.supplyAmountStatus==='PARTIAL'}}" class="warning-note">部分商品金额待核对，当前金额只合计已识别部分</view>
+          <view wx:if="{{item.purchasePurpose==='UNRESOLVED'}}" class="warning-note">采购用途来源不完整，请在筛选中的“数据待核对”继续处理</view>
+        </view>
+
+        <view wx:if="{{batchLoading}}" class="loading-state">正在加载采购批次…</view>
+        <view wx:elif="{{!batchHasMore&&batchItems.length}}" class="list-end">已显示全部采购批次</view>
+      </block>
+
+      <block wx:else>
+        <view wx:if="{{supplierSyncing}}" class="status-notice">正在更新当前日期范围的供应方采购数据…</view>
+        <view wx:if="{{supplierSyncNotice}}" class="status-notice warning">{{supplierSyncNotice}}</view>
+
+        <view wx:if="{{supplierError}}" class="state-card error-state">
+          <text class="state-title">供应方数据加载失败</text><text class="state-copy">{{supplierError}}</text>
+          <text class="state-button" bindtap="retrySuppliers">重新加载</text>
+        </view>
+        <view wx:elif="{{!supplierSyncing&&!supplierLoading&&!supplierItems.length}}" class="state-card">
+          <text class="state-title">没有符合条件的供应方</text><text class="state-copy">可以调整日期、类型或搜索条件。</text>
+        </view>
+
+        <view class="supplier-card" wx:for="{{supplierItems}}" wx:key="purchaseSupplierRefId"
+          data-id="{{item.purchaseSupplierRefId}}" bindtap="openSupplier">
+          <view class="supplier-heading">
+            <view class="supplier-identity">
+              <text class="supplier-name">{{item.supplierName||'名称待核对'}}</text>
+              <text class="type-badge {{item.typeClass}}">{{item.supplierTypeText}}</text>
+              <text wx:if="{{item.relationText}}" class="relation-badge">{{item.relationText}}</text>
+            </view>
+            <text class="card-arrow">›</text>
+          </view>
+          <view class="supplier-amount"><text>本期采购金额</text><text class="amount-value {{item.amountState==='unresolved'?'muted':''}}">{{item.purchaseAmountText}}</text></view>
+          <view class="supplier-meta">
+            <text>{{item.purchaseCountText}}张采购单</text><text>·</text><text>{{item.goodsLineCountText}}条商品记录</text><text>·</text><text>最近采购 {{item.lastPurchaseDate||'—'}}</text>
+          </view>
+          <view wx:if="{{item.amountScopeText}}" class="warning-note">{{item.amountScopeText}}</view>
+          <view wx:if="{{item.qualityText}}" class="quality-warning">{{item.qualityText}}</view>
+          <view class="supplier-footer"><text>查看采购记录与商品汇总</text><text>›</text></view>
+        </view>
+
+        <view wx:if="{{supplierLoading}}" class="loading-state">正在加载供应方…</view>
+        <view wx:elif="{{!supplierHasMore&&supplierItems.length}}" class="list-end">已显示全部供应方</view>
+      </block>
+    </view>
+  </scroll-view>
+
+  <view class="sheet-mask" wx:if="{{showBatchFilters||showDataNote}}" bindtap="closeSheets">
+    <view class="bottom-sheet" catchtap="stopPropagation">
+      <block wx:if="{{showBatchFilters}}">
+        <view class="sheet-heading"><text class="sheet-title">批次筛选</text><text class="sheet-reset" bindtap="resetBatchFilters">重置</text></view>
+        <text class="sheet-label">采购用途</text>
+        <view class="sheet-options">
+          <text class="sheet-chip {{!purchasePurpose?'selected':''}}" data-value="" bindtap="choosePurpose">全部</text>
+          <text class="sheet-chip {{purchasePurpose==='CUSTOMER_ORDER'?'selected':''}}" data-value="CUSTOMER_ORDER" bindtap="choosePurpose">客户订单订货</text>
+          <text class="sheet-chip {{purchasePurpose==='INVENTORY_REPLENISHMENT'?'selected':''}}" data-value="INVENTORY_REPLENISHMENT" bindtap="choosePurpose">库存备货</text>
+        </view>
+        <text class="sheet-label">数据状态</text>
+        <view class="sheet-options">
+          <text class="sheet-chip {{!dataIssue?'selected':''}}" data-value="" bindtap="chooseDataIssue">全部</text>
+          <text class="sheet-chip {{dataIssue==='ANY'?'selected':''}}" data-value="ANY" bindtap="chooseDataIssue">有待核对项</text>
+          <text class="sheet-chip {{dataIssue==='PURPOSE'?'selected':''}}" data-value="PURPOSE" bindtap="chooseDataIssue">用途待核对</text>
+          <text class="sheet-chip {{dataIssue==='AMOUNT'?'selected':''}}" data-value="AMOUNT" bindtap="chooseDataIssue">金额待核对</text>
+        </view>
+        <text class="sheet-label">排序</text>
+        <view class="sheet-options">
+          <text class="sheet-chip {{batchSort==='LATEST'?'selected':''}}" data-value="LATEST" bindtap="chooseBatchSort">最近采购</text>
+          <text class="sheet-chip {{batchSort==='SUPPLY_AMOUNT'?'selected':''}}" data-value="SUPPLY_AMOUNT" bindtap="chooseBatchSort">供货金额</text>
+        </view>
+        <view class="sheet-apply" bindtap="applyBatchFilters">查看结果</view>
+      </block>
+      <block wx:else>
+        <view class="sheet-heading"><text class="sheet-title">供应方数据说明</text></view>
+        <text class="sheet-copy">采购金额是当前日期范围内，来源小计可以识别且未取消的采购记录合计，不代表已收货、已付款或实际净采购。</text>
+        <text class="sheet-copy">采购单数包含待处理、进行中和来源流程已完成的采购单；商品记录数不是商品种类。</text>
+        <text class="sheet-copy">金额待核对的记录不会按0元处理，也不会计入已识别采购金额。</text>
+        <view class="sheet-apply secondary" bindtap="closeSheets">知道了</view>
+      </block>
+    </view>
+  </view>
+</view>

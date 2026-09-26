@@ -616,15 +616,9 @@ toPurchasePerformance(){
   })
 },
 
-toPurchaseBatchList(){
+toPurchaseCollaboration(){
   wx.navigateTo({
-    url: '/subPackage/pages/management/purchaseManagement/purchaseBatchList/purchaseBatchList',
-  })
-},
-
-toPurchaseSupplierList(){
-  wx.navigateTo({
-    url: '/subPackage/pages/management/purchaseManagement/supplierList/supplierList',
+    url: '/subPackage/pages/management/purchaseManagement/purchaseCollaboration/purchaseCollaboration',
   })
 },
 
