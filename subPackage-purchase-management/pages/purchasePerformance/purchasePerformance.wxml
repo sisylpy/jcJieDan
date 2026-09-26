@@ -51,14 +51,33 @@
         <text class="purchase-note" wx:if="{{purchaseAmount.pendingDemandCount||purchaseAmount.undatedRecordCount}}">另有 {{purchaseAmount.pendingDemandCount}} 条待采购需求、{{purchaseAmount.undatedRecordCount}} 条缺少可靠业务日期，均未补入本期金额。</text>
       </view>
 
-      <view class="section-card">
-        <view class="section-heading"><view><text class="section-title">期间库存损耗</text><text class="section-subtitle">只统计所选日期内确认发生的损耗与废弃</text></view><text class="section-count">{{summary.lossGoodsCount}} 种</text></view>
-        <view wx:if="{{!lossGoods.length}}" class="empty-inline">所选日期内没有确认的库存损耗</view>
-        <view wx:else class="loss-list">
-          <view class="loss-row" wx:for="{{lossGoods}}" wx:key="disGoodsId">
-            <image class="goods-image" src="{{item.goodsImageUrl}}" mode="aspectFill"></image>
-            <view class="loss-copy"><text class="goods-name">{{item.goodsName}}</text><text class="loss-facts">{{item.factSummary}}</text></view>
-            <view class="loss-amount"><text>{{item.totalLossCostText}}</text><text class="loss-split">损耗 {{item.lossCostText}} · 废弃 {{item.discardCostText}}</text></view>
+      <view class="section-card product-section">
+        <view class="section-heading"><view><text class="section-title">商品经营明细</text><text class="section-subtitle">本期采购、订单及期间库存损耗涉及的全部商品，按商品大类查看</text></view><text class="section-count">{{productCount}} 种</text></view>
+        <view wx:if="{{!productCount}}" class="empty-inline">所选日期内暂无采购、订单或确认的库存损耗商品</view>
+        <view wx:else class="inventory-layout">
+          <scroll-view scroll-y class="category-rail">
+            <view wx:for="{{categories}}" wx:key="id" class="category-item {{activeCategoryId===item.id?'active':''}}" data-id="{{item.id}}" bindtap="selectCategory"><text>{{item.name}}</text><text class="category-count">{{item.count}}</text></view>
+          </scroll-view>
+          <view class="product-column">
+            <view class="list-heading"><text>共 {{products.length}} 种商品</text><text class="sort-note">订单商品优先</text></view>
+            <view class="product-card" wx:for="{{products}}" wx:key="id">
+              <view class="product-main">
+                <image class="goods-image" src="{{item.goodsImageUrl}}" mode="aspectFill"></image>
+                <view class="product-copy">
+                  <view class="product-title-row"><text class="goods-name">{{item.goodsName}}</text><text class="product-status {{item.statusClass}}">{{item.resultStatusText}}</text></view>
+                  <text class="product-orders">采购 {{item.purchaseRecordCount}} 条 · 已识别采购额 {{item.recognizedPurchaseAmountText}}</text>
+                  <text class="product-orders">订单 {{item.orderLineCount}} 条 · 可核算 {{item.profitEligibleOrderCount}} 条</text>
+                  <text class="product-loss">{{item.lossSummary}} · 损耗 {{item.lossCostText}} · 废弃 {{item.discardCostText}}</text>
+                </view>
+              </view>
+              <view class="product-metrics">
+                <view><text>销售收入</text><text class="product-metric-value">{{item.salesRevenueText}}</text></view>
+                <view><text>订单毛利</text><text class="product-metric-value">{{item.orderMarginText}}</text></view>
+                <view><text>经营结果</text><text class="product-metric-value {{item.operatingResultNegative?'negative':''}}">{{item.operatingResultText}}</text></view>
+              </view>
+              <text class="product-recognized" wx:if="{{item.resultStatus==='PARTIAL'}}">已核算部分 {{item.recognizedOperatingResultText}}；另有 {{item.issueCount}} 项依据待补充，未按 0 计入</text>
+              <text class="product-recognized" wx:elif="{{item.purchaseIssueCount}}">另有 {{item.purchaseIssueCount}} 条采购金额或来源待核对，未按 0 计入</text>
+            </view>
           </view>
         </view>
       </view>

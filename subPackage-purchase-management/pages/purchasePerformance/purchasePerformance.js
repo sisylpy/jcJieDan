@@ -15,7 +15,10 @@ Page({
     summary: emptySummary(),
     purchaseAmount: emptyPurchaseAmount(),
     orderSourceGroups: [],
-    lossGoods: [],
+    products: [],
+    categories: [],
+    activeCategoryId: 'ALL',
+    productCount: 0,
     timeBasisText: '',
     loading: false,
     error: ''
@@ -30,6 +33,7 @@ Page({
       stopDate: formatDate(end)
     })
     this._firstShow = true
+    this._allProducts = []
     this.load()
   },
 
@@ -63,6 +67,11 @@ Page({
 
   retry() { this.load() },
 
+  selectCategory(event) {
+    const id = String(event.currentTarget.dataset.id)
+    this.applyProductView(id)
+  },
+
   load() {
     if (this.data.loading) return Promise.resolve()
     this.setData({ loading: true, error: '' })
@@ -73,13 +82,14 @@ Page({
       const body = res.result || {}
       if (body.code !== 0) throw new Error(body.msg || '采购经营分析加载失败')
       const data = body.data || {}
+      this._allProducts = (data.products || []).map(decorateProduct)
       this.setData({
         summary: data.summary || emptySummary(),
         purchaseAmount: data.purchaseAmount || emptyPurchaseAmount(),
         orderSourceGroups: (data.orderSourceGroups || []).map(decorateOrderSource),
-        lossGoods: (data.lossGoods || []).map(decorateLossGoods),
         timeBasisText: data.timeBasisText || '订单、采购与损耗分别按真实业务发生日期归期'
       })
+      this.applyProductView(this.data.activeCategoryId)
     }).catch(error => this.setData({ error: error.message || '采购经营分析加载失败' }))
       .then(() => this.setData({ loading: false }))
   },
@@ -89,6 +99,15 @@ Page({
       url: '/subPackage/pages/management/purchaseManagement/purchaseAmountDetail/purchaseAmountDetail?startDate=' +
         this.data.startDate + '&stopDate=' + this.data.stopDate
     })
+  },
+
+  applyProductView(requestedCategoryId) {
+    const allProducts = this._allProducts || []
+    const categories = categoryOptions(allProducts)
+    const requested = requestedCategoryId || 'ALL'
+    const activeCategoryId = categories.some(item => item.id === requested) ? requested : 'ALL'
+    const products = allProducts.filter(item => activeCategoryId === 'ALL' || categoryId(item) === activeCategoryId)
+    this.setData({ categories, activeCategoryId, products, productCount: allProducts.length })
   }
 })
 
@@ -106,18 +125,37 @@ function decorateOrderSource(raw) {
   return item
 }
 
-function decorateLossGoods(raw) {
+function decorateProduct(raw) {
   const item = Object.assign({}, raw)
+  item.id = String(raw.disGoodsId || raw.goodsName || '')
   item.goodsImageUrl = resolveGoodsImage({
     goodsFileLarge: raw.goodsFileLarge,
     goodsFile: raw.goodsFile,
     nxDgNxFatherImg: raw.goodsFatherImage
   }, apiUrl.server)
-  item.factSummary = [
+  item.statusClass = raw.resultStatus === 'PARTIAL' || raw.purchaseIssueCount ? 'warning' : raw.resultStatus === 'COMPLETE' ? 'complete' : 'muted'
+  item.lossSummary = [
     raw.lossFactCount ? '损耗' + raw.lossFactCount + '笔' : '',
     raw.discardFactCount ? '废弃' + raw.discardFactCount + '笔' : ''
-  ].filter(Boolean).join(' · ')
+  ].filter(Boolean).join(' · ') || '无确认损耗'
   return item
+}
+
+function categoryId(item) {
+  return String(item.categoryId === null || item.categoryId === undefined ? 0 : item.categoryId)
+}
+
+function categoryOptions(products) {
+  const counts = {}
+  const names = {}
+  ;(products || []).forEach(item => {
+    const id = categoryId(item)
+    counts[id] = (counts[id] || 0) + 1
+    names[id] = item.categoryName || '未分类'
+  })
+  const values = Object.keys(counts).map(id => ({ id, name: names[id], count: counts[id] }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'))
+  return [{ id: 'ALL', name: '全部', count: (products || []).length }].concat(values)
 }
 
 function emptySummary() {

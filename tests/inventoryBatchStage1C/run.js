@@ -36,9 +36,12 @@ must(performance.includes('采购经营分析') && !performance.includes('待处
 must(performance.includes('report-date-filter'), '采购经营分析必须使用统一日期选择器')
 ;['期间经营结果', '订单利润来源', '订单采购成本', '采购覆盖', '期间库存损耗']
   .forEach(text => must(performance.includes(text), '采购经营分析布局缺失: ' + text))
+;['商品经营明细', 'category-rail', 'product-card', '订单毛利', '经营结果']
+  .forEach(text => must(performance.includes(text), '采购经营商品明细缺失: ' + text))
 must(performance.includes('未售库存仍属于库存资产'), '采购额不得直接冒充利润成本')
 must(performance.includes('待核算数据未按 0 计入'), '缺失事实必须和真实零值区分')
 must(performanceJs.includes('getPurchasePerformance'), '采购经营必须读取全采购经营接口')
+must(performanceJs.includes('categoryOptions') && performanceJs.includes('selectCategory'), '采购经营必须保留大类到具体商品的筛选结构')
 must(!performanceJs.includes('getInventoryPurchasePerformance'), '采购经营不能继续只读库存批次接口')
 must(!/orderMargin\s*=|operatingResult\s*=|lossCost\s*=/.test(performanceJs), '业务金额必须由服务端统一计算')
 must(detailJs.includes("return null"), '库存详情不能把缺失数量自动格式化成0')
