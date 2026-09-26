@@ -13,7 +13,7 @@ must(qualityPages.includes('pages/purchasePerformance/purchasePerformance'), '�
 
 const api = read('lib/apiDistributer.js')
 ;['getInventoryBatchBusiness', 'addInventoryBatchLossFact', 'changeInventoryBatchPrice',
-  'reverseInventoryBatchLossFact', 'getInventoryPurchasePerformance',
+  'reverseInventoryBatchLossFact', 'getInventoryPurchasePerformance', 'getPurchasePerformance',
   'assignSupplierPurchaseOwner'].forEach(name =>
   must(api.includes('export const ' + name), '缺少 API: ' + name))
 must(api.includes("getApp().ownerRequest"), '采购批次 API 必须使用 Owner 鉴权请求')
@@ -32,19 +32,15 @@ must(detailWxml.includes('reverseFact'), '损耗事实必须支持冲销而非�
 
 const performance = read('subPackage-purchase-management/pages/purchasePerformance/purchasePerformance.wxml')
 const performanceJs = read('subPackage-purchase-management/pages/purchasePerformance/purchasePerformance.js')
-must(performance.includes('库存经营') && !performance.includes('待处理'), '库存经营必须是独立页面')
-must(performance.includes('按采购员') && performance.includes('按供应方'), '库存来源维度不完整')
-must(performance.includes('report-date-filter'), '库存批次必须使用统一日期选择器')
-must(performance.includes('损耗成本') && performance.includes('废弃成本'), '库存经营成本指标不完整')
-;['库存经营概况', '已筛选：', '共 {{products.length}} 种商品', '库存批次 #']
-  .forEach(text => must(performance.includes(text), '新版库存经营布局缺失: ' + text))
-must(!performance.includes('source-card'), '库存经营不应继续以采购员或供应方大卡片为页面主体')
-must(!performance.includes('总损耗率'), '跨商品指标不能继续叫数量损耗率')
-must(performanceJs.includes('unitSummaries'), '不同单位必须分组展示')
-must(performanceJs.includes('productSummaries'), '库存经营必须按商品归集真实库存批次')
-must(performanceJs.includes('categoryOptions'), '库存经营必须提供商品分类导航')
-must(performanceJs.includes("'依据不足'"), '缺失事实必须和真实零值区分')
-must(!performance.includes('purchaseBatchCount'), '库存批次数不能继续使用采购批次数字段')
+must(performance.includes('采购经营分析') && !performance.includes('待处理'), '采购经营分析必须是独立页面')
+must(performance.includes('report-date-filter'), '采购经营分析必须使用统一日期选择器')
+;['期间经营结果', '订单利润来源', '订单采购成本', '采购覆盖', '期间库存损耗']
+  .forEach(text => must(performance.includes(text), '采购经营分析布局缺失: ' + text))
+must(performance.includes('未售库存仍属于库存资产'), '采购额不得直接冒充利润成本')
+must(performance.includes('待核算数据未按 0 计入'), '缺失事实必须和真实零值区分')
+must(performanceJs.includes('getPurchasePerformance'), '采购经营必须读取全采购经营接口')
+must(!performanceJs.includes('getInventoryPurchasePerformance'), '采购经营不能继续只读库存批次接口')
+must(!/orderMargin\s*=|operatingResult\s*=|lossCost\s*=/.test(performanceJs), '业务金额必须由服务端统一计算')
 must(detailJs.includes("return null"), '库存详情不能把缺失数量自动格式化成0')
 const shelfWxml = read('subPackage/pages/shelf/index/index.wxml')
 const shelfJs = read('subPackage/pages/shelf/index/index.js')

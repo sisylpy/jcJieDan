@@ -1,69 +1,64 @@
 <view class="page">
-  <back-navbar style="height:{{navBarHeight}}rpx" title="库存经营" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+  <back-navbar style="height:{{navBarHeight}}rpx" title="采购经营分析" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
   <scroll-view scroll-y class="body" style="padding-top:{{navBarHeight}}rpx">
     <view class="query-card">
-      <view class="date-action-row">
-        <view class="date-control"><report-date-filter label="{{dateLabel}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bindselect="toDatePage"></report-date-filter></view>
-        <view class="filter-button {{filterPanelOpen?'active':''}}" bindtap="toggleFilters" hover-class="tap-hover"><text class="filter-symbol">▽</text><text>筛选</text></view>
-      </view>
-      <view class="selected-row">
-        <text class="selected-label">已筛选：</text>
-        <text class="selected-chip">采购员：{{selectedPurchaserName}}</text>
-        <text class="selected-chip">供应方：{{selectedSupplierName}}</text>
-        <text class="clear-filter" wx:if="{{selectedPurchaserId!=='ALL'||selectedSupplierId!=='ALL'}}" bindtap="clearFilters">清空</text>
-      </view>
-      <view class="filter-panel" wx:if="{{filterPanelOpen}}">
-        <text class="filter-title">按采购员</text>
-        <view class="filter-options"><text wx:for="{{purchaserOptions}}" wx:key="id" class="filter-option {{selectedPurchaserId===item.id?'selected':''}}" data-id="{{item.id}}" bindtap="selectPurchaser">{{item.name}}</text></view>
-        <text class="filter-title supplier-title">按供应方</text>
-        <view class="filter-options"><text wx:for="{{supplierOptions}}" wx:key="id" class="filter-option {{selectedSupplierId===item.id?'selected':''}}" data-id="{{item.id}}" bindtap="selectSupplier">{{item.name}}</text></view>
-      </view>
-      <text class="time-note">{{timeBasisText||'按入库日期筛选库存批次；批次经营事实显示截至当前的累计结果'}}</text>
+      <report-date-filter label="{{dateLabel}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bindselect="toDatePage"></report-date-filter>
+      <text class="time-note">{{timeBasisText||'订单、采购与损耗分别按真实业务发生日期归期'}}</text>
     </view>
 
-    <view wx:if="{{error}}" class="state error-state"><text>库存经营读取失败</text><text class="state-detail">{{error}}</text><text class="retry" bindtap="retry">重新加载</text></view>
-    <view wx:elif="{{loading}}" class="state">正在读取库存经营数据…</view>
+    <view wx:if="{{error}}" class="state error-state"><text>采购经营分析读取失败</text><text class="state-detail">{{error}}</text><text class="retry" bindtap="retry">重新加载</text></view>
+    <view wx:elif="{{loading}}" class="state">正在核对期间订单、采购与损耗…</view>
     <block wx:else>
-      <view class="overview-card">
-        <view class="section-heading"><view><text class="section-title">库存经营概况</text><text class="section-subtitle">反映所选入库批次截至当前的周转与经营结果</text></view><text class="scope-count">{{summary.goodsCount}}种商品</text></view>
-        <view class="metric-grid">
-          <view class="metric-item"><text class="metric-name">入库金额</text><text class="metric-value">{{summary.grossPurchaseCostText}}</text></view>
-          <view class="metric-item"><text class="metric-name">当前经营结果</text><text class="metric-value {{summary.currentResultNegative?'negative':''}}">{{summary.currentRealizedMarginText}}</text></view>
-          <view class="metric-item"><text class="metric-name">库存批次</text><text class="metric-value">{{summary.stockBatchCount}}个</text></view>
-          <view class="metric-item"><text class="metric-name">损耗成本</text><text class="metric-value">{{summary.lossCostText}}</text><text class="metric-rate">{{summary.lossCostRateText}}</text></view>
-          <view class="metric-item"><text class="metric-name">废弃成本</text><text class="metric-value">{{summary.discardCostText}}</text><text class="metric-rate">{{summary.discardCostRateText}}</text></view>
-          <view class="metric-item"><text class="metric-name">需要注意</text><text class="metric-value {{summary.attentionCount?'attention-value':''}}">{{summary.attentionCount}}项</text></view>
+      <view class="result-card {{summary.resultStatus==='PARTIAL'?'partial':''}}">
+        <view class="result-heading">
+          <view><text class="eyebrow">期间经营结果</text><text class="result-value {{summary.operatingResultNegative?'negative':''}}">{{summary.operatingResultText}}</text></view>
+          <text class="status-pill {{summary.resultStatus==='COMPLETE'?'complete':summary.resultStatus==='PARTIAL'?'warning':'muted'}}">{{summary.resultStatusText}}</text>
         </view>
-        <text class="overview-note">金额依据不完整时显示“依据不足”；斤、件、箱等数量始终按各自单位展示，不跨单位相加。</text>
+        <text class="recognized-result" wx:if="{{summary.resultStatus==='PARTIAL'}}">已核算部分 {{summary.recognizedOperatingResultText}}，待核算数据未按 0 计入</text>
+        <view class="result-grid">
+          <view class="metric"><text class="metric-label">销售收入</text><text class="metric-value">{{summary.salesRevenueText}}</text></view>
+          <view class="metric"><text class="metric-label">订单采购成本</text><text class="metric-value">{{summary.orderPurchaseCostText}}</text></view>
+          <view class="metric"><text class="metric-label">订单毛利</text><text class="metric-value">{{summary.orderMarginText}}</text><text class="metric-note">毛利率 {{summary.orderMarginRateText}}</text></view>
+          <view class="metric"><text class="metric-label">库存损耗</text><text class="metric-value cost">{{summary.lossCostText}}</text><text class="metric-note">{{summary.lossFactCount}} 笔</text></view>
+          <view class="metric"><text class="metric-label">库存废弃</text><text class="metric-value cost">{{summary.discardCostText}}</text><text class="metric-note">{{summary.discardFactCount}} 笔</text></view>
+          <view class="metric"><text class="metric-label">可核算订单</text><text class="metric-value">{{summary.profitEligibleOrderCount}} / {{summary.periodOrderLineCount}}</text><text class="metric-note">经营率 {{summary.operatingMarginRateText}}</text></view>
+        </view>
+        <text class="result-note">未售库存仍属于库存资产，不把本期全部采购额直接认定为成本；降价已体现在真实销售收入中，不重复扣减。</text>
       </view>
 
-      <view class="coverage-note" wx:if="{{excludedCount}}">另有 {{excludedCount}} 条记录不属于库房库存或来源未解析，未纳入本页，也未按0计算。</view>
-      <view wx:if="{{!products.length}}" class="state">当前筛选范围没有可核实的库存批次</view>
-      <view wx:else class="inventory-layout">
-        <scroll-view scroll-y class="category-rail">
-          <view wx:for="{{categories}}" wx:key="id" class="category-item {{activeCategoryId===item.id?'active':''}}" data-id="{{item.id}}" bindtap="selectCategory"><text>{{item.name}}</text><text class="category-count">{{item.count}}</text></view>
-        </scroll-view>
-        <view class="product-column">
-          <view class="list-heading"><text>共 {{products.length}} 种商品</text><text class="sort-note">按入库金额</text></view>
-          <view class="product-card" wx:for="{{products}}" wx:key="id">
-            <view class="product-main">
-              <image class="goods-image" src="{{item.goodsImageUrl}}" mode="aspectFill"></image>
-              <view class="product-copy">
-                <view class="product-title-row"><text class="product-name">{{item.goodsName}}</text><text class="product-status {{item.statusClass}}">{{item.statusText}}</text></view>
-                <text class="product-subline">当前库存 <text class="strong-value">{{item.remainingSummary}}</text> · 入库金额 <text class="strong-value">{{item.grossPurchaseCostText}}</text></text>
-                <text class="product-source">{{item.sourceSummary}} · {{item.stockBatchCount}}个库存批次</text>
-              </view>
-            </view>
-            <view class="product-metrics">
-              <view><text>当前结果</text><text class="product-metric-value {{item.currentResultNegative?'negative':''}}">{{item.currentRealizedMarginText}}</text></view>
-              <view><text>损耗成本率</text><text class="product-metric-value">{{item.lossCostRateText}}</text></view>
-              <view><text>废弃成本率</text><text class="product-metric-value">{{item.discardCostRateText}}</text></view>
-            </view>
-            <view class="unit-lines" wx:if="{{item.quantitySummaries.length>1}}"><text wx:for="{{item.quantitySummaries}}" wx:key="uom">{{item.uom}}：入库 {{item.stockInText}}，剩余 {{item.remainingText}}</text></view>
-            <view class="issue-row" wx:if="{{item.attentionCount}}"><text>{{item.attentionCount}} 项数据需要核查，详情中查看原因</text></view>
-            <view class="batch-row" wx:for="{{item.stockBatches}}" wx:key="stockBatchId" wx:for-item="batch" data-id="{{batch.stockBatchId}}" bindtap="openBatch" hover-class="tap-hover">
-              <view><text class="batch-title">库存批次 #{{batch.stockBatchId}}</text><text class="batch-date">入库 {{batch.stockInDate||'日期未记录'}} · 剩余 {{batch.remainingText}}</text></view><text class="batch-link">查看详情 ›</text>
-            </view>
+      <view class="issue-card" wx:if="{{summary.dataIssueCount}}">
+        <view class="issue-mark">!</view>
+        <view class="issue-copy"><text class="issue-title">有 {{summary.dataIssueCount}} 项依据需要补充</text><text class="issue-detail" wx:if="{{summary.profitIneligibleOrderCount}}">{{summary.profitIneligibleOrderCount}} 条订单缺少销售额、成本价或实际数量</text><text class="issue-detail" wx:if="{{summary.unresolvedProfitSourceOrderCount}}">{{summary.unresolvedProfitSourceOrderCount}} 条已核算订单尚未归到明确采购来源</text><text class="issue-detail" wx:if="{{summary.unresolvedLossAmountCount}}">{{summary.unresolvedLossAmountCount}} 条损耗事实缺少成本金额</text><text class="issue-detail" wx:if="{{summary.legacyLossFactCount}}">{{summary.legacyLossFactCount}} 条历史损耗缺少新事实快照</text><text class="issue-detail" wx:if="{{purchaseAmount.unresolvedAmountCount||purchaseAmount.conflictRecordCount}}">采购记录中有 {{purchaseAmount.unresolvedAmountCount}} 条金额未形成、{{purchaseAmount.conflictRecordCount}} 条来源冲突</text><text class="issue-detail" wx:if="{{purchaseAmount.historicalBillUnresolvedCount}}">{{purchaseAmount.historicalBillUnresolvedCount}} 条历史协作账单缺少可核对订单关联</text></view>
+      </view>
+
+      <view class="section-card">
+        <view class="section-heading"><view><text class="section-title">订单利润来源</text><text class="section-subtitle">只汇总具备销售额、采购成本和实际数量的订单</text></view><text class="section-count">{{summary.profitEligibleOrderCount}} 条</text></view>
+        <view wx:if="{{!orderSourceGroups.length}}" class="empty-inline">所选日期内暂无可核算订单</view>
+        <view wx:else class="source-list">
+          <view class="source-row" wx:for="{{orderSourceGroups}}" wx:key="sourceType">
+            <view class="source-mark {{item.tone}}">{{item.mark}}</view>
+            <view class="source-copy"><view class="source-title-row"><text class="source-title">{{item.sourceTypeText}}</text><text class="source-count">{{item.orderCount}} 条</text></view><text class="source-description">{{item.sourceDescription}}</text><view class="source-metrics"><text>收入 {{item.salesRevenueText}}</text><text>成本 {{item.purchaseCostText}}</text><text class="source-margin {{item.marginNegative?'negative':''}}">毛利 {{item.orderMarginText}} · {{item.orderMarginRateText}}</text></view></view>
+          </view>
+        </view>
+      </view>
+
+      <view class="section-card purchase-card">
+        <view class="section-heading"><view><text class="section-title">采购覆盖</text><text class="section-subtitle">采购额用于规模核对，不直接等同期间利润成本</text></view><text class="detail-link" bindtap="openPurchaseRecords">查看明细 ›</text></view>
+        <view class="purchase-total"><view><text class="purchase-label">已识别采购额</text><text class="purchase-value">{{purchaseAmount.recognizedAmountText}}</text></view><view class="purchase-counts"><text>{{purchaseAmount.includedRecordCount}} 条已识别</text><text wx:if="{{purchaseAmount.unresolvedAmountCount}}">{{purchaseAmount.unresolvedAmountCount}} 条待形成</text></view></view>
+        <view class="purchase-groups">
+          <view class="purchase-group" wx:for="{{purchaseAmount.groups}}" wx:key="sourceType"><text class="purchase-group-name">{{item.sourceTypeText}}</text><text class="purchase-group-amount">{{item.recognizedAmountText}}</text><text class="purchase-group-count">{{item.includedRecordCount}} 条<text wx:if="{{item.unresolvedAmountCount}}"> · {{item.unresolvedAmountCount}} 条待核对</text></text></view>
+        </view>
+        <text class="purchase-note" wx:if="{{purchaseAmount.pendingDemandCount||purchaseAmount.undatedRecordCount}}">另有 {{purchaseAmount.pendingDemandCount}} 条待采购需求、{{purchaseAmount.undatedRecordCount}} 条缺少可靠业务日期，均未补入本期金额。</text>
+      </view>
+
+      <view class="section-card">
+        <view class="section-heading"><view><text class="section-title">期间库存损耗</text><text class="section-subtitle">只统计所选日期内确认发生的损耗与废弃</text></view><text class="section-count">{{summary.lossGoodsCount}} 种</text></view>
+        <view wx:if="{{!lossGoods.length}}" class="empty-inline">所选日期内没有确认的库存损耗</view>
+        <view wx:else class="loss-list">
+          <view class="loss-row" wx:for="{{lossGoods}}" wx:key="disGoodsId">
+            <image class="goods-image" src="{{item.goodsImageUrl}}" mode="aspectFill"></image>
+            <view class="loss-copy"><text class="goods-name">{{item.goodsName}}</text><text class="loss-facts">{{item.factSummary}}</text></view>
+            <view class="loss-amount"><text>{{item.totalLossCostText}}</text><text class="loss-split">损耗 {{item.lossCostText}} · 废弃 {{item.discardCostText}}</text></view>
           </view>
         </view>
       </view>
