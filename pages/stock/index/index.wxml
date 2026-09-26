@@ -29,7 +29,7 @@
       <view class="flex flex-row p-20" style="height: {{viewBarHeight}}rpx; align-items: center;">
 
         <view class="button-container mr-40" bindtap="changeShwoType">
-          <image src="{{viewMode === 'category' ? '/images/icon_goods_active.png' : '/images/dianpu.png'}}" class="icon"></image>
+          <image src="{{viewMode === 'category' ? '/images/icons/icon_goods_active.png' : '/images/dianpu.png'}}" class="icon"></image>
         </view>
       </view>
     </view>

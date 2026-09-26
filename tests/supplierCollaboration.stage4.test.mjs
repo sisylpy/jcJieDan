@@ -17,8 +17,8 @@ test('采购管理不再注册重复的供应方邀请入口',()=>{
 test('外部供应商由采购批次分享注册，供应商列表只负责管理',()=>{
   const supplier=read('subPackage-supplier/pages/supplier/index/index.js')
   const supplierView=read('subPackage-supplier/pages/supplier/index/index.wxml')
-  const appoint=read('subPackage/pages/goods/appointSupplierList/appointSupplierList.js')
-  const appointView=read('subPackage/pages/goods/appointSupplierList/appointSupplierList.wxml')
+  const appoint=read('subPackage-goods/pages/goods/appointSupplierList/appointSupplierList.js')
+  const appointView=read('subPackage-goods/pages/goods/appointSupplierList/appointSupplierList.wxml')
   const purchase=read('pages/purchase/index/purchaseComponent.js')
   assert.doesNotMatch(supplier,/addSupplier|supplierCollaboration/)
   assert.doesNotMatch(supplierView,/邀请外部供应商/)

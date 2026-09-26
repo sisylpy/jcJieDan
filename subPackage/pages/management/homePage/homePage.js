@@ -506,7 +506,7 @@ Page({
 
   toGoods(){
     wx.navigateTo({
-      url: '/subPackage/pages/goods/goods/goods',
+      url: '/subPackage-goods/pages/goods/goods/goods',
     })
     
   },

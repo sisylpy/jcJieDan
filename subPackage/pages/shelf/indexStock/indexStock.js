@@ -3343,7 +3343,7 @@ Page({
       isShowTools: false
     })
     wx.navigateTo({
-      url: '/subPackage/pages/goods/greatGrandGoods/greatGrandGoods?disId=' + this.data.disId + '&type=add',
+      url: '/subPackage-goods/pages/goods/greatGrandGoods/greatGrandGoods?disId=' + this.data.disId + '&type=add',
     })
   },
 

@@ -24,7 +24,7 @@
       </view>
 
       <!-- <view class="flex-column center-content" bindtap="toDepGoods" hover-class="hover">
-        <image src="/images/icon_goods.png" mode="aspectFill" class="icon" />
+        <image src="/images/icons/icon_goods.png" mode="aspectFill" class="icon" />
         <view>客户商品</view>
       </view> -->
 

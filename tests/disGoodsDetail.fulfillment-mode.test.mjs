@@ -5,8 +5,8 @@ import { readFileSync } from 'node:fs'
 
 const require = createRequire(import.meta.url)
 const fulfillmentUi = require('../utils/disGoodsFulfillmentUi.js')
-const pageSource = readFileSync('subPackage/pages/goods/disGoodsDetail/disGoodsDetail.js', 'utf8')
-const templateSource = readFileSync('subPackage/pages/goods/disGoodsDetail/disGoodsDetail.wxml', 'utf8')
+const pageSource = readFileSync('subPackage-goods/pages/goods/disGoodsDetail/disGoodsDetail.js', 'utf8')
+const templateSource = readFileSync('subPackage-goods/pages/goods/disGoodsDetail/disGoodsDetail.wxml', 'utf8')
 
 test('履约选择态兼容历史2并从当前supplier组合识别自动订货', () => {
   assert.equal(fulfillmentUi.resolveMode({ nxDgPurchaseAuto: -1 }), 'stock')

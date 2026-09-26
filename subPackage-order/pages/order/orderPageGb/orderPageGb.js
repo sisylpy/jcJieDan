@@ -1282,7 +1282,7 @@ Page({
     var type = e.currentTarget.dataset.type;
 
     wx.navigateTo({
-      url: '../../../../subPackage/pages/goods/disGoodsPage/disGoodsPage?disGoodsId=' + goodsId +
+      url: '../../../../subPackage-goods/pages/goods/disGoodsPage/disGoodsPage?disGoodsId=' + goodsId +
         '&type=' + type + '&color=' + color + '&goodsName=' + name,
     })
   },

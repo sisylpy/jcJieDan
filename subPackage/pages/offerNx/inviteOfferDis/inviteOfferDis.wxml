@@ -30,7 +30,7 @@
           <text class="invite-detail-text">邀请时间: {{inviteTime}}</text>
         </view>
         <view class="invite-detail-row">
-          <image src="/images/icon_goods_active.png" class="invite-detail-icon"></image>
+          <image src="/images/icons/icon_goods_active.png" class="invite-detail-icon"></image>
           <text class="invite-detail-text">邀请方式: {{inviteType === 1 ? '邀请成为我的供货商' : '邀请购买我的产品'}}</text>
         </view>
       </view>
@@ -67,7 +67,7 @@
           <text class="invite-detail-text">邀请时间: {{inviteTime}}</text>
         </view>
         <view class="invite-detail-row">
-          <image src="/images/icon_goods_active.png" class="invite-detail-icon"></image>
+          <image src="/images/icons/icon_goods_active.png" class="invite-detail-icon"></image>
           <text class="invite-detail-text">邀请方式: {{inviteType === 1 ? '邀请您成为对方的供货商' : '邀请您购买对方的产品'}}</text>
         </view>
       </view>

@@ -17,7 +17,7 @@
       <view class="flex flex-row">
       <!-- 增加外采按照客户的切换 -->
         <view class="button-container mr-40" bindtap="changeShwoType">
-          <image src="{{viewMode === 'category' ? '/images/icon_goods_active.png' : '/images/dianpu.png'}}" class="icon"></image>
+          <image src="{{viewMode === 'category' ? '/images/icons/icon_goods_active.png' : '/images/dianpu.png'}}" class="icon"></image>
         </view>
 
 

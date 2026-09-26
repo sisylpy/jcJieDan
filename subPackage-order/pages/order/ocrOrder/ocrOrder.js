@@ -2193,7 +2193,7 @@ Page({
     // 跳转到添加临时商品页面（延迟一下确保菜单关闭动画完成）
     setTimeout(() => {
       wx.navigateTo({
-        url: '../../../../subPackage/pages/goods/disAddGoodsLinshi/disAddGoodsLinshi?goodsName=' + name + '&from=paste' + '&standard=' + standard + '&standardWeight=' + standardWeight + '&cartonUnit=' + cartonUnit + '&itemsPerCarton=' + itemsPerCarton,
+        url: '../../../../subPackage-goods/pages/goods/disAddGoodsLinshi/disAddGoodsLinshi?goodsName=' + name + '&from=paste' + '&standard=' + standard + '&standardWeight=' + standardWeight + '&cartonUnit=' + cartonUnit + '&itemsPerCarton=' + itemsPerCarton,
       });
     }, 100);
   },

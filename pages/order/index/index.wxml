@@ -18,7 +18,7 @@
 
 
         <view class=" button-container ml-20 mr-30" bindtap="toLinshiGoods">
-          <image src="/images/icon_goods_active.png" class="icon"></image>
+          <image src="/images/icons/icon_goods_active.png" class="icon"></image>
           <view class="badge {{linshiTotal > 0 ? 'show' : 'hide'}}">{{linshiTotal}}</view>
         </view>
 

@@ -1350,7 +1350,7 @@ Page({
     if (this.data.searchStr.length > 0) {
       console.log(this.data.searchStr);
       wx.navigateTo({
-        url: '../../../../subPackage/pages/goods/disAddGoodsLinshi/disAddGoodsLinshi?goodsName=' + this.data.searchStr + '&from=resGoods',
+        url: '../../../../subPackage-goods/pages/goods/disAddGoodsLinshi/disAddGoodsLinshi?goodsName=' + this.data.searchStr + '&from=resGoods',
       })
     }
   },

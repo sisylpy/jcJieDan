@@ -415,7 +415,7 @@ Page({
   toLinshiGoods() {
     wx.setStorageSync('notUpdate', true);
     wx.navigateTo({
-      url: '../../../subPackage/pages/goods/linshiGoodsDis/linshiGoodsDis?disId=' + this.data.disId,
+      url: '../../../subPackage-goods/pages/goods/linshiGoodsDis/linshiGoodsDis?disId=' + this.data.disId,
     })
   },
 

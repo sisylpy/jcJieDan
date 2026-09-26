@@ -119,6 +119,14 @@
       "pages/prepare/inventoryPurchase/inventoryPurchase",
       "pages/prepare/purchaseReceipt/purchaseReceipt",
       "pages/prepare/printWeightOrders/printWeightOrders",
+      "pages/order/editDepApplyGoods/editDepApplyGoods",
+      "pages/order/purGoods/purGoods",
+      "pages/order/aiHelpGoods/aiHelpGoods"
+    ]
+    }, {
+    "root": "subPackage-goods/",
+    "name": "goods",
+    "pages": [
       "pages/goods/disGoodsDetail/disGoodsDetail",
       "pages/goods/disGoodsPage/disGoodsPage",
       "pages/goods/goods/goods",
@@ -141,10 +149,7 @@
       "pages/goods/goodsList/goodsList",
       "pages/goods/goodsTypeList/goodsTypeList",
       "pages/goods/disAddGoodsNx/disAddGoodsNx",
-      "pages/goods/nxPicture/nxPicture",
-      "pages/order/editDepApplyGoods/editDepApplyGoods",
-      "pages/order/purGoods/purGoods",
-      "pages/order/aiHelpGoods/aiHelpGoods"
+      "pages/goods/nxPicture/nxPicture"
     ]
     }, {
     "root": "subPackage-auth/",

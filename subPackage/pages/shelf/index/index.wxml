@@ -588,7 +588,7 @@
         <text> 删除</text>
       </view>
       <view class="p-30 flex-row border-bottom" catchtap="toGoodsDetail" hover-class="hover">
-        <image src="/images/icon_goods.png" mode="aspectFill" class="icon mr-20" />
+        <image src="/images/icons/icon_goods.png" mode="aspectFill" class="icon mr-20" />
         <text> 打开详细</text>
       </view>
 
@@ -618,7 +618,7 @@
         <block wx:else="">
 
           <view class="p-30 flex-row border-bottom" catchtap="editPurchaseGoods" hover-class="popup-item-hover" wx:if="{{shelfGoods.shelfPurGoods !== null && shelfGoods.shelfPurGoods.nxDpgStatus == 0}}" hover-class="hover">
-            <image src="/images/icon_goods.png" mode="aspectFill" class="icon mr-20" />
+            <image src="/images/icons/icon_goods.png" mode="aspectFill" class="icon mr-20" />
             <text> 修改订货</text>
           </view>
         </block>
@@ -653,7 +653,7 @@
 
 
       <view class="p-30 flex-row border-bottom" catchtap="toGoodsDetail" hover-class="hover">
-        <image src="/images/icon_goods.png" mode="aspectFill" class="icon mr-20" />
+        <image src="/images/icons/icon_goods.png" mode="aspectFill" class="icon mr-20" />
         <text> 打开详细</text>
       </view>
       <view class="p-30 flex-row border-bottom" catchtap="searchShelfGoods" hover-class="hover">

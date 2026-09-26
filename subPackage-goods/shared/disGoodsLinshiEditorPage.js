@@ -1,11 +1,9 @@
-// pages/your_page/your_page.js
+import apiUrl from '../../config.js';
+import { disGoodsUpdate, applyAddNewGoods } from '../../lib/apiDistributer.js';
+var load = require('../../lib/load.js');
 
-import apiUrl from '../../../../config.js';
-
-import { disGoodsUpdate, applyAddNewGoods } from '../../../../lib/apiDistributer';
-var load = require('../../../../lib/load.js');
-
-Page({
+export function createDisGoodsLinshiEditorPage() {
+  return {
   data: {
     canSave: false,
     imgChanged: false,
@@ -466,4 +464,5 @@ Page({
     // 这里可以添加获取商品详情的逻辑
     wx.navigateBack({delta: 1});
   }
-});
+  };
+}

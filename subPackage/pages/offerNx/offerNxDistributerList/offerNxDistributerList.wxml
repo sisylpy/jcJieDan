@@ -147,7 +147,7 @@
     <view class="op-menu-item op-menu-item-setting {{supplierItem.itemData && supplierItem.itemData.blockedMe ? 'op-menu-item-off' : 'op-menu-item-on'}}" catch:tap="toggleHideMyCatalog" hover-class="op-menu-item-hover">
       <view class="op-menu-row">
         <view class="op-menu-icon-wrap op-menu-icon-supplier">
-          <image src="../../../../images/icon_goods_active.png" class="op-menu-icon"></image>
+          <image src="../../../../images/icons/icon_goods_active.png" class="op-menu-icon"></image>
         </view>
         <view class="op-menu-content">
           <view class="op-menu-title-row">

@@ -60,7 +60,7 @@
       <text class="font-md">退货</text>
     </view>
     <view class="p-30  flex-row border-bottom" catch:tap="toSupplierFenxi" hover-class="hover">
-      <image src="../../../../images/icon_goods.png" class="icon mr-20"></image>
+      <image src="../../../../images/icons/icon_goods.png" class="icon mr-20"></image>
       <text class="font-md">订货商品</text>
     </view>
     <view class="p-30  flex-row " catch:tap="toDeleteSupplier" hover-class="hover">

@@ -454,7 +454,7 @@
     </view>
 
     <view class="flex flex-row p-20" bindtap="toDgGoods" data-type="order">
-      <image src="../../../../images/icon_goods.png" class="icon mr-20 ml-20"></image>
+      <image src="../../../../images/icons/icon_goods.png" class="icon mr-20 ml-20"></image>
       <text class="">"{{goodsName}}"商品详细</text>
     </view>
     <view style="height: 20rpx;"></view>

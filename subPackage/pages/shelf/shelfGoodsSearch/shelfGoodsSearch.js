@@ -535,7 +535,7 @@ Page({
   
   },
 
-  // 打开订货弹窗subPackage/pages/goods/disGoodsDetail/disGoodsDetail
+  // 打开订货弹窗 subPackage-goods/pages/goods/disGoodsDetail/disGoodsDetail
   // toOpenDisPlanPurchase(){
   //   // 获取商品信息（从 shelfGoods 中获取）
   //   console.log("indotuutot");

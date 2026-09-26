@@ -370,7 +370,7 @@ Page({
   
   toAddGoods(e){ 
     wx.navigateTo({
-      url: '../../../../subPackage/pages/goods/disAddGoodsLinshi/disAddGoodsLinshi?goodsName=' + this.data.name + '&from=paste' + '&standard=' + this.data.standard ,
+      url: '../../../../subPackage-goods/pages/goods/disAddGoodsLinshi/disAddGoodsLinshi?goodsName=' + this.data.name + '&from=paste' + '&standard=' + this.data.standard ,
     })
   },
 
