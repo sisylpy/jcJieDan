@@ -2,11 +2,7 @@
   <back-navbar style="height:{{navBarHeight}}rpx" title="采购员" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
   <scroll-view scroll-y class="pm-body" style="padding-top:{{navBarHeight}}rpx" scroll-top="{{scrollTop}}" bindscroll="recordScroll" bindscrolltolower="more">
     <view class="toolbar">
-      <view class="date-line">
-        <picker mode="date" value="{{startDate}}" bindchange="changeStart"><text class="pm-date">{{startDate}}</text></picker>
-        <text class="date-separator">至</text>
-        <picker mode="date" value="{{stopDate}}" bindchange="changeStop"><text class="pm-date">{{stopDate}}</text></picker>
-      </view>
+      <report-date-filter label="{{dateLabel}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bindselect="toDatePage"></report-date-filter>
       <view class="search-line">
         <input value="{{keyword}}" placeholder="搜索采购员姓名" confirm-type="search" bindinput="input" bindconfirm="search"></input>
         <text class="search-button" bindtap="search">搜索</text>

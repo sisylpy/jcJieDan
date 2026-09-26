@@ -9,22 +9,7 @@
   <!--  search-top -->
   <view class=" flex-row-between pl-20 pr-20 border-bottom bg-white">
 
-    <view class="flex-row">
-      <view class="p-20" bindtap="toDatePageSearch">
-        <image src="/subPackage-charts/images/purchase/calender.png" class="icon"></image>
-      </view>
-      <view class="flex-column pt-10">
-        <view class="font-yuan">{{hanzi}}</view>
-        <view class="flex-row" wx:if="{{startDate == stopDate}}">
-          <view class=" font-md" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
-        </view>
-        <view class="flex-row" wx:else>
-          <view class="" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
-          <text class="plr-10">-</text>
-          <view class="" wx:if="{{stopDate}}">{{tool.transferDateString(stopDate)}}</view>
-        </view>
-      </view>
-    </view>
+    <report-date-filter style="flex:1;min-width:0;" label="{{hanzi}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bind:select="toDatePageSearch"></report-date-filter>
 
     <!-- NX系统暂不支持筛选功能 -->
   </view>

@@ -164,16 +164,29 @@ Page({
       return;
     }
     
-    //直接调用上一个页面的setData()方法，把数据存到上一个页面中去
+    var selection = {
+      startDate: startDate,
+      stopDate: stopDate,
+      dateType: dateType,
+      dateName: dateName,
+      hanzi: hanzi
+    }
+
+    // 新版报表页通过统一回调更新各自的字段和查询；旧页面继续兼容原来的 setData 契约。
     try {
-      prevPage.setData({
-        update: true,
-        updateMyDate: false,
-        dateType: dateType,
-        dateName: dateName,
-        startDate: startDate,
-        stopDate: stopDate,
-      })
+      if (typeof prevPage.onReportDateSelected === 'function') {
+        prevPage.onReportDateSelected(selection)
+      } else {
+        prevPage.setData({
+          update: true,
+          updateMyDate: false,
+          dateType: dateType,
+          dateName: dateName,
+          hanzi: hanzi,
+          startDate: startDate,
+          stopDate: stopDate,
+        })
+      }
     } catch (err) {
       console.error('调用 prevPage.setData 时出错:', err);
       wx.showToast({
@@ -539,13 +552,25 @@ Page({
     wx.setStorageSync('myDate', myDate)
     let pages = getCurrentPages();
     let prevPage = pages[pages.length - 2];
-    prevPage.setData({
+    var selection = {
       startDate: this.data.startDate,
       stopDate: this.data.stopDate,
       dateType: "customer",
       dateName: "custom",
-      update: true,
-    })
+      hanzi: "自定义"
+    }
+    if (typeof prevPage.onReportDateSelected === 'function') {
+      prevPage.onReportDateSelected(selection)
+    } else {
+      prevPage.setData({
+        startDate: this.data.startDate,
+        stopDate: this.data.stopDate,
+        dateType: "customer",
+        dateName: "custom",
+        hanzi: "自定义",
+        update: true,
+      })
+    }
     
     // 给所有前面的页面都设置 update: true
     // 确保至少有3个页面（当前页面、上一个页面、再前面的页面）

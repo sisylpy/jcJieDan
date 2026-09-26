@@ -18,7 +18,7 @@ const required = [
 required.forEach(page => assert.ok(pages.includes(page), `missing page registration: ${page}`))
 const qualityPackage = app.subPackages.find(item => item.root === 'subPackage-purchase-management/')
 assert.ok(qualityPackage && qualityPackage.pages.includes('pages/purchasePerformance/purchasePerformance'),
-  'the unified quality page must live in its own package so the legacy subpackage remains below 2MB')
+  'the standalone inventory business page must live in its own package so the legacy subpackage remains below 2MB')
 assert.ok(!pages.includes('pages/management/purchaseManagement/purchaseExceptionList/purchaseExceptionList'),
   'the old standalone exception page must be removed after navigation replacement')
 
@@ -40,16 +40,20 @@ for (const legacy of ['disGetPurchaseDetailType', 'getPurUserDate', 'disUserGetP
 
 const purchaserListLogic = read('utils/purchaseManagementPurchaserListPage.js')
 const purchaserDetailLogic = read('utils/purchaseManagementPurchaserDetailPage.js')
+const overviewLogic = read('utils/purchaseManagementOverviewPage.js')
 assert.match(read('subPackage/pages/management/purchaseManagement/purchaserList/purchaserList.js'),
   /createPurchaserListPage/,
   'subpackage keeps only the purchaser list entry while page logic lives in the main package')
 const allJs = required.map(page => read(`subPackage/${page}.js`)).join('\n') +
-  '\n' + purchaserListLogic + '\n' + purchaserDetailLogic
+  '\n' + overviewLogic + '\n' + purchaserListLogic + '\n' + purchaserDetailLogic
 assert.ok(!/lossRate\s*=|margin\s*=|actualNetPurchaseAmount\s*=/.test(allJs),
   'Boss pages must render server ViewModels instead of calculating business metrics')
 
-const managementIndexJs = read('subPackage/pages/management/purchaseManagement/index/index.js')
-assert.match(managementIndexJs, /onLoad\(\)\s*\{[\s\S]*?this\.setData\([\s\S]*?\)\s*\},\s*onShow\(\)\s*\{\s*this\.load\(\)\s*\}/,
+const managementIndexEntryJs = read('subPackage/pages/management/purchaseManagement/index/index.js')
+const managementIndexJs = managementIndexEntryJs + '\n' + overviewLogic
+assert.match(managementIndexEntryJs, /createPurchaseManagementOverviewPage/,
+  'subpackage keeps only the purchase overview entry while page logic lives in the main package')
+assert.match(managementIndexJs, /onLoad\(\)\s*\{[\s\S]*?this\.setData\([\s\S]*?\)\s*\},\s*onShow\(\)\s*\{\s*this\.load\(\);\s*this\.loadPending\(\)\s*\}/,
   'overview must load from onShow so returning to the page refreshes its data')
 assert.doesNotMatch(managementIndexJs, /onLoad\(\)[^\n]*this\.load\(/,
   'overview must not also load from onLoad and issue two initial requests')
@@ -75,7 +79,11 @@ assert.match(overviewWxml, /tasks\.collaborationPendingOrderLines/)
 assert.match(overviewWxml, /openCollaborationPending/)
 assert.match(managementIndexJs, /openCollaborationPending\(\)[\s\S]*?\/pages\/doing\/index\/index/,
   'collaboration task must drill into the live unshipped collaboration workspace')
-assert.match(managementIndexJs, /openQuality\(\)[\s\S]*?purchasePerformance\/purchasePerformance\?tab=pending/)
+assert.match(managementIndexJs, /getPurchaseManagementExceptions/)
+assert.match(managementIndexJs, /assignSupplierPurchaseOwner/)
+for (const section of ['当前可处理', '等待其他角色', '阻断与核查', '历史只读提示']) {
+  assert.ok((managementIndexJs + overviewWxml).includes(section), `purchase overview missing pending section: ${section}`)
+}
 assert.match(overviewWxml, /查看采购明细/)
 assert.match(overviewWxml, /按采购需求日期归期/)
 assert.match(overviewWxml, /历史账单/)
@@ -85,8 +93,10 @@ assert.match(overviewWxml, /\{\{item\.batchCount\}\} 批次 · \{\{item\.goodsLi
   'procurement-mode structure must expose batchless goods lines as well as real batch counts')
 assert.doesNotMatch(overviewWxml, />经营结果</,
   'overview must not keep a second inventory-economics formula block')
-assert.equal((overviewWxml.match(/>采购质量与经营</g) || []).length, 1,
-  'purchase management must expose one unified quality and economics entry')
+assert.doesNotMatch(overviewWxml, /管理入口|采购质量与经营|采购员管理|供应方管理/,
+  'purchase overview must not duplicate management-console entries')
+assert.match(overviewWxml, /title="采购总览"/)
+assert.match(overviewWxml, /report-date-filter/)
 assert.doesNotMatch(overviewWxml, /period\.(?:currentRealizedMarginRate|completedFinalMarginRate)(?!Text)/,
   'overview must not render or format raw decimal margin rates')
 assert.match(purchaserListWxml, /当前 \{\{item\.currentTaskCount\}\} 项任务/)
@@ -129,20 +139,13 @@ assert.match(purchaserDetailPage, /OPEN_JRDH_INVENTORY_RECEIPT/)
 assert.match(purchaserDetailPage, /demandScope=SHELF_REPLENISHMENT/)
 const qualityJs = read('subPackage-purchase-management/pages/purchasePerformance/purchasePerformance.js')
 const qualityWxml = read('subPackage-purchase-management/pages/purchasePerformance/purchasePerformance.wxml')
-assert.match(qualityWxml, />待处理</)
-assert.match(qualityWxml, />库存经营</)
-for (const section of ['当前可处理', '等待其他角色', '阻断与核查', '历史只读提示']) {
-  assert.ok((qualityJs + qualityWxml).includes(section), `unified page missing section: ${section}`)
-}
-assert.match(qualityWxml, /入库日期范围/)
+assert.doesNotMatch(qualityWxml, />待处理</)
+assert.match(qualityWxml, /title="库存经营"/)
+assert.match(qualityWxml, /report-date-filter/)
 assert.doesNotMatch(qualityWxml, /九宫格|总损耗率/)
-assert.match(qualityJs, /getPurchaseManagementExceptions/)
 assert.match(qualityJs, /getInventoryPurchasePerformance/)
-assert.match(qualityJs, /ASSIGN_SUPPLIER_PURCHASER/)
-assert.match(qualityJs, /assignSupplierPurchaseOwner/)
-assert.match(qualityJs, /pendingError/)
-assert.match(qualityJs, /inventoryError/)
-assert.match(qualityJs, /result\.total/)
+assert.doesNotMatch(qualityJs, /getPurchaseManagementExceptions|assignSupplierPurchaseOwner|pendingError/)
+assert.match(qualityJs, /dateLabel:\s*'本月'/)
 const pendingStockInJs = read('subPackage/pages/management/purchaseManagement/pendingStockInList/pendingStockInList.js')
 const pendingStockInWxml = read('subPackage/pages/management/purchaseManagement/pendingStockInList/pendingStockInList.wxml')
 assert.match(pendingStockInJs, /getPurchaseManagementPendingStockIns/)

@@ -179,6 +179,14 @@ Page({
     })
   },
 
+  openDateSelector() {
+    this.setData({
+      showCustomDate: true,
+      customStartDate: this.data.startDate || this.data.forecastToday,
+      customEndDate: this.data.endDate || this.data.forecastToday
+    })
+  },
+
   selectDateMode(e) {
     const mode = e.currentTarget.dataset.mode
     if (mode === 'CUSTOM') {

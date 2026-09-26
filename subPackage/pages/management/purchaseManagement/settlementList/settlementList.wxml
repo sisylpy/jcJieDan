@@ -19,7 +19,7 @@
       <view class="supplier-summary"><view><text class="supplier-name">{{supplier.supplierLabel}}</text><text>待选采购 ¥{{supplier.availableText}}</text></view><view><text>已开单未付</text><text class="summary-money">¥{{supplier.outstandingText}}</text></view></view>
       <view class="tabs"><view class="{{tab==='sources'?'active':''}}" data-tab="sources" bindtap="switchTab">待结采购</view><view class="{{tab==='batches'?'active':''}}" data-tab="batches" bindtap="switchTab">结账记录</view><view class="{{tab==='payments'?'active':''}}" data-tab="payments" bindtap="switchTab">付款记录</view></view>
 
-      <view wx:if="{{tab==='sources'}}" class="date-filter"><picker mode="date" value="{{periodStart}}" bindchange="startDate"><text>{{periodStart||'开始日期'}}</text></picker><text>至</text><picker mode="date" value="{{periodEnd}}" bindchange="endDate"><text>{{periodEnd||'结束日期'}}</text></picker><text wx:if="{{periodStart||periodEnd}}" class="pm-link" bindtap="clearDates">清除</text></view>
+      <view wx:if="{{tab==='sources'}}" class="date-filter"><report-date-filter label="{{dateLabel}}" start-date="{{periodStart}}" stop-date="{{periodEnd}}" empty-text="不限制业务日期" bindselect="toDatePage"></report-date-filter><text wx:if="{{periodStart||periodEnd}}" class="pm-link" bindtap="clearDates">清除日期筛选</text></view>
 
       <block wx:if="{{tab==='sources'}}">
         <view wx:if="{{reviewSources.length}}" class="notice warning"><text>有 {{reviewSources.length}} 笔金额待核对资金来源</text><text>尚未确认属于供应商欠款，不会自动进入结账单。</text></view>
@@ -52,7 +52,7 @@
       </block>
 
       <block wx:if="{{tab==='payments'}}">
-        <view class="date-filter"><picker mode="date" value="{{periodStart}}" bindchange="startDate"><text>{{periodStart||'付款开始日'}}</text></picker><text>至</text><picker mode="date" value="{{periodEnd}}" bindchange="endDate"><text>{{periodEnd||'付款结束日'}}</text></picker><text wx:if="{{periodStart||periodEnd}}" class="pm-link" bindtap="clearDates">清除</text></view>
+        <view class="date-filter"><report-date-filter label="{{dateLabel}}" start-date="{{periodStart}}" stop-date="{{periodEnd}}" empty-text="不限制付款日期" bindselect="toDatePage"></report-date-filter><text wx:if="{{periodStart||periodEnd}}" class="pm-link" bindtap="clearDates">清除日期筛选</text></view>
         <view wx:for="{{payments}}" wx:key="paymentId" class="payment-row">
           <view class="row-title"><text>{{item.methodText}} · {{item.paidAt}}</text><text class="amount">¥{{item.amountText}}</text></view>
           <text class="pm-muted">{{item.confirmationText}}</text>

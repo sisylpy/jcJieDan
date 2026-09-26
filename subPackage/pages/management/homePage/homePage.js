@@ -7,7 +7,7 @@ import apiUrl from '../../../../config.js'
 import{
   aaa
 }from '../../../lib/apiibook'
-import {getDisUserInfo} from '../../../../lib/apiDistributer'
+import {getDisUserInfo, getPurchaseManagementOverview} from '../../../../lib/apiDistributer'
 
 Page({
 
@@ -17,6 +17,7 @@ Page({
     if (!userInfo || !userInfo.nxDistributerUserId) {
       return
     }
+    this.loadPurchasePendingCount()
     getDisUserInfo(userInfo.nxDistributerUserId)
     .then(res =>{
       if(res.result.code == 0){
@@ -31,7 +32,8 @@ Page({
           }),
           disId: res.result.data.nxDistributerEntity.nxDistributerId,
           isPlaceholderStoreImg: isPlaceholderStoreImg,
-          canViewSalesAnalysis: Number(res.result.data.nxDiuAdmin) === 0
+          canViewSalesAnalysis: Number(res.result.data.nxDiuAdmin) === 0,
+          canViewSmartReplenishment: Number(res.result.data.nxDiuAdmin) === 0
         })
         wx.setStorageSync('disInfo', res.result.data.nxDistributerEntity);
         wx.setStorageSync('userInfo', res.result.data);
@@ -51,6 +53,8 @@ Page({
     yuyin: 0,
     isPlaceholderStoreImg: false,
     canViewSalesAnalysis: false,
+    canViewSmartReplenishment: false,
+    purchasePendingCount: 0,
     userInfo: {
       nxDistributerEntity: {
         nxDistributerName: '',
@@ -92,6 +96,7 @@ Page({
       url: apiUrl.server,
       userInfo: Object.assign({}, this.data.userInfo, cachedUser),
       canViewSalesAnalysis: Number(cachedUser.nxDiuAdmin) === 0,
+      canViewSmartReplenishment: Number(cachedUser.nxDiuAdmin) === 0,
       disInfo: Object.assign({}, this.data.disInfo, cachedDis, {
         machinePayList: (cachedDis && cachedDis.machinePayList) ? cachedDis.machinePayList : []
       })
@@ -106,6 +111,17 @@ Page({
          yuyin: numValue.length,
        })
      }
+  },
+
+  loadPurchasePendingCount(){
+    getPurchaseManagementOverview({ range: 'TODAY' }).then(res => {
+      const body = res.result || {}
+      if (body.code !== 0) return
+      const tasks = (body.data && body.data.currentTasks) || {}
+      this.setData({ purchasePendingCount: Number(tasks.currentExceptionCount || 0) })
+    }).catch(error => {
+      console.warn('[homePage] purchase pending count unavailable', error)
+    })
   },
 
   removeYuyin(){
@@ -597,6 +613,64 @@ toSalesAnalysis(){
 toPurchasePerformance(){
   wx.navigateTo({
     url: '/subPackage-purchase-management/pages/purchasePerformance/purchasePerformance',
+  })
+},
+
+toPurchaseBatchList(){
+  wx.navigateTo({
+    url: '/subPackage/pages/management/purchaseManagement/purchaseBatchList/purchaseBatchList',
+  })
+},
+
+toPurchaseSupplierList(){
+  wx.navigateTo({
+    url: '/subPackage/pages/management/purchaseManagement/supplierList/supplierList',
+  })
+},
+
+toPurchaserList(){
+  wx.navigateTo({
+    url: '/subPackage/pages/management/purchaseManagement/purchaserList/purchaserList',
+  })
+},
+
+toFinanceOverview(){
+  wx.navigateTo({
+    url: '/subPackage/pages/management/purchaseManagement/financeOverview/financeOverview',
+  })
+},
+
+toReimbursementList(){
+  wx.navigateTo({
+    url: '/subPackage/pages/management/purchaseManagement/reimbursementList/reimbursementList',
+  })
+},
+
+toSettlementList(){
+  wx.navigateTo({
+    url: '/subPackage/pages/management/purchaseManagement/settlementList/settlementList',
+  })
+},
+
+toPaymentList(){
+  wx.navigateTo({
+    url: '/subPackage/pages/management/purchaseManagement/paymentList/paymentList',
+  })
+},
+
+toCustomerOrderAnomalies(){
+  wx.navigateTo({
+    url: '/subPackage/pages/management/customerOrderAnomalies/customerOrderAnomalies',
+  })
+},
+
+toSmartReplenishment(){
+  if (!this.data.canViewSmartReplenishment) {
+    wx.showToast({ title: '只有老板账号可以查看', icon: 'none' })
+    return
+  }
+  wx.navigateTo({
+    url: '/subPackage-charts/pages/smartReplenishment/index/index',
   })
 },
 

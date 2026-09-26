@@ -17,7 +17,7 @@ const PURCHASE_APP_ID = 'wx1ea78d3f33234284'
 export function createPurchaserDetailPage() {
   return {
   data: {
-    navBarHeight: 0, purchaserId: 0, startDate: '', stopDate: '', activeTab: 'TASKS',
+    navBarHeight: 0, purchaserId: 0, startDate: '', stopDate: '', dateType: 'month', dateName: 'thisMonth', dateLabel: '本月', activeTab: 'TASKS',
     detail: { summary: {} }, loading: false, error: '',
     tasks: [], taskPage: 1, taskTotal: 0, taskLoading: false, taskError: '',
     batches: [], batchPage: 1, batchTotal: 0, batchLoading: false, batchError: '',
@@ -30,13 +30,19 @@ export function createPurchaserDetailPage() {
       navBarHeight: app.globalData.navBarHeight * app.globalData.rpxR,
       purchaserId: Number(options.purchaserId),
       startDate: options.startDate || '',
-      stopDate: options.stopDate || ''
+      stopDate: options.stopDate || '',
+      dateLabel: decodeURIComponent(options.dateLabel || '本月')
     })
     this.loadHeader()
     this.loadTasks(true)
   },
 
   onShow() {
+    if (this._dateChanged) {
+      this._dateChanged = false
+      this.reloadPeriod()
+      return
+    }
     if (!this._returningFromBusiness) return
     this._returningFromBusiness = false
     this.loadHeader()
@@ -48,13 +54,12 @@ export function createPurchaserDetailPage() {
   retry() { this.loadHeader(); this.loadTasks(true) },
   retryTasks() { this.loadTasks(true) },
   retryRecords() { this.loadRecords() },
-  changeStart(event) {
-    this.setData({ startDate: event.detail.value })
-    this.reloadPeriod()
+  toDatePage() {
+    wx.navigateTo({ url: '/subPackage-charts/pages/sel/date/date?startDate=' + this.data.startDate + '&stopDate=' + this.data.stopDate + '&dateType=' + this.data.dateType + '&dateName=' + this.data.dateName })
   },
-  changeStop(event) {
-    this.setData({ stopDate: event.detail.value })
-    this.reloadPeriod()
+  onReportDateSelected(selection) {
+    this._dateChanged = true
+    this.setData({ startDate: selection.startDate, stopDate: selection.stopDate, dateType: selection.dateType, dateName: selection.dateName, dateLabel: selection.hanzi || '自定义' })
   },
   reloadPeriod() {
     this.loadHeader()

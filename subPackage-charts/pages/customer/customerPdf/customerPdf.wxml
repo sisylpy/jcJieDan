@@ -14,21 +14,7 @@
 
     <view class="flex-column center-content" style="height: {{windowHeight  - navBarHeight}}rpx; ">
      
-      <view class="flex-row">
-      <view class="p-20" bindtap="toDatePage">
-        <image src="/subPackage-charts/images/purchase/calender.png" class="icon"></image>
-      </view>
-      <view class="flex-column">
-        <view class="flex-row" wx:if="{{startDate == stopDate}}">
-          <view class="font-sm" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
-        </view>
-        <view class="flex-row" wx:else>
-          <view class=" font-sm" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
-          <text class="p-10">-</text>
-          <view class=" font-sm" wx:if="{{stopDate}}">{{tool.transferDateString(stopDate)}}</view>
-        </view>
-      </view>
-    </view>
+      <report-date-filter style="width:100%;" label="{{hanzi || '本月'}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bind:select="toDatePage"></report-date-filter>
      <view class="flex flex-column center-content">
         <image class="empty_image" src="../../../../images/xiuxi.png"></image>
         <text class="font-xl p-20">暂时无订货商品</text>
@@ -41,21 +27,7 @@
 
    <!--  top -->
   <view class=" flex-row-between pr-10 pl-10 border-bottom bg-white">
-    <view class="flex-row">
-      <view class="p-20" bindtap="toDatePage">
-        <image src="/subPackage-charts/images/purchase/calender.png" class="icon"></image>
-      </view>
-      <view class="flex-column">
-        <view class="flex-row" wx:if="{{startDate == stopDate}}">
-          <view class="font-sm" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
-        </view>
-        <view class="flex-row" wx:else>
-          <view class=" font-sm" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
-          <text class="p-10">-</text>
-          <view class=" font-sm" wx:if="{{stopDate}}">{{tool.transferDateString(stopDate)}}</view>
-        </view>
-      </view>
-    </view>
+    <report-date-filter style="flex:1;min-width:0;" label="{{hanzi || '本月'}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bind:select="toDatePage"></report-date-filter>
 
     <view class="flex-row p-20" bindtap="showSearch">
       <image src="{{type !== 'goods' ? '../../../../images/filter.png' : '../../../../images/filter-3-fill.png'}}" class="icon mr-20"></image>
@@ -141,4 +113,3 @@
     </view>
   </view>
 </view>
-

@@ -142,7 +142,7 @@
 
       <view class="performance-entry" bindtap="toPerformance" wx:if="{{batches.length > 0}}">
         <view>
-          <text class="performance-title">采购质量与经营</text>
+          <text class="performance-title">库存经营</text>
           <text class="performance-desc">查看待处理事项与库存批次经营结果</text>
         </view>
         <text class="performance-arrow">›</text>

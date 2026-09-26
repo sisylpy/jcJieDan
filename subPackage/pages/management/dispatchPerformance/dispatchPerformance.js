@@ -10,13 +10,9 @@ Page({
     navBarHeight: 0,
     loading: false,
     errorMessage: '',
-    activeRange: 'today',
-    rangeOptions: [
-      { key: 'today', label: '今天' },
-      { key: 'yesterday', label: '昨天' },
-      { key: 'week', label: '近7天' },
-      { key: 'month', label: '本月' }
-    ],
+    dateType: 'month',
+    dateName: 'thisMonth',
+    dateLabel: '本月',
     startDate: '',
     endDate: '',
     driverOptions: [{ driverUserId: null, driverName: '全部司机' }],
@@ -31,9 +27,16 @@ Page({
     this.setData({
       navBarHeight: app.globalData.navBarHeight * app.globalData.rpxR
     })
-    this.applyQuickRange('today', false)
+    var today = startOfDay(new Date())
+    this.setData({ startDate: formatDate(new Date(today.getFullYear(), today.getMonth(), 1)), endDate: formatDate(today) })
+    this._firstShow = true
     this.loadDriverOptions()
     this.loadData()
+  },
+
+  onShow: function () {
+    if (this._firstShow) { this._firstShow = false; return }
+    if (this._dateChanged) { this._dateChanged = false; this.loadData() }
   },
 
   onPullDownRefresh: function () {
@@ -44,44 +47,13 @@ Page({
     wx.navigateBack({ delta: 1 })
   },
 
-  onQuickRangeTap: function (e) {
-    this.applyQuickRange(e.currentTarget.dataset.key, true)
+  toDatePage: function () {
+    wx.navigateTo({ url: '/subPackage-charts/pages/sel/date/date?startDate=' + this.data.startDate + '&stopDate=' + this.data.endDate + '&dateType=' + this.data.dateType + '&dateName=' + this.data.dateName })
   },
 
-  applyQuickRange: function (key, reload) {
-    var today = startOfDay(new Date())
-    var start = new Date(today.getTime())
-    var end = new Date(today.getTime())
-    if (key === 'yesterday') {
-      start.setDate(start.getDate() - 1)
-      end.setDate(end.getDate() - 1)
-    } else if (key === 'week') {
-      start.setDate(start.getDate() - 6)
-    } else if (key === 'month') {
-      start.setDate(1)
-    }
-    this.setData({
-      activeRange: key,
-      startDate: formatDate(start),
-      endDate: formatDate(end)
-    })
-    if (reload) this.loadData()
-  },
-
-  onStartDateChange: function (e) {
-    var startDate = e.detail.value
-    var endDate = this.data.endDate
-    if (startDate > endDate) endDate = startDate
-    this.setData({ activeRange: 'custom', startDate: startDate, endDate: endDate })
-    this.loadData()
-  },
-
-  onEndDateChange: function (e) {
-    var endDate = e.detail.value
-    var startDate = this.data.startDate
-    if (endDate < startDate) startDate = endDate
-    this.setData({ activeRange: 'custom', startDate: startDate, endDate: endDate })
-    this.loadData()
+  onReportDateSelected: function (selection) {
+    this._dateChanged = true
+    this.setData({ startDate: selection.startDate, endDate: selection.stopDate, dateType: selection.dateType, dateName: selection.dateName, dateLabel: selection.hanzi || '自定义' })
   },
 
   onDriverChange: function (e) {

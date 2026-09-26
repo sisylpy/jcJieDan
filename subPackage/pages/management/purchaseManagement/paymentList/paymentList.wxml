@@ -2,7 +2,7 @@
   <back-navbar style="height:{{navBarHeight}}rpx" title="统一付款记录" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
   <scroll-view scroll-y class="pm-body" style="padding-top:{{navBarHeight}}rpx" bindscrolltolower="loadMore">
     <view class="pm-card filters">
-      <view class="date-row"><picker mode="date" value="{{periodStart}}" bindchange="startDate"><view class="pm-date">{{periodStart}}</view></picker><text>至</text><picker mode="date" value="{{periodEnd}}" bindchange="endDate"><view class="pm-date">{{periodEnd}}</view></picker></view>
+      <report-date-filter label="{{dateLabel}}" start-date="{{periodStart}}" stop-date="{{periodEnd}}" bindselect="toDatePage"></report-date-filter>
       <view class="select-row"><picker range="{{typeOptions}}" range-key="name" value="{{typeIndex}}" bindchange="typeChange"><view class="pm-date">{{typeOptions[typeIndex].name}}⌄</view></picker><picker range="{{recipientOptions}}" range-key="name" value="{{recipientIndex}}" bindchange="recipientChange"><view class="pm-date">{{recipientOptions[recipientIndex].name}}⌄</view></picker></view>
       <view class="search-row"><input placeholder="搜索采购员或供应商" value="{{keyword}}" bindinput="keywordInput" confirm-type="search" bindconfirm="search"/><button size="mini" bindtap="search">查询</button><text bindtap="clearFilters">重置</text></view>
       <text class="scope-text">本页只按实际付款日期统计；用途包括采购员报销、供应商货款和公司直付采购。当前欠付请回采购资金首页查看。</text>

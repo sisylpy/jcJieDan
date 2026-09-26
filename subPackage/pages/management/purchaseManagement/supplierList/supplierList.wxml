@@ -3,16 +3,7 @@
   <scroll-view scroll-y class="supplier-scroll" style="padding-top:{{navBarHeight}}rpx" scroll-top="{{scrollTop}}"
     bindscroll="rememberScroll" bindscrolltolower="more">
     <view class="supplier-body">
-      <view class="date-bar">
-        <text class="calendar-icon">日</text>
-        <picker class="date-picker" mode="date" value="{{startDate}}" bindchange="changeStart">
-          <text>{{startDate||'开始日期'}}</text>
-        </picker>
-        <text class="date-separator">—</text>
-        <picker class="date-picker" mode="date" value="{{stopDate}}" bindchange="changeStop">
-          <text>{{stopDate||'结束日期'}}</text>
-        </picker>
-      </view>
+      <report-date-filter label="{{dateLabel}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bindselect="toDatePage"></report-date-filter>
 
       <view class="search-bar">
         <text class="search-icon">⌕</text>

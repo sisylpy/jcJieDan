@@ -1,1 +1,1 @@
-{"navigationStyle":"custom","usingComponents":{"back-navbar":"/components/back-navbar/back-navbar"}}
+{"navigationStyle":"custom","usingComponents":{"back-navbar":"/components/back-navbar/back-navbar","report-date-filter":"/components/report-date-filter/report-date-filter"}}

@@ -10,17 +10,7 @@
 	</view>
 <view class="flex-column" style=" height: {{windowHeight -  180}}rpx; margin-top: {{120 + statusBarHeight}}rpx; ">
 		
-    <view class="flex-row" >
-			<view class="flex-row p-20" style="width: {{windowWidth  - 40}}rpx; ">
-			<text class="m-10 text-secondary">日期:</text>
-			<view class="" >{{stopDate}}
-			</view>
-			<view class="p-20" bindtap="showCalender" >
-				<image src="../../../../images/add-3.png" class="icon-md"></image>
-			</view>
-		</view>
-	
-		</view>
+    <report-date-filter label="日期" start-date="{{stopDate}}" stop-date="{{stopDate}}" bind:select="showCalender"></report-date-filter>
 
 	<scroll-view style="height: {{windowHeight - 280}}rpx; ">
 		<view class="flex-column p-20">

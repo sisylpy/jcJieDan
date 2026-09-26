@@ -12,24 +12,7 @@
     class="page-scroll"
     style="margin-top: {{navBarHeight}}rpx; height: {{contentHeight}}rpx;"
   >
-    <view class="flex-row-between pl-20 pr-20 border-bottom bg-white">
-      <view class="flex-row date-bar" bindtap="toDatePage">
-        <view class="p-20">
-          <image src="/subPackage-charts/images/purchase/calender.png" class="icon"></image>
-        </view>
-        <view class="flex-column pt-10 font-xs">
-          <view class="font-yuan">{{hanzi}}</view>
-          <view class="flex-row" wx:if="{{startDate == stopDate}}">
-            <view wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
-          </view>
-          <view class="flex-row" wx:else>
-            <view wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
-            <text class="plr-10">-</text>
-            <view wx:if="{{stopDate}}">{{tool.transferDateString(stopDate)}}</view>
-          </view>
-        </view>
-      </view>
-    </view>
+    <report-date-filter label="{{hanzi}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bind:select="toDatePage"></report-date-filter>
 
     <view wx:if="{{loading}}" class="page-state">
       <view class="state-icon">析</view>

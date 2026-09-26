@@ -4,25 +4,7 @@
   <view class="performance-body" style="padding-top: {{navBarHeight}}rpx;">
     <scroll-view scroll-y class="performance-scroll">
     <view class="filter-card">
-      <view class="range-tabs">
-        <view
-          wx:for="{{rangeOptions}}"
-          wx:key="key"
-          class="range-tab {{activeRange === item.key ? 'active' : ''}}"
-          data-key="{{item.key}}"
-          bindtap="onQuickRangeTap"
-        >{{item.label}}</view>
-      </view>
-
-      <view class="date-row">
-        <picker mode="date" value="{{startDate}}" bindchange="onStartDateChange">
-          <view class="date-picker"><text class="date-label">开始</text><text>{{startDate}}</text></view>
-        </picker>
-        <text class="date-separator">至</text>
-        <picker mode="date" value="{{endDate}}" bindchange="onEndDateChange">
-          <view class="date-picker"><text class="date-label">结束</text><text>{{endDate}}</text></view>
-        </picker>
-      </view>
+      <report-date-filter label="{{dateLabel}}" start-date="{{startDate}}" stop-date="{{endDate}}" bindselect="toDatePage"></report-date-filter>
 
       <picker range="{{driverOptions}}" range-key="driverName" value="{{driverIndex}}" bindchange="onDriverChange">
         <view class="driver-picker">

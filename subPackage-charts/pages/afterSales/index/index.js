@@ -18,21 +18,19 @@ function formatDate(date) {
     + '-' + (day < 10 ? '0' + day : day)
 }
 
-// 售后是实时工作台，“过去7天”必须包含今天，方便新建工单立即进入列表。
-function recentSevenDaysIncludingToday() {
+function currentMonthIncludingToday() {
   var today = new Date()
-  var start = new Date(today)
-  start.setDate(today.getDate() - 6)
+  var start = new Date(today.getFullYear(), today.getMonth(), 1)
   return {
     startDate: formatDate(start),
     stopDate: formatDate(today),
-    name: '过去7天'
+    name: '本月'
   }
 }
 
 function afterSalesDateRange(myDate) {
-  if (!myDate || myDate.name === 'lastSevenDays') {
-    return recentSevenDaysIncludingToday()
+  if (!myDate) {
+    return currentMonthIncludingToday()
   }
   if (myDate.name === 'custom') {
     return dateUtils.getDateRange(myDate.name, myDate.startDate, myDate.stopDate)
@@ -100,28 +98,8 @@ Page({
   },
 
   initDate() {
-    var myDate = wx.getStorageSync('myDate')
-    if (myDate) {
-      var dateRange = afterSalesDateRange(myDate)
-      var dateType = myDate.dateType
-      if (myDate.name === 'lastSevenDays' && dateType !== 'week') {
-        dateType = 'week'
-      }
-      this.setData({
-        startDate: dateRange.startDate,
-        stopDate: dateRange.stopDate,
-        dateType: dateType,
-        hanzi: myDate.hanzi || dateRange.name
-      })
-    } else {
-      var range = recentSevenDaysIncludingToday()
-      this.setData({
-        dateType: 'week',
-        startDate: range.startDate,
-        stopDate: range.stopDate,
-        hanzi: range.name
-      })
-    }
+    var range = currentMonthIncludingToday()
+    this.setData({ dateType: 'month', startDate: range.startDate, stopDate: range.stopDate, hanzi: range.name })
   },
 
   toDatePage() {

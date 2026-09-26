@@ -1,0 +1,4 @@
+<view class="date-filter" bindtap="selectDate" hover-class="date-filter-hover">
+  <view class="calendar" aria-hidden="true"><view class="calendar-rings"></view><view class="calendar-line"></view></view>
+  <view class="date-copy"><text class="date-label">{{label || '自定义'}}</text><text class="date-range">{{rangeText}}</text></view>
+</view>

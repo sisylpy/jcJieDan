@@ -9,7 +9,7 @@ const app = JSON.parse(read('app.json'))
 const pages = app.subPackages.find(item => item.root === 'subPackage/').pages
 const qualityPages = app.subPackages.find(item => item.root === 'subPackage-purchase-management/').pages
 must(pages.includes('pages/shelf/inventoryBatchBusiness/inventoryBatchBusiness'), '库存批次经营页未注册')
-must(qualityPages.includes('pages/purchasePerformance/purchasePerformance'), '采购质量与经营页未注册')
+must(qualityPages.includes('pages/purchasePerformance/purchasePerformance'), '库存经营页未注册')
 
 const api = read('lib/apiDistributer.js')
 ;['getInventoryBatchBusiness', 'addInventoryBatchLossFact', 'changeInventoryBatchPrice',
@@ -32,9 +32,9 @@ must(detailWxml.includes('reverseFact'), '损耗事实必须支持冲销而非�
 
 const performance = read('subPackage-purchase-management/pages/purchasePerformance/purchasePerformance.wxml')
 const performanceJs = read('subPackage-purchase-management/pages/purchasePerformance/purchasePerformance.js')
-must(performance.includes('待处理') && performance.includes('库存经营'), '联合模块页签不完整')
+must(performance.includes('库存经营') && !performance.includes('待处理'), '库存经营必须是独立页面')
 must(performance.includes('按采购员') && performance.includes('按供应方'), '库存来源维度不完整')
-must(performance.includes('入库日期范围'), '库存批次时间口径未说明')
+must(performance.includes('report-date-filter'), '库存批次必须使用统一日期选择器')
 must(performance.includes('损耗成本') && performance.includes('废弃成本'), '库存经营成本指标不完整')
 must(!performance.includes('总损耗率'), '跨商品指标不能继续叫数量损耗率')
 must(performanceJs.includes('unitSummaries'), '不同单位必须分组展示')

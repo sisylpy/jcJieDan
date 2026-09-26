@@ -177,7 +177,8 @@ assert.ok(pages.includes('pages/management/purchaseManagement/purchaseAmountDeta
 const api = read('lib/apiDistributer.js')
 assert.match(api, /purchaseManagementRequest\('purchase-amount-records', data\)/)
 
-const homeJs = read('subPackage/pages/management/purchaseManagement/index/index.js')
+const homeJs = read('subPackage/pages/management/purchaseManagement/index/index.js') + '\n' +
+  read('utils/purchaseManagementOverviewPage.js')
 const homeWxml = read('subPackage/pages/management/purchaseManagement/index/index.wxml')
 const detailJs = read('subPackage/pages/management/purchaseManagement/purchaseAmountDetail/purchaseAmountDetail.js')
 const detailWxml = read('subPackage/pages/management/purchaseManagement/purchaseAmountDetail/purchaseAmountDetail.wxml')

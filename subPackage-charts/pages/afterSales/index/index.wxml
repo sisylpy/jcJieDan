@@ -2,24 +2,7 @@
 <back-navbar title="售后管理" avatar="/images/back-gray.png" button-text="" bindnavbuttontap="toBack"></back-navbar>
 
 <view class="after-page" style="padding-top: {{navBarHeight}}rpx;">
-  <view class="flex-row-between pl-20 pr-20 border-bottom bg-white">
-    <view class="flex-row date-bar" bindtap="toDatePage">
-      <view class="p-20">
-        <image src="/subPackage-charts/images/purchase/calender.png" class="icon"></image>
-      </view>
-      <view class="flex-column pt-10 font-xs">
-        <view class="font-yuan">{{hanzi}}</view>
-        <view class="flex-row" wx:if="{{startDate == stopDate}}">
-          <view wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
-        </view>
-        <view class="flex-row" wx:else>
-          <view wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
-          <text class="plr-10">-</text>
-          <view wx:if="{{stopDate}}">{{tool.transferDateString(stopDate)}}</view>
-        </view>
-      </view>
-    </view>
-  </view>
+  <report-date-filter label="{{hanzi}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bind:select="toDatePage"></report-date-filter>
 
   <view class="loading" wx:if="{{loading}}">加载中...</view>
   <view class="error-card" wx:elif="{{errorText}}">{{errorText}}</view>

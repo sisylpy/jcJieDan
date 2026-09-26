@@ -10,7 +10,6 @@ import {
   formatMoney,
   formatQuantities,
   percentageLabel,
-  rangeForDays,
   validateSalesRange
 } from '../../../../utils/salesAnalysisView'
 import apiUrl from '../../../../config.js'
@@ -20,12 +19,12 @@ Page({
   data: {
     navBarHeight: 0,
     contentHeight: 0,
-    range: rangeForDays(30),
+    range: currentMonthRange(),
     startDate: '',
     stopDate: '',
     dateType: 'month',
-    dateName: 'lastThirtyDays',
-    hanzi: '过去30天',
+    dateName: 'thisMonth',
+    hanzi: '本月',
     update: false,
     loading: true,
     detailLoading: false,
@@ -64,7 +63,7 @@ Page({
     const ratio = globalData.rpxR || 1
     const navBarHeight = (globalData.navBarHeight || 0) * ratio
     const windowHeight = (globalData.windowHeight || 0) * ratio
-    const range = rangeForDays(30)
+    const range = currentMonthRange()
     this.setData({
       navBarHeight,
       contentHeight: Math.max(0, windowHeight - navBarHeight),
@@ -72,8 +71,8 @@ Page({
       startDate: range.startDate,
       stopDate: range.endDate,
       dateType: 'month',
-      dateName: 'lastThirtyDays',
-      hanzi: '过去30天',
+      dateName: 'thisMonth',
+      hanzi: '本月',
       update: false
     })
     this._dateBeforeSelection = null
@@ -422,3 +421,10 @@ Page({
     return result.data || {}
   }
 })
+
+function currentMonthRange() {
+  const end = new Date()
+  const start = new Date(end.getFullYear(), end.getMonth(), 1)
+  const iso = date => date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0')
+  return { startDate: iso(start), endDate: iso(end) }
+}

@@ -8,11 +8,7 @@
           <view><text class="pm-name">{{detail.purchaserName||('历史采购员 #'+purchaserId)}}</text><text class="pm-badge name-badge">{{detail.purchaserStatusText}}</text></view>
           <text class="pm-muted">{{detail.accountStatusText}}</text>
         </view>
-        <view class="date-line">
-          <picker mode="date" value="{{startDate}}" bindchange="changeStart"><text class="pm-date">{{startDate}}</text></picker>
-          <text>至</text>
-          <picker mode="date" value="{{stopDate}}" bindchange="changeStop"><text class="pm-date">{{stopDate}}</text></picker>
-        </view>
+        <report-date-filter label="{{dateLabel}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bindselect="toDatePage"></report-date-filter>
         <view class="summary-line">
           <view><text class="summary-label">当前任务</text><text class="summary-number">{{detail.summary.currentTaskCount||0}} 项</text></view>
           <view><text class="summary-label">本期采购记录</text><text class="summary-number">{{detail.summary.periodPurchaseRecordCount||0}} 条</text></view>

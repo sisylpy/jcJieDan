@@ -6,21 +6,7 @@
 
 <!--  top -->
 <view class=" flex-row-between border-bottom bg-white"  style="margin-top: {{navBarHeight}}rpx;">
-  <view class="flex-row">
-    <view class="p-20" bindtap="toDatePage">
-      <image src="/subPackage/images/calender.png" class="icon"></image>
-    </view>
-    <view class="flex-column">
-      <view class="flex-row" wx:if="{{startDate == stopDate}}">
-        <view class=" small" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
-      </view>
-      <view class="flex-row" wx:else>
-        <view class=" small" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
-        <text class="p-10">-</text>
-        <view class=" small" wx:if="{{stopDate}}">{{tool.transferDateString(stopDate)}}</view>
-      </view>
-    </view>
-  </view>
+  <report-date-filter style="flex:1;min-width:0;" label="{{hanzi || '本月'}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bind:select="toDatePage"></report-date-filter>
   
   <view class="flex-row p-20" bindtap="toFilter">
     <!-- <image src="{{searchDepIds !== -1 ? '../../../../images/filter.png' : '../../../../images/filter-3-fill.png'}}" class="icon mr-20"></image> -->

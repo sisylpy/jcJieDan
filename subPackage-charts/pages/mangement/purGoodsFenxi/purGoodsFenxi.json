@@ -1,7 +1,8 @@
 {
   "usingComponents": {
     "ec-canvas": "../../../ec-canvas/ec-canvas",
-    "back-navbar": "/components/back-navbar/back-navbar"
+    "back-navbar": "/components/back-navbar/back-navbar",
+    "report-date-filter": "/components/report-date-filter/report-date-filter"
   },
   "enablePullDownRefresh": true,
   "onReachBottomDistance": 50

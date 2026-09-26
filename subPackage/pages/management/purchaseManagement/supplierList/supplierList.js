@@ -75,6 +75,9 @@ Page({
     navBarHeight: 0,
     startDate: '',
     stopDate: '',
+    dateType: 'month',
+    dateName: 'thisMonth',
+    dateLabel: '本月',
     supplierType: '',
     keyword: '',
     sort: 'LAST_PURCHASE',
@@ -94,15 +97,21 @@ Page({
   },
 
   onLoad(options) {
+    const stopDate = options.stopDate || today()
     this.setData({
       navBarHeight: app.globalData.navBarHeight * app.globalData.rpxR,
-      startDate: options.startDate || '',
-      stopDate: options.stopDate || ''
+      startDate: options.startDate || stopDate.slice(0, 7) + '-01',
+      stopDate
     })
     this.syncAndLoad()
   },
 
   onShow() {
+    if (this._dateChanged) {
+      this._dateChanged = false
+      this.syncAndLoad()
+      return
+    }
     if (this._loaded && this._savedScrollTop > 0) {
       this.setData({ scrollTop: this._savedScrollTop })
     }
@@ -119,14 +128,13 @@ Page({
     this._lastScrollTop = event.detail.scrollTop || 0
   },
 
-  changeStart(event) {
-    this.setData({ startDate: event.detail.value })
-    this.syncAndLoad()
+  toDatePage() {
+    wx.navigateTo({ url: '/subPackage-charts/pages/sel/date/date?startDate=' + this.data.startDate + '&stopDate=' + this.data.stopDate + '&dateType=' + this.data.dateType + '&dateName=' + this.data.dateName })
   },
 
-  changeStop(event) {
-    this.setData({ stopDate: event.detail.value })
-    this.syncAndLoad()
+  onReportDateSelected(selection) {
+    this._dateChanged = true
+    this.setData({ startDate: selection.startDate, stopDate: selection.stopDate, dateType: selection.dateType, dateName: selection.dateName, dateLabel: selection.hanzi || '自定义' })
   },
 
   inputKeyword(event) { this.setData({ keyword: event.detail.value }) },
@@ -232,3 +240,8 @@ Page({
     })
   }
 })
+
+function today() {
+  const date = new Date()
+  return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0')
+}

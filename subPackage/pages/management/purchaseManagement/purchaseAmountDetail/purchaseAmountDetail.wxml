@@ -3,12 +3,7 @@
   <scroll-view scroll-y class="amount-scroll" style="padding-top:{{navBarHeight}}rpx" scroll-top="{{scrollTop}}"
     bindscroll="rememberScroll" bindscrolltolower="more">
     <view class="amount-body">
-      <view class="date-bar">
-        <text class="calendar-icon">日</text>
-        <text class="date-picker">{{startDate}}</text>
-        <text class="date-separator">—</text>
-        <text class="date-picker">{{stopDate}}</text>
-      </view>
+      <report-date-filter label="{{dateLabel}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bindselect="toDatePage"></report-date-filter>
 
       <view wx:if="{{loading}}" class="state-panel"><text class="state-title">正在加载采购明细…</text></view>
       <view wx:elif="{{error}}" class="state-panel error-state">

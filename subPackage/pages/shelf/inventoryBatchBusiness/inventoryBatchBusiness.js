@@ -454,7 +454,7 @@ Page({
   },
 
   toPerformance() {
-    wx.navigateTo({ url: '/subPackage-purchase-management/pages/purchasePerformance/purchasePerformance?tab=inventory' })
+    wx.navigateTo({ url: '/subPackage-purchase-management/pages/purchasePerformance/purchasePerformance' })
   }
 })
 

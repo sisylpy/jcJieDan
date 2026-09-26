@@ -71,10 +71,10 @@ assert.match(detailJs, /value == null \|\| value === ''/,
   'null money must stay unknown rather than becoming zero')
 assert.match(listJs, /supplierType.*startDate.*stopDate.*sort/s,
   'list must forward identity, period and sort to the V2 contract')
-assert.match(listJs, /options\.startDate \|\| ''/)
-assert.match(listJs, /options\.stopDate \|\| ''/)
-assert.doesNotMatch(listJs, /thisMonth|getFirstDateInMonth|本月/,
-  'supplier page must inherit the selected period instead of resetting to this month')
+assert.match(listJs, /options\.startDate \|\| stopDate\.slice\(0, 7\) \+ '-01'/)
+assert.match(listJs, /options\.stopDate \|\| today\(\)/)
+assert.match(listWxml, /report-date-filter/,
+  'supplier page must use the shared date selector and default to this month when no period is inherited')
 assert.match(listJs, /_savedScrollTop/)
 assert.match(listJs, /采购数据加载失败/)
 assert.match(listJs, /items: \[\], total: 0, hasMore: false/,

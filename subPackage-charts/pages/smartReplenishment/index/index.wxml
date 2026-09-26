@@ -15,21 +15,10 @@
   >
     <view class="smart-control-panel">
       <view class="smart-control-heading">
-        <view class="current-date-copy">
-          <text>备货日期</text>
-          <strong wx:if="{{startDate == endDate}}">{{dateModeLabel}} · {{tool.transferDateString(startDate)}}</strong>
-          <strong wx:else>{{dateModeLabel}} · {{tool.transferDateString(startDate)}} - {{tool.transferDateString(endDate)}}</strong>
-        </view>
+        <report-date-filter style="flex:1;min-width:0;" label="{{dateModeLabel}}" start-date="{{startDate}}" stop-date="{{endDate}}" bind:select="openDateSelector"></report-date-filter>
         <view class="customer-filter-button" bindtap="toCustomerPicker" hover-class="card-hover">
           <image src="{{hasCustomerFilter ? '/images/filter.png' : '/images/filter-3-fill.png'}}"></image>
         </view>
-      </view>
-
-      <view class="date-mode-tabs">
-        <view class="date-mode-tab {{dateMode == 'TODAY' ? 'active' : ''}}" data-mode="TODAY" bindtap="selectDateMode">今天</view>
-        <view class="date-mode-tab {{dateMode == 'TOMORROW' ? 'active' : ''}}" data-mode="TOMORROW" bindtap="selectDateMode">明天</view>
-        <view class="date-mode-tab {{dateMode == 'NEXT_7' ? 'active' : ''}}" data-mode="NEXT_7" bindtap="selectDateMode">未来7天</view>
-        <view class="date-mode-tab {{dateMode == 'CUSTOM' || showCustomDate ? 'active' : ''}}" data-mode="CUSTOM" bindtap="selectDateMode">自定义</view>
       </view>
 
       <view class="selected-customer-row" wx:if="{{hasCustomerFilter}}">

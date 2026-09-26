@@ -18,7 +18,7 @@ export function createPurchaserListPage() {
   return {
   data: {
     navBarHeight: 0,
-    startDate: '', stopDate: '', keyword: '', purchaserStatus: '',
+    startDate: '', stopDate: '', dateType: 'month', dateName: 'thisMonth', dateLabel: '本月', keyword: '', purchaserStatus: '',
     sort: 'LAST_PURCHASE', sortIndex: 0,
     sortOptions: [{ value: 'LAST_PURCHASE', name: '最近采购' }, { value: 'NAME', name: '姓名' }],
     items: [], page: 1, pageSize: 20, total: 0,
@@ -36,6 +36,11 @@ export function createPurchaserListPage() {
   },
 
   onShow() {
+    if (this._dateChanged) {
+      this._dateChanged = false
+      this.load(true)
+      return
+    }
     if (!this._returningFromDetail) return
     this._returningFromDetail = false
     const loadedSize = Math.max(20, Math.min(100, this.data.items.length || 20))
@@ -48,8 +53,13 @@ export function createPurchaserListPage() {
   search() { this.load(true) },
   retry() { this.load(true) },
   recordScroll(event) { this.setData({ restoreScrollTop: event.detail.scrollTop }) },
-  changeStart(event) { this.setData({ startDate: event.detail.value }); this.load(true) },
-  changeStop(event) { this.setData({ stopDate: event.detail.value }); this.load(true) },
+  toDatePage() {
+    wx.navigateTo({ url: '/subPackage-charts/pages/sel/date/date?startDate=' + this.data.startDate + '&stopDate=' + this.data.stopDate + '&dateType=' + this.data.dateType + '&dateName=' + this.data.dateName })
+  },
+  onReportDateSelected(selection) {
+    this._dateChanged = true
+    this.setData({ startDate: selection.startDate, stopDate: selection.stopDate, dateType: selection.dateType, dateName: selection.dateName, dateLabel: selection.hanzi || '自定义' })
+  },
   chooseStatus(event) {
     this.setData({ purchaserStatus: event.currentTarget.dataset.value || '' })
     this.load(true)
@@ -101,7 +111,7 @@ export function createPurchaserListPage() {
     wx.navigateTo({
       url: '/subPackage/pages/management/purchaseManagement/purchaserDetail/purchaserDetail?purchaserId=' +
         event.currentTarget.dataset.id + '&startDate=' + encodeURIComponent(this.data.startDate) +
-        '&stopDate=' + encodeURIComponent(this.data.stopDate)
+        '&stopDate=' + encodeURIComponent(this.data.stopDate) + '&dateLabel=' + encodeURIComponent(this.data.dateLabel)
     })
   }
   }

@@ -4,22 +4,7 @@
   <back-navbar style="height: {{navBarHeight}}rpx;" title="经营看板" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
 
   <view class="date-filter flex-row-between pl-20 pr-20 border-bottom bg-white">
-    <view class="date-filter-main flex-row" bindtap="toDatePage">
-      <view class="p-20">
-        <image src="/subPackage-charts/images/purchase/calender.png" class="icon"></image>
-      </view>
-      <view class="flex-column pt-10">
-        <view class="font-yuan">{{hanzi}}</view>
-        <view class="flex-row" wx:if="{{startDate == stopDate}}">
-          <view class="small" wx:if="{{startDate}}">{{tool.transferDateString(startDate)}}</view>
-        </view>
-        <view class="flex-row" wx:else>
-          <view wx:if="{{startDate}}">{{tool.transferDateString(startDate)}}</view>
-          <text class="plr-10">-</text>
-          <view wx:if="{{stopDate}}">{{tool.transferDateString(stopDate)}}</view>
-        </view>
-      </view>
-    </view>
+    <report-date-filter style="flex:1;min-width:0;" label="{{hanzi}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bind:select="toDatePage"></report-date-filter>
     <view class="dashboard-tabs">
       <view class="dashboard-tab {{activeTab == 'date' ? 'is-active' : ''}}" data-tab="date" catchtap="switchDashboardTab">日期</view>
       <view class="dashboard-tab {{activeTab == 'goods' ? 'is-active' : ''}}" data-tab="goods" catchtap="switchDashboardTab">商品</view>

@@ -22,6 +22,8 @@
       </view>
     </view>
 
+    <report-date-filter label="{{dateLabel}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bindselect="toDatePage"></report-date-filter>
+
     <view
       wx:if="{{departmentDisGoodsId}}"
       class="requirement-card {{hasCustomerStandard ? 'has-content' : ''}}"
@@ -49,9 +51,9 @@
         <text class="stat-date">{{summary.currentDate}}</text>
       </view>
       <view class="price-stat">
-        <text class="stat-label">近30天均价</text>
+        <text class="stat-label">本期均价</text>
         <view class="stat-price">¥{{summary.averagePrice}}<text wx:if="{{summary.priceUnit}}">/{{summary.priceUnit}}</text></view>
-        <text class="stat-date">{{summary.averagePrice === '—' ? '近30天无记录' : '真实订单均价'}}</text>
+        <text class="stat-date">{{summary.averagePrice === '—' ? '本期无记录' : '真实订单均价'}}</text>
       </view>
       <view class="price-stat high">
         <text class="stat-label">最高价</text>
@@ -68,15 +70,6 @@
     <view class="trend-section">
       <view class="section-head">
         <text class="section-title">价格趋势</text>
-        <view class="range-tabs">
-          <view
-            class="range-tab {{selectedDays === item ? 'active' : ''}}"
-            wx:for="{{rangeOptions}}"
-            wx:key="*this"
-            data-days="{{item}}"
-            bindtap="selectRange"
-          >{{item}}天</view>
-        </view>
       </view>
 
       <view class="chart-wrap">
@@ -92,7 +85,7 @@
     <view class="history-section">
       <view class="history-title-row">
         <text class="section-title">历史价格明细</text>
-        <text class="history-count">近{{selectedDays}}天 · {{filteredRecords.length}}条</text>
+        <text class="history-count">{{dateLabel}} · {{filteredRecords.length}}条</text>
       </view>
 
       <view wx:if="{{filteredRecords.length}}" class="history-table">

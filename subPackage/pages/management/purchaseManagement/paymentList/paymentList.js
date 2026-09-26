@@ -45,7 +45,7 @@ function decorateDetail(data) {
 
 Page({
   data: { navBarHeight: 0, loading: false, loadingMore: false, error: '', list: [], summary: {}, page: 1, pageSize: 20, hasMore: false,
-    periodStart: '', periodEnd: '', keyword: '', typeIndex: 0, recipientIndex: 0, typeOptions, recipientOptions,
+    periodStart: '', periodEnd: '', dateType: 'month', dateName: 'thisMonth', dateLabel: '本月', keyword: '', typeIndex: 0, recipientIndex: 0, typeOptions, recipientOptions,
     detail: null, detailLoading: false, requestedPaymentId: null },
   onLoad(options) {
     options = options || {}
@@ -53,7 +53,12 @@ Page({
     this.setData({ navBarHeight: app.globalData.navBarHeight * app.globalData.rpxR,
       periodStart: options.periodStart || day(new Date(now.getFullYear(), now.getMonth(), 1)),
       periodEnd: options.periodEnd || day(now), requestedPaymentId: options.paymentId ? Number(options.paymentId) : null })
+    this._firstShow = true
     this.load(true)
+  },
+  onShow() {
+    if (this._firstShow) { this._firstShow = false; return }
+    if (this._dateChanged) { this._dateChanged = false; this.load(true) }
   },
   toBack() { if (this.data.detail) return this.closeDetail(); wx.navigateBack() },
   query() {
@@ -82,15 +87,20 @@ Page({
       .then(() => this.setData({ loading: false, loadingMore: false }))
   },
   loadMore() { if (!this.data.loadingMore && this.data.hasMore) { this.setData({ page: this.data.page + 1 }); this.load(false) } },
-  startDate(event) { this.setData({ periodStart: event.detail.value }); this.load(true) },
-  endDate(event) { this.setData({ periodEnd: event.detail.value }); this.load(true) },
+  toDatePage() {
+    wx.navigateTo({ url: '/subPackage-charts/pages/sel/date/date?startDate=' + this.data.periodStart + '&stopDate=' + this.data.periodEnd + '&dateType=' + this.data.dateType + '&dateName=' + this.data.dateName })
+  },
+  onReportDateSelected(selection) {
+    this._dateChanged = true
+    this.setData({ periodStart: selection.startDate, periodEnd: selection.stopDate, dateType: selection.dateType, dateName: selection.dateName, dateLabel: selection.hanzi || '自定义' })
+  },
   typeChange(event) { this.setData({ typeIndex: Number(event.detail.value) }); this.load(true) },
   recipientChange(event) { this.setData({ recipientIndex: Number(event.detail.value) }); this.load(true) },
   keywordInput(event) { this.setData({ keyword: event.detail.value }) },
   search() { this.load(true) },
   clearFilters() {
     const now = new Date()
-    this.setData({ typeIndex: 0, recipientIndex: 0, keyword: '', periodStart: day(new Date(now.getFullYear(), now.getMonth(), 1)), periodEnd: day(now) })
+    this.setData({ typeIndex: 0, recipientIndex: 0, keyword: '', periodStart: day(new Date(now.getFullYear(), now.getMonth(), 1)), periodEnd: day(now), dateType: 'month', dateName: 'thisMonth', dateLabel: '本月' })
     this.load(true)
   },
   show(event) { this.openDetailById(event.currentTarget.dataset.id) },

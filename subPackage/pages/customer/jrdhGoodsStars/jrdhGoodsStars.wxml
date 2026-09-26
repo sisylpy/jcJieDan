@@ -9,21 +9,7 @@
 
   <!--  top -->
   <view class=" flex-row-between pr-10 pl-10 border-bottom bg-white">
-    <view class="flex-row">
-      <view class="p-20" bindtap="toDatePage">
-        <image src="/subPackage/images/calender.png" class="icon"></image>
-      </view>
-      <view class="flex-column">
-        <view class="flex-row" wx:if="{{startDate == stopDate}}">
-          <view class="font-sm" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
-        </view>
-        <view class="flex-row" wx:else>
-          <view class=" font-sm" wx:if="{{startDate}}"> {{tool.transferDateString(startDate)}}</view>
-          <text class="p-10">-</text>
-          <view class=" font-sm" wx:if="{{stopDate}}">{{tool.transferDateString(stopDate)}}</view>
-        </view>
-      </view>
-    </view>
+    <report-date-filter style="flex:1;min-width:0;" label="{{hanzi || '本月'}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bind:select="toDatePage"></report-date-filter>
 
     <view class="flex-row p-20" bindtap="showSearch">
       <image src="{{type !== 'goods' ? '../../../../images/filter.png' : '../../../../images/filter-3-fill.png'}}" class="icon mr-20"></image>
@@ -142,6 +128,4 @@
   <!-- ./empty -->
 
 </view>
-
-
 

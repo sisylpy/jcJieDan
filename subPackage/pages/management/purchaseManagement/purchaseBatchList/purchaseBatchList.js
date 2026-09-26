@@ -17,7 +17,7 @@ function monthStart(stopDate) {
 Page({
   data: {
     navBarHeight: 0,
-    startDate: '', stopDate: '', page: 1, total: 0, items: [], loading: false, error: '',
+    startDate: '', stopDate: '', dateType: 'month', dateName: 'thisMonth', dateLabel: '本月', page: 1, total: 0, items: [], loading: false, error: '',
     keyword: '', purchasePurpose: '', supplierRelationId: '', supplierIndex: 0,
     supplierOptions: [{ supplierRelationId: '', supplierName: '全部供应方' }],
     sort: 'LATEST', sortIndex: 0,
@@ -36,6 +36,10 @@ Page({
   },
 
   onShow() {
+    if (this._dateChanged) {
+      this._dateChanged = false
+      this.load(true)
+    }
     if (this.data.restoreScrollTop) this.setData({ scrollTop: this.data.restoreScrollTop })
   },
 
@@ -44,8 +48,13 @@ Page({
   search() { this.load(true) },
   retry() { this.load(true) },
   recordScroll(event) { this.setData({ restoreScrollTop: event.detail.scrollTop }) },
-  changeStart(event) { this.setData({ startDate: event.detail.value }); this.load(true) },
-  changeStop(event) { this.setData({ stopDate: event.detail.value }); this.load(true) },
+  toDatePage() {
+    wx.navigateTo({ url: '/subPackage-charts/pages/sel/date/date?startDate=' + this.data.startDate + '&stopDate=' + this.data.stopDate + '&dateType=' + this.data.dateType + '&dateName=' + this.data.dateName })
+  },
+  onReportDateSelected(selection) {
+    this._dateChanged = true
+    this.setData({ startDate: selection.startDate, stopDate: selection.stopDate, dateType: selection.dateType, dateName: selection.dateName, dateLabel: selection.hanzi || '自定义' })
+  },
   choosePurpose(event) {
     this.setData({ purchasePurpose: event.currentTarget.dataset.value || '' })
     this.load(true)

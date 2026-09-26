@@ -13,6 +13,11 @@ page {
   box-sizing: border-box;
 }
 
+report-date-filter {
+  display: block;
+  margin-bottom: 18rpx;
+}
+
 .product-head {
   padding: 8rpx 0 20rpx;
   display: flex;

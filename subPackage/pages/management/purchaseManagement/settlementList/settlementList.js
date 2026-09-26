@@ -103,7 +103,7 @@ function decorateSettlement(item) {
 Page({
   data: {
     navBarHeight: 0, loading: false, error: '', suppliers: [], supplier: null, tab: 'sources',
-    periodStart: '', periodEnd: '', allocations: [], reviewSources: [], list: [], payments: [],
+    periodStart: '', periodEnd: '', dateType: 'month', dateName: 'thisMonth', dateLabel: '全部日期', allocations: [], reviewSources: [], list: [], payments: [],
     selected: [], selectedAmountText: '0.00', creating: false, createRequestKey: '',
     detail: null, detailLoading: false, payBatch: null, payAmount: '', payDate: '',
     payMethodIndex: 0, methods, paying: false, paymentRequestKey: '',
@@ -151,9 +151,16 @@ Page({
     this.loadSupplier()
   },
   switchTab(event) { this.setData({ tab: event.currentTarget.dataset.tab, detail: null }) },
-  startDate(event) { this.setData({ periodStart: event.detail.value }); this.loadSupplier() },
-  endDate(event) { this.setData({ periodEnd: event.detail.value }); this.loadSupplier() },
-  clearDates() { this.setData({ periodStart: '', periodEnd: '' }); this.loadSupplier() },
+  toDatePage() {
+    const stopDate = this.data.periodEnd || today()
+    const startDate = this.data.periodStart || stopDate.slice(0, 7) + '-01'
+    wx.navigateTo({ url: '/subPackage-charts/pages/sel/date/date?startDate=' + startDate + '&stopDate=' + stopDate + '&dateType=' + this.data.dateType + '&dateName=' + this.data.dateName })
+  },
+  onReportDateSelected(selection) {
+    this.setData({ periodStart: selection.startDate, periodEnd: selection.stopDate, dateType: selection.dateType, dateName: selection.dateName, dateLabel: selection.hanzi || '自定义' })
+    this.loadSupplier()
+  },
+  clearDates() { this.setData({ periodStart: '', periodEnd: '', dateType: 'month', dateName: 'thisMonth', dateLabel: '全部日期' }); this.loadSupplier() },
   loadSupplier() {
     const supplier = this.data.supplier
     if (!supplier) return this.loadSuppliers()

@@ -37,6 +37,9 @@ Page({
     navBarHeight: 0,
     startDate: '',
     stopDate: '',
+    dateType: 'month',
+    dateName: 'thisMonth',
+    dateLabel: '本月',
     sourceOptions: SOURCE_OPTIONS,
     sourceIndex: 0,
     sourceType: '',
@@ -71,6 +74,11 @@ Page({
   },
 
   onShow() {
+    if (this._dateChanged) {
+      this._dateChanged = false
+      this.load(true)
+      return
+    }
     if (this._restoreScrollTop) this.setData({ scrollTop: this._restoreScrollTop })
   },
 
@@ -81,6 +89,13 @@ Page({
   toBack() { wx.navigateBack({ delta: 1 }) },
   retry() { this.load(true) },
   rememberScroll(event) { this._lastScrollTop = event.detail.scrollTop || 0 },
+  toDatePage() {
+    wx.navigateTo({ url: '/subPackage-charts/pages/sel/date/date?startDate=' + this.data.startDate + '&stopDate=' + this.data.stopDate + '&dateType=' + this.data.dateType + '&dateName=' + this.data.dateName })
+  },
+  onReportDateSelected(selection) {
+    this._dateChanged = true
+    this.setData({ startDate: selection.startDate, stopDate: selection.stopDate, dateType: selection.dateType, dateName: selection.dateName, dateLabel: selection.hanzi || '自定义' })
+  },
 
   changeSource(event) {
     const index = Number(event.detail.value)

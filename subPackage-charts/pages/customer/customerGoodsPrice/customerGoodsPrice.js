@@ -23,8 +23,11 @@ Page({
     customerStandard: '',
     disGoods: {},
     productImageUrl: '',
-    selectedDays: 30,
-    rangeOptions: [7, 30, 90],
+    startDate: '',
+    stopDate: '',
+    dateType: 'month',
+    dateName: 'thisMonth',
+    dateLabel: '本月',
     ecPrice: {
       lazyLoad: true
     },
@@ -62,6 +65,7 @@ Page({
     const userInfo = wx.getStorageSync('userInfo') || {}
     const distributerEntity = userInfo.nxDistributerEntity || {}
     const departmentDisGoodsId = Number(options.departmentDisGoodsId || options.depDisGoodsId || 0) || null
+    const today = new Date()
 
     this.setData({
       navBarHeight: (globalData.navBarHeight || 0) * (globalData.rpxR || 1),
@@ -76,7 +80,9 @@ Page({
       productInitial: (decodeURIComponent(options.customerGoodsName || '') || disGoods.nxDgGoodsName || '商').slice(0, 1),
       customerStandard: decodeURIComponent(options.customerStandard || ''),
       disGoods,
-      productImageUrl: this._goodsImageUrl(disGoods)
+      productImageUrl: this._goodsImageUrl(disGoods),
+      startDate: this._dateKey(new Date(today.getFullYear(), today.getMonth(), 1)),
+      stopDate: this._dateKey(today)
     })
 
     this._loadHistory()
@@ -230,21 +236,20 @@ Page({
       .finally(() => load.hideLoading())
   },
 
-  selectRange(e) {
-    const days = Number(e.currentTarget.dataset.days)
-    if (!days || days === this.data.selectedDays) return
+  toDatePage() {
+    wx.navigateTo({ url: '/subPackage-charts/pages/sel/date/date?startDate=' + this.data.startDate + '&stopDate=' + this.data.stopDate + '&dateType=' + this.data.dateType + '&dateName=' + this.data.dateName })
+  },
 
-    this.setData({ selectedDays: days }, () => {
-      this._applyRange()
-    })
+  onReportDateSelected(selection) {
+    this.setData({ startDate: selection.startDate, stopDate: selection.stopDate, dateType: selection.dateType, dateName: selection.dateName, dateLabel: selection.hanzi || '自定义' }, () => this._applyRange())
   },
 
   _applyRange() {
     const allRecords = this.data.allRecords || []
-    const filteredRecords = this._recordsWithinDays(allRecords, this.data.selectedDays)
-    const summary = this._buildSummary(allRecords)
+    const filteredRecords = this._recordsWithinRange(allRecords, this.data.startDate, this.data.stopDate)
+    const summary = this._buildSummary(allRecords, filteredRecords)
     const dailyPoints = this._dailyPricePoints(filteredRecords)
-    const trend = this._buildTrend(dailyPoints, this.data.selectedDays)
+    const trend = this._buildTrend(dailyPoints, this.data.dateLabel)
 
     this.setData({
       filteredRecords,
@@ -282,7 +287,7 @@ Page({
       .sort((a, b) => b.timestamp - a.timestamp)
   },
 
-  _buildSummary(allRecords) {
+  _buildSummary(allRecords, periodRecords) {
     if (!allRecords.length) {
       return {
         currentPrice: '—',
@@ -297,8 +302,7 @@ Page({
     }
 
     const latest = allRecords[0]
-    const last30Days = this._recordsWithinDays(allRecords, 30)
-    if (!last30Days.length) {
+    if (!periodRecords.length) {
       return {
         currentPrice: this._money(latest.price),
         currentDate: latest.orderDateText,
@@ -311,14 +315,14 @@ Page({
       }
     }
 
-    const total = last30Days.reduce((sum, item) => sum + item.price, 0)
-    const highest = last30Days.reduce((result, item) => item.price > result.price ? item : result, last30Days[0])
-    const lowest = last30Days.reduce((result, item) => item.price < result.price ? item : result, last30Days[0])
+    const total = periodRecords.reduce((sum, item) => sum + item.price, 0)
+    const highest = periodRecords.reduce((result, item) => item.price > result.price ? item : result, periodRecords[0])
+    const lowest = periodRecords.reduce((result, item) => item.price < result.price ? item : result, periodRecords[0])
 
     return {
       currentPrice: this._money(latest.price),
       currentDate: latest.orderDateText,
-      averagePrice: this._money(total / last30Days.length),
+      averagePrice: this._money(total / periodRecords.length),
       highestPrice: this._money(highest.price),
       highestDate: highest.orderDateText,
       lowestPrice: this._money(lowest.price),
@@ -346,10 +350,10 @@ Page({
       })
   },
 
-  _buildTrend(points, days) {
+  _buildTrend(points, label) {
     if (points.length < 2) {
       return {
-        text: '近' + days + '天价格记录较少，暂时无法判断趋势',
+        text: (label || '所选日期') + '价格记录较少，暂时无法判断趋势',
         tone: 'stable'
       }
     }
@@ -361,20 +365,20 @@ Page({
 
     if (absoluteChange < 2) {
       return {
-        text: '近' + days + '天整体稳定，当前价格与期初接近',
+        text: (label || '所选日期') + '整体稳定，当前价格与期初接近',
         tone: 'stable'
       }
     }
 
     if (change > 0) {
       return {
-        text: '近' + days + '天价格有所上涨，较期初约高' + absoluteChange.toFixed(1) + '%',
+        text: (label || '所选日期') + '价格有所上涨，较期初约高' + absoluteChange.toFixed(1) + '%',
         tone: 'up'
       }
     }
 
     return {
-      text: '近' + days + '天价格有所下降，较期初约低' + absoluteChange.toFixed(1) + '%',
+      text: (label || '所选日期') + '价格有所下降，较期初约低' + absoluteChange.toFixed(1) + '%',
       tone: 'down'
     }
   },
@@ -508,11 +512,12 @@ Page({
     }
   },
 
-  _recordsWithinDays(records, days) {
+  _recordsWithinRange(records, startDate, stopDate) {
     if (!records.length) return []
-    const now = new Date()
-    const end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999)
-    const start = new Date(end.getFullYear(), end.getMonth(), end.getDate() - days + 1)
+    const start = this._parseDate(startDate)
+    const stop = this._parseDate(stopDate)
+    if (!start || !stop) return []
+    const end = new Date(stop.getFullYear(), stop.getMonth(), stop.getDate(), 23, 59, 59, 999)
     return records.filter(item => item.timestamp >= start.getTime() && item.timestamp <= end.getTime())
   },
 

@@ -12,12 +12,14 @@ function responseData(response) {
 function decoratePerson(item) {
   return Object.assign({}, item, { displayName: item.purchaserName || ('采购员 #' + item.purchaserUserId),
     availableText: money(item.availableAmount), outstandingText: money(item.approvedOutstandingAmount),
-    pendingReviewText: money(item.pendingReviewAmount), pendingConfirmationText: money(item.pendingConfirmationAmount) })
+    pendingReviewText: money(item.pendingReviewAmount), pendingConfirmationText: money(item.pendingConfirmationAmount),
+    paidText: money(item.paidAmount) })
 }
 function decorateSupplier(item) {
   return Object.assign({}, item, { displayName: item.supplierName || ('供应商 #' + item.supplierRelationId),
     availableText: money(item.availableAmount), outstandingText: money(item.outstandingAmount),
-    pendingBatchText: money(item.pendingBatchAmount), verifyText: money(item.amountToVerify) })
+    pendingBatchText: money(item.pendingBatchAmount), verifyText: money(item.amountToVerify),
+    paidText: money(item.paidAmount) })
 }
 function decoratePayment(item) {
   const typeName = item.businessType === 'PURCHASER_REIMBURSEMENT' ? '采购员报销'
@@ -28,8 +30,10 @@ function decoratePayment(item) {
 
 Page({
   data: { navBarHeight: 0, loading: false, error: '', summary: {}, purchasers: [], suppliers: [], recentPayments: [],
-    periodStart: '', periodEnd: '', purchaserAvailableText: '0.00', purchaserOutstandingText: '0.00',
-    supplierAvailableText: '0.00', supplierOutstandingText: '0.00', companyDirectOutstandingText: '0.00' },
+    periodStart: '', periodEnd: '', dateType: 'month', dateName: 'thisMonth', dateLabel: '本月', purchaserAvailableText: '0.00', purchaserOutstandingText: '0.00',
+    supplierAvailableText: '0.00', supplierOutstandingText: '0.00', companyDirectOutstandingText: '0.00',
+    unclassifiedAmountText: '0.00', periodPaidText: '0.00', periodPurchaserPaidText: '0.00',
+    periodSupplierPaidText: '0.00', periodCompanyDirectPaidText: '0.00' },
   onLoad() {
     const today = new Date()
     this.setData({ navBarHeight: app.globalData.navBarHeight * app.globalData.rpxR,
@@ -38,8 +42,12 @@ Page({
   },
   onShow() { if (this.loaded) this.load(); this.loaded = true },
   toBack() { wx.navigateBack() },
-  startDate(event) { this.setData({ periodStart: event.detail.value }); this.load() },
-  endDate(event) { this.setData({ periodEnd: event.detail.value }); this.load() },
+  toDatePage() {
+    wx.navigateTo({ url: '/subPackage-charts/pages/sel/date/date?startDate=' + this.data.periodStart + '&stopDate=' + this.data.periodEnd + '&dateType=' + this.data.dateType + '&dateName=' + this.data.dateName })
+  },
+  onReportDateSelected(selection) {
+    this.setData({ periodStart: selection.startDate, periodEnd: selection.stopDate, dateType: selection.dateType, dateName: selection.dateName, dateLabel: selection.hanzi || '自定义' })
+  },
   load() {
     this.setData({ loading: true, error: '' })
     return getPurchaseFinanceOverview({ periodStart: this.data.periodStart, periodEnd: this.data.periodEnd }).then(response => {
@@ -55,7 +63,12 @@ Page({
         purchaserOutstandingText: money(summary.reimbursementOutstandingAmount),
         supplierAvailableText: money(summary.pendingSettlementAmount),
         supplierOutstandingText: money(summary.settlementOutstandingAmount),
-        companyDirectOutstandingText: money(summary.companyDirectOutstandingAmount) })
+        companyDirectOutstandingText: money(summary.companyDirectOutstandingAmount),
+        unclassifiedAmountText: money(summary.unclassifiedAmount),
+        periodPaidText: money(summary.periodPaidAmount),
+        periodPurchaserPaidText: money(summary.periodPurchaserPaidAmount),
+        periodSupplierPaidText: money(summary.periodSupplierPaidAmount),
+        periodCompanyDirectPaidText: money(summary.periodCompanyDirectPaidAmount) })
     }).catch(error => this.setData({ error: error.message || '采购资金加载失败' }))
       .then(() => this.setData({ loading: false }))
   },

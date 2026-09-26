@@ -1,6 +1,7 @@
 {
   "usingComponents": {
     "back-navbar": "/components/back-navbar/back-navbar",
+    "report-date-filter": "/components/report-date-filter/report-date-filter",
     "ec-canvas": "/subPackage-charts/ec-canvas/ec-canvas"
   },
   "enablePullDownRefresh": true
