@@ -101,8 +101,10 @@ assert.match(purchaserDetailWxml, /当前未结束任务，不受上方历史日
 assert.match(purchaserDetailWxml, /当前处理：/)
 assert.match(purchaserDetailWxml, /item\.canOperate\|\|item\.actionCode==='OPEN_BOSS_BATCH'/,
   'only the responsible owner identity may execute a JRDH purchaser action; Boss batch reads remain available')
-assert.match(purchaserDetailWxml, /采购记录按/)
-assert.doesNotMatch(purchaserDetailWxml, /确认收货|待入库|损耗率|毛利/)
+assert.match(purchaserDetailWxml, /采购记录 · \{\{startDate\}\} 至 \{\{stopDate\}\}/)
+assert.match(purchaserDetailWxml, /recordStatusOptions/,
+  'purchase records may be filtered by their formal business status, including waiting for stock-in')
+assert.doesNotMatch(purchaserDetailWxml, /确认收货|损耗率|毛利/)
 
 assert.match(read('subPackage/pages/management/homePage/homePage.wxml'), /采购管理/)
 const batchDetailJs = read('subPackage/pages/management/purchaseManagement/purchaseBatchDetail/purchaseBatchDetail.js')
@@ -172,12 +174,16 @@ assert.match(purchaserDetailEntryJs, /createPurchaserDetailPage/,
   'subpackage keeps only the purchaser detail entry while page logic lives in the main package')
 assert.match(purchaserDetailJs, /getPurchaseManagementPurchaserTasks/,
   'detail page must load current tasks from their own date-independent endpoint')
-assert.match(purchaserDetailWxml, /自采记录（\{\{directTotal\}\}）/,
-  'detail must split direct-purchase records into their own section')
-assert.match(purchaserDetailWxml, /采购批次（\{\{batchTotal\}\}）/,
-  'real order batches keep their own section header')
-for (const field of ['purchaseStatusText', 'quantityText', 'priceText', 'subtotalText', 'specText']) {
-  assert.match(purchaserDetailWxml, new RegExp('item\\.' + field), `detail card must render direct record field ${field}`)
+assert.match(purchaserDetailWxml, /recordGroups/,
+  'batch and direct-purchase records must share one categorized purchase-record view')
+assert.match(purchaserDetailWxml, /recordModeOptions/,
+  'the unified record view must expose the purchase-mode filter')
+assert.match(purchaserDetailWxml, /recordStatusOptions/,
+  'the unified record view must expose the business-status filter')
+assert.match(purchaserDetailWxml, /recordSortOptions/,
+  'the unified record view must expose record sorting')
+for (const field of ['imageUrl', 'title', 'sourceText', 'statusText', 'quantityPriceText', 'amountText']) {
+  assert.match(purchaserDetailWxml, new RegExp('item\\.' + field), `unified detail card must render ${field}`)
 }
 assert.match(purchaserDetailJs, /pkgPurchase\/pages\/purchaseTasks\/purchaseTasks/)
 assert.match(purchaserDetailJs, /pkgPurchase\/pages\/txs\/purPrepareBatch\/purPrepareBatch/)

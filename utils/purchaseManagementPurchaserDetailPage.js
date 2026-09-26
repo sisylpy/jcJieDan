@@ -4,6 +4,11 @@ import {
   getPurchaseManagementPurchaserBatches,
   getPurchaseManagementPurchaserDirectPurchases
 } from '../lib/apiDistributer.js'
+import apiUrl from '../config.js'
+import {
+  buildPurchaserRecordView,
+  purchaserRecordInitialState
+} from './purchaseManagementPurchaserRecordView.js'
 
 const app = getApp()
 const PAGE_SIZE = 20
@@ -57,7 +62,9 @@ export function createPurchaserDetailPage() {
   },
   chooseTab(event) {
     const tab = event.currentTarget.dataset.value
-    this.setData({ activeTab: tab })
+    const initial = tab === 'RECORDS' && !this.data.recordsLoaded
+      ? purchaserRecordInitialState() : {}
+    this.setData(Object.assign({ activeTab: tab }, initial))
     if (tab === 'RECORDS' && !this.data.recordsLoaded) this.loadRecords()
   },
 
@@ -93,9 +100,22 @@ export function createPurchaserDetailPage() {
   },
 
   loadRecords() {
-    this.setData({ recordsLoaded: true })
+    this.setData(Object.assign({
+      recordsLoaded: true,
+      batches: [],
+      directItems: []
+    }, purchaserRecordInitialState()))
     this.loadBatches(true)
     this.loadDirect(true)
+  },
+
+  recordView(batches, directItems, statePatch) {
+    return buildPurchaserRecordView(
+      batches,
+      directItems,
+      Object.assign({}, this.data, statePatch || {}),
+      apiUrl.server
+    )
   },
 
   loadBatches(reset) {
@@ -109,10 +129,11 @@ export function createPurchaserDetailPage() {
       const body = res.result || {}
       if (body.code !== 0) throw new Error(body.msg || '采购批次加载失败')
       const data = body.data || {}
-      this.setData({
-        batches: reset ? (data.items || []) : this.data.batches.concat(data.items || []),
+      const batches = reset ? (data.items || []) : this.data.batches.concat(data.items || [])
+      this.setData(Object.assign({
+        batches,
         batchPage: page, batchTotal: data.total || 0
-      })
+      }, this.recordView(batches, this.data.directItems)))
     }).catch(error => this.setData({ batchError: error.message || '采购批次加载失败' }))
       .then(() => this.setData({ batchLoading: false }))
   },
@@ -129,10 +150,11 @@ export function createPurchaserDetailPage() {
       if (body.code !== 0) throw new Error(body.msg || '自采记录加载失败')
       const data = body.data || {}
       const list = (data.items || []).map(item => this.decorateDirect(item))
-      this.setData({
-        directItems: reset ? list : this.data.directItems.concat(list),
+      const directItems = reset ? list : this.data.directItems.concat(list)
+      this.setData(Object.assign({
+        directItems,
         directPage: page, directTotal: data.total || 0
-      })
+      }, this.recordView(this.data.batches, directItems)))
     }).catch(error => this.setData({ directError: error.message || '自采记录加载失败' }))
       .then(() => this.setData({ directLoading: false }))
   },
@@ -148,8 +170,43 @@ export function createPurchaserDetailPage() {
     item.subtotalText = this.moneyText(item.purchaseSubtotal)
     item.specText = (item.purchaseStandard || item.purchaseUnit || item.goodsStandard || '').trim()
     item.purchasePurposeText = source === 'ORDER_GENERATED' ? '客户订单订货'
-      : (source === 'SHELF_REPLENISHMENT' || source === 'SMART_REPLENISHMENT') ? '库存备货' : '用途待核对'
+      : (source === 'SHELF_REPLENISHMENT' || source === 'UNSHELVED_REPLENISHMENT' ||
+        source === 'VOICE_PURCHASE' || source === 'SMART_REPLENISHMENT') ? '库存备货' : '用途待核对'
     return item
+  },
+
+  chooseRecordGroup(event) {
+    const activeRecordGroup = event.currentTarget.dataset.value || 'ALL'
+    this.setData(Object.assign(
+      { activeRecordGroup },
+      this.recordView(this.data.batches, this.data.directItems, { activeRecordGroup })
+    ))
+  },
+  changeRecordMode(event) {
+    const recordModeIndex = Number(event.detail.value || 0)
+    this.setData(Object.assign(
+      { recordModeIndex },
+      this.recordView(this.data.batches, this.data.directItems, { recordModeIndex })
+    ))
+  },
+  changeRecordStatus(event) {
+    const recordStatusIndex = Number(event.detail.value || 0)
+    this.setData(Object.assign(
+      { recordStatusIndex },
+      this.recordView(this.data.batches, this.data.directItems, { recordStatusIndex })
+    ))
+  },
+  changeRecordSort(event) {
+    const recordSortIndex = Number(event.detail.value || 0)
+    this.setData(Object.assign(
+      { recordSortIndex },
+      this.recordView(this.data.batches, this.data.directItems, { recordSortIndex })
+    ))
+  },
+
+  openRecord(event) {
+    const batchId = event.currentTarget.dataset.id
+    if (batchId) this.openBatchById(batchId)
   },
 
   numberText(value) {
