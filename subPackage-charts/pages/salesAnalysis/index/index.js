@@ -1,7 +1,9 @@
 import {
   getSalesAnalysisOverview,
   getSalesAnalysisCategory,
-  getSalesAnalysisProductCustomers
+  getSalesAnalysisProductCustomers,
+  getSalesAnalysisCategoryCustomers,
+  getSalesAnalysisCustomerProducts
 } from '../../../../lib/apiDistributer'
 
 import {
@@ -27,11 +29,7 @@ Page({
     hanzi: '本月',
     update: false,
     loading: true,
-    detailLoading: false,
-    productLoading: false,
     pageError: '',
-    detailError: '',
-    productError: '',
     summary: {
       salesAmountText: '¥0',
       customerCount: 0,
@@ -40,21 +38,31 @@ Page({
       quantityText: '暂无有效数量',
       quantityNote: '按原交易单位统计'
     },
+    qualityIssueCount: 0,
+
+    // 两种分析模式：按商品 / 按客户
+    viewMode: 'goods',
     categories: [],
-    selectedCategoryId: null,
-    selectedCategoryName: '商品大类',
-    topCustomers: [],
-    subcategories: [],
+    expandedCategoryId: null,
+
+    // 按商品模式：左侧大类 -> 小类，右侧选中小类的商品
+    goodsDetail: {},
     selectedSubcategoryId: null,
     selectedSubcategoryName: '商品',
     products: [],
     visibleProducts: [],
     keyword: '',
-    qualityIssueCount: 0,
-    drawerOpen: false,
-    selectedProduct: null,
-    productCustomers: [],
-    productOthers: null
+
+    // 按客户模式：左侧大类 -> 客户，右侧选中客户的商品
+    customerList: {},
+    selectedCustomerId: null,
+    selectedCustomerName: '',
+    customerProducts: [],
+    customerProductPage: 1,
+    customerProductTotal: 0,
+    customerProductFinished: false,
+    customerProductLoading: false,
+    productError: ''
   },
 
   onLoad() {
@@ -78,6 +86,7 @@ Page({
     this._dateBeforeSelection = null
     this._overviewRequestId = 0
     this._detailRequestId = 0
+    this._customerListRequestId = 0
     this._productRequestId = 0
     this.loadReport()
   },
@@ -120,6 +129,7 @@ Page({
   onUnload() {
     this._overviewRequestId += 1
     this._detailRequestId += 1
+    this._customerListRequestId += 1
     this._productRequestId += 1
   },
 
@@ -161,8 +171,8 @@ Page({
     }
 
     const requestId = ++this._overviewRequestId
-    this._closeDrawer()
-    this.setData({ loading: true, pageError: '', detailError: '' })
+    this._resetDetail()
+    this.setData({ loading: true, pageError: '' })
     try {
       const response = await getSalesAnalysisOverview(Object.assign({}, this.data.range))
       if (requestId !== this._overviewRequestId) return
@@ -170,7 +180,6 @@ Page({
       const categories = (overview.categories || []).map(item => this._decorateCategory(item))
       const summary = overview.summary || {}
       const quality = overview.quality || {}
-      this._overview = overview
       this.setData({
         loading: false,
         summary: {
@@ -186,13 +195,10 @@ Page({
             : '按原交易单位统计'
         },
         categories,
-        topCustomers: this._decorateCustomers(overview.topCustomers || []),
         qualityIssueCount: this._qualityIssueCount(quality)
       })
       if (categories.length) {
-        await this._selectCategory(categories[0])
-      } else {
-        this._resetDetail()
+        this._expandCategory(categories[0].id)
       }
     } catch (error) {
       if (requestId !== this._overviewRequestId) return
@@ -205,67 +211,95 @@ Page({
     }
   },
 
-  selectCategory(e) {
-    const category = this._findById(this.data.categories, 'id', e.currentTarget.dataset.id)
-    if (category) this._selectCategory(category)
+  switchMode(e) {
+    const mode = e.currentTarget.dataset.mode
+    if (mode === this.data.viewMode) return
+    this._resetDetail()
+    this.setData({ viewMode: mode })
+    if (this.data.categories.length) {
+      this._expandCategory(this.data.categories[0].id)
+    }
   },
 
-  async _selectCategory(category) {
+  toggleCategory(e) {
+    const id = Number(e.currentTarget.dataset.id)
+    if (this.data.expandedCategoryId === id) {
+      this.setData({
+        expandedCategoryId: null,
+        selectedSubcategoryId: null,
+        selectedSubcategoryName: '商品',
+        selectedCustomerId: null,
+        selectedCustomerName: '',
+        customerProducts: []
+      })
+      return
+    }
+    this._expandCategory(id)
+  },
+
+  _expandCategory(id) {
+    this.setData({ expandedCategoryId: id })
+    if (this.data.viewMode === 'goods') {
+      if (!this.data.goodsDetail[id]) {
+        this.setData({
+          ['goodsDetail.' + id]: { loadingChildren: true, subcategories: [], products: [], loaded: false, error: '' }
+        })
+        this._loadCategoryDetail(id)
+      }
+    } else {
+      if (!this.data.customerList[id]) {
+        this.setData({
+          ['customerList.' + id]: { loading: true, list: [], page: 0, total: 0, totalPages: 0, finished: false, error: '' }
+        })
+        this._loadCategoryCustomers(id, 1)
+      }
+    }
+  },
+
+  async _loadCategoryDetail(id) {
     const requestId = ++this._detailRequestId
-    this._closeDrawer()
-    this._products = []
-    this.setData({
-      selectedCategoryId: category.id,
-      selectedCategoryName: category.name,
-      selectedSubcategoryId: null,
-      selectedSubcategoryName: '商品',
-      subcategories: [],
-      products: [],
-      visibleProducts: [],
-      keyword: '',
-      detailLoading: true,
-      detailError: ''
-    })
     try {
-      const response = await getSalesAnalysisCategory(
-        category.id,
-        Object.assign({}, this.data.range)
-      )
+      const response = await getSalesAnalysisCategory(id, Object.assign({}, this.data.range))
       if (requestId !== this._detailRequestId) return
       const detail = this._requireData(response, '商品大类加载失败')
       const subcategories = (detail.subcategories || []).map(item => this._decorateSubcategory(item))
       const products = (detail.products || []).map(item => this._decorateProduct(item))
-      this._products = products
       this.setData({
-        detailLoading: false,
-        selectedCategoryName: detail.category && detail.category.name
-          ? detail.category.name
-          : category.name,
-        subcategories,
-        products,
-        topCustomers: this._decorateCustomers(detail.topCustomers || [])
+        ['goodsDetail.' + id]: { loadingChildren: false, subcategories, products, loaded: true, error: '' }
       })
-      if (subcategories.length) this._selectSubcategory(subcategories[0])
+      if (subcategories.length) {
+        this._selectSubcategory(id, subcategories[0])
+      }
     } catch (error) {
       if (requestId !== this._detailRequestId) return
       this.setData({
-        detailLoading: false,
-        detailError: error && error.message ? error.message : '商品大类加载失败'
+        ['goodsDetail.' + id]: {
+          loadingChildren: false,
+          subcategories: [],
+          products: [],
+          loaded: true,
+          error: error && error.message ? error.message : '商品大类加载失败'
+        }
       })
     }
   },
 
   selectSubcategory(e) {
-    const item = this._findById(this.data.subcategories, 'id', e.currentTarget.dataset.id)
-    if (item) this._selectSubcategory(item)
+    const categoryId = Number(e.currentTarget.dataset.category)
+    const subId = Number(e.currentTarget.dataset.id)
+    const detail = this.data.goodsDetail[categoryId]
+    if (!detail) return
+    const sub = this._findById(detail.subcategories, 'id', subId)
+    if (sub) this._selectSubcategory(categoryId, sub)
   },
 
-  _selectSubcategory(item) {
-    this._closeDrawer()
+  _selectSubcategory(categoryId, sub) {
+    const detail = this.data.goodsDetail[categoryId] || {}
     this.setData({
-      selectedSubcategoryId: item.id,
-      selectedSubcategoryName: item.name,
-      keyword: ''
+      selectedSubcategoryId: sub.id,
+      selectedSubcategoryName: sub.name,
+      keyword: '',
+      products: detail.products || []
     })
     this._applyProductFilter()
   },
@@ -283,7 +317,7 @@ Page({
   _applyProductFilter() {
     const selectedId = this.data.selectedSubcategoryId
     const keyword = (this.data.keyword || '').trim().toLowerCase()
-    const visibleProducts = (this._products || []).filter(item => {
+    const visibleProducts = (this.data.products || []).filter(item => {
       if (String(item.subcategoryId) !== String(selectedId)) return false
       if (!keyword) return true
       return [item.goodsName, item.goodsStandard]
@@ -292,70 +326,159 @@ Page({
     this.setData({ visibleProducts })
   },
 
-  openProduct(e) {
-    const product = this._findById(this._products || [], 'goodsId', e.currentTarget.dataset.id)
-    if (!product) return
-    this._loadProductCustomers(product)
+  // ---- 按客户模式 ----
+
+  _updateCustomerList(id, patch) {
+    const prev = this.data.customerList[id] || {
+      list: [], page: 0, total: 0, totalPages: 0, finished: false, loading: false, error: ''
+    }
+    this.setData({ ['customerList.' + id]: Object.assign({}, prev, patch) })
   },
 
-  async _loadProductCustomers(product) {
-    const requestId = ++this._productRequestId
-    this.setData({
-      drawerOpen: true,
-      selectedProduct: product,
-      productCustomers: [],
-      productOthers: null,
-      productLoading: true,
-      productError: ''
-    })
+  async _loadCategoryCustomers(id, page) {
+    const requestId = ++this._customerListRequestId
+    this._updateCustomerList(id, { loading: true, error: '' })
     try {
-      const response = await getSalesAnalysisProductCustomers(
-        product.goodsId,
+      const response = await getSalesAnalysisCategoryCustomers(
+        id,
         Object.assign({}, this.data.range),
-        200
+        page,
+        20
       )
-      if (requestId !== this._productRequestId) return
-      const detail = this._requireData(response, '客户分布加载失败')
-      this.setData({
-        selectedProduct: this._decorateProduct(detail.product || product),
-        productCustomers: this._decorateCustomers(detail.customers || []),
-        productOthers: detail.others ? this._decorateCustomer(detail.others) : null,
-        productLoading: false
+      if (requestId !== this._customerListRequestId) return
+      const detail = this._requireData(response, '客户列表加载失败')
+      const newItems = this._decorateCustomers(detail.customers || [])
+      const prev = this.data.customerList[id] || { list: [] }
+      const merged = page === 1 ? newItems : (prev.list || []).concat(newItems)
+      const total = Number(detail.totalCount || 0)
+      this._updateCustomerList(id, {
+        loading: false,
+        list: merged,
+        page: Number(detail.page || page),
+        totalPages: Number(detail.totalPages || 0),
+        total,
+        finished: merged.length >= total
       })
+      if (page === 1 && newItems.length && !this.data.selectedCustomerId) {
+        this._selectCustomer(id, newItems[0])
+      }
     } catch (error) {
-      if (requestId !== this._productRequestId) return
-      this.setData({
-        productLoading: false,
-        productError: error && error.message ? error.message : '客户分布加载失败'
+      if (requestId !== this._customerListRequestId) return
+      this._updateCustomerList(id, {
+        loading: false,
+        error: error && error.message ? error.message : '客户列表加载失败'
       })
     }
   },
 
-  closeDrawer() {
-    this._closeDrawer()
+  selectCustomer(e) {
+    const categoryId = Number(e.currentTarget.dataset.category)
+    const custId = Number(e.currentTarget.dataset.id)
+    const list = (this.data.customerList[categoryId] || {}).list || []
+    const cust = this._findById(list, 'customerId', custId)
+    if (cust) this._selectCustomer(categoryId, cust)
   },
 
-  stopTap() {},
-
-  _closeDrawer() {
-    this._productRequestId += 1
+  _selectCustomer(categoryId, cust) {
     this.setData({
-      drawerOpen: false,
-      productLoading: false,
-      productError: ''
+      selectedCustomerId: cust.customerId,
+      selectedCustomerName: cust.customerName,
+      customerProducts: [],
+      customerProductPage: 1,
+      customerProductTotal: 0,
+      customerProductFinished: false
     })
+    this._loadCustomerProducts(categoryId, cust.customerId, 1)
   },
+
+  async _loadCustomerProducts(categoryId, customerId, page) {
+    const requestId = ++this._productRequestId
+    this.setData({ customerProductLoading: true, productError: '' })
+    try {
+      const response = await getSalesAnalysisCustomerProducts(
+        categoryId,
+        customerId,
+        Object.assign({}, this.data.range),
+        page,
+        20
+      )
+      if (requestId !== this._productRequestId) return
+      const detail = this._requireData(response, '商品明细加载失败')
+      const newItems = (detail.products || []).map(item => this._decorateProduct(item))
+      const merged = page === 1 ? newItems : this.data.customerProducts.concat(newItems)
+      const total = Number(detail.totalCount || 0)
+      this.setData({
+        customerProducts: merged,
+        customerProductPage: Number(detail.page || page),
+        customerProductTotal: total,
+        customerProductFinished: merged.length >= total,
+        customerProductLoading: false,
+        selectedCustomerName: (detail.customer && detail.customer.customerName)
+          || this.data.selectedCustomerName
+      })
+    } catch (error) {
+      if (requestId !== this._productRequestId) return
+      this.setData({
+        customerProductLoading: false,
+        productError: error && error.message ? error.message : '商品明细加载失败'
+      })
+    }
+  },
+
+  loadMoreCustomers(e) {
+    const id = Number(e.currentTarget.dataset.id)
+    const list = this.data.customerList[id]
+    if (!list || list.loading || list.finished) return
+    this._loadCategoryCustomers(id, (list.page || 0) + 1)
+  },
+
+  loadMoreCustomerProducts() {
+    if (this.data.customerProductLoading || this.data.customerProductFinished) return
+    if (!this.data.selectedCustomerId) return
+    this._loadCustomerProducts(
+      this.data.expandedCategoryId,
+      this.data.selectedCustomerId,
+      (this.data.customerProductPage || 0) + 1
+    )
+  },
+
+  onTreeScrollToLower() {
+    if (this.data.viewMode !== 'customer') return
+    const id = this.data.expandedCategoryId
+    if (!id) return
+    const list = this.data.customerList[id]
+    if (!list || list.loading || list.finished) return
+    this._loadCategoryCustomers(id, (list.page || 0) + 1)
+  },
+
+  onProductScrollToLower() {
+    if (this.data.viewMode !== 'customer') return
+    this.loadMoreCustomerProducts()
+  },
+
+  // ---- 内部工具 ----
 
   _resetDetail() {
-    this._products = []
+    this._detailRequestId += 1
+    this._customerListRequestId += 1
+    this._productRequestId += 1
     this.setData({
-      selectedCategoryId: null,
-      selectedCategoryName: '商品大类',
+      expandedCategoryId: null,
+      goodsDetail: {},
       selectedSubcategoryId: null,
       selectedSubcategoryName: '商品',
-      subcategories: [],
       products: [],
-      visibleProducts: []
+      visibleProducts: [],
+      keyword: '',
+      customerList: {},
+      selectedCustomerId: null,
+      selectedCustomerName: '',
+      customerProducts: [],
+      customerProductPage: 1,
+      customerProductTotal: 0,
+      customerProductFinished: false,
+      customerProductLoading: false,
+      productError: ''
     })
   },
 
@@ -382,6 +505,7 @@ Page({
       quantityText: formatQuantities(item.quantities),
       averagePriceText: formatAveragePrices(item.averagePrices),
       customerCountText: Number(item.customerCount || 0) + '家',
+      orderCountText: Number(item.orderCount || 0) + '次',
       topCustomerText: (item.topCustomers || []).map(customer => customer.customerName).join('、') || '暂无'
     })
   },

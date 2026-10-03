@@ -647,3 +647,229 @@ page {
 .error-text {
   color: #ad3f47;
 }
+
+/* ===== 主从布局：顶部概要 + 开关，下方左树右详情 ===== */
+.page-body {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  background: #f3f7f5;
+}
+
+.top-scroll {
+  flex: none;
+  box-sizing: border-box;
+  padding: 18rpx 20rpx 8rpx;
+}
+
+.mode-toggle {
+  margin-top: 16rpx;
+  display: flex;
+  padding: 6rpx;
+  background: #e7eeea;
+  border-radius: 14rpx;
+}
+
+.mode-option {
+  flex: 1;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #5d6a63;
+  font-size: 25rpx;
+  font-weight: 700;
+  border-radius: 10rpx;
+  transition: all 0.15s ease;
+}
+
+.mode-option.active {
+  color: #0d7d49;
+  background: #fff;
+  box-shadow: 0 4rpx 12rpx rgba(28, 67, 47, 0.1);
+}
+
+.analysis-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: row;
+  box-sizing: border-box;
+  padding: 14rpx 16rpx calc(20rpx + env(safe-area-inset-bottom));
+  gap: 14rpx;
+}
+
+.tree-pane {
+  width: 268rpx;
+  flex: none;
+  height: 100%;
+  box-sizing: border-box;
+  background: #fff;
+  border: 1rpx solid #dfe8e3;
+  border-radius: 16rpx;
+}
+
+.detail-pane {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  box-sizing: border-box;
+  background: #fff;
+  border: 1rpx solid #dfe8e3;
+  border-radius: 16rpx;
+}
+
+.tree-node {
+  border-bottom: 1rpx solid #eef2f0;
+}
+
+.tree-node:last-child {
+  border-bottom: 0;
+}
+
+.tree-category {
+  padding: 18rpx 16rpx;
+  cursor: pointer;
+}
+
+.tree-category.open {
+  background: #f1f8f4;
+}
+
+.tree-category-main {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.tree-category-main strong {
+  overflow: hidden;
+  font-size: 26rpx;
+  color: #233129;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.caret {
+  color: #0b8b52;
+  font-size: 22rpx;
+  flex: none;
+}
+
+.tree-category-meta {
+  margin-top: 10rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8rpx;
+  color: #7f8b85;
+  font-size: 19rpx;
+}
+
+.tree-share {
+  color: #0b8b52;
+  font-weight: 650;
+}
+
+.tree-children {
+  padding: 6rpx 12rpx 14rpx 30rpx;
+  background: #f7faf8;
+}
+
+.tree-child {
+  padding: 15rpx 14rpx;
+  margin-top: 8rpx;
+  background: #fff;
+  border: 2rpx solid transparent;
+  border-radius: 12rpx;
+  cursor: pointer;
+}
+
+.tree-child.active {
+  background: #eaf7f0;
+  border-color: #16a05f;
+}
+
+.tree-child-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8rpx;
+}
+
+.tree-child-main strong {
+  overflow: hidden;
+  font-size: 24rpx;
+  color: #24322b;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tree-child-main text {
+  color: #0b8b52;
+  font-size: 20rpx;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.tree-child-meta {
+  display: block;
+  margin-top: 7rpx;
+  color: #7e8b84;
+  font-size: 18rpx;
+}
+
+.tree-loading,
+.tree-empty {
+  padding: 24rpx 14rpx;
+  color: #89958f;
+  font-size: 21rpx;
+  text-align: center;
+}
+
+.tree-loadmore {
+  margin: 14rpx 8rpx 6rpx;
+  height: 64rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #0d7d49;
+  font-size: 22rpx;
+  font-weight: 700;
+  background: #eef6f1;
+  border-radius: 12rpx;
+}
+
+.detail-head {
+  min-height: 84rpx;
+  padding: 16rpx 22rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16rpx;
+  border-bottom: 1rpx solid #e7eeea;
+}
+
+.detail-head strong {
+  color: #223129;
+  font-size: 28rpx;
+}
+
+.detail-head > text {
+  color: #829089;
+  font-size: 20rpx;
+  white-space: nowrap;
+}
+
+.detail-loadmore {
+  margin: 16rpx 22rpx 24rpx;
+}
+
+/* 商品明细列里的搜索框与列表沿用既有 .product-search / .product-row 样式 */
+.detail-pane .product-search {
+  margin: 14rpx 18rpx;
+}
+
+.detail-pane .product-list {
+  padding-bottom: 20rpx;
+}
