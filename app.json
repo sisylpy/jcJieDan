@@ -329,7 +329,7 @@
   },
   "plugins": {
     "QCloudAIVoice": {
-      "version": "3.0.0",
+      "version": "2.3.12",
       "provider": "wx3e17776051baf153"
     }
   },

@@ -12,6 +12,14 @@ const confirmTemplate = readFileSync('subPackage-order/pages/purchase/voiceConfi
 const api = readFileSync('lib/apiDepOrder.js', 'utf8');
 const cloud = readFileSync('lib/miniProgramCloud.js', 'utf8');
 
+test('老板端使用已获批的腾讯云语音插件版本', () => {
+  const config = JSON.parse(app);
+  assert.deepEqual(config.plugins.QCloudAIVoice, {
+    version: '2.3.12',
+    provider: 'wx3e17776051baf153'
+  });
+});
+
 test('备货页提供独立的语音采购入口并注册输入、确认两个页面', () => {
   assert.match(purchaseTemplate, /aria-label="语音采购"/);
   assert.match(purchaseTemplate, /bindtap="openVoicePurchase"/);
