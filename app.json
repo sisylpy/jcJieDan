@@ -98,6 +98,7 @@
       "pages/management/disUserEdit/disUserEdit",
       "pages/management/disUserEditWeight/disUserEditWeight",
       "pages/management/payPage/payPage",
+      "pages/management/usageCenter/usageCenter",
       "pages/management/payPageMarket/payPageMarket",
       "pages/management/payDetail/payDetail",
       "pages/management/deliveryStrategy/deliveryStrategy",

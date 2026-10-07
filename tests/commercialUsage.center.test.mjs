@@ -9,14 +9,14 @@ const homeJs = fs.readFileSync(path.join(root,
 const homeView = fs.readFileSync(path.join(root,
   'subPackage-home/pages/management/homePage/homePage.wxml'), 'utf8')
 const centerJs = fs.readFileSync(path.join(root,
-  'subPackage-home/pages/management/usageCenter/usageCenter.js'), 'utf8')
+  'subPackage/pages/management/usageCenter/usageCenter.js'), 'utf8')
 const centerView = fs.readFileSync(path.join(root,
-  'subPackage-home/pages/management/usageCenter/usageCenter.wxml'), 'utf8')
+  'subPackage/pages/management/usageCenter/usageCenter.wxml'), 'utf8')
 const appJson = JSON.parse(fs.readFileSync(path.join(root, 'app.json'), 'utf8'))
 
-const homePackage = appJson.subPackages.find(item => item.root === 'subPackage-home/')
-assert.ok(homePackage)
-assert.ok(homePackage.pages.includes('pages/management/usageCenter/usageCenter'))
+const mainPackage = appJson.subPackages.find(item => item.root === 'subPackage/')
+assert.ok(mainPackage)
+assert.ok(mainPackage.pages.includes('pages/management/usageCenter/usageCenter'))
 
 assert.match(homeJs, /commercial-usage\/me/)
 assert.match(homeJs, /toUsageCenter/)
