@@ -1,5 +1,6 @@
 var app = getApp();
 var load = require('../../../../lib/load.js');
+var commercialEntitlement = require('../../../../utils/commercialEntitlement.js');
 import download from "../../../utils/download.js"
 
 import apiUrl from '../../../../config.js'
@@ -23,6 +24,7 @@ Page({
       if(res.result.code == 0){
         const img = res.result.data.nxDistributerEntity.nxDistributerImg || '';
         const isPlaceholderStoreImg = img.indexOf('uploadImage/r.jpg') >= 0;
+        const currentDisInfo = res.result.data.nxDistributerEntity || {}
         this.setData({
           userInfo: res.result.data,
           disInfo: Object.assign({}, res.result.data.nxDistributerEntity, {
@@ -33,7 +35,9 @@ Page({
           disId: res.result.data.nxDistributerEntity.nxDistributerId,
           isPlaceholderStoreImg: isPlaceholderStoreImg,
           canViewSalesAnalysis: Number(res.result.data.nxDiuAdmin) === 0,
-          canViewSmartReplenishment: Number(res.result.data.nxDiuAdmin) === 0
+          canViewSmartReplenishment: Number(res.result.data.nxDiuAdmin) === 0,
+          canUseShelf: commercialEntitlement.hasShelfWorkflowFeature(
+            'SHELF_MANAGEMENT', currentDisInfo)
         })
         wx.setStorageSync('disInfo', res.result.data.nxDistributerEntity);
         wx.setStorageSync('userInfo', res.result.data);
@@ -55,6 +59,7 @@ Page({
     canViewSalesAnalysis: false,
     canViewSmartReplenishment: false,
     purchasePendingCount: 0,
+    canUseShelf: false,
     userInfo: {
       nxDistributerEntity: {
         nxDistributerName: '',
@@ -97,6 +102,8 @@ Page({
       userInfo: Object.assign({}, this.data.userInfo, cachedUser),
       canViewSalesAnalysis: Number(cachedUser.nxDiuAdmin) === 0,
       canViewSmartReplenishment: Number(cachedUser.nxDiuAdmin) === 0,
+      canUseShelf: commercialEntitlement.hasShelfWorkflowFeature(
+        'SHELF_MANAGEMENT', cachedDis),
       disInfo: Object.assign({}, this.data.disInfo, cachedDis, {
         machinePayList: (cachedDis && cachedDis.machinePayList) ? cachedDis.machinePayList : []
       })
@@ -670,6 +677,8 @@ toPurchaseManagement(){
 
 
 toShelf(){
+  if (!commercialEntitlement.requireShelfWorkflowFeature(
+    'SHELF_MANAGEMENT', '货架管理', this.data.disInfo)) return
   wx.navigateTo({ url: '/subPackage/pages/shelf/index/index' })
 },
 

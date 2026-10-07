@@ -1,5 +1,6 @@
 var load = require('../../../../lib/load.js');
 var directStockSubmission = require('../../../../utils/directStockSubmission.js');
+var commercialEntitlement = require('../../../../utils/commercialEntitlement.js');
 
 import apiUrl from '../../../../config.js'
 import {
@@ -225,6 +226,13 @@ Page({
   },
 
   onLoad(e) {
+
+    var entitlementDisInfo = wx.getStorageSync('disInfo') || {};
+    if (!commercialEntitlement.requireShelfWorkflowFeature(
+      'SHELF_MANAGEMENT', '货架管理', entitlementDisInfo)) {
+      wx.navigateBack({ delta: 1 });
+      return;
+    }
 
     const app = getApp();
     const globalData = app.globalData;

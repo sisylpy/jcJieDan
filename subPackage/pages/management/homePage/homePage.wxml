@@ -33,7 +33,7 @@
     <view class="business-section">
       <view class="business-heading"><view class="heading-copy"><view class="heading-mark"></view><text class="heading-title">库存管理</text><text class="heading-subtitle">库存批次与库房管理</text></view></view>
       <view class="business-grid two-column-grid">
-        <view class="business-tile horizontal-tile tone-green" bindtap="toShelf" hover-class="hover" wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}"><view class="business-icon-box"><image src="/images/Focus-Auto.png" class="business-icon"></image></view><view class="horizontal-copy"><text class="business-title">货架</text><text class="business-desc">货架与库位</text></view></view>
+        <view class="business-tile horizontal-tile tone-green" bindtap="toShelf" hover-class="hover" wx:if="{{canUseShelf}}"><view class="business-icon-box"><image src="/images/Focus-Auto.png" class="business-icon"></image></view><view class="horizontal-copy"><text class="business-title">货架</text><text class="business-desc">货架与库位</text></view></view>
         <view class="business-tile horizontal-tile tone-green" bindtap="toStock" hover-class="hover"><view class="business-icon-box"><image src="/images/goods.png" class="business-icon"></image></view><view class="horizontal-copy"><text class="business-title">库存</text><text class="business-desc">当前库存查询</text></view></view>
       </view>
     </view>

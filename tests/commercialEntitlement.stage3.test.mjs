@@ -36,3 +36,15 @@ test('sales staff invitation is hidden behind SALES_STAFF capability', () => {
   assert.match(page, /requireFeature\('SALES_STAFF'/)
   assert.match(page, /salesGrowthEnabled/)
 })
+
+test('formal shelf entry requires both entitlement and applicable business workflow', () => {
+  const helper = read('utils/commercialEntitlement.js')
+  const homePage = read('subPackage/pages/management/homePage/homePage.js')
+  const homeView = read('subPackage/pages/management/homePage/homePage.wxml')
+  const shelfPage = read('subPackage/pages/shelf/index/index.js')
+  assert.match(helper, /hasFeature\(featureCode\) && isShelfBusinessType\(disInfo\)/)
+  assert.match(homePage, /hasShelfWorkflowFeature/)
+  assert.match(homePage, /requireShelfWorkflowFeature/)
+  assert.match(homeView, /wx:if="\{\{canUseShelf\}\}"/)
+  assert.match(shelfPage, /requireShelfWorkflowFeature/)
+})
