@@ -1,6 +1,7 @@
 {
+  "enablePullDownRefresh": true,
+  "backgroundTextStyle": "dark",
   "usingComponents": {
     "back-navbar": "/components/back-navbar/back-navbar"
-
   }
 }
