@@ -1272,38 +1272,25 @@ Page({
   },
 
 
-  _againSearchString(e) {
+  _againSearchString(downloadedGoods) {
+    const searchStr = (this.data.searchStr || '').trim();
 
-    var data = {
-      disId: this.data.disId,
-      searchStr: this.data.searchStr,
-      depId: this.data.depId,
+    // 下载接口已经返回新建的配送商商品。直接把它切换为可下单结果，
+    // 避免再次搜索标准库时把同拼音/简拼商品整批带回来。
+    if (downloadedGoods && downloadedGoods.nxDistributerGoodsId) {
+      this.setData({
+        strArr: [downloadedGoods],
+        nxArr: [],
+        count: 1,
+        isSearching: true,
+        searchLoading: false,
+      });
+      return;
     }
-    queryNxGoodsByQuickSearch(data).then(res => {
-      console.log(res)
-      if(res.result.code == 0){
-        console.log("→ 设置 strArr，长度:", res.result.data.disArr.length);
-        const strArr = res.result.data.disArr || [];
-        const nxArr = res.result.data.nxArr || [];
-        const totalCount = strArr.length + nxArr.length;
-        this.setData({
-          strArr: strArr,
-          nxArr: nxArr,
-          count: totalCount
-        })
-      }else{
-        wx.showToast({
-          title: res.result.msg,
-          icon: 'none'
-        })
-        this.setData({
-          nxArr: [],
-          strArr: [],
-          count: 0
-        })
-      }
-    })
 
+    if (searchStr.length > 0) {
+      this._doSearch(searchStr);
+    }
   },
 
 
@@ -1382,7 +1369,7 @@ Page({
           this.setData({
             showType: 0,
           })
-          this._againSearchString();
+          this._againSearchString(res.result.data);
         } else {
           load.hideLoading();
           wx.showToast({
