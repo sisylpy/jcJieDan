@@ -4,6 +4,7 @@ import { saveCashFeiePrinterSn } from '../../../../lib/apiDistributer'
 var app = getApp();
 var esc = require('../../../../utils/GPutils/esc.js');
 var tsc = require('../../../../utils/GPutils/tsc.js').jpPrinter;
+var commercialEntitlement = require('../../../../utils/commercialEntitlement.js');
 
 Page({
   data: {
@@ -17,6 +18,10 @@ Page({
   },
 
   onLoad: function () {
+    if (!commercialEntitlement.requireFeature('PRINTING', '打印')) {
+      setTimeout(function () { wx.navigateBack({ delta: 1 }); }, 300);
+      return;
+    }
     this.setData({
       navBarHeight: app.globalData.navBarHeight
     });

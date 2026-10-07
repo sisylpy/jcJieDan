@@ -19,6 +19,7 @@ import {
 } from '../../../../utils/smartReplenishmentView'
 
 import apiUrl from '../../../../config.js'
+const commercialEntitlement = require('../../../../utils/commercialEntitlement')
 
 const BASELINE = 'V8_REPLENISHMENT_STATE'
 const CUSTOMER_CACHE_KEY = 'smartReplenishmentCustomerCatalog'
@@ -64,6 +65,10 @@ Page({
   },
 
   onLoad() {
+    if (!commercialEntitlement.requireFeature('SMART_REPLENISHMENT', '智能备货')) {
+      setTimeout(() => wx.navigateBack({ delta: 1 }), 300)
+      return
+    }
     const app = getApp()
     const globalData = app.globalData || {}
     const ratio = globalData.rpxR || 1

@@ -6,6 +6,7 @@ import {
 } from '../../../../lib/apiDistributer.js'
 
 const app = getApp()
+const commercialEntitlement = require('../../../../utils/commercialEntitlement.js')
 
 const REASONS = [
   { code: 'INVENTORY_DIFFERENCE', label: '盘点差异' },
@@ -69,6 +70,10 @@ Page({
   },
 
   onLoad(options) {
+    if (!commercialEntitlement.requireFeature('INVENTORY', '库存批次经营')) {
+      setTimeout(() => wx.navigateBack({ delta: 1 }), 300)
+      return
+    }
     const appData = app.globalData || {}
     const context = wx.getStorageSync('inventoryBatchBusinessContext') || {}
     const requestedStockId = Number(options.stockBatchId) || null
