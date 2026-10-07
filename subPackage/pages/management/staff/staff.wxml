@@ -43,7 +43,7 @@
           <text class="staff-section-title">业务员小程序用户</text>
           <text class="staff-section-subtitle">独立业务员端账号</text>
         </view>
-        <view class="staff-invite-ghost" bindtap="toOpenSalesInvite">邀请业务员</view>
+        <view class="staff-invite-ghost" bindtap="toOpenSalesInvite">{{salesGrowthEnabled ? '邀请业务员' : '销售增长版'}}</view>
       </view>
 
       <view class="staff-user-row staff-sales-row" wx:for="{{salesUserArr}}" wx:key="nxDistributerUserId">

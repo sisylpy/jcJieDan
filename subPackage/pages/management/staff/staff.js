@@ -1,4 +1,5 @@
 var load = require('../../../../lib/load.js');
+var commercialEntitlement = require('../../../../utils/commercialEntitlement.js');
 
 var app = getApp()
 var dateUtils = require('../../../../utils/dateUtil');
@@ -82,7 +83,8 @@ Page({
       navBarHeight: globalData.navBarHeight * globalData.rpxR,     
       rpxRcale: globalData.rpxR,
       url: apiUrl.server,
-      disId: options.disId
+      disId: options.disId,
+      salesGrowthEnabled: commercialEntitlement.hasFeature('SALES_STAFF')
     })
     var userInfo = wx.getStorageSync('userInfo');
     if (userInfo) {
@@ -405,6 +407,7 @@ toStaffCustomers(e) {
 },
 
 toOpenSalesInvite() {
+  if (!commercialEntitlement.requireFeature('SALES_STAFF', '销售人员管理')) return
   if (this.data.salesInviteLoading) return
   this.setData({ salesInviteLoading: true })
   createStaffInvite(3).then(res => {

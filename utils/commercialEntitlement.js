@@ -12,8 +12,7 @@ function snapshot() {
 
 function hasFeature(featureCode) {
   const current = snapshot()
-  // 尚未重新登录、或无订阅老客户保持兼容；真正的安全边界仍在后端。
-  if (!current || current.legacyCompatibility === true) return true
+  if (!current) return false
   const features = Array.isArray(current.entitledFeatures) ? current.entitledFeatures : []
   return features.indexOf(featureCode) >= 0
 }

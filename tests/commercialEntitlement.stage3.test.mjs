@@ -11,15 +11,15 @@ test('owner login transport persists entitlement snapshot without storing Featur
   assert.match(ownerRequest, /setStorageSync\('commercialEntitlement'/)
   assert.match(ownerRequest, /'commercialEntitlement'/)
   assert.match(helper, /commercialEntitlement/)
-  assert.match(helper, /legacyCompatibility === true/)
+  assert.match(helper, /if \(!current\) return false/)
   assert.match(helper, /entitledFeatures/)
   assert.doesNotMatch(helper, /token.*Feature|Feature.*token/i)
 })
 
 test('three representative pages use FeatureCode-based capability gates', () => {
   const cases = [
-    ['subPackage-printer/pages/management/printerSetting/printerSetting.js', 'PRINTING'],
-    ['subPackage/pages/shelf/inventoryBatchBusiness/inventoryBatchBusiness.js', 'INVENTORY'],
+    ['subPackage-printer/pages/management/printerSetting/printerSetting.js', 'CUSTOMER_DOCUMENT'],
+    ['subPackage/pages/shelf/inventoryBatchBusiness/inventoryBatchBusiness.js', 'INVENTORY_BATCH'],
     ['subPackage-charts/pages/smartReplenishment/index/index.js', 'SMART_REPLENISHMENT']
   ]
   for (const [path, feature] of cases) {
@@ -27,4 +27,10 @@ test('three representative pages use FeatureCode-based capability gates', () => 
     assert.match(source, /requireFeature/)
     assert.ok(source.includes(`'${feature}'`), `${path} must gate ${feature}`)
   }
+})
+
+test('sales staff invitation is hidden behind SALES_STAFF capability', () => {
+  const page = read('subPackage/pages/management/staff/staff.js')
+  assert.match(page, /requireFeature\('SALES_STAFF'/)
+  assert.match(page, /salesGrowthEnabled/)
 })

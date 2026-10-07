@@ -268,20 +268,6 @@ Page({
           this._startTaskPollTimer();
         }
         wx.setStorageSync('disInfo', res.result.data.disInfo);
-        if (res.result.data.disInfo.nxDistributerBuyQuantity < 1) {
-          const marketInfo = this.data.disInfo && this.data.disInfo.sysCityMarketEntity;
-          if (!marketInfo || marketInfo.sysCmSelfPrintEnabled == 0) {
-            wx.navigateTo({
-              url: '/subPackage/pages/management/payPage/payPage?type=0',
-            })
-          } else {
-            wx.navigateTo({
-              url: '/subPackage/pages/management/payPageMarket/payPageMarket?type=0',
-            })
-          }
-
-        }
-
         that.getTabBar().setData({
           stockCount: res.result.data.stockCount,
           puringCount: res.result.data.puringCount,
@@ -592,12 +578,6 @@ Page({
         }
       })
     }
-  },
-
-  toPayPage() {
-    wx.navigateTo({
-      url: '../../../subPackage/pages/management/payPage/payPage?type=0',
-    })
   },
 
   toNxDisOrders(e){

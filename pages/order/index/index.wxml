@@ -538,21 +538,6 @@
 
 
 
-<!-- <view class="overlay {{disInfo.nxDistributerBuyQuantity < 1 ? 'show' : ''}}">
-
- 
-<view class="flex-column mmm bg-white font-lg center-content" >
-  <view class="flex-row text-center p-20" >
-    <image src="/images/logo.jpg" mode="aspectFill" class="icon mr-10" />
-    <text>没有点数啦！</text>
-  </view>
-  <view class="flex-column-center twenty_radius p-20" style="background-color: #ffbc65; line-height: 60rpx;width: {{windowWidth - 200}}rpx; margin-bottom: 60rpx;" bind:tap="toPayPage">
-    <view class="font-lg text-center">充值</view>
-  </view>
-</view>
-
-</view> -->
-
 <!-- 图片预览组件 -->
 <imagePreviewModal show="{{showImagePreview}}" image-urls="{{previewImageUrls}}" current-index="{{previewCurrentIndex}}"
   bindclose="onCloseImagePreview" bindchange="onPreviewImageChange"></imagePreviewModal>

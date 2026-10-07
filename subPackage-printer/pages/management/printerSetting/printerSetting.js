@@ -18,7 +18,7 @@ Page({
   },
 
   onLoad: function () {
-    if (!commercialEntitlement.requireFeature('PRINTING', '打印')) {
+    if (!commercialEntitlement.requireFeature('CUSTOMER_DOCUMENT', '客户交易单据打印')) {
       setTimeout(function () { wx.navigateBack({ delta: 1 }); }, 300);
       return;
     }

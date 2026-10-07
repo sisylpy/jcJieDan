@@ -70,7 +70,7 @@ Page({
   },
 
   onLoad(options) {
-    if (!commercialEntitlement.requireFeature('INVENTORY', '库存批次经营')) {
+    if (!commercialEntitlement.requireFeature('INVENTORY_BATCH', '库存批次经营')) {
       setTimeout(() => wx.navigateBack({ delta: 1 }), 300)
       return
     }
