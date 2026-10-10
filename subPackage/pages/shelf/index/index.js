@@ -41,7 +41,7 @@ function scalePriceToPurchaseUnit(baseUnitPrice, factor) {
 
 Page({
 
-  _syncShelfCapabilities(source) {
+  _syncShelfCapabilities(source, allowRefresh) {
     const disInfo = wx.getStorageSync('disInfo') || this.data.disInfo || {};
     const capability = wx.getStorageSync('operatingCapability') || null;
     const entitlement = wx.getStorageSync('commercialEntitlement') || null;
@@ -70,6 +70,56 @@ Page({
       purchaseButtonHiddenReason: flags.canUsePurchaseCore
         ? 'NONE'
         : (!capability ? 'OPERATING_CAPABILITY_MISSING' : 'PURCHASE_CORE_NOT_EFFECTIVE')
+    });
+
+    const disModeCode = disInfo.nxDistributerOperatingModeCode;
+    const capabilityModeCode = capability && capability.operatingModeCode;
+    if (allowRefresh !== false && disModeCode
+      && disModeCode !== capabilityModeCode) {
+      this._refreshShelfCapability(source, disModeCode, capabilityModeCode);
+    }
+  },
+
+  _refreshShelfCapability(source, disModeCode, capabilityModeCode) {
+    if (this._shelfCapabilityRefreshPending) return;
+    this._shelfCapabilityRefreshPending = true;
+    console.warn('[shelf-capability-refresh]', {
+      source: source,
+      reason: 'OPERATING_MODE_MISMATCH',
+      distributerOperatingModeCode: disModeCode,
+      cachedCapabilityOperatingModeCode: capabilityModeCode
+    });
+    getApp().ownerRequest({
+      url: apiUrl.apiUrl + 'commercial-entitlements/me',
+      method: 'GET',
+      success: res => {
+        const body = res.data || {};
+        if (body.code === 0 && body.data) {
+          wx.setStorageSync('commercialEntitlement', body.data);
+        }
+        if (body.code === 0 && body.operatingCapability) {
+          wx.setStorageSync('operatingCapability', body.operatingCapability);
+        } else {
+          console.warn('[shelf-capability-refresh-failed]', {
+            source: source,
+            reason: 'OPERATING_CAPABILITY_NOT_RETURNED',
+            code: body.code,
+            message: body.msg
+          });
+        }
+      },
+      fail: err => {
+        console.warn('[shelf-capability-refresh-failed]', {
+          source: source,
+          reason: 'REQUEST_FAILED',
+          statusCode: err && err.statusCode,
+          message: err && err.errMsg
+        });
+      },
+      complete: () => {
+        this._shelfCapabilityRefreshPending = false;
+        this._syncShelfCapabilities(source + '-refreshed', false);
+      }
     });
   },
 

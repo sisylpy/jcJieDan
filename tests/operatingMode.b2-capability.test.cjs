@@ -38,5 +38,7 @@ const shelfPage = fs.readFileSync(path.join(__dirname, '../subPackage/pages/shel
 assert.match(shelfPage, /_syncShelfCapabilities\('onShow'\)/)
 assert.match(shelfPage, /\[shelf-capability\]/)
 assert.match(shelfPage, /purchaseButtonHiddenReason/)
+assert.match(shelfPage, /OPERATING_MODE_MISMATCH/)
+assert.match(shelfPage, /commercial-entitlements\/me/)
 
 console.log('operatingMode.b2-capability tests passed')
