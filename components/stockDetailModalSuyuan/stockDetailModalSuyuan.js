@@ -238,11 +238,27 @@ Component({
       console.log('完整文件路径:', filePath)
 
       if (reportType === 'image') {
-        // 图片：使用预览
-        wx.previewImage({
-          urls: [filePath],
-          current: filePath,
+        // 私有图片先带老板端凭证下载，再预览本地临时文件。
+        wx.showLoading({ title: '加载中...', mask: true })
+        getApp().ownerDownloadFile({
+          url: filePath,
+          success: (res) => {
+            wx.hideLoading()
+            if (res.statusCode !== 200) {
+              wx.showToast({ title: '加载失败', icon: 'none' })
+              return
+            }
+            wx.previewImage({
+              urls: [res.tempFilePath],
+              current: res.tempFilePath,
+              fail: (err) => {
+                console.error('预览图片失败:', err)
+                wx.showToast({ title: '预览失败', icon: 'none' })
+              }
+            })
+          },
           fail: (err) => {
+            wx.hideLoading()
             console.error('预览图片失败:', err)
             wx.showToast({
               title: '预览失败，请检查网络',
