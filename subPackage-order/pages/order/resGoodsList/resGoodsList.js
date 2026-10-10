@@ -67,11 +67,18 @@ Page({
   searchDebounceTimer: null,
   // 当前搜索请求 ID，用于处理请求竞态
   searchRequestId: 0,
+  // 页面生命周期与返回锁，避免退出后仍操作已销毁的 WebView
+  pageAlive: false,
+  isLeaving: false,
+  keyboardHeightTimer: null,
+  inputBlurTimer: null,
 
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad: function (options) {
+    this.pageAlive = true;
+    this.isLeaving = false;
     console.log('resGoodsList onLoad options:', options);
     const app = getApp();
     const globalData = app.globalData;
@@ -318,7 +325,12 @@ Page({
     // 当键盘弹起时，设置 bottom 为键盘高度，使输入框位于键盘上方
     // 当键盘收起时（height 为 0），设置 bottom 为 20，使输入框回到底部
     // 延迟一下，确保动画流畅
-    setTimeout(() => {
+    if (this.keyboardHeightTimer) {
+      clearTimeout(this.keyboardHeightTimer);
+    }
+    this.keyboardHeightTimer = setTimeout(() => {
+      this.keyboardHeightTimer = null;
+      if (!this.pageAlive) return;
       this.setData({
         keyBordHeight: keyboardHeight * globalData.rpxR,
         bottom: newBottom,
@@ -900,9 +912,7 @@ Page({
               
               // 延迟返回，确保数据已更新
               setTimeout(() => {
-                wx.navigateBack({
-                  delta: 1
-                });
+                this._navigateBackOnce();
               }, 1000);
             } else {
               console.log('未找到 ocrOrder 页面，使用原有逻辑');
@@ -912,9 +922,7 @@ Page({
                 orderItem: res.result.data,
                 addOrder: true,
               })
-              wx.navigateBack({
-                delta: 1
-              })
+              this._navigateBackOnce();
             }
           } else {
             // 原有逻辑：更新上一页的 orderItem
@@ -924,9 +932,7 @@ Page({
               orderItem: res.result.data,
               addOrder: true,
             })
-            wx.navigateBack({
-              delta: 1
-            })
+            this._navigateBackOnce();
           }
 
         } else {
@@ -1001,9 +1007,7 @@ Page({
               
               // 延迟返回，确保数据已更新
               setTimeout(() => {
-                wx.navigateBack({
-                  delta: 1
-                });
+                this._navigateBackOnce();
               }, 1000);
             } else {
               console.log('未找到 ocrOrder 页面，使用原有逻辑');
@@ -1116,7 +1120,12 @@ Page({
     console.log('将在 200ms 后设置 bottom 为 20');
     console.log('==============================');
     
-    setTimeout(() => {
+    if (this.inputBlurTimer) {
+      clearTimeout(this.inputBlurTimer);
+    }
+    this.inputBlurTimer = setTimeout(() => {
+      this.inputBlurTimer = null;
+      if (!this.pageAlive) return;
       const beforeBottom = this.data.bottom;
       this.setData({
         bottom: 20
@@ -1272,48 +1281,50 @@ Page({
   },
 
 
-  _againSearchString(e) {
+  _againSearchString(downloadedGoods) {
+    const searchStr = (this.data.searchStr || '').trim();
 
-    var data = {
-      disId: this.data.disId,
-      searchStr: this.data.searchStr,
-      depId: this.data.depId,
+    // 下载接口已经返回新建的配送商商品。直接把它切换为可下单结果，
+    // 避免再次搜索标准库时把同拼音/简拼商品整批带回来。
+    if (downloadedGoods && downloadedGoods.nxDistributerGoodsId) {
+      this.setData({
+        strArr: [downloadedGoods],
+        nxArr: [],
+        count: 1,
+        isSearching: true,
+        searchLoading: false,
+      });
+      return;
     }
-    queryNxGoodsByQuickSearch(data).then(res => {
-      console.log(res)
-      if(res.result.code == 0){
-        console.log("→ 设置 strArr，长度:", res.result.data.disArr.length);
-        const strArr = res.result.data.disArr || [];
-        const nxArr = res.result.data.nxArr || [];
-        const totalCount = strArr.length + nxArr.length;
-        this.setData({
-          strArr: strArr,
-          nxArr: nxArr,
-          count: totalCount
-        })
-      }else{
-        wx.showToast({
-          title: res.result.msg,
-          icon: 'none'
-        })
-        this.setData({
-          nxArr: [],
-          strArr: [],
-          count: 0
-        })
-      }
-    })
 
+    if (searchStr.length > 0) {
+      this._doSearch(searchStr);
+    }
   },
 
 
 
   onUnload() {
+    this.pageAlive = false;
+    if (this.keyboardHeightTimer) {
+      clearTimeout(this.keyboardHeightTimer);
+      this.keyboardHeightTimer = null;
+    }
+    if (this.inputBlurTimer) {
+      clearTimeout(this.inputBlurTimer);
+      this.inputBlurTimer = null;
+    }
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+      this.searchDebounceTimer = null;
+    }
     let pages = getCurrentPages();
     let prevPage = pages[pages.length - 2];
-    prevPage.setData({
-      updateOrder: true
-    })
+    if (prevPage && typeof prevPage.setData === 'function') {
+      prevPage.setData({
+        updateOrder: true
+      });
+    }
   },
 
 
@@ -1382,7 +1393,7 @@ Page({
           this.setData({
             showType: 0,
           })
-          this._againSearchString();
+          this._againSearchString(res.result.data);
         } else {
           load.hideLoading();
           wx.showToast({
@@ -1405,15 +1416,39 @@ Page({
 
 
 
+  _navigateBackOnce() {
+    if (!this.pageAlive || this.isLeaving) return;
+
+    this.isLeaving = true;
+    const pages = getCurrentPages();
+    const resetLeaving = () => {
+      this.isLeaving = false;
+    };
+
+    if (pages.length > 1) {
+      wx.navigateBack({
+        delta: 1,
+        fail: resetLeaving,
+      });
+      return;
+    }
+
+    // 开发者工具直接以本页作为启动页时没有上一页，返回订单首页。
+    wx.switchTab({
+      url: '/pages/order/index/index',
+      fail: resetLeaving,
+    });
+  },
+
   toBack() {
     let pages = getCurrentPages();
     let prevPage = pages[pages.length - 2];
-    prevPage.setData({
-      updateOrder: true
-    })
-    wx.navigateBack({
-      delta: 1,
-    })
+    if (prevPage && typeof prevPage.setData === 'function') {
+      prevPage.setData({
+        updateOrder: true
+      });
+    }
+    this._navigateBackOnce();
   },
 
 
@@ -1603,9 +1638,7 @@ Page({
             orderItem: res.result.data,
             addOrder: true,
           })
-          wx.navigateBack({
-            delta: 1
-          })
+          this._navigateBackOnce();
 
         } else {
           wx.showToast({

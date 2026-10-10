@@ -280,12 +280,12 @@
       <view class="">修改货架名称</view>
     </view>
 
-    <block wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
-      <view class="flex-row p-30 border-bottom" hover-class="hover" catchtap="toSettleStaff">
+    <block>
+      <view wx:if="{{canManageShelfResponsibility}}" class="flex-row p-30 border-bottom" hover-class="hover" catchtap="toSettleStaff">
         <image src="/images/user-group-2.png" mode="aspectFill" class="icon mr-10" />
         <view class="">设置员工</view>
       </view>
-      <view class="flex-row p-30 border-bottom" hover-class="hover" catchtap="toInventoryShelf">
+      <view wx:if="{{disInfo.nxDistributerBusinessTypeId > 2 || disInfo.nxDistributerOperatingModeCode}}" class="flex-row p-30 border-bottom" hover-class="hover" catchtap="toInventoryShelf">
         <image src="/images/user-group-2.png" mode="aspectFill" class="icon mr-10" />
         <view class="">盘点货架</view>
       </view>

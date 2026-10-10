@@ -1,5 +1,6 @@
 import { addLoss, addReturn, addUse, saveInventoryRecord, transferStockFromBatch } from '../../lib/apiDistributer'
 var load = require('../../lib/load.js')
+var operatingCapability = require('../../utils/operatingCapability.js')
 
 Component({
   properties: {
@@ -42,7 +43,8 @@ Component({
     totalRestWeightDisplay: '0',
     targetShelfGoodsId: null, // 调出目标货架商品ID
     targetShelfGoodsName: '', // 调出目标货架名称
-    targetShelfIndex: -1 // 调出目标货架索引
+    targetShelfIndex: -1, // 调出目标货架索引
+    canTransferShelfStock: false
   },
 
   observers: {
@@ -107,6 +109,8 @@ Component({
       console.log('批次数量:', stockList.length)
       console.log('批次列表:', stockList)
       
+      const disInfo = wx.getStorageSync('disInfo') || {}
+      const capability = wx.getStorageSync('operatingCapability') || null
       this.setData({
         goodsInfo,
         stockList,
@@ -116,7 +120,8 @@ Component({
         operationType: 1,
         inputWeight: '',
         reason: '',
-        canSubmit: false
+        canSubmit: false,
+        canTransferShelfStock: operatingCapability.canTransferShelfStock(disInfo, capability)
       })
       
       console.log('=== 设置完成，showStockList应为true ===')
@@ -154,6 +159,10 @@ Component({
     // 操作类型改变
     typeChange(e) {
       const operationType = parseInt(e.detail.value)
+      if (operationType === 5 && !this.data.canTransferShelfStock) {
+        wx.showToast({ title: '当前经营模式或套餐未开通货架调拨', icon: 'none' })
+        return
+      }
       console.log('=== 切换操作类型 ===')
       console.log('新类型:', operationType, this.getOperationName(operationType))
       
@@ -516,4 +525,3 @@ Component({
     }
   }
 })
-

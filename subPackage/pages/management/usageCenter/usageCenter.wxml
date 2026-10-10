@@ -1,0 +1,34 @@
+<view class="page">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="订单额度" avatar="/images/back-gray.png" button-text="返回" bindnavbuttontap="toBack"></back-navbar>
+
+  <view class="balance-card">
+    <text class="balance-label">当前可用订单商品行</text>
+    <view><text class="balance-number">{{account.availableQuantity}}</text><text class="balance-unit"> 条</text></view>
+    <view class="balance-grid">
+      <view><text>累计授予</text><text>{{account.grantedQuantity}}</text></view>
+      <view><text>累计消费</text><text>{{account.consumedQuantity}}</text></view>
+      <view><text>到期失效</text><text>{{account.expiredQuantity || 0}}</text></view>
+    </view>
+    <button class="quota-button" bindtap="requestMoreQuota">增加订单处理额度</button>
+    <text class="balance-tip">一条订单商品行首次完成履约时消费 1 条；打印、补打和语音识别不消费此额度。</text>
+  </view>
+
+  <view class="ledger-card">
+    <view class="ledger-heading">
+      <text>额度明细</text>
+      <text>不可删除的审计记录</text>
+    </view>
+    <view wx:if="{{loading && !items.length}}" class="empty">正在读取额度明细…</view>
+    <view wx:elif="{{!items.length}}" class="empty">暂无额度变动记录</view>
+    <view class="ledger-row" wx:for="{{items}}" wx:key="ledgerId">
+      <view class="ledger-copy">
+        <view class="ledger-title"><text>{{item.actionName}}</text><text wx:if="{{item.scopeName}}" class="scope">{{item.scopeName}}</text></view>
+        <text class="ledger-subject">{{item.subject}}</text>
+        <text class="ledger-time">{{item.createdText}}</text>
+      </view>
+      <text class="ledger-quantity {{item.positive ? 'positive' : 'negative'}}">{{item.signedQuantity}}</text>
+    </view>
+    <view wx:if="{{loadingMore}}" class="more">正在加载…</view>
+    <view wx:elif="{{items.length && !hasMore}}" class="more">已显示全部记录</view>
+  </view>
+</view>

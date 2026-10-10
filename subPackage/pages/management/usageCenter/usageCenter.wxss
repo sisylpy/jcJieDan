@@ -1,0 +1,29 @@
+page { background: #f3f6f5; color: #18342b; }
+.page { min-height: 100vh; padding-bottom: calc(36rpx + env(safe-area-inset-bottom)); }
+.balance-card, .ledger-card { margin: 20rpx; padding: 28rpx; box-sizing: border-box; border: 1rpx solid #e0e9e5; border-radius: 24rpx; background: #fff; }
+.balance-card { background: linear-gradient(145deg, #eaf9f3, #fff); }
+.balance-label { display: block; color: #6f827a; font-size: 24rpx; }
+.balance-number { color: #07895e; font-size: 72rpx; font-weight: 900; line-height: 1.25; }
+.balance-unit { color: #536b62; font-size: 27rpx; }
+.balance-grid { display: grid; grid-template-columns: repeat(3, 1fr); margin-top: 18rpx; padding: 20rpx 0; border-top: 1rpx solid #dceae4; border-bottom: 1rpx solid #dceae4; }
+.balance-grid view { text-align: center; border-right: 1rpx solid #e3ece8; }
+.balance-grid view:last-child { border-right: 0; }
+.balance-grid text { display: block; color: #7b8c85; font-size: 21rpx; }
+.balance-grid text:last-child { margin-top: 8rpx; color: #26453a; font-size: 28rpx; font-weight: 800; }
+.quota-button { margin-top: 24rpx; border: 0; border-radius: 14rpx; color: #fff; background: linear-gradient(135deg, #078f61, #12ae79); font-size: 28rpx; font-weight: 800; }
+.quota-button::after { border: 0; }
+.balance-tip { display: block; margin-top: 18rpx; color: #75877f; font-size: 22rpx; line-height: 1.55; }
+.ledger-heading { display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 16rpx; border-bottom: 1rpx solid #edf2ef; }
+.ledger-heading text:first-child { font-size: 31rpx; font-weight: 850; }
+.ledger-heading text:last-child { color: #91a09a; font-size: 20rpx; }
+.ledger-row { display: flex; align-items: center; justify-content: space-between; padding: 24rpx 0; border-bottom: 1rpx solid #edf2ef; }
+.ledger-copy { min-width: 0; flex: 1; }
+.ledger-title { display: flex; align-items: center; color: #203d33; font-size: 26rpx; font-weight: 800; }
+.scope { margin-left: 12rpx; padding: 4rpx 9rpx; border-radius: 8rpx; color: #07895e; background: #e7f7f0; font-size: 19rpx; font-weight: 650; }
+.ledger-subject, .ledger-time { display: block; margin-top: 7rpx; color: #687c74; font-size: 22rpx; line-height: 1.45; }
+.ledger-time { color: #9aa6a1; font-size: 20rpx; }
+.ledger-quantity { flex: none; margin-left: 18rpx; font-size: 31rpx; font-weight: 900; }
+.ledger-quantity.positive { color: #07895e; }
+.ledger-quantity.negative { color: #d06f28; }
+.empty, .more { padding: 42rpx 0 22rpx; text-align: center; color: #94a29d; font-size: 24rpx; }
+.more { padding: 24rpx 0 4rpx; }

@@ -1,6 +1,7 @@
 {
+  "navigationStyle": "custom",
   "enablePullDownRefresh": true,
-  "backgroundTextStyle": "dark",
+  "backgroundColor": "#f3f6f5",
   "usingComponents": {
     "back-navbar": "/components/back-navbar/back-navbar"
   }

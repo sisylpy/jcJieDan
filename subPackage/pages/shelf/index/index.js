@@ -1,6 +1,7 @@
 var load = require('../../../../lib/load.js');
 var directStockSubmission = require('../../../../utils/directStockSubmission.js');
 var commercialEntitlement = require('../../../../utils/commercialEntitlement.js');
+var operatingCapability = require('../../../../utils/operatingCapability.js');
 
 import apiUrl from '../../../../config.js'
 import {
@@ -276,7 +277,9 @@ Page({
     var disInfo = wx.getStorageSync('disInfo');
     if (disInfo) {
       this.setData({
-        disInfo: disInfo
+        disInfo: disInfo,
+        canManageShelfResponsibility: operatingCapability.canManageShelfResponsibility(
+          disInfo, wx.getStorageSync('operatingCapability') || null)
       })
     }
     var value = wx.getStorageSync('userInfo');
