@@ -41,7 +41,40 @@ function scalePriceToPurchaseUnit(baseUnitPrice, factor) {
 
 Page({
 
+  _syncShelfCapabilities(source) {
+    const disInfo = wx.getStorageSync('disInfo') || this.data.disInfo || {};
+    const capability = wx.getStorageSync('operatingCapability') || null;
+    const entitlement = wx.getStorageSync('commercialEntitlement') || null;
+    const effectiveFeatures = capability && Array.isArray(capability.effectiveFeatures)
+      ? capability.effectiveFeatures : [];
+    const flags = {
+      canManageShelfResponsibility: operatingCapability.canManageShelfResponsibility(disInfo, capability),
+      canInitializeShelfStock: operatingCapability.canInitializeShelfStock(disInfo, capability),
+      canUsePurchaseCore: operatingCapability.canUsePurchaseCore(disInfo, capability),
+      canCountInventory: operatingCapability.canCountInventory(disInfo, capability)
+    };
+
+    this.setData(Object.assign({ disInfo: disInfo }, flags));
+    console.warn('[shelf-capability]', {
+      source: source,
+      distributerId: disInfo.nxDistributerId,
+      distributerOperatingModeCode: disInfo.nxDistributerOperatingModeCode,
+      capabilityOperatingModeCode: capability && capability.operatingModeCode,
+      explicitOperatingMode: capability && capability.explicitOperatingMode,
+      planCode: entitlement && entitlement.planCode,
+      entitledFeatures: entitlement && entitlement.entitledFeatures,
+      commerciallyEntitledFeatures: capability && capability.commerciallyEntitledFeatures,
+      effectiveFeatures: effectiveFeatures,
+      requiredCommercialGaps: capability && capability.requiredCommercialGaps,
+      flags: flags,
+      purchaseButtonHiddenReason: flags.canUsePurchaseCore
+        ? 'NONE'
+        : (!capability ? 'OPERATING_CAPABILITY_MISSING' : 'PURCHASE_CORE_NOT_EFFECTIVE')
+    });
+  },
+
   onShow() {
+    this._syncShelfCapabilities('onShow');
     console.log('onShow - 页面显示，开始检查刷新条件');
     if (this.data.refreshShelfListOnShow) {
       this._getDisShelfs();
@@ -269,18 +302,7 @@ Page({
       shelfGoodsType: e && e.from === 'pendingStockIn' ? '5' : '99',
     })
     // 
-    var disInfo = wx.getStorageSync('disInfo');
-    if (disInfo) {
-      const capability = wx.getStorageSync('operatingCapability') || null;
-      this.setData({
-        disInfo: disInfo,
-        canManageShelfResponsibility: operatingCapability.canManageShelfResponsibility(
-          disInfo, capability),
-        canInitializeShelfStock: operatingCapability.canInitializeShelfStock(disInfo, capability),
-        canUsePurchaseCore: operatingCapability.canUsePurchaseCore(disInfo, capability),
-        canCountInventory: operatingCapability.canCountInventory(disInfo, capability)
-      })
-    }
+    this._syncShelfCapabilities('onLoad');
     var value = wx.getStorageSync('userInfo');
     if (value) {
       this.setData({
@@ -1005,7 +1027,16 @@ Page({
   },
 
   showChoice(e) {
+    this._syncShelfCapabilities('showChoice');
     var disGoods = e.currentTarget.dataset.goods;
+    console.warn('[shelf-purchase-button]', {
+      disGoodsId: disGoods && disGoods.nxDistributerGoodsId,
+      shelfGoodsId: e.currentTarget.dataset.shelfgoods
+        && e.currentTarget.dataset.shelfgoods.nxDisGoodsShelfGoodsId,
+      canUsePurchaseCore: operatingCapability.canUsePurchaseCore(
+        wx.getStorageSync('disInfo') || this.data.disInfo || {},
+        wx.getStorageSync('operatingCapability') || null)
+    });
     this.setData({
       showOperation: true,
       isEditGoods: true,

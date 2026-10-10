@@ -34,4 +34,9 @@ assert.match(shelfView, /wx:if="\{\{canUsePurchaseCore\}\}"/)
 assert.doesNotMatch(shelfView,
   /nxDistributerBusinessTypeId|nxDistributerProfessionalPurchaseMode|nxDistributerShelfMode|nxDistributerType\s*==/)
 
+const shelfPage = fs.readFileSync(path.join(__dirname, '../subPackage/pages/shelf/index/index.js'), 'utf8')
+assert.match(shelfPage, /_syncShelfCapabilities\('onShow'\)/)
+assert.match(shelfPage, /\[shelf-capability\]/)
+assert.match(shelfPage, /purchaseButtonHiddenReason/)
+
 console.log('operatingMode.b2-capability tests passed')
