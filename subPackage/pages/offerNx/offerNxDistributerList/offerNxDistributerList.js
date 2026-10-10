@@ -1,6 +1,7 @@
 var load = require('../../../../lib/load.js');
 import apiUrl from '../../../../config.js'
 var dateUtils = require('../../../../utils/dateUtil');
+var operatingCapability = require('../../../../utils/operatingCapability.js');
 
 
 import {
@@ -26,6 +27,8 @@ Page({
   },
 
   onShow(){
+
+    if (!this._requirePartnerCapability()) return
 
    
     const app = getApp();
@@ -127,7 +130,17 @@ Page({
         disInfo: disInfo
       })
     }
+    this._requirePartnerCapability()
    
+  },
+
+  _requirePartnerCapability() {
+    const disInfo = this.data.disInfo || wx.getStorageSync('disInfo') || {}
+    const capability = wx.getStorageSync('operatingCapability') || null
+    if (operatingCapability.canUsePartnerCollaboration(disInfo, capability)) return true
+    wx.showToast({ title: '当前经营模式或商业授权未开通协作伙伴', icon: 'none' })
+    this.setData({ partnerAccessDenied: true })
+    return false
   },
 
 

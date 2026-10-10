@@ -3,6 +3,7 @@ import {
   getPurchaseSupplierV2Facts,
   getPurchaseSupplierV2Goods
 } from '../../../../../lib/apiDistributer.js'
+const operatingCapability = require('../../../../../utils/operatingCapability.js')
 
 const app = getApp()
 
@@ -276,6 +277,11 @@ Page({
     }
     let url
     if (this.data.detail.supplierType === 'INTERNAL_DISTRIBUTER') {
+      if (!operatingCapability.canUsePartnerCollaboration(
+        disInfo, wx.getStorageSync('operatingCapability') || null)) {
+        wx.showToast({ title: '当前经营模式或商业授权未开通协作伙伴', icon: 'none' })
+        return
+      }
       url = '/subPackage/pages/offerNx/offerNxDistributerList/offerNxDistributerList?disId=' + currentDisId
     } else if (this.data.detail.supplierType === 'EXTERNAL_JRDH') {
       if (this.data.detail.relationStatus !== 'ACTIVE') {

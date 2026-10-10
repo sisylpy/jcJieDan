@@ -1,6 +1,7 @@
 var app = getApp();
 var load = require('../../../../lib/load.js');
 var commercialEntitlement = require('../../../../utils/commercialEntitlement.js');
+var operatingCapability = require('../../../../utils/operatingCapability.js');
 import download from "../../../utils/download.js"
 
 import apiUrl from '../../../../config.js'
@@ -37,7 +38,9 @@ Page({
           canViewSalesAnalysis: Number(res.result.data.nxDiuAdmin) === 0,
           canViewSmartReplenishment: Number(res.result.data.nxDiuAdmin) === 0,
           canUseShelf: commercialEntitlement.hasShelfWorkflowFeature(
-            'SHELF_MANAGEMENT', currentDisInfo)
+            'SHELF_MANAGEMENT', currentDisInfo),
+          canUsePartnerCollaboration: operatingCapability.canUsePartnerCollaboration(
+            currentDisInfo, wx.getStorageSync('operatingCapability') || null)
         })
         wx.setStorageSync('disInfo', res.result.data.nxDistributerEntity);
         wx.setStorageSync('userInfo', res.result.data);
@@ -60,6 +63,7 @@ Page({
     canViewSmartReplenishment: false,
     purchasePendingCount: 0,
     canUseShelf: false,
+    canUsePartnerCollaboration: false,
     userInfo: {
       nxDistributerEntity: {
         nxDistributerName: '',
@@ -104,6 +108,8 @@ Page({
       canViewSmartReplenishment: Number(cachedUser.nxDiuAdmin) === 0,
       canUseShelf: commercialEntitlement.hasShelfWorkflowFeature(
         'SHELF_MANAGEMENT', cachedDis),
+      canUsePartnerCollaboration: operatingCapability.canUsePartnerCollaboration(
+        cachedDis, wx.getStorageSync('operatingCapability') || null),
       disInfo: Object.assign({}, this.data.disInfo, cachedDis, {
         machinePayList: (cachedDis && cachedDis.machinePayList) ? cachedDis.machinePayList : []
       })
@@ -532,6 +538,12 @@ Page({
   },
 
   toNxDisList(){
+
+    if (!operatingCapability.canUsePartnerCollaboration(
+      this.data.disInfo, wx.getStorageSync('operatingCapability') || null)) {
+      wx.showToast({ title: '当前经营模式或商业授权未开通协作伙伴', icon: 'none' })
+      return
+    }
 
     wx.navigateTo({
       url: '../../offerNx/offerNxDistributerList/offerNxDistributerList?disId=' + this.data.disId,

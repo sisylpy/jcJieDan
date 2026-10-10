@@ -1,6 +1,7 @@
 var load = require('../../../../lib/load.js');
 import { disLogin, saveBusiness } from '../../../../lib/apiDistributer';
 import apiUrl from '../../../../config.js'
+var operatingCapability = require('../../../../utils/operatingCapability.js');
 
 Page({
   data: {
@@ -46,6 +47,17 @@ Page({
               if (res.result.code !== -1) {
                 const myDisId = res.result.data.disInfo.nxDistributerId;
                 const urlDisId = that.data.disId;
+                const capability = wx.getStorageSync('operatingCapability') || null;
+                if (!operatingCapability.canUsePartnerCollaboration(
+                  res.result.data.disInfo, capability)) {
+                  that.setData({ partnerAccessDenied: true });
+                  wx.showModal({
+                    title: '当前不可建立协作',
+                    content: '当前经营模式或商业授权未开通配送商协作，请联系管理员确认。',
+                    showCancel: false
+                  });
+                  return;
+                }
 
                 if (String(myDisId) === String(urlDisId)) {
                   // 邀请方：当前用户就是分享链接的人
@@ -89,6 +101,10 @@ Page({
   },
 
   saveOfferNxDis() {
+    if (this.data.partnerAccessDenied) {
+      wx.showToast({ title: '当前未开通配送商协作', icon: 'none' });
+      return;
+    }
     const { disId, offerDisId, inviteType } = this.data;
     if (!offerDisId || !disId) {
       wx.showToast({ title: '参数异常', icon: 'none' });

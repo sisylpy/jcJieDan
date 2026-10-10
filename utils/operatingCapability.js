@@ -29,8 +29,18 @@ function canTransferShelfStock(disInfo, snapshot) {
     : legacyShelfResponsibility(disInfo)
 }
 
+function canUsePartnerCollaboration(disInfo, snapshot) {
+  if (isExplicit(disInfo, snapshot)) {
+    return hasEffectiveFeature(snapshot, 'PARTNER_DISTRIBUTOR_COLLABORATION') &&
+      hasEffectiveFeature(snapshot, 'PLATFORM_GOODS')
+  }
+  // 未迁移客户继续沿用原平台型 business_type 6/7 入口。
+  return !!disInfo && Number(disInfo.nxDistributerBusinessTypeId) > 5
+}
+
 module.exports = {
   hasEffectiveFeature,
   canManageShelfResponsibility,
-  canTransferShelfStock
+  canTransferShelfStock,
+  canUsePartnerCollaboration
 }
