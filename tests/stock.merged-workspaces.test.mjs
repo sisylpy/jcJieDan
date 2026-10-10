@@ -81,7 +81,9 @@ test('外采工作区顶部提供精彩订货入口并为列表保留正确高�
   assert.match(component, /const purchaseAppEntryBarHeight = viewBarHeight \* rpxRatio/);
   assert.match(component, /contentHeight - \(this\.data\.embedded \? purchaseAppEntryBarHeight \+ 20 : 0\)/);
   assert.match(component, /pages\/workbenchV2\/workbenchV2\?nxDisId=/);
-  assert.match(component, /'&nxDisPurUserId='/);
+  assert.match(component, /jrdhinvite\/owner-entry/);
+  assert.match(component, /'&inviteToken='/);
+  assert.doesNotMatch(component, /nxDisPurUserId/);
   assert.match(component, /'&from=nx'/);
   assert.match(component, /appId:\s*PURCHASE_APP_ID/);
 });
