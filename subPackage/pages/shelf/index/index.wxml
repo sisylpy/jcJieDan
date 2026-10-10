@@ -35,7 +35,7 @@
           <image src="{{isListView ? '/images/liebiao.png' : '/images/suoluetu.png'}}" class="icon"></image>
         </view>
 
-        <block wx:if="{{disInfo.nxDistributerType == -1}}">
+        <block wx:if="{{canInitializeShelfStock}}">
           <view class="button-container mr-20" bindtap="downLoadInitStock">
             <image src="../../../../images/Focus-Auto.png" class="icon"></image>
           </view>
@@ -43,16 +43,6 @@
             <image src="../../../../images/primitive-dot.png" class="icon"></image>
           </view>
         </block>
-        <!-- <block wx:if="{{disInfo.nxDistributerType  == 1}}">
-          <view class="button-container mr-20" bindtap="downLoadInitShelfGoods">
-          <image src="../../../../images/radiobuttonunselect-2.png" class="icon"></image>
-        </view>
-        <view class="button-container mr-20" bindtap="uploadInitShelfGoods">
-          <image src="../../../../images/checkbox-noselected.png" class="icon"></image>
-        </view>
-        </block> -->
-
-
         <view class="button-container mr-20" bindtap="toSearch">
           <image src="../../../../images/search-3.png" class="icon"></image>
         </view>
@@ -64,7 +54,7 @@
           <image src="../../../../images/exchange.png" class="icon"></image>
         </view>
       
-        <view class="button-container mr-20" wx:if="{{disInfo.nxDistributerBusinessTypeId > 1}}" bindtap="toPurchase" data-type="sell">
+        <view class="button-container mr-20" wx:if="{{canUsePurchaseCore}}" bindtap="toPurchase" data-type="sell">
           <image src="../../../../images/jjdhn.png" class="icon"></image>
         </view>
 
@@ -500,7 +490,7 @@
       <image src="/images/user-group-2.png" mode="aspectFill" class="icon mr-10" />
       <view class="">设置员工</view>
     </view>
-    <view wx:if="{{disInfo.nxDistributerBusinessTypeId > 2 || disInfo.nxDistributerOperatingModeCode}}" class="flex-row p-30 border-bottom" hover-class="hover" catchtap="toInventoryShelf">
+    <view wx:if="{{canCountInventory}}" class="flex-row p-30 border-bottom" hover-class="hover" catchtap="toInventoryShelf">
       <image src="/images/user-group-2.png" mode="aspectFill" class="icon mr-10" />
       <view class="">盘点货架</view>
     </view>
@@ -556,19 +546,19 @@
         </view>
       </view>
 
-      <view wx:if="{{disInfo.nxDistributerBusinessTypeId > 2 && disGoods.shelfPurGoods == null}}"
+      <view wx:if="{{canUsePurchaseCore && disGoods.shelfPurGoods == null}}"
         class="p-30 flex-row border-bottom" catchtap="showInputOrder" hover-class="hover">
         <image src="/images/add-active.png" mode="aspectFill" class="icon mr-20" />
         <text> 订货</text>
       </view>
 
-      <view wx:if="{{disInfo.nxDistributerBusinessTypeId > 2 && disGoods.shelfPurGoods == null}}"
+      <view wx:if="{{canUsePurchaseCore && disGoods.shelfPurGoods == null}}"
         class="p-30 flex-row border-bottom" catchtap="toOpenInputPurSock" hover-class="hover">
         <image src="/images/gouwuche-4.png" mode="aspectFill" class="icon mr-20" />
         <text> 直接采购入库</text>
       </view>
 
-      <view wx:if="{{disInfo.nxDistributerBusinessTypeId > 2 && disGoods.shelfPurGoods !== null && disGoods.shelfPurGoods.nxDpgStatus == 2}}"
+      <view wx:if="{{canUsePurchaseCore && disGoods.shelfPurGoods !== null && disGoods.shelfPurGoods.nxDpgStatus == 2}}"
         class="p-30 flex-row border-bottom" catchtap="receivePurGoods" hover-class="hover">
         <image src="/images/tab_classification-2.png" mode="aspectFill" class="icon mr-20" />
         <text> 接收入库</text>
@@ -605,7 +595,7 @@
 
       </view>
 
-      <block wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+      <block wx:if="{{canUsePurchaseCore}}">
 
         <block wx:if="{{shelfGoods.shelfPurGoods  == null}}">
 

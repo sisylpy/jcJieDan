@@ -222,6 +222,9 @@ Page({
     showIsPurchase: false,
     item: null,
     priceEditIndex: -1,
+    canInitializeShelfStock: false,
+    canUsePurchaseCore: false,
+    canCountInventory: false,
 
   },
 
@@ -268,10 +271,14 @@ Page({
     // 
     var disInfo = wx.getStorageSync('disInfo');
     if (disInfo) {
+      const capability = wx.getStorageSync('operatingCapability') || null;
       this.setData({
         disInfo: disInfo,
         canManageShelfResponsibility: operatingCapability.canManageShelfResponsibility(
-          disInfo, wx.getStorageSync('operatingCapability') || null)
+          disInfo, capability),
+        canInitializeShelfStock: operatingCapability.canInitializeShelfStock(disInfo, capability),
+        canUsePurchaseCore: operatingCapability.canUsePurchaseCore(disInfo, capability),
+        canCountInventory: operatingCapability.canCountInventory(disInfo, capability)
       })
     }
     var value = wx.getStorageSync('userInfo');
