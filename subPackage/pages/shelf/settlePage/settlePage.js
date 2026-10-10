@@ -1,5 +1,6 @@
 var load = require('../../../../lib/load.js');
 import apiUrl from '../../../../config.js'
+var operatingCapability = require('../../../../utils/operatingCapability.js')
 
 import {
   getDisUsers,
@@ -20,6 +21,13 @@ Page({
   },
 
   onLoad(options) {
+    const disInfo = wx.getStorageSync('disInfo') || {};
+    const capability = wx.getStorageSync('operatingCapability') || null;
+    if (!operatingCapability.canManageShelfResponsibility(disInfo, capability)) {
+      wx.showToast({ title: '当前经营模式或套餐未开通货架责任人', icon: 'none' });
+      setTimeout(() => wx.navigateBack({ delta: 1 }), 300);
+      return;
+    }
     const app = getApp();
     const globalData = app.globalData;
     const navBarHeight = globalData.navBarHeight;
@@ -196,4 +204,3 @@ Page({
   }
 
 });
-

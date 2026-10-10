@@ -118,7 +118,7 @@
         <!-- <label class="radio-label">
           <radio value="2" checked="{{operationType == 2}}" />盘库
         </label> -->
-         <label class="radio-label">
+         <label class="radio-label" wx:if="{{canTransferShelfStock}}">
           <radio value="5" checked="{{operationType == 5}}" />调出
         </label>
       </radio-group>
@@ -135,7 +135,7 @@
       </view>
       
       <!-- 调出时显示目标货架选择 -->
-      <view class="input-row" wx:if="{{operationType == 5 && sameShelfGoods && sameShelfGoods.length > 0}}">
+      <view class="input-row" wx:if="{{canTransferShelfStock && operationType == 5 && sameShelfGoods && sameShelfGoods.length > 0}}">
         <text class="label">调入货架：</text>
         <view class="input-wrapper">
           <picker mode="selector" range="{{sameShelfGoods}}" range-key="shelfName" value="{{targetShelfIndex}}" bindchange="selectTargetShelf">
@@ -146,7 +146,7 @@
           </picker>
         </view>
       </view>
-      <view class="input-row" wx:if="{{operationType == 5 && (!sameShelfGoods || sameShelfGoods.length == 0)}}">
+      <view class="input-row" wx:if="{{canTransferShelfStock && operationType == 5 && (!sameShelfGoods || sameShelfGoods.length == 0)}}">
         <text class="label" style="color: #ff4444;">调入货架：</text>
         <text style="color: #999; font-size: 28rpx;">暂无其他货架</text>
       </view>
