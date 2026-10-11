@@ -35,14 +35,6 @@
           <image src="{{isListView ? '/images/liebiao.png' : '/images/suoluetu.png'}}" class="icon"></image>
         </view>
 
-        <block wx:if="{{canInitializeShelfStock}}">
-          <view class="button-container mr-20" bindtap="downLoadInitStock">
-            <image src="../../../../images/Focus-Auto.png" class="icon"></image>
-          </view>
-          <view class="button-container mr-20" bindtap="uploadInitStock">
-            <image src="../../../../images/primitive-dot.png" class="icon"></image>
-          </view>
-        </block>
         <view class="button-container mr-20" bindtap="toSearch">
           <image src="../../../../images/search-3.png" class="icon"></image>
         </view>
@@ -493,6 +485,15 @@
     <view wx:if="{{canCountInventory}}" class="flex-row p-30 border-bottom" hover-class="hover" catchtap="toInventoryShelf">
       <image src="/images/user-group-2.png" mode="aspectFill" class="icon mr-10" />
       <view class="">盘点货架</view>
+    </view>
+    <!-- 首次库存初始化属于货架级功能，随其它货架能力一并列在货架功能菜单中 -->
+    <view wx:if="{{canInitializeShelfStock}}" class="flex-row p-30 border-bottom" hover-class="hover" catchtap="downLoadInitStock">
+      <image src="/images/Focus-Auto.png" mode="aspectFill" class="icon mr-10" />
+      <view class="">下载初始化模板</view>
+    </view>
+    <view wx:if="{{canInitializeShelfStock}}" class="flex-row p-30 border-bottom" hover-class="hover" catchtap="uploadInitStock">
+      <image src="/images/primitive-dot.png" mode="aspectFill" class="icon mr-10" />
+      <view class="">上传首次库存</view>
     </view>
     </block>
    

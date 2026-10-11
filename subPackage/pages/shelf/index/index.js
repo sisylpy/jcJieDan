@@ -860,6 +860,10 @@ Page({
   },
 
   downLoadInitStock() {
+    // 与货架功能菜单中的其它入口一致：点击后先收起菜单面板。
+    this.setData({
+      isShowTools: false,
+    })
     const shelfId = this.data.shelfId;
     if (!shelfId || Number(shelfId) <= 0) {
       wx.showToast({
@@ -895,6 +899,10 @@ Page({
   },
 
   uploadInitStock() {
+    // 与货架功能菜单中的其它入口一致：点击后先收起菜单面板。
+    this.setData({
+      isShowTools: false,
+    })
     const shelfId = this.data.shelfId;
     if (!shelfId || Number(shelfId) <= 0) {
       wx.showToast({
