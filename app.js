@@ -34,6 +34,12 @@ App({
               tabBar.refreshTabs();
             }
           }
+          // 货架等页面在 onShow 时读取的是刷新前的旧快照，且其自身只在“经营模式码不一致”
+          // 时才刷新；后端新增能力授权时模式码不变，必须在这里主动通知当前页面重算标志，
+          // 否则入口会一直停留在刷新前的旧值，只能靠清缓存才能看到。
+          if (current && typeof current._syncShelfCapabilities === 'function') {
+            current._syncShelfCapabilities('app-launch-capability-refreshed', false);
+          }
         },
         fail: function () {
           // 刷新失败时保留原快照，不阻断启动。

@@ -76,8 +76,12 @@ Page({
 
     const disModeCode = disInfo.nxDistributerOperatingModeCode;
     const capabilityModeCode = capability && capability.operatingModeCode;
+    // 刷新触发不能只看经营模式码：后端新增/调整能力授权时模式码保持不变，
+    // 若只比模式码就永远不会刷新，入口会停留在旧快照（只能靠清缓存才恢复）。
+    // 因此快照缺失时也必须刷新一次；allowRefresh===false 用于避免回调里递归。
+    const capabilityMissing = !capability || !Array.isArray(capability.effectiveFeatures);
     if (allowRefresh !== false && disModeCode
-      && disModeCode !== capabilityModeCode) {
+      && (capabilityMissing || disModeCode !== capabilityModeCode)) {
       this._refreshShelfCapability(source, disModeCode, capabilityModeCode);
     }
   },
@@ -120,6 +124,7 @@ Page({
       },
       complete: () => {
         this._shelfCapabilityRefreshPending = false;
+        this._shelfCapabilityRefreshedOnce = true;
         this._syncShelfCapabilities(source + '-refreshed', false);
       }
     });
