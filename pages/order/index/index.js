@@ -1,7 +1,6 @@
 var load = require('../../../lib/load.js');
 var platformDisplay = require('../../../utils/platformOrderDisplay.js');
 var salesReturnDisplay = require('../../../utils/salesReturnDisplay.js');
-var operatingCapability = require('../../../utils/operatingCapability.js');
 
 import apiUrl from '../../../config.js'
 
@@ -341,7 +340,7 @@ Page({
     var depHasSubs = e.currentTarget.dataset.depsub;
 
     wx.navigateTo({
-      url: this.resolveOrderPagePath() + '?depFatherId=' + depId +
+      url: '/subPackage-order/pages/order/orderPage/orderPage?depFatherId=' + depId +
         '&name=' + name + '&gbDepFatherId=' + gbDepId +  '&nxDisId=' + nxDisId + '&gbDisId=' + gbDisId + '&comId=' + comId +
         '&depHasSubs=' + depHasSubs,
     })
@@ -364,29 +363,11 @@ Page({
       name: name,
     });
     wx.navigateTo({
-      url: this.resolveOrderPagePath() + '?depFatherId=' + route.depFatherId +
+      url: '/subPackage-order/pages/order/orderPage/orderPage?depFatherId=' + route.depFatherId +
         '&name=' + encodeURIComponent(name) +
         '&gbDepFatherId=' + route.gbDepFatherId + '&nxDisId=' + this.data.disId +
         '&gbDisId=-1&comId=-1&depHasSubs=' + (depHasSubs != null ? depHasSubs : 0),
     });
-  },
-
-  /**
-   * 订单出库页按有效权限分流：具备“订单溯源查看与输出”(ORDER_TRACEABILITY_OUTPUT)
-   * 的配送商（学校企事业型）应进入溯源订单页，其余仍走通用订单页。
-   * 直接复用能力快照 effectiveFeatures，不硬编码经营模式编号；
-   * 快照缺失时按无权限处理，仍走通用订单页。
-   */
-  resolveOrderPagePath() {
-    var capability = wx.getStorageSync('operatingCapability') || null;
-    var useSuyuan = operatingCapability.hasEffectiveFeature(capability, 'ORDER_TRACEABILITY_OUTPUT');
-    console.log('[order-index] resolveOrderPagePath', {
-      useSuyuan: useSuyuan,
-      operatingModeCode: capability && capability.operatingModeCode
-    });
-    return useSuyuan
-      ? '/subPackage-order/pages/order/orderPageSuyuan/orderPageSuyuan'
-      : '/subPackage-order/pages/order/orderPage/orderPage';
   },
 
 

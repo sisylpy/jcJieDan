@@ -581,7 +581,7 @@
   <view class="order-bottom-actions flex flex-row-between">
 
     <view class="flex flex-row order-action-buttons {{showCashSettle && orderPreview && orderPreview.showFeeCard ? 'order-action-buttons-wide' : ''}}">
-      <view class="icon-button ml-20" hover-class="hover" bindtap="toSuyuanPage" wx:if="{{disInfo.nxDistributerType == 2}}">
+      <view class="icon-button ml-20" hover-class="hover" bindtap="toSuyuanPage" wx:if="{{canViewOrderTraceability}}">
         <image src="../../../../images/icons/icon_stock_active.png" class="iconB"></image>
         <text class="button-text">溯源</text>
       </view>
