@@ -11,6 +11,15 @@ function canManageShelfResponsibility(disInfo, snapshot) {
   return !!disInfo && hasEffectiveFeature(snapshot, 'SHELF_RESPONSIBILITY')
 }
 
+// 指定货架负责人是老板/授权管理员的账号权限，不应因为经营模式未包含
+// SHELF_RESPONSIBILITY 就对老板隐藏入口。角色以后端签发的登录身份为准，
+// 前端仅用于展示，后端 /setShelfUser 会再次校验真实角色。
+function canAssignShelfStaff(disInfo, userInfo) {
+  if (!disInfo) return false
+  const role = userInfo && userInfo.nxDiuAdmin
+  return Number(role) === 0
+}
+
 function canTransferShelfStock(disInfo, snapshot) {
   return !!disInfo && hasEffectiveFeature(snapshot, 'SHELF_TRANSFER')
 }
@@ -71,6 +80,7 @@ function canViewOrderTraceability(disInfo, snapshot) {
 module.exports = {
   hasEffectiveFeature,
   canManageShelfResponsibility,
+  canAssignShelfStaff,
   canTransferShelfStock,
   canInitializeShelfStock,
   canUsePurchaseCore,

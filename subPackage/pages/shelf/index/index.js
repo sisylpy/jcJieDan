@@ -49,7 +49,9 @@ Page({
     const effectiveFeatures = capability && Array.isArray(capability.effectiveFeatures)
       ? capability.effectiveFeatures : [];
     const flags = {
-      canManageShelfResponsibility: operatingCapability.canManageShelfResponsibility(disInfo, capability),
+      // 老板/授权管理员可指定货架负责人，不因经营模式缺少 SHELF_RESPONSIBILITY 而隐藏入口。
+      canManageShelfResponsibility: operatingCapability.canManageShelfResponsibility(disInfo, capability)
+        || operatingCapability.canAssignShelfStaff(disInfo, wx.getStorageSync('userInfo')),
       canInitializeShelfStock: operatingCapability.canInitializeShelfStock(disInfo, capability),
       canUsePurchaseCore: operatingCapability.canUsePurchaseCore(disInfo, capability),
       canUseStockIn: operatingCapability.canUseStockIn(disInfo, capability),
