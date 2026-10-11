@@ -69,6 +69,12 @@ function canUsePartnerCollaboration(disInfo, snapshot) {
   return !!disInfo && Number(disInfo.nxDistributerBusinessTypeId) > 5
 }
 
+// 派单/配送：按有效权限 ADVANCED_DISPATCH 判断（经营模式 ∩ 套餐），
+// 不再绑定货架履约流程；模式 7 平台型批发商同样具备派单能力。
+function canUseDispatch(disInfo, snapshot) {
+  return !!disInfo && hasEffectiveFeature(snapshot, 'ADVANCED_DISPATCH')
+}
+
 function canViewTraceabilityEvidence(disInfo, snapshot) {
   return !!disInfo && hasEffectiveFeature(snapshot, 'TRACEABILITY_EVIDENCE')
 }
@@ -84,6 +90,7 @@ module.exports = {
   canTransferShelfStock,
   canInitializeShelfStock,
   canUsePurchaseCore,
+  canUseDispatch,
   canUseStockIn,
   canCountInventory,
   canViewTraceabilityEvidence,

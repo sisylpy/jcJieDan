@@ -628,7 +628,6 @@ Page({
 
   toDeliveryStrategy(){
     if (!this.requireHomeFeature('ADVANCED_DISPATCH', '配送设置')) return
-    if (!this.requireShelfWorkflow('配送设置')) return
     wx.navigateTo({
       url: '/subPackage/pages/management/deliveryStrategy/deliveryStrategy?disId=' + this.data.disId,
     })
@@ -636,7 +635,6 @@ Page({
 
   toDispatchPerformance(){
     if (!this.requireHomeFeature('ADVANCED_DISPATCH', '派单管理')) return
-    if (!this.requireShelfWorkflow('派单管理')) return
     wx.navigateTo({
       url: '/subPackage/pages/management/dispatchPerformance/dispatchPerformance'
     })
@@ -672,7 +670,6 @@ Page({
 
   toStock(){
     if (!this.requireHomeFeature('INVENTORY_BATCH', '库存查询')) return
-    if (!this.requireShelfWorkflow('库存查询')) return
     wx.navigateTo({
       url: '/subPackage-charts/pages/stock/index/index',
     })
@@ -703,7 +700,6 @@ toPurGoodsFenxi(){
 
 toCostGoodsFenxi(){
   if (!this.requireHomeFeature('INVENTORY_ANALYTICS', '库存分析')) return
-  if (!this.requireShelfWorkflow('库存分析')) return
   wx.navigateTo({
     url: '../../../../subPackage-charts/pages/mangement/costGoodsFenxi/costGoodsFenxi?disId=' + this.data.disId,
   })
@@ -769,7 +765,6 @@ toCustomerOrderAnomalies(){
 toSmartReplenishment(){
   if (!this.requireOwner('智能备货')) return
   if (!this.requireHomeFeature('SMART_REPLENISHMENT', '智能备货')) return
-  if (!this.requireShelfWorkflow('智能备货')) return
   wx.navigateTo({
     url: '/subPackage-charts/pages/smartReplenishment/index/index',
   })
@@ -785,7 +780,6 @@ toPurchaseManagement(){
 
 toShelf(){
   if (!this.requireHomeFeature('SHELF_MANAGEMENT', '货架管理')) return
-  if (!this.requireShelfWorkflow('货架管理')) return
   wx.navigateTo({ url: '/subPackage/pages/shelf/index/index' })
 },
 
@@ -831,16 +825,6 @@ requireOwner(featureName){
   wx.showModal({
     title: '仅限老板账号',
     content: '“' + featureName + '”仅允许配送商老板操作。',
-    showCancel: false
-  })
-  return false
-},
-
-requireShelfWorkflow(featureName){
-  if (this.data.shelfWorkflowEnabled) return true
-  wx.showModal({
-    title: '经营类型不匹配',
-    content: '“' + featureName + '”需要经营类型 3–5 的完整货架履约流程。',
     showCancel: false
   })
   return false

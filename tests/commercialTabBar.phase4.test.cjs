@@ -38,9 +38,11 @@ test('SHELF adds purchase but never grants dispatch implicitly', () => {
   ])
 })
 
-test('dispatch requires a separate capability and shelf operating mode', () => {
-  assert.equal(paths({ entitledFeatures: ['ADVANCED_DISPATCH'] }, false)
-    .includes('pages/dispatch/index/index'), false)
-  assert.equal(paths({ entitledFeatures: ['ADVANCED_DISPATCH'] }, true)
-    .includes('pages/dispatch/index/index'), true)
+test('配送 Tab 只看 ADVANCED_DISPATCH 有效能力，不再绑定货架开关', () => {
+  // 未授予有效能力：即使货架开关打开也不显示配送 Tab
+  assert.equal(paths({ entitledFeatures: ['ADVANCED_DISPATCH'] }, true,
+    { effectiveFeatures: ['OUTBOUND'] }).includes('pages/dispatch/index/index'), false)
+  // 授予有效能力：不开货架（模式 7 平台型批发商）也显示配送 Tab
+  assert.equal(paths({ entitledFeatures: ['ADVANCED_DISPATCH'] }, false,
+    { effectiveFeatures: ['ADVANCED_DISPATCH'] }).includes('pages/dispatch/index/index'), true)
 })

@@ -31,18 +31,23 @@ test('BASIC management home only exposes basic customer and order entries', () =
   assert.equal(value.canViewSalesAnalysis, false)
 })
 
-test('SHELF requires both commercial features and a shelf operating mode', () => {
+test('SHELF 货架与库存按有效能力判断，不再绑定货架履约开关', () => {
   const features = ['PURCHASE_CORE', 'BASIC_SUPPLIER_MANAGEMENT', 'SHELF_MANAGEMENT',
     'INVENTORY_BATCH', 'INVENTORY_ANALYTICS', 'PURCHASE_ANALYTICS']
-  const invalid = access(features, false, 'SHELF')
+  // 具备有效能力即显示，与 nxDistributerShelfMode 无关（模式 7 不开货架同样可用）
+  const withoutShelfSwitch = access(features, false, 'SHELF')
+  assert.equal(withoutShelfSwitch.canViewShelf, true)
+  assert.equal(withoutShelfSwitch.canViewStock, true)
   const valid = access(features, true, 'SHELF')
-  assert.equal(invalid.canViewShelf, false)
-  assert.equal(invalid.canViewStock, false)
   assert.equal(valid.canViewShelf, true)
   assert.equal(valid.canViewStock, true)
   assert.equal(valid.canViewPurchaseManagement, true)
   assert.equal(valid.canViewPurchaserDetail, false)
   assert.equal(valid.canViewPurchaseCollaboration, false)
+  // 不具备能力时一律不显示
+  const missing = access(['PURCHASE_CORE'], true, 'SHELF')
+  assert.equal(missing.canViewShelf, false)
+  assert.equal(missing.canViewStock, false)
 })
 
 test('SALES_GROWTH exposes sales analysis but not enterprise add-ons', () => {

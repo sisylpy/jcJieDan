@@ -59,16 +59,16 @@ function build(snapshot, userInfo, disInfo, capability) {
     canViewBusinessDashboard: isOwner && has('OWNER_DASHBOARD'),
     canViewPurchaseAnalytics: isOwner && professionalPurchase && has('PURCHASE_ANALYTICS'),
 
-    canViewShelf: shelfWorkflowEnabled && has('SHELF_MANAGEMENT'),
-    canViewStock: shelfWorkflowEnabled && has('INVENTORY_BATCH'),
-    canViewSmartReplenishment: isOwner && shelfWorkflowEnabled
-      && has('SMART_REPLENISHMENT'),
-    canViewInventoryAnalytics: isOwner && shelfWorkflowEnabled
-      && has('INVENTORY_ANALYTICS'),
+    // 货架、库存、派单、分析一律按有效能力判断，不再绑定 nxDistributerShelfMode：
+    // 模式 1 的 allowedFeatures 不含货架与派单能力，会被有效权限自然过滤。
+    canViewShelf: has('SHELF_MANAGEMENT'),
+    canViewStock: has('INVENTORY_BATCH'),
+    canViewSmartReplenishment: isOwner && has('SMART_REPLENISHMENT'),
+    canViewInventoryAnalytics: isOwner && has('INVENTORY_ANALYTICS'),
 
     canViewFinanceOverview: isOwner && has('FINANCIAL_ANALYTICS'),
     canViewPurchaseFinance: isOwner && has('PURCHASE_FINANCE'),
-    canViewDispatch: isOwner && shelfWorkflowEnabled && has('ADVANCED_DISPATCH'),
+    canViewDispatch: isOwner && has('ADVANCED_DISPATCH'),
 
     canViewAnnouncement: false,
     canViewAfterSales: has('AFTER_SALES'),
