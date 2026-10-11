@@ -25,7 +25,8 @@ import {
   updateDisStock,
   setShelfLayer,
   clearShelfLayer,
-  staffRecievePurGoods
+  staffRecievePurGoods,
+  directStockIn
 } from '../../../../lib/apiDistributer.js'
 
 import {cancleDownDisGoods} from '../../../lib/apiibook'
@@ -1305,11 +1306,29 @@ Page({
 
     const isUnshelf = this.data.unShelfGoodsList.length > 0;
     const shelfGoodsId = !isUnshelf && this.data.shelfGoods?.nxDistributerGoodsShelfGoodsId;
+    const currentShelfId = this.data.shelfId;
+    // 新建（非编辑采购记录）走普通货架直接入库：不创建 DPG/DPB，数量/进价按用户选择的
+    // 单位原样提交，由后端按商品权威规格换算为基本单位；
+    // 编辑采购记录与专业采购收货仍保留原有接口，不受影响。
+    const useDirectStockIn = !this.data.isEditPurchase
+      && !!shelfGoodsId && Number(currentShelfId) > 0;
 
-    const submission = directStockSubmission.begin(this, disSavePurGoodsSaveStock, purGoods);
+    const directPayload = useDirectStockIn ? {
+      shelfId: currentShelfId,
+      shelfGoodsId: shelfGoodsId,
+      inputQuantity: buyQuantity,
+      inputUom: standard,
+      inputPurchasePrice: buyPrice,
+      sellingPrice: expectPrice,
+      stockDate: this.data.arriveDate || ''
+    } : null;
+
+    const requestFn = useDirectStockIn ? directStockIn : disSavePurGoodsSaveStock;
+    const requestPayload = useDirectStockIn ? directPayload : purGoods;
+    const submission = directStockSubmission.begin(this, requestFn, requestPayload);
     if (!submission.started) return;
     load.showLoading(loadingText);
-    console.log("savestock", purGoods)
+    console.log(useDirectStockIn ? "directStockIn" : "disSavePurGoodsSaveStock", requestPayload)
     submission.promise.then(res => {
       if (res.result.code == 0) {
         wx.showToast({
@@ -1317,32 +1336,41 @@ Page({
           icon: 'success'
         });
         load.hideLoading();
-        
-        // 优化：只更新列表中对应商品的库存和采购信息，不刷新整个列表
-        const resultData = res.result.data || {};
-        console.log('disSavePurGoodsSaveStock - 接口返回数据（完整）:', JSON.stringify(resultData, null, 2));
-        console.log('disSavePurGoodsSaveStock - 接口返回数据（对象）:', resultData);
-        
-        if (goodsId) {
-          // 如果接口返回了采购商品信息，更新采购信息
-          if (resultData.purchaseGoods) {
-            console.log('disSavePurGoodsSaveStock - 更新采购信息');
-            this.updatePurchaseGoodsInList(goodsId, shelfGoodsId, resultData.purchaseGoods, isUnshelf);
+
+        if (useDirectStockIn) {
+          // directStockIn 只返回库存批次（stockEntity / stockBatchId），不含采购商品
+          const directResult = (res.result.data && res.result.data.result) || {};
+          console.log('directStockIn - 接口返回数据:', directResult);
+          if (goodsId && directResult.stockEntity) {
+            this.updateStockInList(goodsId, shelfGoodsId, null, { stockEntities: [directResult.stockEntity] }, isUnshelf);
           }
-          
-          // 检查是否有库存批次信息（可能是列表或单个对象）
-          const hasStockList = resultData.stockEntities || resultData.nxDisGoodsShelfStockEntities || resultData.stockList;
-          // 检查是否是单个库存对象（有 nxDgssDate 或 nxDistributerGoodsShelfStockId 等字段）
-          const isSingleStock = resultData.nxDistributerGoodsShelfStockId || resultData.nxDgssDate;
-          
-          if (hasStockList || isSingleStock) {
-            console.log('disSavePurGoodsSaveStock - 更新库存信息，hasStockList:', hasStockList, 'isSingleStock:', isSingleStock);
-            this.updateStockInList(goodsId, shelfGoodsId, null, resultData, isUnshelf);
-          } else {
-            console.warn('disSavePurGoodsSaveStock - 未找到库存批次信息，返回数据:', resultData);
+        } else {
+          // 优化：只更新列表中对应商品的库存和采购信息，不刷新整个列表
+          const resultData = res.result.data || {};
+          console.log('disSavePurGoodsSaveStock - 接口返回数据（完整）:', JSON.stringify(resultData, null, 2));
+          console.log('disSavePurGoodsSaveStock - 接口返回数据（对象）:', resultData);
+
+          if (goodsId) {
+            // 如果接口返回了采购商品信息，更新采购信息
+            if (resultData.purchaseGoods) {
+              console.log('disSavePurGoodsSaveStock - 更新采购信息');
+              this.updatePurchaseGoodsInList(goodsId, shelfGoodsId, resultData.purchaseGoods, isUnshelf);
+            }
+
+            // 检查是否有库存批次信息（可能是列表或单个对象）
+            const hasStockList = resultData.stockEntities || resultData.nxDisGoodsShelfStockEntities || resultData.stockList;
+            // 检查是否是单个库存对象（有 nxDgssDate 或 nxDistributerGoodsShelfStockId 等字段）
+            const isSingleStock = resultData.nxDistributerGoodsShelfStockId || resultData.nxDgssDate;
+
+            if (hasStockList || isSingleStock) {
+              console.log('disSavePurGoodsSaveStock - 更新库存信息，hasStockList:', hasStockList, 'isSingleStock:', isSingleStock);
+              this.updateStockInList(goodsId, shelfGoodsId, null, resultData, isUnshelf);
+            } else {
+              console.warn('disSavePurGoodsSaveStock - 未找到库存批次信息，返回数据:', resultData);
+            }
           }
         }
-        
+
         this.setData({
           showInputPurStock: false,
           showOperation: false,
@@ -1358,7 +1386,7 @@ Page({
       }
     }).catch(err => {
       load.hideLoading();
-      console.error('disSavePurGoodsSaveStock error:', err);
+      console.error(useDirectStockIn ? 'directStockIn error:' : 'disSavePurGoodsSaveStock error:', err);
     })
     
   },
