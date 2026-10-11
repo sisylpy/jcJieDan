@@ -489,7 +489,7 @@
     <!-- 首次库存初始化属于货架级功能，随其它货架能力一并列在货架功能菜单中 -->
     <view wx:if="{{canInitializeShelfStock}}" class="flex-row p-30 border-bottom" hover-class="hover" catchtap="downLoadInitStock">
       <image src="/images/Focus-Auto.png" mode="aspectFill" class="icon mr-10" />
-      <view class="">下载初始化模板</view>
+      <view class="">下载库存模板</view>
     </view>
     <view wx:if="{{canInitializeShelfStock}}" class="flex-row p-30 border-bottom" hover-class="hover" catchtap="uploadInitStock">
       <image src="/images/primitive-dot.png" mode="aspectFill" class="icon mr-10" />
