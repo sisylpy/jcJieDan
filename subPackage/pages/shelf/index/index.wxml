@@ -614,16 +614,19 @@
         </block>
 
 
-        <view class="p-30 flex-row border-bottom" catchtap="toOpenInputPurSock" hover-class="hover" wx:if="{{shelfGoods.shelfPurGoods == null}}">
-        <image src="/images/gouwuche-4.png" mode="aspectFill" class="icon mr-20" />
-        <text>直接采购入库</text>
-      </view>
-      <view class="p-30 flex-row border-bottom" catchtap="receivePurGoods" hover-class="popup-item-hover" wx:if="{{shelfGoods.shelfPurGoods !== null && shelfGoods.shelfPurGoods.nxDpgStatus == 2}}" hover-class="hover">
+        <view class="p-30 flex-row border-bottom" catchtap="receivePurGoods" hover-class="popup-item-hover" wx:if="{{shelfGoods.shelfPurGoods !== null && shelfGoods.shelfPurGoods.nxDpgStatus == 2}}" hover-class="hover">
         <image src="/images/tab_classification-2.png" mode="aspectFill" class="icon mr-20" />
         <text> 接收入库</text>
       </view>
 
       </block>
+
+      <!-- 普通货架商品入库：按 STOCK_IN 有效权限显示，不依赖 PURCHASE_CORE；
+           最终走 directStockIn，不创建 DPG/DPB。专业采购的“订货/接收入库”仍需 PURCHASE_CORE。 -->
+      <view class="p-30 flex-row border-bottom" catchtap="toOpenInputPurSock" hover-class="hover" wx:if="{{canUseStockIn && shelfGoods.shelfPurGoods == null}}">
+        <image src="/images/gouwuche-4.png" mode="aspectFill" class="icon mr-20" />
+        <text>采购入库</text>
+      </view>
 
       <view wx:if="{{shelfGoods.nxDisGoodsShelfStockEntities && shelfGoods.nxDisGoodsShelfStockEntities.length > 0}}"
         class="p-30 flex-row border-bottom" catchtap="openInventoryBatchList" hover-class="hover">

@@ -14,6 +14,7 @@ import {
   staffApplyPurGoods,
   disGetUnshelfGoods,
   disSavePurGoodsSaveStock,
+  directStockIn,
   saveShelfGoodsStock,
   deletePlanPurchaseGoods,
   updatePurchaseGoods,
@@ -51,6 +52,7 @@ Page({
       canManageShelfResponsibility: operatingCapability.canManageShelfResponsibility(disInfo, capability),
       canInitializeShelfStock: operatingCapability.canInitializeShelfStock(disInfo, capability),
       canUsePurchaseCore: operatingCapability.canUsePurchaseCore(disInfo, capability),
+      canUseStockIn: operatingCapability.canUseStockIn(disInfo, capability),
       canCountInventory: operatingCapability.canCountInventory(disInfo, capability)
     };
 
@@ -307,6 +309,7 @@ Page({
     priceEditIndex: -1,
     canInitializeShelfStock: false,
     canUsePurchaseCore: false,
+    canUseStockIn: false,
     canCountInventory: false,
 
   },
@@ -1651,10 +1654,27 @@ Page({
     const isUnshelf = this.data.isUnshelfSelected || !this.data.shelfGoods;
     const shelfGoodsId = !isUnshelf && this.data.shelfGoods?.nxDistributerGoodsShelfGoodsId;
 
-    const submission = directStockSubmission.begin(this, disSavePurGoodsSaveStock, purGoods);
+    const shelfGoodsRef = this.data.shelfGoods;
+    const shelfGoodsIdRef = shelfGoodsRef && shelfGoodsRef.nxDistributerGoodsShelfGoodsId;
+    const shelfIdRef = Number(this.data.shelfId) > 0 ? this.data.shelfId : (shelfGoodsRef && shelfGoodsRef.nxDgsgShelfId);
+    // 新建（非编辑采购记录）走普通货架直接入库：不创建 DPG/DPB；数量与进价按用户所选单位
+    // 原样提交，由后端按商品权威规格换算为基本单位。编辑采购记录与专业采购收货保持原接口。
+    const useDirectStockIn = !this.data.isEditPurchase && !!shelfGoodsIdRef && Number(shelfIdRef) > 0;
+    const directPayload = useDirectStockIn ? {
+      shelfId: shelfIdRef,
+      shelfGoodsId: shelfGoodsIdRef,
+      inputQuantity: buyQuantity,
+      inputUom: standard,
+      inputPurchasePrice: buyPrice,
+      sellingPrice: expectPrice,
+      stockDate: this.data.arriveDate || ''
+    } : null;
+    const requestFn = useDirectStockIn ? directStockIn : disSavePurGoodsSaveStock;
+    const requestPayload = useDirectStockIn ? directPayload : purGoods;
+    const submission = directStockSubmission.begin(this, requestFn, requestPayload);
     if (!submission.started) return;
     load.showLoading(loadingText);
-    console.log("savestock", purGoods)
+    console.log(useDirectStockIn ? 'directStockIn' : 'disSavePurGoodsSaveStock', requestPayload)
     submission.promise.then(res => {
       if (res.result.code == 0) {
         wx.showToast({
@@ -1662,11 +1682,16 @@ Page({
           icon: 'success'
         });
         load.hideLoading();
-        
+
         // 优化：只更新列表中对应商品的库存和采购信息，不刷新整个列表
-        const resultData = res.result.data || {};
-        console.log('disSavePurGoodsSaveStock - 接口返回数据（完整）:', JSON.stringify(resultData, null, 2));
-        console.log('disSavePurGoodsSaveStock - 接口返回数据（对象）:', resultData);
+        const rawResultData = res.result.data || {};
+        // directStockIn 返回 { result: { stockBatchId, stockEntity } }，不含采购商品；
+        // 统一包装成 stockEntities 以复用既有库存刷新逻辑。
+        const resultData = useDirectStockIn
+          ? { stockEntities: [((rawResultData.result || {}).stockEntity)].filter(Boolean) }
+          : rawResultData;
+        console.log('采购入库 - 接口返回数据（完整）:', JSON.stringify(resultData, null, 2));
+        console.log('采购入库 - 接口返回数据（对象）:', resultData);
         
         if (goodsId) {
           // 如果接口返回了采购商品信息，更新采购信息
