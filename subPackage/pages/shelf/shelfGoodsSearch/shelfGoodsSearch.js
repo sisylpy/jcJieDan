@@ -11,6 +11,7 @@ import {
   deleteShelfGoods,
   staffApplyPurGoods,
   disSavePurGoodsSaveStock,
+  directStockIn,
   saveShelfGoodsStock,
   deletePlanPurchaseGoods,
   updatePurchaseGoods,
@@ -893,7 +894,24 @@ Page({
     var loadingText = this.data.isEditPurchase ? "修改进货商品" : "保存进货商品";
     var successText = this.data.isEditPurchase ? "进货商品修改成功" : "进货商品保存成功";
 
-    const submission = directStockSubmission.begin(this, disSavePurGoodsSaveStock, purGoods);
+    const shelfGoodsRef = this.data.shelfGoods;
+    const shelfGoodsIdRef = shelfGoodsRef && shelfGoodsRef.nxDistributerGoodsShelfGoodsId;
+    const shelfIdRef = Number(this.data.shelfId) > 0 ? this.data.shelfId : (shelfGoodsRef && shelfGoodsRef.nxDgsgShelfId);
+    // 新建（非编辑采购记录）走普通货架直接入库：不创建 DPG/DPB；数量与进价按用户所选单位
+    // 原样提交，由后端按商品权威规格换算为基本单位。编辑采购记录与专业采购收货保持原接口。
+    const useDirectStockIn = !this.data.isEditPurchase && !!shelfGoodsIdRef && Number(shelfIdRef) > 0;
+    const directPayload = useDirectStockIn ? {
+      shelfId: shelfIdRef,
+      shelfGoodsId: shelfGoodsIdRef,
+      inputQuantity: buyQuantity,
+      inputUom: standard,
+      inputPurchasePrice: buyPrice,
+      sellingPrice: expectPrice,
+      stockDate: this.data.arriveDate || ''
+    } : null;
+    const requestFn = useDirectStockIn ? directStockIn : disSavePurGoodsSaveStock;
+    const requestPayload = useDirectStockIn ? directPayload : purGoods;
+    const submission = directStockSubmission.begin(this, requestFn, requestPayload);
     if (!submission.started) return;
     load.showLoading(loadingText);
     submission.promise.then(res => {

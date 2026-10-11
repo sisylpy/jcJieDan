@@ -84,7 +84,7 @@ const pages = [
 ]
 for (const pagePath of pages) {
   const page = read(pagePath)
-  assert.match(page, /directStockSubmission\.begin\(this, disSavePurGoodsSaveStock, purGoods\)/,
+  assert.match(page, /directStockSubmission\.begin\(this, requestFn, requestPayload\)/,
     `${pagePath} 未接入直接入库提交锁`)
   assert.match(page, /if \(!submission\.started\) return;/,
     `${pagePath} 未阻止 pending 期间的重复提交`)
