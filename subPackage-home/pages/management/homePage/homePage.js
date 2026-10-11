@@ -2,6 +2,7 @@ var app = getApp();
 var load = require('../../../../lib/load.js');
 var commercialEntitlement = require('../../../../utils/commercialEntitlement.js');
 var managementHomeAccess = require('../../../../utils/managementHomeAccess.js');
+var operatingCapability = require('../../../../utils/operatingCapability.js');
 import download from "../../../utils/download.js"
 
 import apiUrl from '../../../../config.js'
@@ -618,8 +619,7 @@ Page({
   },
 
   toNxDisList(){
-    if (!this.requireHomeFeature('PARTNER_DISTRIBUTOR_COLLABORATION', '协作配送商')) return
-    if (!this.requireShelfWorkflow('协作配送商')) return
+    if (!this.requirePartnerCollaboration('协作配送商')) return
 
     wx.navigateTo({
       url: '/subPackage/pages/offerNx/offerNxDistributerList/offerNxDistributerList?disId=' + this.data.disId,
@@ -810,6 +810,20 @@ requireHomeFeature(featureCode, featureName){
       }
     }
     return commercialEntitlement.requireFeature(featureCode, featureName)
+  },
+
+requirePartnerCollaboration(featureName){
+    // 与 offerNx 入口页及服务端同一口径：经营模式 ∩ 套餐的有效能力，
+    // 不附加货架履约流程限制。
+    var disInfo = this.data.disInfo || wx.getStorageSync('disInfo') || {}
+    var capability = wx.getStorageSync('operatingCapability') || null
+    if (operatingCapability.canUsePartnerCollaboration(disInfo, capability)) return true
+    wx.showModal({
+      title: '暂未开通',
+      content: '“' + featureName + '”不在当前经营模式与商业套餐的有效授权范围内。',
+      showCancel: false
+    });
+    return false
   },
 
 requireOwner(featureName){

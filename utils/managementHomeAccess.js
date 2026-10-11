@@ -1,3 +1,5 @@
+const operatingCapability = require('./operatingCapability.js')
+
 const PLAN_NAMES = {
   BASIC: '基础出货版',
   SHELF: '货架经营版',
@@ -50,8 +52,10 @@ function build(snapshot, userInfo, disInfo, capability) {
     canViewPurchaseCollaboration: professionalPurchase && has('SUPPLIER_COLLABORATION'),
     canViewPurchaserDetail: professionalPurchase && has('PURCHASER_MANAGEMENT'),
     canViewSupplierList: professionalPurchase && has('BASIC_SUPPLIER_MANAGEMENT'),
-    canViewPartnerCollaboration: shelfWorkflowEnabled
-      && has('PARTNER_DISTRIBUTOR_COLLABORATION'),
+    // 协作伙伴是 offerNx 唯一入口，按经营模式 ∩ 套餐的有效能力判断；
+    // 不能绑定货架履约流程，模式 7 平台型批发商不开货架也有权协作。
+    canViewPartnerCollaboration: operatingCapability.canUsePartnerCollaboration(
+      disInfo, capability),
     canViewBusinessDashboard: isOwner && has('OWNER_DASHBOARD'),
     canViewPurchaseAnalytics: isOwner && professionalPurchase && has('PURCHASE_ANALYTICS'),
 
