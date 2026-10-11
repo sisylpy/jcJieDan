@@ -60,17 +60,11 @@ Page({
       .then(res => {
         load.hideLoading();
         if (res.result.code == 0) {
-          // 合并所有类型的用户，并标记角色
-          const zeroUsers = (res.result.data.zero || []).map(user => ({...user, roleType: 'zero', roleName: '京采接单用户'}));
-          const oneUsers = (res.result.data.one || []).map(user => ({...user, roleType: 'one', roleName: '京采称重用户'}));
-          const twoUsers = (res.result.data.two || []).map(user => ({...user, roleType: 'two', roleName: '其他用户'}));
-          const threeUsers = (res.result.data.three || []).map(user => ({...user, roleType: 'three', roleName: '其他用户'}));
-          
-          const allUsers = [...zeroUsers, ...oneUsers, ...twoUsers, ...threeUsers];
-          
-          // 为每个员工添加选中状态
-          const processedList = allUsers.map(staff => ({
+          // 新接口直接返回 nx_weight_user 数组，不再返回旧的 zero/one/two/three 分组。
+          const candidates = Array.isArray(res.result.data) ? res.result.data : [];
+          const processedList = candidates.map(staff => ({
             ...staff,
+            roleName: '京采称重用户',
             selected: false
           }));
           this.setData({
@@ -106,8 +100,9 @@ Page({
       });
     } else {
       const filteredList = this.data.allStaffList.filter(staff => {
-        return staff.nxDiuWxNickName.indexOf(keyword) !== -1 ||
-               (staff.nxDiuWxPhone && staff.nxDiuWxPhone.indexOf(keyword) !== -1);
+        const name = staff.nxWuWxNickName || '';
+        const phone = staff.nxWuWxPhone || staff.nxWuLoginPhone || '';
+        return name.indexOf(keyword) !== -1 || phone.indexOf(keyword) !== -1;
       });
       this.setData({
         staffList: filteredList
@@ -126,13 +121,13 @@ Page({
     allStaffList.forEach(s => s.selected = false);
 
     // 更新当前选中的员工
-    const index = staffList.findIndex(s => s.nxDistributerUserId === staff.nxDistributerUserId);
+    const index = staffList.findIndex(s => s.nxWeightUserId === staff.nxWeightUserId);
     if (index !== -1) {
       staffList[index].selected = true;
     }
 
     // 同步更新完整列表
-    const allIndex = allStaffList.findIndex(s => s.nxDistributerUserId === staff.nxDistributerUserId);
+    const allIndex = allStaffList.findIndex(s => s.nxWeightUserId === staff.nxWeightUserId);
     if (allIndex !== -1) {
       allStaffList[allIndex].selected = true;
     }
@@ -140,7 +135,7 @@ Page({
     this.setData({
       staffList: staffList,
       allStaffList: allStaffList,
-      selectedStaffName: staff.nxDiuWxNickName
+      selectedStaffName: staff.nxWuWxNickName || '未命名称重员'
     });
   },
 
@@ -166,7 +161,7 @@ Page({
     load.showLoading("保存中");
     setShelfUser({
       shelfId: this.data.shelfId,
-      userId: selectedStaff[0].nxDistributerUserId
+      userId: selectedStaff[0].nxWeightUserId
     })
       .then(res => {
         load.hideLoading();

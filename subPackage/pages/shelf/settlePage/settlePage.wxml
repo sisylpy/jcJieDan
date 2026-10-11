@@ -10,20 +10,19 @@
       <view class="bg-white">
         <view class="staff-item flex-row-between p-30 border-bottom" 
               wx:for="{{staffList}}" 
-              wx:key="nxDistributerUserId"
+              wx:key="nxWeightUserId"
               hover-class="hover"
               bindtap="toggleStaff"
               data-staff="{{item}}">
           <view class="flex-row">
             <view class="staff-avatar mr-20">
-              <image src="{{item.nxDiuUrlChange == 1 ? url + item.nxDiuWxAvartraUrl : (item.nxDiuWxAvartraUrl || '/subPackage/images/user-group.png')}}" mode="aspectFill" class="avatar"></image>
+              <image src="{{item.nxWuUrlChange == 1 ? url + item.nxWuWxAvartraUrl : (item.nxWuWxAvartraUrl || '/subPackage/images/user-group.png')}}" mode="aspectFill" class="avatar"></image>
             </view>
             <view class="flex-column">
               <view class="flex-row">
-                <text class="font-md">{{item.nxDiuWxNickName}}</text>
-                <text class="font-xs text-secondary ml-10" wx:if="{{item.nxDiuAdmin == 0}}">(管理员)</text>
+                <text class="font-md">{{item.nxWuWxNickName || '未命名称重员'}}</text>
               </view>
-              <text class="font-sm text-secondary mt-10">{{item.nxDiuWxPhone}}</text>
+              <text class="font-sm text-secondary mt-10">{{item.nxWuWxPhone || item.nxWuLoginPhone}}</text>
               <text class="font-xs text-secondary mt-10">{{item.roleName}}</text>
             </view>
           </view>
@@ -52,4 +51,3 @@
 
   </view>
 </view>
-
