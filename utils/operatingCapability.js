@@ -47,10 +47,21 @@ function canUseProfessionalPurchase(disInfo, snapshot) {
     : legacyShelfResponsibility(disInfo)
 }
 
+// 普通货架商品入库：按有效权限 STOCK_IN 判定，与 PURCHASE_CORE 无关，
+// 因此模式 2/3 不会因为没有“老板采购”而失去入库入口。
+// 能力快照未就绪且经营模式未显式声明时（未迁移老客户）保持原有可见性；
+// 显式经营模式下快照缺失即视为无权限（失败关闭），绝不回退到套餐 entitledFeatures。
+function canUseStockIn(disInfo, snapshot) {
+  return isExplicit(disInfo, snapshot)
+    ? hasEffectiveFeature(snapshot, 'STOCK_IN')
+    : true
+}
+
 module.exports = {
   hasEffectiveFeature,
   canManageShelfResponsibility,
   canTransferShelfStock,
   canUsePartnerCollaboration,
-  canUseProfessionalPurchase
+  canUseProfessionalPurchase,
+  canUseStockIn
 }

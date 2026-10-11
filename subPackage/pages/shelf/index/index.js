@@ -280,6 +280,8 @@ Page({
       this.setData({
         disInfo: disInfo,
         canManageShelfResponsibility: operatingCapability.canManageShelfResponsibility(
+          disInfo, wx.getStorageSync('operatingCapability') || null),
+        canUseStockIn: operatingCapability.canUseStockIn(
           disInfo, wx.getStorageSync('operatingCapability') || null)
       })
     }
