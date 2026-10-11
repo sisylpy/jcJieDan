@@ -2126,14 +2126,41 @@ Page({
     console.log('完整文件路径:', filePath);
 
     if (reportType === 'image') {
-      // 图片：使用预览
-      wx.previewImage({
-        urls: [filePath],
-        current: filePath,
+      // 溯源报告属私有资料：必须带 Owner 鉴权下载到本地临时文件后再预览。
+      // 直接用 wx.previewImage 发起无鉴权 GET 会被拒绝，表现为“图片加载失败”。
+      wx.showLoading({
+        title: '加载中...',
+        mask: true
+      });
+      getApp().ownerDownloadFile({
+        url: filePath,
+        success: (res) => {
+          wx.hideLoading();
+          if (res.statusCode === 200 && res.tempFilePath) {
+            wx.previewImage({
+              urls: [res.tempFilePath],
+              current: res.tempFilePath,
+              fail: (err) => {
+                console.error('预览图片失败:', err);
+                wx.showToast({
+                  title: '预览失败，请重试',
+                  icon: 'none'
+                });
+              }
+            });
+          } else {
+            console.warn('溯源报告图片下载返回异常:', res && res.statusCode);
+            wx.showToast({
+              title: '溯源报告加载失败',
+              icon: 'none'
+            });
+          }
+        },
         fail: (err) => {
-          console.error('预览图片失败:', err);
+          wx.hideLoading();
+          console.error('下载溯源报告图片失败:', err);
           wx.showToast({
-            title: '预览失败，请检查网络',
+            title: '溯源报告加载失败',
             icon: 'none'
           });
         }
