@@ -40,6 +40,8 @@ Page({
           canUseShelf: commercialEntitlement.hasShelfWorkflowFeature(
             'SHELF_MANAGEMENT', currentDisInfo),
           canUsePartnerCollaboration: operatingCapability.canUsePartnerCollaboration(
+            currentDisInfo, wx.getStorageSync('operatingCapability') || null),
+          canUseProfessionalPurchase: operatingCapability.canUseProfessionalPurchase(
             currentDisInfo, wx.getStorageSync('operatingCapability') || null)
         })
         wx.setStorageSync('disInfo', res.result.data.nxDistributerEntity);
@@ -109,6 +111,8 @@ Page({
       canUseShelf: commercialEntitlement.hasShelfWorkflowFeature(
         'SHELF_MANAGEMENT', cachedDis),
       canUsePartnerCollaboration: operatingCapability.canUsePartnerCollaboration(
+        cachedDis, wx.getStorageSync('operatingCapability') || null),
+      canUseProfessionalPurchase: operatingCapability.canUseProfessionalPurchase(
         cachedDis, wx.getStorageSync('operatingCapability') || null),
       disInfo: Object.assign({}, this.data.disInfo, cachedDis, {
         machinePayList: (cachedDis && cachedDis.machinePayList) ? cachedDis.machinePayList : []
@@ -682,6 +686,12 @@ toSmartReplenishment(){
 },
 
 toPurchaseManagement(){
+  // 模式 2/3 无 PURCHASE_CORE 有效权限：隐藏专业采购入口，不进入、不触发 403。
+  if (!operatingCapability.canUseProfessionalPurchase(
+      this.data.disInfo, wx.getStorageSync('operatingCapability') || null)) {
+    wx.showToast({ title: '当前经营模式未开放专业采购', icon: 'none' })
+    return
+  }
   wx.navigateTo({
     url: '/subPackage/pages/management/purchaseManagement/index/index',
   })

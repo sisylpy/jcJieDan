@@ -7,6 +7,15 @@ import {
 import { formatPurchaseMoney, normalizePurchaseAmount } from './purchaseAmountPresenter.js'
 
 const app = getApp()
+const operatingCapability = require('./operatingCapability.js')
+
+// 专业采购总览：按有效权限 PURCHASE_CORE 判断（模式 2/3 不开放）。
+// 未授权时不发起 overview/exceptions 请求，避免 403 与“采购业务加载失败”。
+function canUseProfessionalPurchase() {
+  const snapshot = wx.getStorageSync('operatingCapability') || null
+  const disInfo = (app.globalData && (app.globalData.disInfo || app.globalData.distributerInfo)) || null
+  return operatingCapability.canUseProfessionalPurchase(disInfo, snapshot)
+}
 
 export function createPurchaseManagementOverviewPage() {
   return {
@@ -74,6 +83,10 @@ export function createPurchaseManagementOverviewPage() {
     retry() { this.load() },
 
     load() {
+      if (!canUseProfessionalPurchase()) {
+        this.setData({ loading: false, error: '当前经营模式未开放专业采购' })
+        return Promise.resolve()
+      }
       this.setData({ loading: true, error: '' })
       const query = { startDate: this.data.startDate, stopDate: this.data.stopDate }
       return getPurchaseManagementOverview(query).then(res => {
@@ -104,6 +117,10 @@ export function createPurchaseManagementOverviewPage() {
 
     loadPending() {
       if (this.data.pendingLoading) return Promise.resolve()
+      if (!canUseProfessionalPurchase()) {
+        this.setData({ pendingLoading: false, pendingError: '' })
+        return Promise.resolve()
+      }
       this.setData({ pendingLoading: true, pendingError: '' })
       return this.fetchPendingPage(1, []).then(result => {
         const sections = { ACTION_REQUIRED: [], WAITING_OTHER: [], BLOCKED_REVIEW: [], HISTORICAL_READ_ONLY: [] }
