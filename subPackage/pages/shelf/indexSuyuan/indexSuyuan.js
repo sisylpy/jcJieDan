@@ -249,8 +249,11 @@ Page({
     if (disInfo) {
       this.setData({
         disInfo: disInfo,
+        // 老板/授权管理员可指定货架负责人，不因经营模式缺少 SHELF_RESPONSIBILITY 而隐藏入口。
         canManageShelfResponsibility: operatingCapability.canManageShelfResponsibility(
           disInfo, wx.getStorageSync('operatingCapability') || null)
+          || operatingCapability.canAssignShelfStaff(
+            disInfo, wx.getStorageSync('userInfo'))
       })
     }
     var value = wx.getStorageSync('userInfo');
