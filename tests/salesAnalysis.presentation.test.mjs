@@ -8,11 +8,15 @@ const source = fs.readFileSync(path.join(root, 'utils/salesAnalysisView.js'), 'u
 const view = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`)
 
 assert.equal(view.formatMoney('1234.50'), '¥1,234.5')
+assert.equal(view.formatOptionalMoney(null), '—')
+assert.equal(view.formatOptionalMoney('1234.50'), '¥1,234.5')
 assert.equal(view.formatQuantities([
   { quantity: 12.5, unit: '斤' },
   { quantity: 2, unit: '箱' }
 ]), '12.5斤 · 2箱')
 assert.equal(view.formatAveragePrices([{ price: 5.25, unit: '斤' }]), '¥5.25/斤')
+assert.equal(view.optionalPercentageLabel(undefined), '—')
+assert.equal(view.optionalPercentageLabel('88.6'), '88.6%')
 assert.deepEqual(view.decorateRelativeBars([
   { salesAmount: 100 },
   { salesAmount: 25 },

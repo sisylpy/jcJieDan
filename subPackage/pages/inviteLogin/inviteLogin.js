@@ -421,7 +421,7 @@ Page({
                 nxDistributerLan: this.data.latitude,
                 nxDistributerLun: this.data.longitude,
                 nxDistributerPhone: this.data.phone,
-                nxDistributerBusinessTypeId: this.data.marketId,
+                nxDistributerOperatingModeCode: 'SMALL_WHOLESALE',
                 nxDistributerType: this.data.type,
                 nxDistributerServiceCityEntities: serviceArr,
                 nxDistributerUserEntity: {
@@ -514,7 +514,7 @@ Page({
                   nxDistributerLan: this.data.latitude,
                   nxDistributerLun: this.data.longitude,
                   nxDistributerPhone: this.data.phone,
-                  nxDistributerBusinessTypeId: this.data.marketId,
+                  nxDistributerOperatingModeCode: 'SMALL_WHOLESALE',
                   nxDistributerType: this.data.type,
                   isSelected: this.data.down,
                   nxDistributerServiceCityEntities: serviceArr,

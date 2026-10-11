@@ -10,8 +10,6 @@ page { background: #f3f6f5; color: #18342b; }
 .balance-grid view:last-child { border-right: 0; }
 .balance-grid text { display: block; color: #7b8c85; font-size: 21rpx; }
 .balance-grid text:last-child { margin-top: 8rpx; color: #26453a; font-size: 28rpx; font-weight: 800; }
-.quota-button { margin-top: 24rpx; border: 0; border-radius: 14rpx; color: #fff; background: linear-gradient(135deg, #078f61, #12ae79); font-size: 28rpx; font-weight: 800; }
-.quota-button::after { border: 0; }
 .balance-tip { display: block; margin-top: 18rpx; color: #75877f; font-size: 22rpx; line-height: 1.55; }
 .ledger-heading { display: flex; align-items: baseline; justify-content: space-between; padding-bottom: 16rpx; border-bottom: 1rpx solid #edf2ef; }
 .ledger-heading text:first-child { font-size: 31rpx; font-weight: 850; }

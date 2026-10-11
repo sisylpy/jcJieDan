@@ -2722,7 +2722,7 @@ module.exports = function purchaseComponent() {
         selectedPrintArr: [],
       })
       wx.navigateTo({
-        url: '../../../subPackage/pages/management/homePage/homePage',
+        url: '../../../subPackage-home/pages/management/homePage/homePage',
       })
      },
 

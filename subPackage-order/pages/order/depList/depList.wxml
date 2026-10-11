@@ -30,7 +30,7 @@
       <view class="button-container mr-30" bindtap="addNewCustomer" hover-class="hover">
         <image src="/images/add.png" class="icon"></image>
       </view>
-      <view class=" button-container mr-40" bindtap="toRetailGoods" wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+      <view class=" button-container mr-40" bindtap="toRetailGoods" wx:if="{{disInfo.nxDistributerProfessionalPurchaseMode}}">
         <image src="/images/customer.png" class="icon"></image>
       </view>
     </view>

@@ -230,7 +230,7 @@
         </view>
       </view>
 
-      <block wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+      <block wx:if="{{disInfo.nxDistributerProfessionalPurchaseMode}}">
         <block wx:if="{{shelfGoods.shelfPurGoods  == null}}">
 
           <view class="p-30 flex-row border-bottom" catchtap="toOpenDisPlanPurchase" hover-class="hover">

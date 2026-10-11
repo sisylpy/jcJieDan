@@ -17,6 +17,10 @@
     <text class="section-note">价格与赠送以当前活动接口为准</text>
   </view>
 
+  <view wx:if="{{selectedOffer.paymentTestOffer}}" class="safe-tip">
+    当前为支付联调测试价，仅用于验证微信支付、到账及额度流水，不代表正式售价。
+  </view>
+
   <scroll-view wx:if="{{offers.length}}" scroll-x class="offer-scroll" enhanced show-scrollbar="false">
     <view class="offer-row">
       <view class="offer-card {{selectedIndex == index ? 'selected' : ''}}"
@@ -25,7 +29,7 @@
         <text class="offer-quantity">{{item.quantityText}}</text>
         <view class="price"><text>¥</text>{{item.amountText}}</view>
         <text wx:if="{{item.hasDiscount}}" class="original-price">原价 ¥{{item.originalAmountText}}</text>
-        <text class="unit-price">{{item.unitPriceFen}} 分/条</text>
+        <text class="unit-price">{{item.unitPriceText}}</text>
         <view wx:if="{{item.hasBonus}}" class="bonus">含赠送 {{item.bonusText}}</view>
       </view>
     </view>

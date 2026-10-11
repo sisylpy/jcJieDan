@@ -19,8 +19,8 @@
         <text class="" wx:elif="{{goodsType == '-2'}}">停用商品</text>
         <text class="" wx:elif="{{goodsType == '-1'}}">库房商品</text>
         <text class="" wx:elif="{{goodsType == '1'}}">自采商品</text>
-        <text class="" wx:elif="{{goodsType == '11' && disInfo.nxDistributerBusinessTypeId > 2}}">自动订货</text>
-        <text class="" wx:elif="{{goodsType == '13' && disInfo.nxDistributerBusinessTypeId > 5}}">协作伙伴</text>
+        <text class="" wx:elif="{{goodsType == '11' && disInfo.nxDistributerProfessionalPurchaseMode}}">自动订货</text>
+        <text class="" wx:elif="{{goodsType == '13' && disInfo.nxDistributerPartnerPlatformMode}}">协作伙伴</text>
         <view class="" style="border-radius: 50%;" bindtap="openFilterMenu" hover-class="hover">
           <image src="../../../../images/points.png" class="icon mr-10 ml-10"></image>
         </view>
@@ -153,7 +153,7 @@
                 </view>
 
                 <view class="flex-row-default pt-10 pb-10"
-                  wx:if="{{disInfo.nxDistributerBusinessTypeId > 1 && disId == sons.nxDgDistributerId}}">
+                  wx:if="{{disInfo.nxDistributerShelfMode && disId == sons.nxDgDistributerId}}">
                   <view class="text-secondary mr-10 flex-fixed">货架:</view>
                   <view class="flex-row-wrap shelf-same-goods-chips">
                                 <view class="sameShelf mr-10" wx:for="{{sons.nxDistributerGoodsShelfGoodsEntities}}" wx:for-item="same">
@@ -257,13 +257,13 @@
       <text class="mr-20" wx:else></text>
       <text class="text_operation {{goodsType == '-2' ? 'mainColor' : ''}}">停用商品</text>
     </view>
-    <view class="flex-row p-30 border-bottom" wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}"
+    <view class="flex-row p-30 border-bottom" wx:if="{{disInfo.nxDistributerProfessionalPurchaseMode}}"
       bindtap="selectGoodsType" data-type="11">
       <text class="mr-20" wx:if="{{goodsType == '11' }}">✓</text>
       <text class="mr-20" wx:else></text>
       <text class="text_operation {{goodsType == '11' ? 'mainColor' : ''}}">自动订货</text>
     </view>
-    <view class="flex-row p-30 border-bottom" wx:if="{{disInfo.nxDistributerBusinessTypeId > 5}}"
+    <view class="flex-row p-30 border-bottom" wx:if="{{disInfo.nxDistributerPartnerPlatformMode}}"
       bindtap="selectGoodsType" data-type="13">
       <text class="mr-20" wx:if="{{goodsType == '13'}}">✓</text>
       <text class="mr-20" wx:else></text>
@@ -333,4 +333,3 @@
 <goodsWillPirce show="{{showIsPurchase}}" bindconfirm="confirm" bindcancle="cancleIsPurchase"
   item="{{item}}" consultItem="{{consultItem}}" windowHeight="{{windowHeight}}"
   windowWidth="{{windowWidth}}" />
-

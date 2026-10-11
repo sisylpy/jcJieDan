@@ -16,9 +16,10 @@ assert.ok(mainPackage.pages.includes('pages/management/usageCenter/usageCenter')
 
 assert.match(centerJs, /commercial-usage\/me\/ledger/)
 assert.match(centerJs, /NX_DEPARTMENT_ORDER/)
-assert.match(centerJs, /pages\/management\/payPage\/payPage/)
 assert.match(centerView, /额度明细/)
 assert.match(centerView, /打印、补打和语音识别不消费此额度/)
+assert.doesNotMatch(centerView, /增加订单处理额度/)
+assert.doesNotMatch(centerJs, /requestMoreQuota/)
 assert.doesNotMatch(centerJs + centerView, /nxdistributerpay|nxDistributerBuyQuantity/)
 
 console.log('commercial usage center: PASS')

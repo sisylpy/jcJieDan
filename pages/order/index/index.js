@@ -566,7 +566,7 @@ Page({
   onNavButtonTap() {
     if (this.data.userInfo.nxDiuAdmin == 0) {
       wx.navigateTo({
-        url: '../../../subPackage/pages/management/homePage/homePage',
+        url: '../../../subPackage-home/pages/management/homePage/homePage',
       })
     } else {
       wx.showModal({

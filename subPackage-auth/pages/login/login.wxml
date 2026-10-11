@@ -1,14 +1,14 @@
-<view wx:if="{{checkingLogin}}" class="login-gate">
-  <image src="/images/logo.jpg" class="login-gate-logo"></image>
-  <text class="login-gate-title">正在自动登录</text>
-  <text class="login-gate-desc">老客户将直接进入配送工作台</text>
+<view wx:if="{{loginInProgress && !registrationReady}}" class="auto-login-gate">
+  <image src="/images/logo.jpg" class="auto-login-logo"></image>
+  <text class="auto-login-title">正在进入配送工作台</text>
+  <text class="auto-login-desc">正在确认当前微信账号，请稍候</text>
 </view>
 
-<view wx:elif="{{loginFailed}}" class="login-gate">
-  <image src="/images/logo.jpg" class="login-gate-logo"></image>
-  <text class="login-gate-title">自动登录未完成</text>
-  <text class="login-gate-desc">请检查网络后重新尝试</text>
-  <button class="login-retry" bindtap="retryLogin">重新登录</button>
+<view wx:elif="{{loginFailed && !registrationReady}}" class="auto-login-gate">
+  <image src="/images/logo.jpg" class="auto-login-logo"></image>
+  <text class="auto-login-title">暂时无法进入工作台</text>
+  <text class="auto-login-desc">请检查网络后重新尝试</text>
+  <button class="auto-login-retry" bindtap="retryAutomaticLogin">重新尝试</button>
 </view>
 
 <block wx:if="{{registrationReady}}">
@@ -24,143 +24,95 @@
   </view>
 </view>
 
-<view class='flex-column'>
-
-
-
+<view class="registration-page">
   <back-navbar style="height: {{navBarHeight}}rpx;" title="配送商注册" avatar="/images/logo.jpg" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
-  
-  <view class='flex-column p-20' style="margin-top: {{navBarHeight}}rpx;">
 
-    <view class="flex-column center-content">
-    <view class='word'>京采接单</view>
-    <view class="font-xs gray" style="margin-bottom: 40rpx;">专业配送商户专用版</view>
-    
-    <!-- 企业微信环境提示 -->
-    <view wx:if="{{environment == 'wxwork'}}" class="wxwork-tip">
-      <image src="/images/wx.png" class="wxwork-icon"></image>
-      <text>您正在使用企业微信登录</text>
+  <scroll-view scroll-y="true" class="registration-scroll" style="top: {{navBarHeight}}rpx;">
+    <view class="registration-content">
+      <view class="registration-hero">
+        <view class="hero-logo-wrap"><image src="/images/logo.jpg" class="hero-logo"></image></view>
+        <view class="hero-copy">
+          <text class="hero-kicker">配送经营管理工作台</text>
+          <strong>京采接单</strong>
+          <text>填写基础资料，创建您的配送商账号</text>
+        </view>
+      </view>
+
+      <view wx:if="{{environment == 'wxwork'}}" class="wxwork-tip">
+        <image src="/images/wx.png" class="wxwork-icon"></image>
+        <text>当前通过企业微信注册</text>
+      </view>
+
+      <view class="registration-card">
+        <view class="section-heading">
+          <view><strong>配送商资料</strong><text>请填写真实信息，注册后可在设置中修改</text></view>
+          <text class="step-badge">01</text>
+        </view>
+
+        <view class="form-field">
+          <text class="field-label">所在市场</text>
+          <view class="field-control market-control" bindtap="showMarket">
+            <text class="{{marketName ? 'has-value' : 'placeholder'}}">{{marketName || '请选择所在市场'}}</text>
+            <text class="field-arrow">›</text>
+          </view>
+        </view>
+
+        <view class="form-field">
+          <text class="field-label">商铺地址</text>
+          <view class="field-control">
+            <input type="text" placeholder="例如：大厅号 + 摊位号" name="address" value="{{address}}" bindblur="getAddress"></input>
+          </view>
+        </view>
+
+        <view class="form-field">
+          <text class="field-label">批发商名称</text>
+          <view class="field-control">
+            <input type="text" placeholder="请输入配送商或商铺名称" name="name" value="{{disName}}" bindblur="getName" bindconfirm="_canLogin"></input>
+          </view>
+        </view>
+
+        <view class="form-field">
+          <text class="field-label">联系手机</text>
+          <view class="field-control">
+            <input type="number" placeholder="请输入联系人手机号码" name="phone" value="{{phone}}" bindblur="getPhone" bindconfirm="_canLogin"></input>
+          </view>
+        </view>
+
+        <view class="form-field">
+          <text class="field-label">联系人</text>
+          <view class="field-control">
+            <input placeholder="请输入业务联系人姓名" value="{{userName}}" bindinput="getUserName" bindconfirm="_canLogin"></input>
+          </view>
+        </view>
+      </view>
+
+      <view class="agreement-card">
+        <checkbox-group bindchange="onAgreeProtocolChange">
+          <label class="agree-label">
+            <checkbox value="agree" checked="{{agreeProtocol}}" color="#0a9b61" />
+            <view class="agreement-copy">
+              <text>我已阅读并同意</text>
+              <text class="link" catchtap="toUserAgreement">《用户服务协议》</text>
+              <text>和</text>
+              <text class="link" catchtap="toPrivacyPolicy">《隐私政策》</text>
+            </view>
+          </label>
+        </checkbox-group>
+      </view>
+
+      <view wx:if="{{avatarUrl}}" class="avatar-preview-wrap">
+        <image src="{{avatarUrl}}" class="avatar-preview"></image>
+        <view><strong>头像已选择</strong><text>注册时将使用此头像</text></view>
+      </view>
+
+      <view class="registration-action">
+        <button wx:if="{{canLogin && environment == 'wxwork'}}" class="register-button ready" bindtap="_registerWork" plain="true">注册企业微信配送商</button>
+        <button wx:elif="{{canLogin}}" class="register-button ready" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar" plain="true">注册并进入工作台</button>
+        <button wx:else class="register-button" bindtap="tishi" plain="true">请完善注册信息</button>
+        <text class="register-hint">资料仅用于配送业务管理与账号服务</text>
+      </view>
     </view>
-  </view>
-
-    <view class="flex-column">
-
-    
-     
-     
-      <view class="flex-row" style="width: {{windowWidth - 40}}rpx; ">
-        <text class="mr-10" style="width: 220rpx; text-align: right;">所在位置:</text>
-        <view class='what' style="width: {{windowWidth - 280}}rpx;">
-          <input class='input middle' type='text' placeholder='批发市场' name='marketName' value='{{marketName}}' bindtap='showMarket' disabled="false"></input>
-        </view>
-      </view>
-
-
-      <view class="flex-row" style="width: {{windowWidth - 40}}rpx; margin-top: 20rpx;">
-        <text class="mr-10" style="width: 220rpx;text-align: right;">商铺地址:</text>
-        <view class='what' style="width: {{windowWidth - 280}}rpx;">
-          <input class='inputHalf middle' type='text' placeholder='大厅号+摊位号' name='address' value='{{address}}' bindblur='getAddress' ></input>
-        </view>
-      </view>
-
-      <view class="flex-row mt-10" style="width: {{windowWidth - 40}}rpx; ">
-        <text class="mr-10" style="width: 220rpx; text-align: right;">批发商名称:</text>
-        <view class='what' style="width: {{windowWidth - 280}}rpx;">
-          <input class='input middle' type='text' placeholder='批发商名称' name='name' value='{{name}}' bindblur='getName' bindconfirm="_canLogin"></input>
-        </view>
-      </view>
-
-
-     
-
-
-      <!-- <view class="flex-row" style="width: {{windowWidth - 40}}rpx; margin-top: 20rpx">
-		<text class="mr-10" style="width: 220rpx; text-align: right;">配送范围:</text>
-		<view class='what'  style="width: {{(windowWidth - 400) / 2}}rpx; margin-right: 20rpx;">
-			<input class='inputHalf middle' type='text' placeholder='请选择' name='businessType' value='{{typeName}}' bindtap='showBusinessType' bindblur="_canLogin" disabled="false"></input>
-		</view>
-
-    <view class='what'  style="width: {{(windowWidth - 400) / 2}}rpx;margin-right: 20rpx;">
-			<input class='inputHalf middle' type='text' placeholder='请选择' name='businessType' value='{{typeName}}' bindtap='showBusinessType' bindblur="_canLogin" disabled="false"></input>
-		</view>
-    <view class='flex-row'  >
-       <view class="what flex-column-center" style="width: 40rpx; margin-right: 20rpx;">
-        -
-       </view> 
-       <view class="what flex-column-center" style="width: 40rpx;">
-        +
-       </view> 
-    </view>
-	 </view> -->
-
-
-
-  <!-- <view class="flex-row" style="width: {{windowWidth - 40}}rpx; margin-top: 20rpx;">
-		<text class="mr-10" style="width: 220rpx;text-align: right;">定位坐标:</text>
-		<view class="flex-row" bindtap="toMap">
-		<view class='what' style="width: {{windowWidth - 380}}rpx;"  >
-			<input class='inputHalf middle'  placeholder='定位坐标' name='zuobiao' value='{{latitude}}  {{longitude}}'  disabled="false"></input>
-			 </view>
-			 <view  style="width: 100rpx;">
-          <image src="../../../images/location.png" class="icon" style="margin-left: 30rpx;"> </image>
-        </view>
-			</view>
-		</view> -->
-
-      <view class="flex-row" style="width: {{windowWidth - 40}}rpx; margin-top: 20rpx;">
-        <text class="mr-10" style="width: 220rpx;text-align: right;">联系手机:</text>
-        <view class='what' style="width: {{windowWidth - 280}}rpx;">
-          <input class='inputHalf middle' type='number' placeholder='手机号码' name='phone' value='{{phone}}' bindblur="getPhone" bindconfirm="_canLogin"></input>
-        </view>
-      </view>
-
-      <view class="flex-row" style="width: {{windowWidth - 40}}rpx; margin-top: 20rpx;">
-        <text class="mr-10" style="width: 220rpx;text-align: right;">联系人:</text>
-        <view class='what' style="width: {{windowWidth - 280}}rpx;">
-          <input class='inputHalf middle'  placeholder='业务联系人' value='{{userName}}' bindinput="getUserName" bindconfirm="_canLogin"></input>
-        </view>
-      </view>
-
-    </view>
-
-<!-- 用户协议与隐私政策同意（平台规范3.4：取得用户授权同意后才能收集用户信息） -->
-<view class="agree-protocol-wrap">
-  <checkbox-group bindchange="onAgreeProtocolChange">
-    <label class="agree-label">
-      <checkbox value="agree" checked="{{agreeProtocol}}" />
-      <text>我已阅读并同意</text>
-      <text class="link" catchtap="toUserAgreement">《用户服务协议》</text>
-      <text>和</text>
-      <text class="link" catchtap="toPrivacyPolicy">《隐私政策》</text>
-    </label>
-  </checkbox-group>
-</view>
-
-<!-- 预览已选头像(若有) -->
-<view wx:if="{{avatarUrl}}" class="avatar-preview-wrap">
-    <text>已选头像预览：</text>
-    <image 
-      src="{{avatarUrl}}" 
-      class="avatar-preview" 
-    />
-  </view>
-    <!-- 登录按钮 -->
-    <view class=' reg_btn  ' style="width: {{windowWidth - 40}}rpx;">
-      <!-- 企业微信环境：直接注册，不需要选择头像 -->
-      <button wx:if="{{canLogin && environment == 'wxwork'}}" class="addBtn next" bindtap="_registerWork" plain='true' style="width: {{windowWidth - 80}}rpx;">
-        注册企业微信配送商用户
-      </button>
-      <!-- 普通微信环境：需要选择头像 -->
-      <button wx:elif="{{canLogin}}" class="addBtn next" open-type="chooseAvatar" bind:chooseavatar="onChooseAvatar" plain='true' style="width: {{windowWidth - 80}}rpx;">
-        注册专业配送商用户
-      </button>
-      <!-- 条件不满足时的提示按钮 -->
-      <button wx:else class="addBtn" bindtap="tishi" plain='true' style="width: {{windowWidth - 80}}rpx;">
-        注册批发市场专业配送商用版
-      </button>
-    </view>
-    
-  </view>
+  </scroll-view>
 </view>
 
 

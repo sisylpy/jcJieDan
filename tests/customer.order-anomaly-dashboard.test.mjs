@@ -4,8 +4,8 @@ import { readFileSync } from 'node:fs'
 const read = path => readFileSync(path, 'utf8')
 const api = read('lib/apiDistributer.js')
 const app = read('app.json')
-const homeJs = read('subPackage/pages/management/homePage/homePage.js')
-const homeWxml = read('subPackage/pages/management/homePage/homePage.wxml')
+const homeJs = read('subPackage-home/pages/management/homePage/homePage.js')
+const homeWxml = read('subPackage-home/pages/management/homePage/homePage.wxml')
 const pageJs = read('subPackage/pages/management/customerOrderAnomalies/customerOrderAnomalies.js')
 const pageWxml = read('subPackage/pages/management/customerOrderAnomalies/customerOrderAnomalies.wxml')
 

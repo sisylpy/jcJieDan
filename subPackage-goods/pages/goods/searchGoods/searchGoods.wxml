@@ -124,7 +124,7 @@
             </view>
 
             <!-- 货架信息 - 与 goods.wxml 风格一致 -->
-            <view class="flex-row-default" wx:if="{{disInfo.nxDistributerBusinessTypeId > 1 && sons.nxDistributerGoodsShelfGoodsEntities.length > 0}}">
+            <view class="flex-row-default" wx:if="{{disInfo.nxDistributerShelfMode && sons.nxDistributerGoodsShelfGoodsEntities.length > 0}}">
               <view class="text-secondary mr-10 flex-fixed">货架:</view>
               <view class="flex-row-wrap shelf-same-goods-chips">
                 <view class="sameShelf mr-10" wx:for="{{sons.nxDistributerGoodsShelfGoodsEntities}}" wx:for-item="shelfGoods">
@@ -205,4 +205,3 @@
 
 
 <goodsWillPirce show="{{showIsPurchase}}"   bindconfirm="confirm" bindcancle="cancleIsPurchase"  item="{{item}}" consultItem="{{consultItem}}"  windowHeight="{{windowHeight}}" windowWidth="{{windowWidth}}"  />
-

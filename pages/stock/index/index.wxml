@@ -2,10 +2,10 @@
 
   <custom-navbar style="height: {{navBarHeight}}rpx;" title="出货" avatar="{{url + userInfo.nxDiuWxAvartraUrl}}" button-text="设置" bindnavbuttontap="onNavButtonTap"></custom-navbar>
 
-  <view class="merged-work-tabs">
+  <view wx:if="{{showWorkspaceTabs}}" class="merged-work-tabs">
     <view class="merged-work-tab {{workspaceCurrent === 0 ? 'is-active' : ''}}" data-workspace="stock" data-index="0" bindtap="switchWorkspace">出库</view>
-    <view class="merged-work-tab {{workspaceCurrent === 1 ? 'is-active' : ''}}" data-workspace="purchase" data-index="1" bindtap="switchWorkspace">外采</view>
-    <view class="merged-work-tab {{workspaceCurrent === 2 ? 'is-active' : ''}}" data-workspace="partner" data-index="2" bindtap="switchWorkspace">协作伙伴</view>
+    <view wx:if="{{showPurchaseWorkspace}}" class="merged-work-tab {{activeWorkspace === 'purchase' ? 'is-active' : ''}}" data-workspace="purchase" bindtap="switchWorkspace">外采</view>
+    <view wx:if="{{showPartnerWorkspace}}" class="merged-work-tab {{activeWorkspace === 'partner' ? 'is-active' : ''}}" data-workspace="partner" bindtap="switchWorkspace">协作伙伴</view>
   </view>
 
   <swiper
@@ -20,7 +20,7 @@
     <view class="flex  flex-row-between bg-white border-bottom pt-20" style=" height: {{viewBarHeight}}rpx; ">
 
       <view class="flex-row">
-        <view class=" button-container ml-20" bindtap="toMyShelf" wx:if="{{disInfo.nxDistributerBusinessTypeId  > 1}}">
+        <view class=" button-container ml-20" bindtap="toMyShelf" wx:if="{{disInfo.nxDistributerShelfMode}}">
           <image src="/images/Focus-Auto.png" class="icon"></image>
         </view>
 
@@ -288,7 +288,7 @@
   </view>
   </swiper-item>
 
-  <swiper-item>
+  <swiper-item wx:if="{{showPurchaseWorkspace}}">
     <purchase-workspace
       id="workspace-purchase"
       embedded="{{true}}"
@@ -296,7 +296,7 @@
       style="width: 100%; height: 100%; display: flex; flex-direction: column;"></purchase-workspace>
   </swiper-item>
 
-  <swiper-item>
+  <swiper-item wx:if="{{showPartnerWorkspace}}">
     <partner-workspace
       id="workspace-partner"
       embedded="{{true}}"
@@ -316,7 +316,7 @@
   <view class="purchase-workspace-action is-wx" data-action="toSelfPurchase" bindtap="runPurchaseAction">自己采购</view>
   <view class="purchase-workspace-action is-paste" data-action="toPaste" bindtap="runPurchaseAction">复制订货</view>
   <view class="purchase-workspace-action is-wx" data-action="saveBatchOrder" bindtap="runPurchaseAction"
-    wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">小程序订货</view>
+    wx:if="{{disInfo.nxDistributerProfessionalPurchaseMode}}">小程序订货</view>
 </view>
 
 <view class='overlay {{showOperationCarStock ? "show" : ""}}' catchtouchmove='ture' catch:tap="closeStockCar">

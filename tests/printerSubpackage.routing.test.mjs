@@ -28,7 +28,7 @@ for (const route of routes) {
 
 const entrySources = [
   read('pages/stock/index/index.js'),
-  read('subPackage/pages/management/homePage/homePage.js'),
+  read('subPackage-home/pages/management/homePage/homePage.js'),
   read('subPackage-printer/pages/management/printerSetting/printerSetting.js')
 ].join('\n')
 assert.doesNotMatch(entrySources, /\/subPackage\/pages\/management\/(?:printerSet|printerSetting|labelPrinter)/)

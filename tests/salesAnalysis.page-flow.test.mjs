@@ -37,25 +37,30 @@ const context = vm.createContext({
   getSalesAnalysisOverview: async () => ({ result: { code: 0, data: {
     summary: {
       salesAmount: 100,
+      grossProfit: 60,
+      grossMarginRate: 60,
+      costAmount: 40,
+      profitCoverageRate: 100,
       customerCount: 1,
       goodsCount: 1,
       subcategoryCount: 1,
       primaryQuantity: { quantity: 20, unit: '斤' },
       otherUnitCount: 0
     },
-    categories: [{ id: 10, name: '新鲜蔬菜', salesAmount: 100, share: 100, customerCount: 1, goodsCount: 1 }],
+    categories: [{ id: 10, name: '新鲜蔬菜', image: 'goodsImage/vegetable.jpg', salesAmount: 100, grossProfit: 60, grossMarginRate: 60, share: 100, customerCount: 1, goodsCount: 1 }],
     topCustomers: [{ customerId: 20, customerName: '餐厅', salesAmount: 100, share: 100, goodsCount: 1, categoryCount: 1 }],
     quality: {}
   } } }),
   getSalesAnalysisCategory: async () => ({ result: { code: 0, data: {
     category: { id: 10, name: '新鲜蔬菜' },
-    subcategories: [{ id: 101, name: '叶菜类', salesAmount: 100, share: 100, customerCount: 1, quantities: [{ quantity: 20, unit: '斤' }] }],
-    products: [{ goodsId: 1001, goodsName: '菠菜', goodsStandard: '斤', nxDgNxFatherImg: 'goodsImage/leafy.jpg', subcategoryId: 101, salesAmount: 100, share: 100, customerCount: 1, quantities: [{ quantity: 20, unit: '斤' }], averagePrices: [{ price: 5, unit: '斤' }], topCustomers: [{ customerName: '餐厅' }] }],
+    subcategories: [{ id: 101, name: '叶菜类', salesAmount: 100, grossProfit: 60, grossMarginRate: 60, share: 100, customerCount: 1, quantities: [{ quantity: 20, unit: '斤' }] }],
+    products: [{ goodsId: 1001, goodsName: '菠菜', goodsStandard: '斤', nxDgNxFatherImg: 'goodsImage/leafy.jpg', subcategoryId: 101, salesAmount: 100, grossProfit: 60, grossMarginRate: 60, share: 100, customerCount: 1, quantities: [{ quantity: 20, unit: '斤' }], averagePrices: [{ price: 5, unit: '斤' }], topCustomers: [{ customerName: '餐厅' }] }],
     topCustomers: [{ customerId: 20, customerName: '餐厅', salesAmount: 100, share: 100, goodsCount: 1, categoryCount: 1 }]
   } } }),
   getSalesAnalysisProductCustomers: async () => ({ result: { code: 0, data: {
-    product: { goodsId: 1001, goodsName: '菠菜', goodsStandard: '斤', nxDgGoodsFileLarge: 'goodsImage/spinach-large.jpg', salesAmount: 100, share: 100, customerCount: 1, quantities: [{ quantity: 20, unit: '斤' }], averagePrices: [{ price: 5, unit: '斤' }] },
-    customers: [{ customerId: 20, customerName: '餐厅', salesAmount: 100, share: 100, quantities: [{ quantity: 20, unit: '斤' }], averagePrices: [{ price: 5, unit: '斤' }], orderDays: 3, lastOrderDate: '2026-09-01' }]
+    product: { goodsId: 1001, goodsName: '菠菜', goodsStandard: '斤', nxDgGoodsFileLarge: 'goodsImage/spinach-large.jpg', salesAmount: 100, grossProfit: 60, grossMarginRate: 60, share: 100, customerCount: 1, quantities: [{ quantity: 20, unit: '斤' }], averagePrices: [{ price: 5, unit: '斤' }] },
+    customerCount: 1,
+    customers: [{ customerId: 20, customerName: '餐厅', salesAmount: 100, grossProfit: 60, grossMarginRate: 60, share: 100, quantities: [{ quantity: 20, unit: '斤' }], averagePrices: [{ price: 5, unit: '斤' }], orderDays: 3, lastOrderDate: '2026-09-01' }]
   } } }),
   decorateRelativeBars: rows => rows.map(item => ({ ...item, barWidth: 100 })),
   apiUrl: { server: 'https://example.test/root/' },
@@ -65,7 +70,9 @@ const context = vm.createContext({
   formatAveragePrices: values => values && values.length ? '¥5/斤' : '暂无有效均价',
   formatDecimal: value => String(Number(value || 0)),
   formatMoney: value => '¥' + Number(value || 0),
+  formatOptionalMoney: value => value === null || value === undefined ? '—' : '¥' + Number(value),
   formatQuantities: values => values && values.length ? values[0].quantity + values[0].unit : '暂无有效数量',
+  optionalPercentageLabel: value => value === null || value === undefined ? '—' : Number(value) + '%',
   percentageLabel: value => Number(value || 0) + '%',
   rangeForDays: () => ({ startDate: '2026-08-04', endDate: '2026-09-02' }),
   validateSalesRange: range => {
@@ -96,10 +103,14 @@ const page = {
 page._overviewRequestId = 0
 page._detailRequestId = 0
 page._productRequestId = 0
+page._customerListRequestId = 0
+page._productCustomerRequestId = 0
 
 await page.loadReport()
-assert.equal(page.data.selectedCategoryId, 10)
+assert.equal(page.data.expandedCategoryId, 10)
 assert.equal(page.data.selectedSubcategoryId, 101)
+assert.equal(page.data.summary.grossProfitText, '¥60')
+assert.equal(page.data.categories[0].imageUrl, 'https://example.test/root/goodsImage/vegetable.jpg')
 assert.equal(page.data.visibleProducts.length, 1)
 assert.equal(page.data.visibleProducts[0].goodsImageUrl, 'https://example.test/root/goodsImage/leafy.jpg')
 assert.equal(page.data.drawerOpen, false, '加载大类和小类时不应自动打开商品客户面板')

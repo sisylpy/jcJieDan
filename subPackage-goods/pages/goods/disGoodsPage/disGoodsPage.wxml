@@ -138,7 +138,7 @@
     <swiper-item>
       <scroll-view  class="p-10" scroll-y style="height:{{windowHeight - navBarHeight - topViewHeight}}rpx;">
 
-        <block wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+        <block wx:if="{{disInfo.nxDistributerProfessionalPurchaseMode}}">
           <view class="p-20 border-bottom flex-column" >
           <text class="text-secondary font-sl">订货端显示</text>
           <view class="flex-row-between ">
@@ -386,7 +386,7 @@
       <text class="text_operation mr-20">修改商品</text>
     </view>
 
-    <!-- <view class=" flex-row p-20 border-bottom" bindtap="toSupplier" wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+    <!-- <view class=" flex-row p-20 border-bottom" bindtap="toSupplier" wx:if="{{disInfo.nxDistributerProfessionalPurchaseMode}}">
       <image src="../../../../images/supplier.png" class="icon mr-20 ml-20"></image>
       <text class="text_operation mr-20">指定供货商</text>
     </view> -->

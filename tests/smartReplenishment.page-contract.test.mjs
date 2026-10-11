@@ -13,8 +13,8 @@ assert.ok(charts.pages.includes('pages/smartReplenishment/customerPicker/custome
 assert.ok(charts.pages.includes('pages/sel/date/date'))
 assert.ok(!charts.pages.includes('pages/smartReplenishment/datePicker/datePicker'))
 
-const homeJs = read('subPackage/pages/management/homePage/homePage.js')
-const homeWxml = read('subPackage/pages/management/homePage/homePage.wxml')
+const homeJs = read('subPackage-home/pages/management/homePage/homePage.js')
+const homeWxml = read('subPackage-home/pages/management/homePage/homePage.wxml')
 const pageJs = read('subPackage-charts/pages/smartReplenishment/index/index.js')
 const pageWxml = read('subPackage-charts/pages/smartReplenishment/index/index.wxml')
 const pickerJs = read('subPackage-charts/pages/smartReplenishment/customerPicker/customerPicker.js')

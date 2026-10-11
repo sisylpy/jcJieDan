@@ -3,8 +3,8 @@ import fs from 'node:fs'
 import vm from 'node:vm'
 
 const read = path => fs.readFileSync(path, 'utf8')
-const homePage = read('subPackage/pages/management/homePage/homePage.js')
-const homeView = read('subPackage/pages/management/homePage/homePage.wxml')
+const homePage = read('subPackage-home/pages/management/homePage/homePage.js')
+const homeView = read('subPackage-home/pages/management/homePage/homePage.wxml')
 const detailPage = read('utils/purchaseManagementPurchaserDetailPage.js')
 const detailView = read('subPackage/pages/management/purchaseManagement/purchaserDetail/purchaserDetail.wxml')
 

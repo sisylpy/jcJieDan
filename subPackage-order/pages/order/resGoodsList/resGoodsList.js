@@ -103,7 +103,7 @@ Page({
       gbDepFatherId: options.gbDepFatherId,
       gbDisId: options.gbDisId,
       depSettleType: options.depSettleType,
-      businessTypeId: options.businessTypeId,
+      shelfMode: options.shelfMode === true || options.shelfMode === 'true',
       beforeId: options.beforeId,
       taskId: options.taskId,
       fromOcrOrder: options.fromOcrOrder || wx.getStorageSync('fromOcrOrder') || '0', // 是否从 ocrOrder 页面跳转过来
@@ -575,7 +575,7 @@ Page({
       applyRemark: applyRemark,
     };
 
-    if (this.data.businessTypeId > 2) {
+    if (this.data.shelfMode) {
       if (this.data.depSettleType == 0 || this.data.depSettleType == 2) {
         var pl = resolveNxDoCostPriceLevel(item, applyStandardName);
         var printStd =

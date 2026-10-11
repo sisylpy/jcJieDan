@@ -695,6 +695,6 @@ Page({
   stopTap() {},
 
   onNavButtonTap() {
-    wx.navigateTo({ url: '/subPackage/pages/management/homePage/homePage' })
+    wx.navigateTo({ url: '/subPackage-home/pages/management/homePage/homePage' })
   }
 })

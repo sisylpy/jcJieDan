@@ -3,8 +3,8 @@ import fs from 'node:fs'
 
 const read = path => fs.readFileSync(path, 'utf8')
 const app = JSON.parse(read('app.json'))
-const home = read('subPackage/pages/management/homePage/homePage.wxml')
-const homeJs = read('subPackage/pages/management/homePage/homePage.js')
+const home = read('subPackage-home/pages/management/homePage/homePage.wxml')
+const homeJs = read('subPackage-home/pages/management/homePage/homePage.js')
 const page = 'subPackage/pages/management/purchaseManagement/purchaseCollaboration/purchaseCollaboration'
 const js = read(page + '.js')
 const wxml = read(page + '.wxml')

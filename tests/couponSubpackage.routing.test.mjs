@@ -29,7 +29,7 @@ for (const route of routes) {
 }
 
 const entrySources = [
-  read('subPackage/pages/management/homePage/homePage.js'),
+  read('subPackage-home/pages/management/homePage/homePage.js'),
   read('subPackage-charts/pages/afterSales/detail/detail.js'),
   read('subPackage-coupon/pages/management/distributerCoupon/distributerCoupon.js'),
   read('subPackage-coupon/pages/management/distributerCoupon/couponEdit.js')

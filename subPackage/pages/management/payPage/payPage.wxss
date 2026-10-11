@@ -10,12 +10,13 @@ page { background: #f3f8f6; color: #173d35; }
 .section-title > text:first-child { font-size: 34rpx; font-weight: 700; }
 .section-note { color: #82948f; font-size: 22rpx; }
 .offer-scroll { width: 100%; white-space: nowrap; }
-.offer-row { display: inline-flex; padding: 2rpx 4rpx 12rpx; }
-.offer-card { position: relative; width: 250rpx; min-height: 280rpx; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-right: 18rpx; padding: 30rpx 18rpx 24rpx; border: 2rpx solid #d6e3df; border-radius: 22rpx; background: #fff; }
+.offer-row { display: inline-flex; padding: 2rpx 0 12rpx; }
+.offer-card { position: relative; width: 218rpx; min-height: 280rpx; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; margin-right: 12rpx; padding: 30rpx 10rpx 24rpx; border: 2rpx solid #d6e3df; border-radius: 22rpx; background: #fff; }
+.offer-card:last-child { margin-right: 0; }
 .offer-card.selected { border-color: #10a873; background: #f0fff8; box-shadow: 0 8rpx 22rpx rgba(16, 168, 115, .15); }
-.activity-label { position: absolute; left: 16rpx; top: 14rpx; max-width: 210rpx; overflow: hidden; text-overflow: ellipsis; color: #087a55; font-size: 20rpx; background: #dff8ec; border-radius: 20rpx; padding: 6rpx 12rpx; }
-.offer-quantity { margin-top: 28rpx; font-size: 34rpx; font-weight: 650; color: #173d35; }
-.price { margin: 12rpx 0 4rpx; color: #ef3e2f; font-size: 50rpx; font-weight: 750; }
+.activity-label { position: absolute; left: 10rpx; top: 14rpx; max-width: 184rpx; overflow: hidden; text-overflow: ellipsis; color: #087a55; font-size: 19rpx; background: #dff8ec; border-radius: 20rpx; padding: 6rpx 10rpx; }
+.offer-quantity { margin-top: 28rpx; font-size: 32rpx; font-weight: 650; color: #173d35; }
+.price { margin: 12rpx 0 4rpx; color: #ef3e2f; font-size: 44rpx; font-weight: 750; }
 .price text { font-size: 28rpx; }
 .original-price { color: #9ca9a5; font-size: 20rpx; text-decoration: line-through; }
 .unit-price { color: #5d716b; font-size: 24rpx; margin-top: 6rpx; }
