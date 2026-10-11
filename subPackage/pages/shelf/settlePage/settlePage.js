@@ -3,7 +3,7 @@ import apiUrl from '../../../../config.js'
 var operatingCapability = require('../../../../utils/operatingCapability.js')
 
 import {
-  getDisUsers,
+  getShelfWeighterCandidates,
   setShelfUser
 } from '../../../../lib/apiDistributer.js'
 
@@ -56,7 +56,7 @@ Page({
   // 获取员工数据
   getStaffData() {
     load.showLoading("获取员工数据");
-    getDisUsers(this.data.disId)
+    getShelfWeighterCandidates()
       .then(res => {
         load.hideLoading();
         if (res.result.code == 0) {
