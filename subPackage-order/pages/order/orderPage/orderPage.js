@@ -2,6 +2,7 @@ var load = require('../../../../lib/load.js');
 var esc = require("../../../../utils/GPutils/esc.js");
 var dateUtils = require('../../../../utils/dateUtil');
 var platformDisplay = require('../../../../utils/platformOrderDisplay.js');
+var operatingCapability = require('../../../../utils/operatingCapability.js');
 
 import apiUrl from '../../../../config.js'
 
@@ -49,6 +50,11 @@ Page({
       windowWidth: windowInfo.windowWidth * globalData.rpxR,
       windowHeight: windowInfo.windowHeight * globalData.rpxR,
       statusBarHeight: globalData.statusBarHeight * globalData.rpxR,
+      // 「溯源」入口按有效权限 ORDER_TRACEABILITY_OUTPUT（订单溯源查看与输出）判定，
+      // 取代原 nxDistributerType == 2 的旧编号判断：模式 5 有授权才显示，
+      // 模式 2/3/4 不会误显示；能力快照缺失时按无权限隐藏。
+      canViewOrderTraceability: operatingCapability.hasEffectiveFeature(
+        wx.getStorageSync('operatingCapability') || null, 'ORDER_TRACEABILITY_OUTPUT'),
     });
 
 
