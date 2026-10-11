@@ -1,5 +1,6 @@
 
 import { ownerRequest, ownerUploadFile, ownerDownloadFile, ownerLogout, clearOwnerLoginState, hasUsableOwnerToken } from './lib/ownerRequest.js'
+import apiUrl from './config.js'
 
 console.log('=== 准备注册 App ===');
 
@@ -10,7 +11,38 @@ App({
     ownerLogout: ownerLogout,
     clearOwnerLoginState: clearOwnerLoginState,
     hasUsableOwnerToken: hasUsableOwnerToken,
+    // 启动时刷新经营能力快照。后端调整能力后配送商的经营模式码可能不变，
+    // 若继续沿用本地陈旧快照，effectiveFeatures 会残留旧值，
+    // 导致“备货”Tab 等按有效权限判定的入口误显示。每次启动以服务端为准刷新。
+    refreshOperatingCapabilitySnapshot: function () {
+      if (typeof hasUsableOwnerToken === 'function' && !hasUsableOwnerToken()) return;
+      const app = this;
+      this.ownerRequest({
+        url: apiUrl.apiUrl + 'commercial-entitlements/me',
+        method: 'GET',
+        success: function (res) {
+          const body = (res && res.data) || {};
+          if (body.code !== 0) return;
+          if (body.data) wx.setStorageSync('commercialEntitlement', body.data);
+          if (!body.operatingCapability) return;
+          wx.setStorageSync('operatingCapability', body.operatingCapability);
+          const pages = getCurrentPages();
+          const current = pages[pages.length - 1];
+          if (current && typeof current.getTabBar === 'function') {
+            const tabBar = current.getTabBar();
+            if (tabBar && typeof tabBar.refreshTabs === 'function') {
+              tabBar.refreshTabs();
+            }
+          }
+        },
+        fail: function () {
+          // 刷新失败时保留原快照，不阻断启动。
+        }
+      });
+      return app;
+    },
     onLaunch: function(options) {
+      this.refreshOperatingCapabilitySnapshot();
       const windowInfo = wx.getWindowInfo();
       const device = wx.getDeviceInfo();
       console.log(device, "device");
