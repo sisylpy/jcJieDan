@@ -1,5 +1,6 @@
 var load = require('../../../../lib/load.js');
 var esc = require("../../../../utils/GPutils/esc.js");
+var operatingCapability = require('../../../../utils/operatingCapability.js');
 var dateUtils = require('../../../../utils/dateUtil');
 var platformDisplay = require('../../../../utils/platformOrderDisplay.js');
 
@@ -45,6 +46,13 @@ Page({
 
 
   onShow() {
+    // 「溯源」按钮按有效权限 ORDER_TRACEABILITY_OUTPUT（订单溯源查看与输出）判定，
+    // 取代旧的 nxDistributerType == 2 编号判断。
+    this.setData({
+      canViewOrderTraceability: operatingCapability.canViewOrderTraceability(
+        this.data.disInfo || wx.getStorageSync('disInfo') || {},
+        wx.getStorageSync('operatingCapability') || null),
+    });
 
     let windowInfo = wx.getWindowInfo();
     let globalData = getApp().globalData;

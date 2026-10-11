@@ -33,6 +33,16 @@ function canCountInventory(disInfo, snapshot) {
   return !!disInfo && hasEffectiveFeature(snapshot, 'INVENTORY_COUNT')
 }
 
+// 商品与批次溯源资料（质检/溯源报告文件的上传与查看）：模式 5 有效能力。
+function canViewTraceabilityEvidence(disInfo, snapshot) {
+  return !!disInfo && hasEffectiveFeature(snapshot, 'TRACEABILITY_EVIDENCE')
+}
+
+// 订单溯源查看与输出：模式 5 有效能力，与上面的溯源资料权限不混用。
+function canViewOrderTraceability(disInfo, snapshot) {
+  return !!disInfo && hasEffectiveFeature(snapshot, 'ORDER_TRACEABILITY_OUTPUT')
+}
+
 module.exports = {
   hasEffectiveFeature,
   canManageShelfResponsibility,
@@ -40,5 +50,7 @@ module.exports = {
   canInitializeShelfStock,
   canUsePurchaseCore,
   canUseStockIn,
-  canCountInventory
+  canCountInventory,
+  canViewTraceabilityEvidence,
+  canViewOrderTraceability
 }

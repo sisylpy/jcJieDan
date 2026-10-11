@@ -304,8 +304,8 @@
 
 
 
-    <!-- 溯源 - 仅当配送商类型为4时显示 -->
-    <block wx:if="{{disInfo.nxDistributerType == 2}}">
+    <!-- 溯源 - 按有效权限 TRACEABILITY_EVIDENCE（商品与批次溯源资料）判定 -->
+    <block wx:if="{{canViewTraceabilityEvidence}}">
       <view class="p-20 border-bottom" style="margin-top: 20rpx;">
         <text class="font-md text-secondary">溯源</text>
       </view>

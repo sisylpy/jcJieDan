@@ -1,6 +1,7 @@
 import apiUrl from '../../../../config.js'
 var load = require('../../../../lib/load.js');
 var dateUtils = require('../../../../utils/dateUtil');
+var operatingCapability = require('../../../../utils/operatingCapability.js');
 
 
 
@@ -50,6 +51,13 @@ Page({
 
 
   onShow() {
+    // 商品列表的溯源筛选区块按有效权限 TRACEABILITY_EVIDENCE 判定，
+    // 取代旧的 nxDistributerType == 2 编号判断。
+    this.setData({
+      canViewTraceabilityEvidence: operatingCapability.canViewTraceabilityEvidence(
+        this.data.disInfo || wx.getStorageSync('disInfo') || {},
+        wx.getStorageSync('operatingCapability') || null),
+    });
     const app = getApp();
     const globalData = app.globalData;
     

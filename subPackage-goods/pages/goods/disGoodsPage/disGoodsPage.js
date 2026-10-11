@@ -1,5 +1,6 @@
 
 var load = require('../../../../lib/load.js');
+var operatingCapability = require('../../../../utils/operatingCapability.js');
 import apiUrl from '../../../../config.js';
 let windowWidth = 0;
 let itemWidth = 0;
@@ -97,7 +98,11 @@ Page({
   var disInfo = wx.getStorageSync('disInfo');
   if(disInfo){
     this.setData({
-      disInfo: disInfo
+      disInfo: disInfo,
+      // 「溯源报告」区块（含添加溯源报告、上传溯源报告文件）属商品与批次溯源资料，
+      // 按有效权限 TRACEABILITY_EVIDENCE 判定，取代旧的 nxDistributerType == 2 编号判断。
+      canViewTraceabilityEvidence: operatingCapability.hasEffectiveFeature(
+        wx.getStorageSync('operatingCapability') || null, 'TRACEABILITY_EVIDENCE')
     })
   }
   var value = wx.getStorageSync('userInfo');
