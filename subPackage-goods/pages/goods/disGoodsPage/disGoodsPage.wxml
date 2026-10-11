@@ -175,7 +175,7 @@
         </view>
 
 
-        <view class="flex-column p-20" wx:if="{{disInfo.nxDistributerType == 2}}">
+        <view class="flex-column p-20" wx:if="{{canViewTraceabilityEvidence}}">
           <text class="mr-10 text-secondary">溯源报告</text>
           <view class="flex-row-wrap pt-10">
             <view class="standard" bindtap="showAddTraceReport">

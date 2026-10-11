@@ -60,6 +60,14 @@ function canUsePartnerCollaboration(disInfo, snapshot) {
   return !!disInfo && Number(disInfo.nxDistributerBusinessTypeId) > 5
 }
 
+function canViewTraceabilityEvidence(disInfo, snapshot) {
+  return !!disInfo && hasEffectiveFeature(snapshot, 'TRACEABILITY_EVIDENCE')
+}
+
+function canViewOrderTraceability(disInfo, snapshot) {
+  return !!disInfo && hasEffectiveFeature(snapshot, 'ORDER_TRACEABILITY_OUTPUT')
+}
+
 module.exports = {
   hasEffectiveFeature,
   canManageShelfResponsibility,
@@ -68,6 +76,8 @@ module.exports = {
   canUsePurchaseCore,
   canUseStockIn,
   canCountInventory,
+  canViewTraceabilityEvidence,
+  canViewOrderTraceability,
   canUseProfessionalPurchase,
   canUsePartnerCollaboration
 }

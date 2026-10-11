@@ -558,7 +558,7 @@
   <view wx:if="{{totalCount > 0}}" class="flex flex-row-between" style="position: fixed; bottom: 0; left: 0; width: 100%; height: 140rpx; border-top: 1px solid lightgray; background-color: white; padding-right: 20rpx; box-sizing: border-box;">
 
     <view class="flex flex-row">
-      <view class="icon-button ml-20" hover-class="hover" bindtap="toSuyuanPage" wx:if="{{disInfo.nxDistributerType == 2}}">
+      <view class="icon-button ml-20" hover-class="hover" bindtap="toSuyuanPage" wx:if="{{canViewOrderTraceability}}">
         <image src="../../../../images/icons/icon_stock_active.png" class="iconB"></image>
         <text class="button-text">溯源</text>
       </view>

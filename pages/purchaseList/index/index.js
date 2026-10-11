@@ -1,4 +1,5 @@
 var tabBar = require('../../../lib/routeDispatchTabBar.js')
+var operatingCapability = require('../../../utils/operatingCapability.js')
 
 import apiUrl from '../../../config.js'
 import {
@@ -120,7 +121,10 @@ Page({
 
   onToolCart() {
     var disInfo = this.data.disInfo || {}
-    if (disInfo.nxDistributerType == 2) {
+    // 工具车进入货架页：具备「商品与批次溯源资料」有效权限时进入溯源版货架页，
+    // 否则进入普通货架页。取代旧的 nxDistributerType == 2 编号判断。
+    if (operatingCapability.canViewTraceabilityEvidence(disInfo,
+      wx.getStorageSync('operatingCapability') || null)) {
       wx.navigateTo({ url: '/subPackage/pages/shelf/indexSuyuan/indexSuyuan' })
     } else {
       wx.navigateTo({ url: '/subPackage/pages/shelf/index/index' })
