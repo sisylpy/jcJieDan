@@ -8,18 +8,112 @@
   box-sizing: border-box;
 }
 
+.plan-summary {
+  min-height: 92rpx;
+  margin: 20rpx 20rpx 0;
+  padding: 18rpx 24rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1rpx solid #dcefe8;
+  border-radius: 20rpx;
+  background: linear-gradient(145deg, #ecfaf4, #ffffff);
+}
+
+.plan-label {
+  display: block;
+  color: #788a83;
+  font-size: 21rpx;
+}
+
+.plan-name {
+  display: block;
+  margin-top: 5rpx;
+  color: #087f5b;
+  font-size: 29rpx;
+  font-weight: 800;
+}
+
+.plan-status {
+  padding: 8rpx 16rpx;
+  border-radius: 99rpx;
+  background: #dff5eb;
+  color: #078654;
+  font-size: 22rpx;
+  font-weight: 700;
+}
+
+.usage-summary {
+  margin: 14rpx 20rpx 0;
+  padding: 20rpx 24rpx;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1rpx solid #dfe9e5;
+  border-radius: 20rpx;
+  background: #fff;
+}
+
+.usage-summary-low {
+  border-color: #efc999;
+  background: #fffaf2;
+}
+
+.usage-summary-main {
+  flex: none;
+}
+
+.usage-summary-label {
+  display: block;
+  color: #73837d;
+  font-size: 22rpx;
+}
+
+.usage-summary-number {
+  color: #087f5b;
+  font-size: 38rpx;
+  font-weight: 900;
+}
+
+.usage-summary-low .usage-summary-number {
+  color: #c87718;
+}
+
+.usage-summary-unit {
+  color: #53645e;
+  font-size: 22rpx;
+}
+
+.usage-summary-detail {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  color: #7b8984;
+  font-size: 21rpx;
+  line-height: 1.55;
+}
+
+.usage-summary-link {
+  margin-top: 3rpx;
+  color: #0a8d68;
+  font-weight: 700;
+}
+
 .quick-grid,
 .business-section {
   margin: 20rpx;
   background: #fff;
   border: 1rpx solid #edf1ef;
   border-radius: 24rpx;
-  box-shadow: 0 8rpx 24rpx rgba(24, 68, 53, 0.045);
+  /* box-shadow: 0 8rpx 24rpx rgba(24, 68, 53, 0.045); */
 }
 
 .quick-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  /* 每行 4 个按钮，平均分成 4 等份 */
+  grid-template-columns: repeat(4, 1fr);
   padding: 18rpx 6rpx;
 }
 
@@ -32,16 +126,21 @@
   justify-content: center;
 }
 
+.usage-purchase-item {
+  grid-column: 4;
+}
+
 .quick-icon {
-  width: 40rpx;
-  height: 40rpx;
+  width: 80rpx;
+  height: 80rpx;
   margin-bottom: 10rpx;
 }
 
 .quick-item text {
-  max-width: 126rpx;
+  max-width: 146rpx;
   color: #65716c;
-  font-size: 21rpx;
+  font-size: 24rpx;
+  font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -109,8 +208,10 @@
 .business-tile {
   position: relative;
   min-width: 0;
-  min-height: 146rpx;
-  padding: 17rpx 8rpx 15rpx;
+  /* 正方形：边长 = 4 列网格单元宽度 (750-40-2-36-3*12)/4 ≈ 159rpx */
+  height: 159rpx;
+  min-height: 159rpx;
+  padding: 8rpx 6rpx;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
@@ -122,6 +223,7 @@
 }
 
 .horizontal-tile {
+  height: auto;
   min-height: 122rpx;
   padding: 20rpx 24rpx;
   flex-direction: row;
@@ -134,31 +236,36 @@
 }
 
 .business-icon-box {
-  width: 57rpx;
-  height: 57rpx;
+  width: 80rpx;
+  height: 80rpx;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 17rpx;
-  background: rgba(255, 255, 255, 0.72);
+  /* background: rgba(255, 255, 255, 0.72); */
+}
+
+.horizontal-tile .business-icon-box {
+  width: 120rpx;
+  height: 120rpx;
 }
 
 .business-icon {
-  width: 43rpx;
-  height: 43rpx;
-  object-fit: contain;
+  width: 80rpx;
+  height: 80rpx;
+  /* object-fit: contain; */
 }
 
 .business-letter {
   color: #0b9270;
-  font-size: 30rpx;
+  font-size: 34rpx;
   font-weight: 850;
 }
 
 .business-title {
   display: block;
   max-width: 100%;
-  margin-top: 11rpx;
+  margin-top: 5rpx;
   color: #1a2d27;
   font-size: 24rpx;
   font-weight: 800;
@@ -170,7 +277,7 @@
 .business-desc {
   display: block;
   max-width: 100%;
-  margin-top: 6rpx;
+  margin-top: 2rpx;
   color: #7e8984;
   font-size: 19rpx;
   line-height: 1.28;

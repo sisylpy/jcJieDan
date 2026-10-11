@@ -1,0 +1,96 @@
+<view class="settings-page flex flex-column">
+  <back-navbar style="height: {{navBarHeight}}rpx;" title="{{userInfo.nxDistributerEntity.nxDistributerName}}" avatar="/images/back-gray.png" button-text="设置" bindnavbuttontap="toBack"></back-navbar>
+
+  <scroll-view scroll-y="true" class="home-scroll">
+    <view class="plan-summary">
+      <view>
+        <text class="plan-label">当前商业套餐</text>
+        <text class="plan-name">{{commercialPlanName}}</text>
+      </view>
+      <view class="plan-status">{{commercialStatusName}}</view>
+    </view>
+
+    <view class="usage-summary {{usageQuotaLow ? 'usage-summary-low' : ''}}" bindtap="toUsageCenter" hover-class="hover">
+      <view class="usage-summary-main">
+        <text class="usage-summary-label">订单处理额度</text>
+        <view><text class="usage-summary-number">{{commercialUsage.availableQuantity}}</text><text class="usage-summary-unit"> 条可用</text></view>
+      </view>
+      <view class="usage-summary-detail">
+        <text>已授予 {{commercialUsage.grantedQuantity}}</text>
+        <text>已消费 {{commercialUsage.consumedQuantity}}</text>
+        <text class="usage-summary-link">查看明细 ›</text>
+      </view>
+    </view>
+
+    <view class="quick-grid">
+      <view class="quick-item" bindtap="toStaff" hover-class="hover" wx:if="{{canManageStaff}}"><image src="../../../images/homepage/2/account.png" class="quick-icon"></image><text>账号</text></view>
+      <view class="quick-item" bindtap="editHome" hover-class="hover" wx:if="{{canEditStore}}"><image src="../../../images/homepage/2/edit_store.png" class="quick-icon"></image><text>修改店铺</text></view>
+      <view class="quick-item" bindtap="toPrinterSetting" hover-class="hover" wx:if="{{canPrintCustomerDocument && disInfo.machinePayList && disInfo.machinePayList.length > 0}}"><image src="{{userInfo.nxDiuPrintDeviceId !== -1 ? '../../../../images/print-7.png' : '../../../../images/print-3.png'}}" class="quick-icon"></image><text>{{userInfo.nxDiuPrintDeviceId == sysDeviceId ? 'PT-380' : '打印机'}}</text></view>
+      <view class="quick-item usage-purchase-item" bindtap="toUsagePurchase" hover-class="hover" wx:if="{{canEditStore}}"><image src="../../../images/homepage/2/recharge_record.png" class="quick-icon"></image><text>充值额度</text></view>
+    </view>
+
+    <view class="business-section" wx:if="{{showCustomerSection}}">
+      <view class="business-heading"><view class="heading-copy"><view class="heading-mark"></view><text class="heading-title">客户与订单</text><text class="heading-subtitle">基础资料与订单核查</text></view></view>
+      <view class="business-grid">
+        <view class="business-tile tone-green" bindtap="toCustomer" hover-class="hover" wx:if="{{canViewCustomers}}"><view class="business-icon-box"><image src="../../../images/homepage/2/customer.png" class="business-icon"></image></view><text class="business-title">客户</text><text class="business-desc">客户管理</text></view>
+        <view class="business-tile tone-green" bindtap="toGoods" hover-class="hover" wx:if="{{canViewGoods}}"><view class="business-icon-box"><image src="../../../images/homepage/2/product.png" class="business-icon"></image></view><text class="business-title">商品</text><text class="business-desc">商品管理</text></view>
+        <view class="business-tile tone-blue" bindtap="toSalesAnalysis" hover-class="hover" wx:if="{{canViewSalesAnalysis}}"><view class="business-icon-box"><image src="../../../images/homepage/1/sales_analysis.png" class="business-icon"></image></view><text class="business-title">销售分析</text><text class="business-desc">销售与客户贡献</text></view>
+        <view class="business-tile tone-amber" bindtap="toCustomerOrderAnomalies" hover-class="hover" wx:if="{{canViewOrderAnomalies}}"><view class="business-icon-box"><image src="../../../images/homepage/2/order_exception.png" class="business-icon"></image></view><text class="business-title">订货异常</text><text class="business-desc">订货变化核查</text></view>
+      </view>
+    </view>
+
+    <view class="business-section" wx:if="{{showPurchaseSection}}">
+      <view class="business-heading"><view class="heading-copy"><view class="heading-mark"></view><text class="heading-title">采购管理</text><text class="heading-subtitle">采购执行与供应方管理</text></view></view>
+      <view class="business-grid">
+        <view class="business-tile tone-green pending-tile" bindtap="toPurchaseManagement" hover-class="hover" wx:if="{{canViewPurchaseManagement}}"><view class="pending-badge" wx:if="{{purchasePendingCount > 0}}">{{purchasePendingCount > 99 ? '99+' : purchasePendingCount}}</view><view class="business-icon-box"><image src="../../../images/homepage/2/purchase_overview.png" class="business-icon"></image></view><text class="business-title">采购总览</text><text class="business-desc">采购概况与待处理</text></view>
+        <view class="business-tile tone-blue" bindtap="toPurchaseCollaboration" hover-class="hover" wx:if="{{canViewPurchaseCollaboration}}"><view class="business-icon-box"><image src="../../../images/homepage/2/purchase_collaboration.png" class="business-icon"></image></view><text class="business-title">采购协同</text><text class="business-desc">按供应方查看</text></view>
+        <view class="business-tile tone-green" bindtap="toPurchaserDetail" hover-class="hover" wx:if="{{canViewPurchaserDetail}}"><view class="business-icon-box"><image src="../../../images/homepage/1/purchaser.png" class="business-icon"></image></view><text class="business-title">采购员</text><text class="business-desc">采购详细</text></view>
+        <view class="business-tile tone-green" bindtap="toSupplierList" hover-class="hover" wx:if="{{canViewSupplierList}}"><view class="business-icon-box"><image src="../../../../images/supplier.png" class="business-icon"></image></view><text class="business-title">供货商</text><text class="business-desc">供应方列表</text></view>
+        <view class="business-tile tone-blue" bindtap="toNxDisList" hover-class="hover" wx:if="{{canViewPartnerCollaboration}}"><view class="business-icon-box"><image src="../../../images/homepage/2/partner.png" class="business-icon"></image></view><text class="business-title">协作伙伴</text><text class="business-desc">协作配送商</text></view>
+        <view class="business-tile tone-green" bindtap="toMyPurchase" hover-class="hover" wx:if="{{canViewBusinessDashboard}}"><view class="business-icon-box"><image src="../../../images/homepage/1/business_dashboard.png" class="business-icon"></image></view><text class="business-title">经营看板</text><text class="business-desc">整体经营情况</text></view>
+        <view class="business-tile tone-orange" bindtap="toPurGoodsFenxi" hover-class="hover" wx:if="{{canViewPurchaseAnalytics}}"><view class="business-icon-box"><image src="/images/caigou2.png" class="business-icon"></image></view><text class="business-title">采购统计</text><text class="business-desc">采购数据分析</text></view>
+      </view>
+    </view>
+
+    <view class="business-section" wx:if="{{showInventorySection}}">
+      <view class="business-heading"><view class="heading-copy"><view class="heading-mark"></view><text class="heading-title">库存管理</text><text class="heading-subtitle">库存批次与库房管理</text></view></view>
+      <view class="business-grid">
+        <view class="business-tile tone-green" bindtap="toShelf" hover-class="hover" wx:if="{{canViewShelf}}"><view class="business-icon-box"><image src="../../../images/homepage/1/shelf_management.png" class="business-icon"></image></view><text class="business-title">货架</text><text class="business-desc">货架与库位</text></view>
+        <view class="business-tile tone-green" bindtap="toStock" hover-class="hover" wx:if="{{canViewStock}}"><view class="business-icon-box"><image src="../../../images/homepage/1/inventory_management.png" class="business-icon"></image></view><text class="business-title">库存</text><text class="business-desc">当前库存查询</text></view>
+        <view class="business-tile tone-mint" bindtap="toSmartReplenishment" hover-class="hover" wx:if="{{canViewSmartReplenishment}}"><view class="business-icon-box"><image src="../../../images/homepage/1/smart_replenishment.png" class="business-icon"></image></view><text class="business-title">智能备货</text><text class="business-desc">采购需求预测</text></view>
+        <view class="business-tile tone-purple" bindtap="toCostGoodsFenxi" hover-class="hover" wx:if="{{canViewInventoryAnalytics}}"><view class="business-icon-box"><image src="../../../images/homepage/1/inventory_analysis.png" class="business-icon"></image></view><text class="business-title">库存分析</text><text class="business-desc">库存与损耗分析</text></view>
+      </view>
+    </view>
+
+    <view class="business-section" wx:if="{{showFinanceSection}}">
+      <view class="business-heading"><view class="heading-copy"><view class="heading-mark"></view><text class="heading-title">资金结算</text><text class="heading-subtitle">报销、结账与付款记录</text></view></view>
+      <view class="business-grid">
+        <view class="business-tile tone-orange" bindtap="toFinanceOverview" hover-class="hover" wx:if="{{canViewFinanceOverview}}"><view class="business-icon-box"><image src="../../../images/homepage/1/delivery_settings.png" class="business-icon"></image></view><text class="business-title">资金总览</text><text class="business-desc">资金情况</text></view>
+        <view class="business-tile tone-red" bindtap="toReimbursementList" hover-class="hover" wx:if="{{canViewPurchaseFinance}}"><view class="business-icon-box"><image src="../../../images/homepage/2/purchase_reimbursement.png" class="business-icon"></image></view><text class="business-title">采购员报销</text><text class="business-desc">垫付与报销</text></view>
+        <view class="business-tile tone-blue" bindtap="toSettlementList" hover-class="hover" wx:if="{{canViewPurchaseFinance}}"><view class="business-icon-box"><image src="../../../images/homepage/2/recharge_record.png" class="business-icon"></image></view><text class="business-title">供应商结账</text><text class="business-desc">货款结算</text></view>
+        <view class="business-tile tone-purple" bindtap="toPaymentList" hover-class="hover" wx:if="{{canViewPurchaseFinance}}"><view class="business-icon-box"><image src="../../../images/homepage/2/recharge_record.png" class="business-icon"></image></view><text class="business-title">付款记录</text><text class="business-desc">付款明细</text></view>
+      </view>
+    </view>
+
+    <view class="business-section" wx:if="{{showDispatchSection}}">
+      <view class="business-heading"><view class="heading-copy"><view class="heading-mark"></view><text class="heading-title">配送管理</text><text class="heading-subtitle">派单与配送规则</text></view></view>
+      <view class="business-grid two-column-grid">
+        <view class="business-tile horizontal-tile tone-blue" bindtap="toDispatchPerformance" hover-class="hover" wx:if="{{canViewDispatch}}"><view class="business-icon-box"><image src="../../../images/homepage/1/dispatch_management.png" class="business-icon"></image></view><view class="horizontal-copy"><text class="business-title">派单管理</text><text class="business-desc">司机与路线</text></view></view>
+        <view class="business-tile horizontal-tile tone-blue" bindtap="toDeliveryStrategy" hover-class="hover" wx:if="{{canViewDispatch}}"><view class="business-icon-box"><image src="../../../images/homepage/1/delivery_settings.png" class="business-icon"></image></view><view class="horizontal-copy"><text class="business-title">配送设置</text><text class="business-desc">配送与自提规则</text></view></view>
+      </view>
+    </view>
+
+    <view class="business-section" wx:if="{{showStoreSection}}">
+      <view class="business-heading"><view class="heading-copy"><view class="heading-mark"></view><text class="heading-title">店铺运营</text><text class="heading-subtitle">公告、售后与营销活动</text></view></view>
+      <view class="business-grid">
+        <view class="business-tile tone-green" bindtap="toAnnouncementBoard" hover-class="hover" wx:if="{{canViewAnnouncement}}"><view class="business-icon-box"><image src="../../../images/homepage/1/company_notice.png" class="business-icon"></image></view><text class="business-title">公司公告牌</text><text class="business-desc">发布与查看</text></view>
+        <view class="business-tile tone-red" bindtap="toAfterSales" hover-class="hover" wx:if="{{canViewAfterSales}}"><view class="business-icon-box"><image src="../../../images/homepage/2/after_sales_issue.png" class="business-icon"></image></view><text class="business-title">售后问题</text><text class="business-desc">售后处理</text></view>
+        <view class="business-tile tone-amber" bindtap="toCompensationCoupon" hover-class="hover" wx:if="{{canViewCompensationCoupon}}"><view class="business-icon-box"><image src="../../../images/homepage/2/compensation_coupon.png" class="business-icon"></image></view><text class="business-title">补偿券</text><text class="business-desc">售后补偿</text></view>
+        <view class="business-tile tone-purple" bindtap="toCoupon" hover-class="hover" wx:if="{{canViewCoupon}}"><view class="business-icon-box"><image src="../../../images/homepage/2/coupon.png" class="business-icon"></image></view><text class="business-title">普通优惠券</text><text class="business-desc">营销活动</text></view>
+      </view>
+    </view>
+
+    <view class="logout-button" bindtap="logoutOwner" hover-class="hover">退出当前账号</view>
+    <view class="version-footer"><text>版本 3.0.7</text></view>
+  </scroll-view>
+</view>

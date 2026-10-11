@@ -127,7 +127,7 @@ assert.doesNotMatch(purchaserDetailWxml, /当前任务|当前处理：|查看采
   'purchaser detail must not duplicate the overview purchase-batch tasks')
 assert.doesNotMatch(purchaserDetailWxml, /确认收货|损耗率|毛利/)
 
-assert.match(read('subPackage/pages/management/homePage/homePage.wxml'), /采购管理/)
+assert.match(read('subPackage-home/pages/management/homePage/homePage.wxml'), /采购管理/)
 const batchDetailJs = read('subPackage/pages/management/purchaseManagement/purchaseBatchDetail/purchaseBatchDetail.js')
 const batchDetail = read('subPackage/pages/management/purchaseManagement/purchaseBatchDetail/purchaseBatchDetail.wxml')
 assert.match(batchDetail, /为客户订单采购/)

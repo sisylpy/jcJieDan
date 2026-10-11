@@ -1,6 +1,8 @@
 var load = require('../../../lib/load.js');
 var platformDisplay = require('../../../utils/platformOrderDisplay.js');
 var prepareOutViewMode = require('../../../utils/prepareOutViewMode.js');
+var commercialEntitlement = require('../../../utils/commercialEntitlement.js');
+var stockWorkspaceAccess = require('../../../utils/stockWorkspaceAccess.js');
 
 import apiUrl from '../../../config.js'
 
@@ -26,6 +28,11 @@ Component({
     // 一级业务页签当前展示的工作区：stock / purchase / partner
     activeWorkspace: 'stock',
     workspaceCurrent: 0,
+    workspaceNames: ['stock'],
+    showWorkspaceTabs: false,
+    showPurchaseWorkspace: false,
+    showPartnerWorkspace: false,
+    partnerWorkspaceIndex: -1,
     purchaseSelectedCount: 0,
 
     currentPage: 1,
@@ -88,14 +95,18 @@ Component({
         const navBarHeightRpx = navBarHeight * rpxRatio;
         const tabBarHeightRpx = 100;
         const viewBarHeightRpx = viewBarHeight * rpxRatio;
-        const contentHeight = (screenHeight - navBarHeight) * rpxRatio - mergedWorkBarHeight;
+        const disInfo = wx.getStorageSync('disInfo') || this.data.disInfo || {};
+        const workspaceAccess = stockWorkspaceAccess.resolve(
+          disInfo, commercialEntitlement.snapshot(), wx.getStorageSync('operatingCapability') || null);
+        const workBarHeight = workspaceAccess.showWorkspaceTabs ? mergedWorkBarHeight : 0;
+        const contentHeight = (screenHeight - navBarHeight) * rpxRatio - workBarHeight;
         
       // 获取显示模式（从缓存读取，如果没有则使用默认值）
       const viewMode = wx.getStorageSync('stockViewMode') || 'category';
       // 左侧菜单宽度统一为 120rpx
       const leftMenuWidth = 120;
 
-        this.setData({ 
+        this.setData(Object.assign({ 
           contentHeight: contentHeight,
           navBarHeight: navBarHeightRpx,
           tabBarHeight: tabBarHeightRpx,
@@ -105,7 +116,10 @@ Component({
           windowHeight: globalData.windowHeight * globalData.rpxR,
           statusBarHeight: globalData.statusBarHeight * globalData.rpxR,
           url: apiUrl.server,
-        });
+          disInfo: disInfo,
+          workspaceCurrent: 0,
+          activeWorkspace: 'stock'
+        }, workspaceAccess));
         
         // 检查标签打印机缓存设置
         this.checkLabelPrinterCache();
@@ -179,20 +193,27 @@ Component({
       const tabBarHeightRpx = 100;
 
       const viewBarHeightRpx = viewBarHeight * rpxRatio;
-      const contentHeight = (screenHeight - navBarHeight) * rpxRatio - mergedWorkBarHeight;
+      const disInfo = wx.getStorageSync('disInfo') || this.data.disInfo || {};
+      const workspaceAccess = stockWorkspaceAccess.resolve(
+        disInfo, commercialEntitlement.snapshot(), wx.getStorageSync('operatingCapability') || null);
+      const workBarHeight = workspaceAccess.showWorkspaceTabs ? mergedWorkBarHeight : 0;
+      const contentHeight = (screenHeight - navBarHeight) * rpxRatio - workBarHeight;
 
       // 获取显示模式（从缓存读取，如果没有则使用默认值）
       const viewMode = wx.getStorageSync('stockViewMode') || 'category';
       // 左侧菜单宽度统一为 120rpx
       const leftMenuWidth = 120;
 
-      this.setData({ 
+      this.setData(Object.assign({ 
         contentHeight: contentHeight,
         navBarHeight: navBarHeightRpx,
         tabBarHeight: tabBarHeightRpx,
         leftMenuWidth: leftMenuWidth,
         viewBarHeight: viewBarHeightRpx,
-      });
+        disInfo: disInfo,
+        workspaceCurrent: 0,
+        activeWorkspace: 'stock'
+      }, workspaceAccess));
       this.animation = wx.createAnimation({ duration: 300, timingFunction: 'ease' })
 
       this.setData({
@@ -268,8 +289,8 @@ Component({
     // 一级业务页签：只切换下方内容，不再跳转页面
     switchWorkspace(e) {
       var dataset = e.currentTarget.dataset || {};
-      var nextIndex = Number(dataset.index);
-      if (!Number.isInteger(nextIndex) || nextIndex < 0 || nextIndex > 2) return;
+      var nextIndex = (this.data.workspaceNames || []).indexOf(dataset.workspace);
+      if (nextIndex < 0) return;
       if (nextIndex === this.data.workspaceCurrent) return;
       this.setData({
         workspaceCurrent: nextIndex,
@@ -279,8 +300,9 @@ Component({
 
     // 左右滑动和点击顶部页签共用同一份工作区状态
     onWorkspaceSwiperChange(e) {
-      var workspaceNames = ['stock', 'purchase', 'partner'];
+      var workspaceNames = this.data.workspaceNames || ['stock'];
       var nextIndex = Number(e.detail.current);
+      if (!workspaceNames[nextIndex]) return;
       this.setData({
         workspaceCurrent: nextIndex,
         activeWorkspace: workspaceNames[nextIndex] || 'stock'
@@ -289,9 +311,10 @@ Component({
 
     // 协作伙伴第一个内层页右滑时，明确退回上一个一级工作区“外采”。
     onPartnerWorkspaceBack() {
+      var purchaseIndex = (this.data.workspaceNames || []).indexOf('purchase');
       this.setData({
-        workspaceCurrent: 1,
-        activeWorkspace: 'purchase'
+        workspaceCurrent: purchaseIndex >= 0 ? purchaseIndex : 0,
+        activeWorkspace: purchaseIndex >= 0 ? 'purchase' : 'stock'
       });
     },
 
@@ -309,6 +332,13 @@ Component({
           this.setData({ purchaseSelectedCount: 0 });
         }
         workspace[action]();
+      }
+    },
+
+    _refreshPurchaseWorkspace() {
+      var workspace = this.selectComponent('#workspace-purchase');
+      if (workspace && typeof workspace.onPullDownRefresh === 'function') {
+        workspace.onPullDownRefresh();
       }
     },
 
@@ -2530,6 +2560,10 @@ Component({
             icon: 'success',
             duration: 1500
           });
+
+          // 外采工作区在当前页面打开时已经初始化过。转换成功后主动刷新，
+          // 避免用户切到“外采”仍看到转换前的空列表。
+          that._refreshPurchaseWorkspace();
           
           // 刷新页面数据，保持当前选择
           that._refreshDataWithSelection();
@@ -3393,7 +3427,7 @@ Component({
    
     onNavButtonTap() {
       wx.navigateTo({
-        url: '../../../subPackage/pages/management/homePage/homePage',
+        url: '../../../subPackage-home/pages/management/homePage/homePage',
       })
      },
 

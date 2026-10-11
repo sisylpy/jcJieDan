@@ -1,6 +1,5 @@
 var load = require('../../../../lib/load.js');
 var directStockSubmission = require('../../../../utils/directStockSubmission.js');
-var commercialEntitlement = require('../../../../utils/commercialEntitlement.js');
 var operatingCapability = require('../../../../utils/operatingCapability.js');
 
 import apiUrl from '../../../../config.js'
@@ -43,7 +42,96 @@ function scalePriceToPurchaseUnit(baseUnitPrice, factor) {
 
 Page({
 
+  _syncShelfCapabilities(source, allowRefresh) {
+    const disInfo = wx.getStorageSync('disInfo') || this.data.disInfo || {};
+    const capability = wx.getStorageSync('operatingCapability') || null;
+    const entitlement = wx.getStorageSync('commercialEntitlement') || null;
+    const effectiveFeatures = capability && Array.isArray(capability.effectiveFeatures)
+      ? capability.effectiveFeatures : [];
+    const flags = {
+      canManageShelfResponsibility: operatingCapability.canManageShelfResponsibility(disInfo, capability),
+      canInitializeShelfStock: operatingCapability.canInitializeShelfStock(disInfo, capability),
+      canUsePurchaseCore: operatingCapability.canUsePurchaseCore(disInfo, capability),
+      canUseStockIn: operatingCapability.canUseStockIn(disInfo, capability),
+      canCountInventory: operatingCapability.canCountInventory(disInfo, capability)
+    };
+
+    this.setData(Object.assign({ disInfo: disInfo }, flags));
+    console.warn('[shelf-capability]', {
+      source: source,
+      distributerId: disInfo.nxDistributerId,
+      distributerOperatingModeCode: disInfo.nxDistributerOperatingModeCode,
+      capabilityOperatingModeCode: capability && capability.operatingModeCode,
+      explicitOperatingMode: capability && capability.explicitOperatingMode,
+      planCode: entitlement && entitlement.planCode,
+      entitledFeatures: entitlement && entitlement.entitledFeatures,
+      commerciallyEntitledFeatures: capability && capability.commerciallyEntitledFeatures,
+      effectiveFeatures: effectiveFeatures,
+      requiredCommercialGaps: capability && capability.requiredCommercialGaps,
+      flags: flags,
+      purchaseButtonHiddenReason: flags.canUsePurchaseCore
+        ? 'NONE'
+        : (!capability ? 'OPERATING_CAPABILITY_MISSING' : 'PURCHASE_CORE_NOT_EFFECTIVE')
+    });
+
+    const disModeCode = disInfo.nxDistributerOperatingModeCode;
+    const capabilityModeCode = capability && capability.operatingModeCode;
+    // 刷新触发不能只看经营模式码：后端新增/调整能力授权时模式码保持不变，
+    // 若只比模式码就永远不会刷新，入口会停留在旧快照（只能靠清缓存才恢复）。
+    // 因此快照缺失时也必须刷新一次；allowRefresh===false 用于避免回调里递归。
+    const capabilityMissing = !capability || !Array.isArray(capability.effectiveFeatures);
+    if (allowRefresh !== false && disModeCode
+      && (capabilityMissing || disModeCode !== capabilityModeCode)) {
+      this._refreshShelfCapability(source, disModeCode, capabilityModeCode);
+    }
+  },
+
+  _refreshShelfCapability(source, disModeCode, capabilityModeCode) {
+    if (this._shelfCapabilityRefreshPending) return;
+    this._shelfCapabilityRefreshPending = true;
+    console.warn('[shelf-capability-refresh]', {
+      source: source,
+      reason: 'OPERATING_MODE_MISMATCH',
+      distributerOperatingModeCode: disModeCode,
+      cachedCapabilityOperatingModeCode: capabilityModeCode
+    });
+    getApp().ownerRequest({
+      url: apiUrl.apiUrl + 'commercial-entitlements/me',
+      method: 'GET',
+      success: res => {
+        const body = res.data || {};
+        if (body.code === 0 && body.data) {
+          wx.setStorageSync('commercialEntitlement', body.data);
+        }
+        if (body.code === 0 && body.operatingCapability) {
+          wx.setStorageSync('operatingCapability', body.operatingCapability);
+        } else {
+          console.warn('[shelf-capability-refresh-failed]', {
+            source: source,
+            reason: 'OPERATING_CAPABILITY_NOT_RETURNED',
+            code: body.code,
+            message: body.msg
+          });
+        }
+      },
+      fail: err => {
+        console.warn('[shelf-capability-refresh-failed]', {
+          source: source,
+          reason: 'REQUEST_FAILED',
+          statusCode: err && err.statusCode,
+          message: err && err.errMsg
+        });
+      },
+      complete: () => {
+        this._shelfCapabilityRefreshPending = false;
+        this._shelfCapabilityRefreshedOnce = true;
+        this._syncShelfCapabilities(source + '-refreshed', false);
+      }
+    });
+  },
+
   onShow() {
+    this._syncShelfCapabilities('onShow');
     console.log('onShow - 页面显示，开始检查刷新条件');
     if (this.data.refreshShelfListOnShow) {
       this._getDisShelfs();
@@ -224,17 +312,14 @@ Page({
     showIsPurchase: false,
     item: null,
     priceEditIndex: -1,
+    canInitializeShelfStock: false,
+    canUsePurchaseCore: false,
+    canUseStockIn: false,
+    canCountInventory: false,
 
   },
 
   onLoad(e) {
-
-    var entitlementDisInfo = wx.getStorageSync('disInfo') || {};
-    if (!commercialEntitlement.requireShelfWorkflowFeature(
-      'SHELF_MANAGEMENT', '货架管理', entitlementDisInfo)) {
-      wx.navigateBack({ delta: 1 });
-      return;
-    }
 
     const app = getApp();
     const globalData = app.globalData;
@@ -275,16 +360,7 @@ Page({
       shelfGoodsType: e && e.from === 'pendingStockIn' ? '5' : '99',
     })
     // 
-    var disInfo = wx.getStorageSync('disInfo');
-    if (disInfo) {
-      this.setData({
-        disInfo: disInfo,
-        canManageShelfResponsibility: operatingCapability.canManageShelfResponsibility(
-          disInfo, wx.getStorageSync('operatingCapability') || null),
-        canUseStockIn: operatingCapability.canUseStockIn(
-          disInfo, wx.getStorageSync('operatingCapability') || null)
-      })
-    }
+    this._syncShelfCapabilities('onLoad');
     var value = wx.getStorageSync('userInfo');
     if (value) {
       this.setData({
@@ -784,6 +860,10 @@ Page({
   },
 
   downLoadInitStock() {
+    // 与货架功能菜单中的其它入口一致：点击后先收起菜单面板。
+    this.setData({
+      isShowTools: false,
+    })
     const shelfId = this.data.shelfId;
     if (!shelfId || Number(shelfId) <= 0) {
       wx.showToast({
@@ -819,6 +899,10 @@ Page({
   },
 
   uploadInitStock() {
+    // 与货架功能菜单中的其它入口一致：点击后先收起菜单面板。
+    this.setData({
+      isShowTools: false,
+    })
     const shelfId = this.data.shelfId;
     if (!shelfId || Number(shelfId) <= 0) {
       wx.showToast({
@@ -1009,7 +1093,16 @@ Page({
   },
 
   showChoice(e) {
+    this._syncShelfCapabilities('showChoice');
     var disGoods = e.currentTarget.dataset.goods;
+    console.warn('[shelf-purchase-button]', {
+      disGoodsId: disGoods && disGoods.nxDistributerGoodsId,
+      shelfGoodsId: e.currentTarget.dataset.shelfgoods
+        && e.currentTarget.dataset.shelfgoods.nxDisGoodsShelfGoodsId,
+      canUsePurchaseCore: operatingCapability.canUsePurchaseCore(
+        wx.getStorageSync('disInfo') || this.data.disInfo || {},
+        wx.getStorageSync('operatingCapability') || null)
+    });
     this.setData({
       showOperation: true,
       isEditGoods: true,
@@ -1594,7 +1687,7 @@ Page({
     const submission = directStockSubmission.begin(this, requestFn, requestPayload);
     if (!submission.started) return;
     load.showLoading(loadingText);
-    console.log("savestock", purGoods)
+    console.log(useDirectStockIn ? 'directStockIn' : 'disSavePurGoodsSaveStock', requestPayload)
     submission.promise.then(res => {
       if (res.result.code == 0) {
         wx.showToast({
@@ -1602,7 +1695,7 @@ Page({
           icon: 'success'
         });
         load.hideLoading();
-        
+
         // 优化：只更新列表中对应商品的库存和采购信息，不刷新整个列表
         const rawResultData = res.result.data || {};
         // directStockIn 返回 { result: { stockBatchId, stockEntity } }，不含采购商品；
@@ -1610,8 +1703,8 @@ Page({
         const resultData = useDirectStockIn
           ? { stockEntities: [((rawResultData.result || {}).stockEntity)].filter(Boolean) }
           : rawResultData;
-        console.log('disSavePurGoodsSaveStock - 接口返回数据（完整）:', JSON.stringify(resultData, null, 2));
-        console.log('disSavePurGoodsSaveStock - 接口返回数据（对象）:', resultData);
+        console.log('采购入库 - 接口返回数据（完整）:', JSON.stringify(resultData, null, 2));
+        console.log('采购入库 - 接口返回数据（对象）:', resultData);
         
         if (goodsId) {
           // 如果接口返回了采购商品信息，更新采购信息

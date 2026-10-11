@@ -1,0 +1,25 @@
+<view class="card">
+  <block wx:if="{{kind === 'customers'}}">
+    <view class="title">今日待配送客户（{{total}}）</view>
+    <view class="row" wx:for="{{customers}}" wx:key="depFatherId">
+      <text class="name">{{item.name}}</text>
+      <text class="sub">ID {{item.depFatherId}} · 子部门 {{item.subDepartmentCount}}</text>
+    </view>
+  </block>
+
+  <block wx:elif="{{kind === 'orders'}}">
+    <view class="title">今日订单（{{items.length}}）</view>
+    <view class="row" wx:for="{{items}}" wx:key="goodsName">
+      <text class="name">{{item.goodsName}}</text>
+      <text class="sub">{{item.quantity}}{{item.standard}} · ¥{{item.subtotal}}</text>
+    </view>
+  </block>
+
+  <block wx:elif="{{kind === 'bill'}}">
+    <view class="title">对账</view>
+    <view class="row">
+      <text class="name">未结算账单</text>
+      <text class="sub">{{billCount}} 笔 · ¥{{unsettledAmount}}</text>
+    </view>
+  </block>
+</view>

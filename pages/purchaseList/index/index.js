@@ -141,16 +141,41 @@ Page({
   },
 
   openPurchaseApp() {
-    if (!this._validContext()) return
-    var path = 'pages/workbenchV2/workbenchV2?nxDisId=' + encodeURIComponent(this.data.disId) +
-      '&nxDisPurUserId=' + encodeURIComponent(this.data.purchaserId) +
-      '&from=nx'
-    wx.navigateToMiniProgram({
-      appId: PURCHASE_APP_ID,
-      path: path,
-      envVersion: 'trial',
-      fail: function () {
-        wx.showToast({ title: '暂时无法打开精彩订货', icon: 'none' })
+    if (this._openingPurchaseApp) return
+    var disId = Number(this.data.disId || wx.getStorageSync('ownerDistributerId') || 0)
+    if (!(disId > 0)) {
+      wx.showToast({ title: '采购身份信息不完整', icon: 'none' })
+      return
+    }
+    this._openingPurchaseApp = true
+    wx.showLoading({ title: '正在进入', mask: true })
+    getApp().ownerRequest({
+      url: apiUrl.apiUrl + 'jrdhinvite/owner-entry',
+      method: 'POST',
+      success: (res) => {
+        var result = res && res.data
+        var token = result && result.data && result.data.inviteToken
+        if (!result || result.code != 0 || !token) {
+          wx.showToast({ title: (result && result.msg) || '注册凭证生成失败', icon: 'none' })
+          return
+        }
+        var path = 'pages/workbenchV2/workbenchV2?nxDisId=' + encodeURIComponent(disId) +
+          '&inviteToken=' + encodeURIComponent(token) + '&from=nx'
+        wx.navigateToMiniProgram({
+          appId: PURCHASE_APP_ID,
+          path: path,
+          envVersion: 'trial',
+          fail: function () {
+            wx.showToast({ title: '暂时无法打开精彩订货', icon: 'none' })
+          }
+        })
+      },
+      fail: function (error) {
+        wx.showToast({ title: (error && error.errMsg) || '注册凭证生成失败', icon: 'none' })
+      },
+      complete: () => {
+        this._openingPurchaseApp = false
+        wx.hideLoading()
       }
     })
   },
@@ -670,6 +695,6 @@ Page({
   stopTap() {},
 
   onNavButtonTap() {
-    wx.navigateTo({ url: '/subPackage/pages/management/homePage/homePage' })
+    wx.navigateTo({ url: '/subPackage-home/pages/management/homePage/homePage' })
   }
 })

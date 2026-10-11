@@ -7,12 +7,12 @@ module.exports = {
   // server: 'http://192.168.0.102:8081/nongxinle_server_war_exploded/',
 // 
   // 正式服务器：发布正式环境时，注释上面的本地地址并启用这一组。
-  apiUrl: 'https://grainservice.club:8443/nongxinle/api/',
-  server: 'https://grainservice.club:8443/nongxinle/',
+  // apiUrl: 'https://grainservice.club:8443/nongxinle/api/',
+  // server: 'https://grainservice.club:8443/nongxinle/',
 
   // 测试服务器：测试时启用这一组。
-  // apiUrl: 'https://test-api.grainservice.club/nongxinle/api/',
-  // server: 'https://test-api.grainservice.club/nongxinle/',
+  apiUrl: 'https://test-api.grainservice.club/nongxinle/api/',
+  server: 'https://test-api.grainservice.club/nongxinle/',
 
   tencentCloud: {
     engineModelType: '16k_zh',

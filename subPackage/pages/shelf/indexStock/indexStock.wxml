@@ -29,7 +29,7 @@
         </view> -->
 
 
-        <!-- <view class="button-container mr-20" wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}" bindtap="toPurchase" data-type="sell">
+        <!-- <view class="button-container mr-20" wx:if="{{disInfo.nxDistributerProfessionalPurchaseMode}}" bindtap="toPurchase" data-type="sell">
           <image src="../../../../images/jjdhn.png" class="icon"></image>
         </view> -->
 
@@ -285,7 +285,7 @@
         <image src="/images/user-group-2.png" mode="aspectFill" class="icon mr-10" />
         <view class="">设置员工</view>
       </view>
-      <view wx:if="{{disInfo.nxDistributerBusinessTypeId > 2 || disInfo.nxDistributerOperatingModeCode}}" class="flex-row p-30 border-bottom" hover-class="hover" catchtap="toInventoryShelf">
+      <view wx:if="{{disInfo.nxDistributerShelfMode}}" class="flex-row p-30 border-bottom" hover-class="hover" catchtap="toInventoryShelf">
         <image src="/images/user-group-2.png" mode="aspectFill" class="icon mr-10" />
         <view class="">盘点货架</view>
       </view>
@@ -389,7 +389,7 @@
 
       </view>
 
-      <block wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+      <block wx:if="{{disInfo.nxDistributerProfessionalPurchaseMode}}">
 
         <block wx:if="{{shelfGoods.shelfPurGoods  == null}}">
 

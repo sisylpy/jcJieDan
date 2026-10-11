@@ -10,7 +10,9 @@ import {
   decorateRelativeBars,
   formatAveragePrices,
   formatMoney,
+  formatOptionalMoney,
   formatQuantities,
+  optionalPercentageLabel,
   percentageLabel,
   validateSalesRange
 } from '../../../../utils/salesAnalysisView'
@@ -20,7 +22,6 @@ import { resolveGoodsImage } from '../../../../utils/goodsImageView.js'
 Page({
   data: {
     navBarHeight: 0,
-    contentHeight: 0,
     range: currentMonthRange(),
     startDate: '',
     stopDate: '',
@@ -32,11 +33,13 @@ Page({
     pageError: '',
     summary: {
       salesAmountText: '¥0',
-      customerCount: 0,
+      grossProfitText: '—',
+      grossMarginRateText: '—',
+      costAmountText: '—',
+      profitCoverageText: '—',
+      grossProfitNegative: false,
       goodsCount: 0,
-      subcategoryCount: 0,
-      quantityText: '暂无有效数量',
-      quantityNote: '按原交易单位统计'
+      subcategoryCount: 0
     },
     qualityIssueCount: 0,
 
@@ -49,6 +52,7 @@ Page({
     goodsDetail: {},
     selectedSubcategoryId: null,
     selectedSubcategoryName: '商品',
+    selectedSubcategory: null,
     products: [],
     visibleProducts: [],
     keyword: '',
@@ -62,7 +66,16 @@ Page({
     customerProductTotal: 0,
     customerProductFinished: false,
     customerProductLoading: false,
-    productError: ''
+    productError: '',
+
+    // 商品客户占比抽屉
+    drawerOpen: false,
+    selectedProduct: null,
+    productCustomers: [],
+    productOthers: null,
+    productCustomerCount: 0,
+    drawerLoading: false,
+    drawerError: ''
   },
 
   onLoad() {
@@ -70,11 +83,9 @@ Page({
     const globalData = app.globalData || {}
     const ratio = globalData.rpxR || 1
     const navBarHeight = (globalData.navBarHeight || 0) * ratio
-    const windowHeight = (globalData.windowHeight || 0) * ratio
     const range = currentMonthRange()
     this.setData({
       navBarHeight,
-      contentHeight: Math.max(0, windowHeight - navBarHeight),
       range,
       startDate: range.startDate,
       stopDate: range.endDate,
@@ -88,6 +99,7 @@ Page({
     this._detailRequestId = 0
     this._customerListRequestId = 0
     this._productRequestId = 0
+    this._productCustomerRequestId = 0
     this.loadReport()
   },
 
@@ -131,6 +143,7 @@ Page({
     this._detailRequestId += 1
     this._customerListRequestId += 1
     this._productRequestId += 1
+    this._productCustomerRequestId += 1
   },
 
   onPullDownRefresh() {
@@ -184,21 +197,19 @@ Page({
         loading: false,
         summary: {
           salesAmountText: formatMoney(summary.salesAmount),
-          customerCount: Number(summary.customerCount || 0),
+          grossProfitText: formatOptionalMoney(summary.grossProfit),
+          grossMarginRateText: optionalPercentageLabel(summary.grossMarginRate),
+          costAmountText: formatOptionalMoney(summary.costAmount),
+          profitCoverageText: optionalPercentageLabel(summary.profitCoverageRate),
+          grossProfitNegative: Number(summary.grossProfit) < 0,
           goodsCount: Number(summary.goodsCount || 0),
-          subcategoryCount: Number(summary.subcategoryCount || 0),
-          quantityText: summary.primaryQuantity
-            ? formatQuantities([summary.primaryQuantity])
-            : '暂无有效数量',
-          quantityNote: Number(summary.otherUnitCount || 0) > 0
-            ? '另有 ' + summary.otherUnitCount + ' 种交易单位'
-            : '按原交易单位统计'
+          subcategoryCount: Number(summary.subcategoryCount || 0)
         },
         categories,
         qualityIssueCount: this._qualityIssueCount(quality)
       })
       if (categories.length) {
-        this._expandCategory(categories[0].id)
+        await this._expandCategory(categories[0].id)
       }
     } catch (error) {
       if (requestId !== this._overviewRequestId) return
@@ -228,6 +239,7 @@ Page({
         expandedCategoryId: null,
         selectedSubcategoryId: null,
         selectedSubcategoryName: '商品',
+        selectedSubcategory: null,
         selectedCustomerId: null,
         selectedCustomerName: '',
         customerProducts: []
@@ -244,16 +256,17 @@ Page({
         this.setData({
           ['goodsDetail.' + id]: { loadingChildren: true, subcategories: [], products: [], loaded: false, error: '' }
         })
-        this._loadCategoryDetail(id)
+        return this._loadCategoryDetail(id)
       }
     } else {
       if (!this.data.customerList[id]) {
         this.setData({
           ['customerList.' + id]: { loading: true, list: [], page: 0, total: 0, totalPages: 0, finished: false, error: '' }
         })
-        this._loadCategoryCustomers(id, 1)
+        return this._loadCategoryCustomers(id, 1)
       }
     }
+    return Promise.resolve()
   },
 
   async _loadCategoryDetail(id) {
@@ -298,6 +311,7 @@ Page({
     this.setData({
       selectedSubcategoryId: sub.id,
       selectedSubcategoryName: sub.name,
+      selectedSubcategory: sub,
       keyword: '',
       products: detail.products || []
     })
@@ -456,17 +470,82 @@ Page({
     this.loadMoreCustomerProducts()
   },
 
+  openProduct(e) {
+    const goodsId = Number(e.currentTarget.dataset.id)
+    const rows = this.data.viewMode === 'goods'
+      ? this.data.visibleProducts
+      : this.data.customerProducts
+    const product = this._findById(rows, 'goodsId', goodsId)
+    if (product) this._loadProductCustomers(product)
+  },
+
+  async _loadProductCustomers(product) {
+    const requestId = ++this._productCustomerRequestId
+    this.setData({
+      drawerOpen: true,
+      selectedProduct: product,
+      productCustomers: [],
+      productOthers: null,
+      productCustomerCount: 0,
+      drawerLoading: true,
+      drawerError: ''
+    })
+    try {
+      const response = await getSalesAnalysisProductCustomers(
+        product.goodsId,
+        Object.assign({}, this.data.range),
+        200
+      )
+      if (requestId !== this._productCustomerRequestId) return
+      const detail = this._requireData(response, '客户占比加载失败')
+      const customers = (detail.customers || []).map(item => this._decorateCustomer(Object.assign({}, item, {
+        barWidth: Math.max(2, Math.min(100, Number(item.share || 0)))
+      })))
+      const others = detail.others
+        ? this._decorateCustomer(Object.assign({}, detail.others, {
+          barWidth: Math.max(2, Math.min(100, Number(detail.others.share || 0)))
+        }))
+        : null
+      this.setData({
+        selectedProduct: this._decorateProduct(detail.product || product),
+        productCustomers: customers,
+        productOthers: others,
+        productCustomerCount: Number(detail.customerCount || customers.length),
+        drawerLoading: false
+      })
+    } catch (error) {
+      if (requestId !== this._productCustomerRequestId) return
+      this.setData({
+        drawerLoading: false,
+        drawerError: error && error.message ? error.message : '客户占比加载失败'
+      })
+    }
+  },
+
+  closeDrawer() {
+    this._closeDrawer()
+  },
+
+  stopTap() {},
+
+  _closeDrawer() {
+    this._productCustomerRequestId += 1
+    this.setData({ drawerOpen: false, drawerLoading: false, drawerError: '' })
+  },
+
   // ---- 内部工具 ----
 
   _resetDetail() {
     this._detailRequestId += 1
     this._customerListRequestId += 1
     this._productRequestId += 1
+    this._productCustomerRequestId += 1
     this.setData({
       expandedCategoryId: null,
       goodsDetail: {},
       selectedSubcategoryId: null,
       selectedSubcategoryName: '商品',
+      selectedSubcategory: null,
       products: [],
       visibleProducts: [],
       keyword: '',
@@ -478,13 +557,22 @@ Page({
       customerProductTotal: 0,
       customerProductFinished: false,
       customerProductLoading: false,
-      productError: ''
+      productError: '',
+      drawerOpen: false,
+      drawerLoading: false,
+      drawerError: ''
     })
   },
 
   _decorateCategory(item) {
     return Object.assign({}, item, {
+      imageUrl: resolveCatalogImage(item.image, apiUrl.server),
+      initial: String(item.name || '类').slice(0, 1),
       amountText: formatMoney(item.salesAmount),
+      grossProfitText: formatOptionalMoney(item.grossProfit),
+      grossMarginRateText: optionalPercentageLabel(item.grossMarginRate),
+      profitCoverageText: optionalPercentageLabel(item.profitCoverageRate),
+      profitNegative: Number(item.grossProfit) < 0,
       shareText: percentageLabel(item.share),
       quantityText: formatQuantities(item.quantities),
       shareWidth: Math.max(3, Math.min(100, Number(item.share || 0)))
@@ -501,6 +589,10 @@ Page({
     return Object.assign({}, item, {
       goodsImageUrl: resolveGoodsImage(item, apiUrl.server),
       amountText: formatMoney(item.salesAmount),
+      grossProfitText: formatOptionalMoney(item.grossProfit),
+      grossMarginRateText: optionalPercentageLabel(item.grossMarginRate),
+      profitCoverageText: optionalPercentageLabel(item.profitCoverageRate),
+      profitNegative: Number(item.grossProfit) < 0,
       shareText: percentageLabel(item.share),
       quantityText: formatQuantities(item.quantities),
       averagePriceText: formatAveragePrices(item.averagePrices),
@@ -517,6 +609,9 @@ Page({
   _decorateCustomer(item) {
     return Object.assign({}, item, {
       amountText: formatMoney(item.salesAmount),
+      grossProfitText: formatOptionalMoney(item.grossProfit),
+      grossMarginRateText: optionalPercentageLabel(item.grossMarginRate),
+      profitNegative: Number(item.grossProfit) < 0,
       shareText: percentageLabel(item.share),
       quantityText: formatQuantities(item.quantities),
       averagePriceText: formatAveragePrices(item.averagePrices),
@@ -551,4 +646,12 @@ function currentMonthRange() {
   const start = new Date(end.getFullYear(), end.getMonth(), 1)
   const iso = date => date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0')
   return { startDate: iso(start), endDate: iso(end) }
+}
+
+function resolveCatalogImage(value, serverBase) {
+  const source = String(value === null || value === undefined ? '' : value).trim()
+  if (!source || source === 'null' || source === 'undefined' || source === '-1') return ''
+  if (/^(https?:)?\/\//i.test(source) || source.startsWith('data:')) return source
+  const base = String(serverBase || '').replace(/\/+$/, '')
+  return base ? base + '/' + source.replace(/^\/+/, '') : source
 }

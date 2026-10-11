@@ -7,6 +7,32 @@ function hasEffectiveFeature(snapshot, code) {
   return features(snapshot).indexOf(code) !== -1
 }
 
+function canManageShelfResponsibility(disInfo, snapshot) {
+  return !!disInfo && hasEffectiveFeature(snapshot, 'SHELF_RESPONSIBILITY')
+}
+
+function canTransferShelfStock(disInfo, snapshot) {
+  return !!disInfo && hasEffectiveFeature(snapshot, 'SHELF_TRANSFER')
+}
+
+function canInitializeShelfStock(disInfo, snapshot) {
+  return !!disInfo && hasEffectiveFeature(snapshot, 'SHELF_STOCK_INITIALIZATION')
+}
+
+function canUsePurchaseCore(disInfo, snapshot) {
+  return !!disInfo && hasEffectiveFeature(snapshot, 'PURCHASE_CORE')
+}
+
+// 普通货架商品入库：只看 STOCK_IN 有效权限（经营模式 ∩ 套餐），
+// 不依赖 PURCHASE_CORE，因此模式 2/3/4 都能显示“采购入库”入口。
+function canUseStockIn(disInfo, snapshot) {
+  return !!disInfo && hasEffectiveFeature(snapshot, 'STOCK_IN')
+}
+
+function canCountInventory(disInfo, snapshot) {
+  return !!disInfo && hasEffectiveFeature(snapshot, 'INVENTORY_COUNT')
+}
+
 function isExplicit(disInfo, snapshot) {
   return !!((snapshot && snapshot.explicitOperatingMode === true) ||
     (disInfo && disInfo.nxDistributerOperatingModeCode))
@@ -17,51 +43,31 @@ function legacyShelfResponsibility(disInfo) {
   return !!disInfo && Number(disInfo.nxDistributerBusinessTypeId) > 2
 }
 
-function canManageShelfResponsibility(disInfo, snapshot) {
-  return isExplicit(disInfo, snapshot)
-    ? hasEffectiveFeature(snapshot, 'SHELF_RESPONSIBILITY')
-    : legacyShelfResponsibility(disInfo)
-}
-
-function canTransferShelfStock(disInfo, snapshot) {
-  return isExplicit(disInfo, snapshot)
-    ? hasEffectiveFeature(snapshot, 'SHELF_TRANSFER')
-    : legacyShelfResponsibility(disInfo)
-}
-
-function canUsePartnerCollaboration(disInfo, snapshot) {
-  if (isExplicit(disInfo, snapshot)) {
-    return hasEffectiveFeature(snapshot, 'PARTNER_DISTRIBUTOR_COLLABORATION') &&
-      hasEffectiveFeature(snapshot, 'PLATFORM_GOODS')
-  }
-  // 未迁移客户继续沿用原平台型 business_type 6/7 入口。
-  return !!disInfo && Number(disInfo.nxDistributerBusinessTypeId) > 5
-}
-
-// 专业采购（采购总览/采购任务/外采/备货 Tab）统一按有效权限 PURCHASE_CORE 判断。
-// 模式 2/3 的 effectiveFeatures 不含 PURCHASE_CORE → 隐藏入口且不发起请求；
-// 模式 4+ 含 PURCHASE_CORE → 正常显示。未迁移老客户沿用原 business_type > 2 入口。
+// 专业采购入口（采购总览页等）按有效权限 PURCHASE_CORE 判断；
+// 未迁移老客户沿用原 business_type > 2 入口。
 function canUseProfessionalPurchase(disInfo, snapshot) {
   return isExplicit(disInfo, snapshot)
     ? hasEffectiveFeature(snapshot, 'PURCHASE_CORE')
     : legacyShelfResponsibility(disInfo)
 }
 
-// 普通货架商品入库：按有效权限 STOCK_IN 判定，与 PURCHASE_CORE 无关，
-// 因此模式 2/3 不会因为没有“老板采购”而失去入库入口。
-// 能力快照未就绪且经营模式未显式声明时（未迁移老客户）保持原有可见性；
-// 显式经营模式下快照缺失即视为无权限（失败关闭），绝不回退到套餐 entitledFeatures。
-function canUseStockIn(disInfo, snapshot) {
-  return isExplicit(disInfo, snapshot)
-    ? hasEffectiveFeature(snapshot, 'STOCK_IN')
-    : true
+// 协作伙伴能力同样按有效权限判断；未迁移客户沿用原平台型 business_type 6/7 入口。
+function canUsePartnerCollaboration(disInfo, snapshot) {
+  if (isExplicit(disInfo, snapshot)) {
+    return hasEffectiveFeature(snapshot, 'PARTNER_DISTRIBUTOR_COLLABORATION') &&
+      hasEffectiveFeature(snapshot, 'PLATFORM_GOODS')
+  }
+  return !!disInfo && Number(disInfo.nxDistributerBusinessTypeId) > 5
 }
 
 module.exports = {
   hasEffectiveFeature,
   canManageShelfResponsibility,
   canTransferShelfStock,
-  canUsePartnerCollaboration,
+  canInitializeShelfStock,
+  canUsePurchaseCore,
+  canUseStockIn,
+  canCountInventory,
   canUseProfessionalPurchase,
-  canUseStockIn
+  canUsePartnerCollaboration
 }

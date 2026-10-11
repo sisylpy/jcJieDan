@@ -1,7 +1,7 @@
 var app = getApp();
 var load = require('../../../../lib/load.js');
 var commercialEntitlement = require('../../../../utils/commercialEntitlement.js');
-var operatingCapability = require('../../../../utils/operatingCapability.js');
+var managementHomeAccess = require('../../../../utils/managementHomeAccess.js');
 import download from "../../../utils/download.js"
 
 import apiUrl from '../../../../config.js'
@@ -11,6 +11,21 @@ import{
 }from '../../../lib/apiibook'
 import {getDisUserInfo, getPurchaseManagementOverview} from '../../../../lib/apiDistributer'
 
+function normalizeCommercialUsage(value) {
+  const usage = value || {}
+  const granted = Number(usage.grantedQuantity || 0)
+  const consumed = Number(usage.consumedQuantity || 0)
+  const available = Number(usage.availableQuantity || 0)
+  return {
+    meterCode: usage.meterCode || 'ORDER_LINE',
+    grantedQuantity: granted,
+    consumedQuantity: consumed,
+    availableQuantity: available,
+    expiredQuantity: Number(usage.expiredQuantity || 0),
+    version: Number(usage.version || 0)
+  }
+}
+
 Page({
 
   onShow(){
@@ -19,35 +34,45 @@ Page({
     if (!userInfo || !userInfo.nxDistributerUserId) {
       return
     }
-    this.loadPurchasePendingCount()
-    getDisUserInfo(userInfo.nxDistributerUserId)
-    .then(res =>{
+    const entitlementTask = this.refreshCommercialEntitlement().catch(error => {
+      console.warn('[homePage] commercial entitlement refresh unavailable', error)
+      return commercialEntitlement.snapshot()
+    })
+    const usageTask = this.refreshCommercialUsage().catch(error => {
+      console.warn('[homePage] commercial usage refresh unavailable', error)
+      return normalizeCommercialUsage(wx.getStorageSync('commercialUsage'))
+    })
+    Promise.all([getDisUserInfo(userInfo.nxDistributerUserId), entitlementTask, usageTask])
+    .then(results =>{
+      const res = results[0]
+      const snapshot = results[1]
+      const commercialUsage = normalizeCommercialUsage(results[2])
       if(res.result.code == 0){
         const img = res.result.data.nxDistributerEntity.nxDistributerImg || '';
         const isPlaceholderStoreImg = img.indexOf('uploadImage/r.jpg') >= 0;
-        const currentDisInfo = res.result.data.nxDistributerEntity || {}
-        this.setData({
+        const disInfo = Object.assign({}, res.result.data.nxDistributerEntity, {
+          machinePayList: (res.result.data.nxDistributerEntity && res.result.data.nxDistributerEntity.machinePayList)
+            ? res.result.data.nxDistributerEntity.machinePayList
+            : []
+        })
+        const access = managementHomeAccess.build(snapshot, res.result.data, disInfo,
+          wx.getStorageSync('operatingCapability') || null)
+        this.setData(Object.assign({
           userInfo: res.result.data,
-          disInfo: Object.assign({}, res.result.data.nxDistributerEntity, {
-            machinePayList: (res.result.data.nxDistributerEntity && res.result.data.nxDistributerEntity.machinePayList)
-              ? res.result.data.nxDistributerEntity.machinePayList
-              : []
-          }),
+          disInfo,
           disId: res.result.data.nxDistributerEntity.nxDistributerId,
-          isPlaceholderStoreImg: isPlaceholderStoreImg,
-          canViewSalesAnalysis: Number(res.result.data.nxDiuAdmin) === 0,
-          canViewSmartReplenishment: Number(res.result.data.nxDiuAdmin) === 0,
-          canUseShelf: commercialEntitlement.hasShelfWorkflowFeature(
-            'SHELF_MANAGEMENT', currentDisInfo),
-          canUsePartnerCollaboration: operatingCapability.canUsePartnerCollaboration(
-            currentDisInfo, wx.getStorageSync('operatingCapability') || null),
-          canUseProfessionalPurchase: operatingCapability.canUseProfessionalPurchase(
-            currentDisInfo, wx.getStorageSync('operatingCapability') || null)
+          isPlaceholderStoreImg,
+          commercialUsage,
+          usageQuotaLow: commercialUsage.availableQuantity <= 10
+        }, access), () => {
+          if (this.data.canViewPurchaseManagement) this.loadPurchasePendingCount()
+          else this.setData({ purchasePendingCount: 0 })
         })
         wx.setStorageSync('disInfo', res.result.data.nxDistributerEntity);
         wx.setStorageSync('userInfo', res.result.data);
       }
     })
+    .catch(error => console.warn('[homePage] home access refresh failed', error))
   },
 
   /**
@@ -61,11 +86,13 @@ Page({
     editUser: false,
     yuyin: 0,
     isPlaceholderStoreImg: false,
-    canViewSalesAnalysis: false,
-    canViewSmartReplenishment: false,
+    accessLoaded: false,
+    commercialPlanName: '正在读取套餐',
+    commercialStatusName: '',
+    entitlementVersion: 0,
+    commercialUsage: normalizeCommercialUsage(null),
+    usageQuotaLow: false,
     purchasePendingCount: 0,
-    canUseShelf: false,
-    canUsePartnerCollaboration: false,
     userInfo: {
       nxDistributerEntity: {
         nxDistributerName: '',
@@ -80,7 +107,7 @@ Page({
       nxDiuPrintDeviceId: -1
     },
     disInfo: {
-      nxDistributerBusinessTypeId: 0,
+      nxDistributerOperatingModeCode: 'SMALL_WHOLESALE',
       nxDistributerBuyQuantity: 0,
       machinePayList: [],
       sysCityMarketEntity: {
@@ -99,25 +126,23 @@ Page({
     var cachedUser = wx.getStorageSync('userInfo') || {}
     var cachedDis = wx.getStorageSync('disInfo') || cachedUser.nxDistributerEntity || {}
     
-    this.setData({
+    const access = managementHomeAccess.build(
+      commercialEntitlement.snapshot(), cachedUser, cachedDis,
+      wx.getStorageSync('operatingCapability') || null)
+    this.setData(Object.assign({
       windowWidth: globalData.windowWidth * globalData.rpxR,
       windowHeight: globalData.windowHeight * globalData.rpxR,
       navBarHeight: globalData.navBarHeight  * globalData.rpxR,
       sysDeviceId: globalData.sysDeviceId,
       url: apiUrl.server,
       userInfo: Object.assign({}, this.data.userInfo, cachedUser),
-      canViewSalesAnalysis: Number(cachedUser.nxDiuAdmin) === 0,
-      canViewSmartReplenishment: Number(cachedUser.nxDiuAdmin) === 0,
-      canUseShelf: commercialEntitlement.hasShelfWorkflowFeature(
-        'SHELF_MANAGEMENT', cachedDis),
-      canUsePartnerCollaboration: operatingCapability.canUsePartnerCollaboration(
-        cachedDis, wx.getStorageSync('operatingCapability') || null),
-      canUseProfessionalPurchase: operatingCapability.canUseProfessionalPurchase(
-        cachedDis, wx.getStorageSync('operatingCapability') || null),
       disInfo: Object.assign({}, this.data.disInfo, cachedDis, {
         machinePayList: (cachedDis && cachedDis.machinePayList) ? cachedDis.machinePayList : []
-      })
-    })
+      }),
+      commercialUsage: normalizeCommercialUsage(wx.getStorageSync('commercialUsage')),
+      usageQuotaLow: normalizeCommercialUsage(
+        wx.getStorageSync('commercialUsage')).availableQuantity <= 10
+    }, access))
    
     
 
@@ -130,7 +155,60 @@ Page({
      }
   },
 
+  refreshCommercialEntitlement(){
+    return new Promise((resolve, reject) => {
+      app.ownerRequest({
+        url: apiUrl.apiUrl + 'commercial-entitlements/me',
+        method: 'GET',
+        success: res => {
+          const body = res.data || {}
+          if (body.code !== 0 || !body.data) {
+            reject(new Error(body.msg || '商业权益读取失败'))
+            return
+          }
+          wx.setStorageSync('commercialEntitlement', body.data)
+          resolve(body.data)
+        },
+        fail: reject
+      })
+    })
+  },
+
+  refreshCommercialUsage(){
+    return new Promise((resolve, reject) => {
+      app.ownerRequest({
+        url: apiUrl.apiUrl + 'commercial-usage/me',
+        method: 'GET',
+        success: res => {
+          const body = res.data || {}
+          if (body.code !== 0 || !body.data) {
+            reject(new Error(body.msg || '订单额度读取失败'))
+            return
+          }
+          const usage = normalizeCommercialUsage(body.data)
+          wx.setStorageSync('commercialUsage', usage)
+          resolve(usage)
+        },
+        fail: reject
+      })
+    })
+  },
+
+  toUsageCenter(){
+    wx.navigateTo({
+      url: '/subPackage/pages/management/usageCenter/usageCenter'
+    })
+  },
+
+  toUsagePurchase(){
+    if (!this.requireOwner('充值订单额度')) return
+    wx.navigateTo({
+      url: '/subPackage/pages/management/payPage/payPage'
+    })
+  },
+
   loadPurchasePendingCount(){
+    if (!this.data.canViewPurchaseManagement) return
     getPurchaseManagementOverview({ range: 'TODAY' }).then(res => {
       const body = res.result || {}
       if (body.code !== 0) return
@@ -209,27 +287,20 @@ Page({
 
 
   toPayPageList(e){
-    wx.navigateTo({
-      url: '../payList/payList?type=' + e.currentTarget.dataset.type,
+    wx.showModal({
+      title: '旧积分购买已停用',
+      content: '当前商业客户由管理员配置套餐与订单商品行额度。',
+      showCancel: false
     })
   },
 
   toPayPage(e){
-    const marketInfo = this.data.disInfo && this.data.disInfo.sysCityMarketEntity;
-    if(!marketInfo || marketInfo.sysCmSelfPrintEnabled == 0){
-      wx.navigateTo({
-        url: '../payPage/payPage?type=' + e.currentTarget.dataset.type,
-      })
-    }else{
-      wx.navigateTo({
-        url: '../payPageMarket/payPageMarket?type=' + e.currentTarget.dataset.type,
-      })
-    }
-   
+    this.toPayPageList(e)
    },
  
 
   toSupplierList(){
+    if (!this.requireHomeFeature('BASIC_SUPPLIER_MANAGEMENT', '基础供应商管理')) return
     wx.navigateTo({
       url: '../../../../subPackage-supplier/pages/supplier/index/index?disId=' + this.data.disInfo.nxDistributerId 
             +'&userId=' + this.data.userInfo.nxDistributerUserId,
@@ -288,8 +359,9 @@ Page({
   },
 
   toCustomer(){
+    if (!this.requireHomeFeature('CUSTOMER_MASTER', '客户管理')) return
     wx.navigateTo({
-      url: '../../customer/index/index',
+      url: '/subPackage/pages/customer/index/index',
     })
   },
 
@@ -485,6 +557,7 @@ Page({
 
 
   toPrinterSetting() {
+    if (!this.requireHomeFeature('CUSTOMER_DOCUMENT', '客户交易单据打印')) return
     wx.navigateTo({
       url: '/subPackage-printer/pages/management/printerSetting/printerSetting',
     })
@@ -507,21 +580,24 @@ Page({
 
   
   toStaff(){
+    if (!this.requireOwner('账号管理')) return
     wx.navigateTo({
-      url: '../staff/staff?disId=' + this.data.userInfo.nxDiuDistributerId,
+      url: '/subPackage/pages/management/staff/staff?disId=' + this.data.userInfo.nxDiuDistributerId,
     })
   },
 
 
   editHome(){
+    if (!this.requireOwner('修改店铺')) return
     wx.navigateTo({
-      url: '../homeEdit/homeEdit',
+      url: '/subPackage/pages/management/homeEdit/homeEdit',
     })
 
   },
 
 
   toGoods(){
+    if (!this.requireHomeFeature('GOODS_MASTER', '商品管理')) return
     wx.navigateTo({
       url: '/subPackage-goods/pages/goods/goods/goods',
     })
@@ -542,55 +618,61 @@ Page({
   },
 
   toNxDisList(){
-
-    if (!operatingCapability.canUsePartnerCollaboration(
-      this.data.disInfo, wx.getStorageSync('operatingCapability') || null)) {
-      wx.showToast({ title: '当前经营模式或商业授权未开通协作伙伴', icon: 'none' })
-      return
-    }
+    if (!this.requireHomeFeature('PARTNER_DISTRIBUTOR_COLLABORATION', '协作配送商')) return
+    if (!this.requireShelfWorkflow('协作配送商')) return
 
     wx.navigateTo({
-      url: '../../offerNx/offerNxDistributerList/offerNxDistributerList?disId=' + this.data.disId,
+      url: '/subPackage/pages/offerNx/offerNxDistributerList/offerNxDistributerList?disId=' + this.data.disId,
     })
   },
 
   toDeliveryStrategy(){
+    if (!this.requireHomeFeature('ADVANCED_DISPATCH', '配送设置')) return
+    if (!this.requireShelfWorkflow('配送设置')) return
     wx.navigateTo({
-      url: '../deliveryStrategy/deliveryStrategy?disId=' + this.data.disId,
+      url: '/subPackage/pages/management/deliveryStrategy/deliveryStrategy?disId=' + this.data.disId,
     })
   },
 
   toDispatchPerformance(){
+    if (!this.requireHomeFeature('ADVANCED_DISPATCH', '派单管理')) return
+    if (!this.requireShelfWorkflow('派单管理')) return
     wx.navigateTo({
-      url: '../dispatchPerformance/dispatchPerformance'
+      url: '/subPackage/pages/management/dispatchPerformance/dispatchPerformance'
     })
   },
 
   toCoupon(){
+    if (!this.unavailableCommercialFeature('普通优惠券')) return
     wx.navigateTo({
       url: '/subPackage-coupon/pages/management/distributerCoupon/distributerCoupon?disId=' + this.data.disId,
     })
   },
 
   toCompensationCoupon(){
+    if (!this.requireHomeFeature('AFTER_SALES', '售后补偿')) return
     wx.navigateTo({
       url: '/subPackage-coupon/pages/management/compensationCoupon/compensationCoupon?disId=' + this.data.disId,
     })
   },
 
   toAfterSales(){
+    if (!this.requireHomeFeature('AFTER_SALES', '售后处理')) return
     wx.navigateTo({
       url: '/subPackage-charts/pages/afterSales/index/index',
     })
   },
 
   toAnnouncementBoard(){
+    if (!this.unavailableCommercialFeature('公司公告牌')) return
     wx.navigateTo({
-      url: '../../announcement/index/index',
+      url: '/subPackage/pages/announcement/index/index',
     })
   },
 
   toStock(){
+    if (!this.requireHomeFeature('INVENTORY_BATCH', '库存查询')) return
+    if (!this.requireShelfWorkflow('库存查询')) return
     wx.navigateTo({
       url: '/subPackage-charts/pages/stock/index/index',
     })
@@ -602,6 +684,7 @@ Page({
 
 
 toMyPurchase(){
+  if (!this.requireHomeFeature('OWNER_DASHBOARD', '经营看板')) return
   wx.navigateTo({
     url: '/subPackage-charts/pages/statistic/index/index?disId=' + this.data.disId,
   })
@@ -612,86 +695,88 @@ toMyPurchase(){
 
   
 toPurGoodsFenxi(){
+  if (!this.requireHomeFeature('PURCHASE_ANALYTICS', '采购统计')) return
   wx.navigateTo({
     url: '../../../../subPackage-charts/pages/mangement/purGoodsFenxi/purGoodsFenxi?disId=' + this.data.disId,
   })
 },
 
 toCostGoodsFenxi(){
+  if (!this.requireHomeFeature('INVENTORY_ANALYTICS', '库存分析')) return
+  if (!this.requireShelfWorkflow('库存分析')) return
   wx.navigateTo({
     url: '../../../../subPackage-charts/pages/mangement/costGoodsFenxi/costGoodsFenxi?disId=' + this.data.disId,
   })
 },
 
 toSalesAnalysis(){
-  if (!this.data.canViewSalesAnalysis) {
-    wx.showToast({ title: '只有老板账号可以查看', icon: 'none' })
-    return
-  }
+  if (!this.requireOwner('销售分析')) return
+  if (!this.requireHomeFeature('SALES_ACTIVITY_ANALYTICS', '销售分析')) return
   wx.navigateTo({
     url: '/subPackage-charts/pages/salesAnalysis/index/index',
   })
 },
 
 toPurchaseCollaboration(){
+  if (!this.requireHomeFeature('SUPPLIER_COLLABORATION', '采购协同')) return
   wx.navigateTo({
     url: '/subPackage/pages/management/purchaseManagement/purchaseCollaboration/purchaseCollaboration',
   })
 },
 
 toPurchaserDetail(){
+  if (!this.requireHomeFeature('PURCHASER_MANAGEMENT', '采购员管理')) return
   wx.navigateTo({
     url: '/subPackage/pages/management/purchaseManagement/purchaserDetail/purchaserDetail',
   })
 },
 
 toFinanceOverview(){
+  if (!this.requireHomeFeature('FINANCIAL_ANALYTICS', '资金总览')) return
   wx.navigateTo({
     url: '/subPackage/pages/management/purchaseManagement/financeOverview/financeOverview',
   })
 },
 
 toReimbursementList(){
+  if (!this.requireHomeFeature('PURCHASE_FINANCE', '采购员报销')) return
   wx.navigateTo({
     url: '/subPackage/pages/management/purchaseManagement/reimbursementList/reimbursementList',
   })
 },
 
 toSettlementList(){
+  if (!this.requireHomeFeature('PURCHASE_FINANCE', '供应商结账')) return
   wx.navigateTo({
     url: '/subPackage/pages/management/purchaseManagement/settlementList/settlementList',
   })
 },
 
 toPaymentList(){
+  if (!this.requireHomeFeature('PURCHASE_FINANCE', '付款记录')) return
   wx.navigateTo({
     url: '/subPackage/pages/management/purchaseManagement/paymentList/paymentList',
   })
 },
 
 toCustomerOrderAnomalies(){
+  if (!this.requireHomeFeature('ORDER_QUERY', '订货异常')) return
   wx.navigateTo({
     url: '/subPackage/pages/management/customerOrderAnomalies/customerOrderAnomalies',
   })
 },
 
 toSmartReplenishment(){
-  if (!this.data.canViewSmartReplenishment) {
-    wx.showToast({ title: '只有老板账号可以查看', icon: 'none' })
-    return
-  }
+  if (!this.requireOwner('智能备货')) return
+  if (!this.requireHomeFeature('SMART_REPLENISHMENT', '智能备货')) return
+  if (!this.requireShelfWorkflow('智能备货')) return
   wx.navigateTo({
     url: '/subPackage-charts/pages/smartReplenishment/index/index',
   })
 },
 
 toPurchaseManagement(){
-  // 模式 2/3 无 PURCHASE_CORE 有效权限：隐藏专业采购入口，不进入、不触发 403。
-  if (!operatingCapability.canUseProfessionalPurchase(
-      this.data.disInfo, wx.getStorageSync('operatingCapability') || null)) {
-    wx.showToast({ title: '当前经营模式未开放专业采购', icon: 'none' })
-    return
-  }
+  if (!this.requireHomeFeature('PURCHASE_CORE', '采购总览')) return
   wx.navigateTo({
     url: '/subPackage/pages/management/purchaseManagement/index/index',
   })
@@ -699,9 +784,61 @@ toPurchaseManagement(){
 
 
 toShelf(){
-  if (!commercialEntitlement.requireShelfWorkflowFeature(
-    'SHELF_MANAGEMENT', '货架管理', this.data.disInfo)) return
+  if (!this.requireHomeFeature('SHELF_MANAGEMENT', '货架管理')) return
+  if (!this.requireShelfWorkflow('货架管理')) return
   wx.navigateTo({ url: '/subPackage/pages/shelf/index/index' })
+},
+
+requireHomeFeature(featureCode, featureName){
+    // 专业采购能力必须与入口显示使用同一判断口径：按 effectiveFeatures（经营模式∩套餐），
+    // 不能只看套餐 entitledFeatures，否则模式 2/3 仍可进入并触发 403。
+    // 仅对专业采购能力生效，库存/货架/出库/成本等既有入口保持原判定不受影响。
+    var professionalPurchaseFeatures = ['PURCHASE_CORE', 'PURCHASE_MANAGEMENT',
+      'SUPPLIER_COLLABORATION', 'PURCHASER_MANAGEMENT', 'PURCHASE_ANALYTICS'];
+    if (professionalPurchaseFeatures.indexOf(featureCode) >= 0) {
+      var capability = wx.getStorageSync('operatingCapability') || null;
+      var effective = capability && Array.isArray(capability.effectiveFeatures)
+        ? capability.effectiveFeatures : null;
+      if (effective) {
+        if (effective.indexOf(featureCode) >= 0) return true;
+        wx.showModal({
+          title: '暂未开通',
+          content: '“' + featureName + '”不在当前经营模式与商业套餐的有效授权范围内。',
+          showCancel: false
+        });
+        return false;
+      }
+    }
+    return commercialEntitlement.requireFeature(featureCode, featureName)
+  },
+
+requireOwner(featureName){
+  if (Number(this.data.userInfo && this.data.userInfo.nxDiuAdmin) === 0) return true
+  wx.showModal({
+    title: '仅限老板账号',
+    content: '“' + featureName + '”仅允许配送商老板操作。',
+    showCancel: false
+  })
+  return false
+},
+
+requireShelfWorkflow(featureName){
+  if (this.data.shelfWorkflowEnabled) return true
+  wx.showModal({
+    title: '经营类型不匹配',
+    content: '“' + featureName + '”需要经营类型 3–5 的完整货架履约流程。',
+    showCancel: false
+  })
+  return false
+},
+
+unavailableCommercialFeature(featureName){
+  wx.showModal({
+    title: '当前套餐未包含',
+    content: '“' + featureName + '”尚未纳入当前三档商业套餐。',
+    showCancel: false
+  })
+  return false
 },
 
 toRetailer(){

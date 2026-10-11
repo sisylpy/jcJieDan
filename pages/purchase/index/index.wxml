@@ -287,7 +287,7 @@
     <view class="stock_order_btn is-paste purchase-main-action mr-30" bindtap="toPaste">
       复制订货
     </view>
-    <view class="stock_order_btn is-wx purchase-main-action mr-30" bindtap="saveBatchOrder" wx:if="{{disInfo.nxDistributerBusinessTypeId > 2}}">
+    <view class="stock_order_btn is-wx purchase-main-action mr-30" bindtap="saveBatchOrder" wx:if="{{disInfo.nxDistributerProfessionalPurchaseMode}}">
       小程序订货
     </view>
     <!-- <view class="stock_order_btn is-wx third-row mr-30" bindtap="saveBatchOrder" wx:if="{{disType == 3}}">

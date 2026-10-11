@@ -33,8 +33,8 @@ test('内部协作配送商只有offerNx正式邀请链',()=>{
   const pages=app.subPackages.find(p=>p.root==='subPackage/').pages
   assert.ok(pages.includes('pages/offerNx/offerNxDistributerList/offerNxDistributerList'))
   assert.ok(pages.includes('pages/offerNx/inviteOfferDis/inviteOfferDis'))
-  const management=read('subPackage/pages/management/homePage/homePage.js')
-  const managementView=read('subPackage/pages/management/homePage/homePage.wxml')
+  const management=read('subPackage-home/pages/management/homePage/homePage.js')
+  const managementView=read('subPackage-home/pages/management/homePage/homePage.wxml')
   const list=read('subPackage/pages/offerNx/offerNxDistributerList/offerNxDistributerList.js')
   const invite=read('subPackage/pages/offerNx/inviteOfferDis/inviteOfferDis.js')
   assert.match(management,/offerNx\/offerNxDistributerList\/offerNxDistributerList\?disId=/)

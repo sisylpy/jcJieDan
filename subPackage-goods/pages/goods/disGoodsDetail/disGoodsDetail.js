@@ -119,17 +119,15 @@ Page({
     }
     var disInfo = wx.getStorageSync('disInfo');
     if(disInfo){
-      var businessTypeId = disInfo.nxDistributerBusinessTypeId;
       var items = [
         { name: fulfillmentUi.MODE_STOCK, value: '出库' },
         { name: fulfillmentUi.MODE_PURCHASE, value: '采购' },
       ];
-      if (businessTypeId > 2) {
+      if (disInfo.nxDistributerProfessionalPurchaseMode) {
         items.push({ name: fulfillmentUi.MODE_AUTO, value: '自动订货' });
       }
       this.setData({
         disInfo: disInfo,
-        businessTypeId: businessTypeId,
         items: items,
       })
     }

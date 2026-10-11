@@ -14,6 +14,10 @@ export function formatMoney(value) {
   return '¥' + formatDecimal(value, 2)
 }
 
+export function formatOptionalMoney(value, empty = '—') {
+  return value === null || value === undefined || value === '' ? empty : formatMoney(value)
+}
+
 export function formatQuantities(values, empty = '暂无有效数量') {
   if (!Array.isArray(values) || !values.length) return empty
   return values.map(item => formatDecimal(item.quantity, 4) + (item.unit || '')).join(' · ')
@@ -26,6 +30,10 @@ export function formatAveragePrices(values, empty = '暂无有效均价') {
 
 export function percentageLabel(value) {
   return formatDecimal(value, 2) + '%'
+}
+
+export function optionalPercentageLabel(value, empty = '—') {
+  return value === null || value === undefined || value === '' ? empty : percentageLabel(value)
 }
 
 export function decorateRelativeBars(rows) {

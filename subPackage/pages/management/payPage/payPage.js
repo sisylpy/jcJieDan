@@ -93,6 +93,7 @@ Page({
   decorateOffer(item) {
     const bonus = Number(item.bonusQuantity || 0)
     const amountText = this.moneyText(item.payableAmountFen)
+    const paymentTestOffer = String(item.offerCode || '').indexOf('_PAYMENT_TEST_') >= 0
     return Object.assign({}, item, {
       quantityText: this.quantityText(item.totalQuantity),
       baseText: this.quantityText(item.baseQuantity),
@@ -102,6 +103,8 @@ Page({
       originalAmountText: this.moneyText(item.originalAmountFen),
       hasDiscount: Number(item.originalAmountFen || 0) > Number(item.payableAmountFen || 0),
       hasBonus: bonus > 0,
+      paymentTestOffer,
+      unitPriceText: paymentTestOffer ? '支付联调测试价' : item.unitPriceFen + ' 分/条',
       validityText: this.validityText(item)
     })
   },
@@ -125,9 +128,10 @@ Page({
     const offer = this.data.selectedOffer
     if (!offer || this.data.paying) return
     const bonus = offer.hasBonus ? '，其中活动赠送 ' + offer.bonusText : ''
+    const testTip = offer.paymentTestOffer ? '这是支付联调测试价。' : ''
     wx.showModal({
       title: '确认购买订单额度',
-      content: '支付 ¥' + offer.amountText + '，到账 ' + offer.quantityText + bonus + '。支付金额不参与套餐权限判断。',
+      content: testTip + '支付 ¥' + offer.amountText + '，到账 ' + offer.quantityText + bonus + '。支付金额不参与套餐权限判断。',
       confirmText: '微信支付',
       success: result => { if (result.confirm) this.createAndPay(offer) }
     })

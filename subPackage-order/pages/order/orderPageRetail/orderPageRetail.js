@@ -2376,7 +2376,7 @@ Page({
 
     if (arr.length > 0) {
       load.showLoading("保存数据中");
-      if(this.data.disInfo.nxDistributerBusinessTypeId > 2){
+      if(this.data.disInfo.nxDistributerShelfMode){
         giveOrderWeightListForStockShelfGoods(arr).then(res => {
           load.hideLoading();
           if (res.result.code == 0) {

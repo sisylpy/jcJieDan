@@ -7,7 +7,7 @@
     bindnavbuttontap="toBack"
   ></back-navbar>
 
-  <view class="page-body" style="margin-top: {{navBarHeight}}rpx; height: {{contentHeight}}rpx;">
+  <view class="page-body" style="top: {{navBarHeight}}rpx;">
     <view wx:if="{{loading}}" class="page-state">
       <view class="state-icon">析</view>
       <text class="state-title">正在统计历史销售数据</text>
@@ -21,8 +21,15 @@
     </view>
 
     <block wx:else>
-      <scroll-view scroll-y="true" class="top-scroll">
-        <report-date-filter label="{{hanzi}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bind:select="toDatePage"></report-date-filter>
+      <view class="top-scroll">
+        <view class="top-bar">
+          <report-date-filter class="top-date" label="{{hanzi}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bind:select="toDatePage"></report-date-filter>
+
+          <view class="mode-toggle">
+            <view class="mode-option {{viewMode==='goods' ? 'active' : ''}}" bindtap="switchMode" data-mode="goods">按商品</view>
+            <view class="mode-option {{viewMode==='customer' ? 'active' : ''}}" bindtap="switchMode" data-mode="customer">按客户</view>
+          </view>
+        </view>
 
         <view class="summary-grid">
           <view class="summary-card money-card">
@@ -30,26 +37,21 @@
             <strong>{{summary.salesAmountText}}</strong>
             <small>已完成历史订单</small>
           </view>
-          <view class="summary-card">
-            <text>使用客户</text>
-            <strong>{{summary.customerCount}}家</strong>
-            <small>按父客户去重</small>
+          <view class="summary-card profit-card">
+            <text>可核算毛利</text>
+            <strong class="{{summary.grossProfitNegative ? 'negative' : ''}}">{{summary.grossProfitText}}</strong>
+            <small>覆盖{{summary.profitCoverageText}}</small>
           </view>
-          <view class="summary-card">
+          <view class="summary-card profit-card">
+            <text>毛利率</text>
+            <strong class="{{summary.grossProfitNegative ? 'negative' : ''}}">{{summary.grossMarginRateText}}</strong>
+            <small>成本{{summary.costAmountText}}</small>
+          </view>
+          <view class="summary-card goods-card">
             <text>成交商品</text>
             <strong>{{summary.goodsCount}}种</strong>
             <small>覆盖{{summary.subcategoryCount}}个小类</small>
           </view>
-          <view class="summary-card">
-            <text>主要销售数量</text>
-            <strong>{{summary.quantityText}}</strong>
-            <small>{{summary.quantityNote}}</small>
-          </view>
-        </view>
-
-        <view class="mode-toggle">
-          <view class="mode-option {{viewMode==='goods' ? 'active' : ''}}" bindtap="switchMode" data-mode="goods">按商品</view>
-          <view class="mode-option {{viewMode==='customer' ? 'active' : ''}}" bindtap="switchMode" data-mode="customer">按客户</view>
         </view>
 
         <view class="data-note">
@@ -58,7 +60,7 @@
           <text wx:if="{{qualityIssueCount > 0}}">有{{qualityIssueCount}}条数据需要核对</text>
           <text wx:else>有效成交行的数据质量检查通过</text>
         </view>
-      </scroll-view>
+      </view>
 
       <view class="analysis-body">
         <scroll-view scroll-y="true" class="tree-pane" bindscrolltolower="onTreeScrollToLower">
@@ -66,10 +68,16 @@
             <view class="tree-category {{expandedCategoryId==item.id ? 'open' : ''}}" bindtap="toggleCategory" data-id="{{item.id}}">
               <view class="tree-category-main">
                 <text class="caret">{{expandedCategoryId==item.id ? '▾' : '▸'}}</text>
-                <strong>{{item.name}}</strong>
+                <view class="tree-category-visual">
+                  <image wx:if="{{item.imageUrl}}" src="{{item.imageUrl}}" mode="aspectFill"></image>
+                  <view wx:else class="tree-category-placeholder">{{item.initial}}</view>
+                </view>
+                <view class="tree-category-copy">
+                  <strong>{{item.name}}</strong>
+                  <text>{{item.amountText}}</text>
+                </view>
               </view>
               <view class="tree-category-meta">
-                <text>{{item.amountText}}</text>
                 <text class="tree-share">{{item.shareText}}</text>
               </view>
               <view class="bar-track"><view class="bar-fill" style="width: {{item.shareWidth}}%;"></view></view>
@@ -89,7 +97,7 @@
                     data-id="{{sub.id}}"
                   >
                     <view class="tree-child-main"><strong>{{sub.name}}</strong><text>{{sub.amountText}}</text></view>
-                    <text class="tree-child-meta">{{sub.quantityText}} · {{sub.customerText}}</text>
+                    <text class="tree-child-meta">占总额 {{sub.shareText}}</text>
                   </view>
                 </block>
                 <view wx:else class="tree-empty">{{goodsDetail[item.id].error || '该大类暂无小类'}}</view>
@@ -127,8 +135,12 @@
         <scroll-view scroll-y="true" class="detail-pane" bindscrolltolower="onProductScrollToLower">
           <block wx:if="{{viewMode==='goods'}}">
             <view class="detail-head">
-              <strong>{{selectedSubcategoryName}} · 商品明细</strong>
-              <text>{{visibleProducts.length}}个商品</text>
+              <view><strong>{{selectedSubcategoryName}}</strong><text>{{visibleProducts.length}}个商品</text></view>
+            </view>
+            <view wx:if="{{selectedSubcategory}}" class="detail-kpis">
+              <view><text>成交额</text><strong>{{selectedSubcategory.amountText}}</strong></view>
+              <view><text>可核算毛利</text><strong class="{{selectedSubcategory.profitNegative ? 'negative' : ''}}">{{selectedSubcategory.grossProfitText}}</strong></view>
+              <view><text>毛利率</text><strong class="{{selectedSubcategory.profitNegative ? 'negative' : ''}}">{{selectedSubcategory.grossMarginRateText}}</strong></view>
             </view>
             <view class="product-search">
               <image src="/images/search-3.png" mode="aspectFit"></image>
@@ -136,18 +148,18 @@
               <text wx:if="{{keyword}}" bindtap="clearSearch">×</text>
             </view>
             <view wx:if="{{visibleProducts.length}}" class="product-list">
-              <view wx:for="{{visibleProducts}}" wx:key="goodsId" class="product-row">
+              <view wx:for="{{visibleProducts}}" wx:key="goodsId" class="product-row" bindtap="openProduct" data-id="{{item.goodsId}}">
                 <view class="product-title">
                   <image src="{{item.goodsImageUrl}}" mode="aspectFill" class="product-image"></image>
                   <view class="product-title-copy"><strong>{{item.goodsName}}</strong><text>{{item.goodsStandard || '未标规格'}}</text></view>
+                  <text class="row-arrow">›</text>
                 </view>
                 <view class="product-metrics">
-                  <view><text>成交销售额</text><strong class="money">{{item.amountText}}</strong></view>
-                  <view><text>销售数量</text><strong>{{item.quantityText}}</strong></view>
-                  <view><text>加权平均价</text><strong>{{item.averagePriceText}}</strong></view>
-                  <view><text>使用客户</text><strong>{{item.customerCountText}}</strong></view>
-                  <view><text>订货次数</text><strong>{{item.orderCountText}}</strong></view>
+                  <view><text>成交额</text><strong class="money">{{item.amountText}}</strong></view>
+                  <view><text>可核算毛利</text><strong class="profit {{item.profitNegative ? 'negative' : ''}}">{{item.grossProfitText}}</strong></view>
+                  <view><text>毛利率</text><strong class="profit {{item.profitNegative ? 'negative' : ''}}">{{item.grossMarginRateText}}</strong></view>
                 </view>
+                <view class="product-secondary"><text>{{item.quantityText}}</text><text>{{item.averagePriceText}}</text><text>{{item.customerCountText}}</text></view>
                 <text class="top-customer">重要客户：{{item.topCustomerText}}</text>
               </view>
             </view>
@@ -164,17 +176,18 @@
             <view wx:elif="{{customerProductLoading && customerProductPage<=1}}" class="panel-empty large">正在加载商品…</view>
             <block wx:elif="{{customerProducts.length}}">
               <view class="product-list">
-                <view wx:for="{{customerProducts}}" wx:key="goodsId" class="product-row">
+                <view wx:for="{{customerProducts}}" wx:key="goodsId" class="product-row" bindtap="openProduct" data-id="{{item.goodsId}}">
                   <view class="product-title">
                     <image src="{{item.goodsImageUrl}}" mode="aspectFill" class="product-image"></image>
                     <view class="product-title-copy"><strong>{{item.goodsName}}</strong><text>{{item.goodsStandard || '未标规格'}}</text></view>
+                    <text class="row-arrow">›</text>
                   </view>
                   <view class="product-metrics">
-                    <view><text>成交销售额</text><strong class="money">{{item.amountText}}</strong></view>
-                    <view><text>销售数量</text><strong>{{item.quantityText}}</strong></view>
-                    <view><text>加权平均价</text><strong>{{item.averagePriceText}}</strong></view>
-                    <view><text>订货次数</text><strong>{{item.orderCountText}}</strong></view>
+                    <view><text>成交额</text><strong class="money">{{item.amountText}}</strong></view>
+                    <view><text>可核算毛利</text><strong class="profit {{item.profitNegative ? 'negative' : ''}}">{{item.grossProfitText}}</strong></view>
+                    <view><text>毛利率</text><strong class="profit {{item.profitNegative ? 'negative' : ''}}">{{item.grossMarginRateText}}</strong></view>
                   </view>
+                  <view class="product-secondary"><text>{{item.quantityText}}</text><text>{{item.averagePriceText}}</text><text>{{item.orderCountText}}</text></view>
                 </view>
                 <view
                   wx:if="{{!customerProductFinished}}"
@@ -188,5 +201,48 @@
         </scroll-view>
       </view>
     </block>
+  </view>
+
+  <view wx:if="{{drawerOpen}}" class="drawer-mask" catchtap="closeDrawer">
+    <view class="drawer" catchtap="stopTap">
+      <view class="drawer-handle"></view>
+      <view class="drawer-heading">
+        <view class="drawer-product">
+          <image src="{{selectedProduct.goodsImageUrl}}" mode="aspectFill" class="drawer-product-image"></image>
+          <view class="drawer-product-copy">
+            <text class="drawer-eyebrow">商品客户分布</text>
+            <strong>{{selectedProduct.goodsName}}</strong>
+            <text>{{selectedProduct.goodsStandard || '未标规格'}}</text>
+          </view>
+        </view>
+        <view class="drawer-close" bindtap="closeDrawer">×</view>
+      </view>
+
+      <view class="drawer-share-title"><strong>客户占比</strong><text>{{productCustomerCount}}家</text></view>
+      <view wx:if="{{drawerLoading}}" class="drawer-state">正在读取客户占比…</view>
+      <view wx:elif="{{drawerError}}" class="drawer-state error-text">{{drawerError}}</view>
+      <scroll-view wx:else scroll-y="true" class="drawer-customers">
+        <view wx:for="{{productCustomers}}" wx:key="customerId" class="drawer-customer">
+          <view class="drawer-customer-head">
+            <strong>{{item.customerName}}</strong>
+            <view><text>{{item.amountText}}</text><small>商品内占比 {{item.shareText}}</small></view>
+          </view>
+          <view class="bar-track"><view class="bar-fill" style="width: {{item.barWidth}}%;"></view></view>
+          <view class="drawer-customer-meta">
+            <view><text>销售数量</text><strong>{{item.quantityText}}</strong></view>
+            <view><text>平均单价</text><strong>{{item.averagePriceText}}</strong></view>
+            <view><text>可核算毛利</text><strong class="{{item.profitNegative ? 'negative' : ''}}">{{item.grossProfitText}}</strong></view>
+            <view><text>毛利率</text><strong class="{{item.profitNegative ? 'negative' : ''}}">{{item.grossMarginRateText}}</strong></view>
+            <view><text>订货日数</text><strong>{{item.orderDaysText}}</strong></view>
+            <view><text>最近成交</text><strong>{{item.lastOrderText}}</strong></view>
+          </view>
+        </view>
+        <view wx:if="{{productOthers}}" class="drawer-customer others">
+          <view class="drawer-customer-head"><strong>{{productOthers.customerName}}</strong><view><text>{{productOthers.amountText}}</text><small>商品内占比 {{productOthers.shareText}}</small></view></view>
+          <view class="bar-track"><view class="bar-fill" style="width: {{productOthers.barWidth}}%;"></view></view>
+        </view>
+        <view wx:if="{{!productCustomers.length && !productOthers}}" class="drawer-state">暂无客户成交数据</view>
+      </scroll-view>
+    </view>
   </view>
 </view>

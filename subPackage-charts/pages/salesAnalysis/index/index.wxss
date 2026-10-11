@@ -4,7 +4,8 @@ page {
 }
 
 .page {
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .page-scroll {
@@ -650,9 +651,14 @@ page {
 
 /* ===== 主从布局：顶部概要 + 开关，下方左树右详情 ===== */
 .page-body {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  overflow: hidden;
   background: #f3f7f5;
 }
 
@@ -662,9 +668,22 @@ page {
   padding: 18rpx 20rpx 8rpx;
 }
 
-.mode-toggle {
-  margin-top: 16rpx;
+.top-bar {
   display: flex;
+  align-items: stretch;
+  gap: 14rpx;
+}
+
+.top-date {
+  flex: 1;
+  min-width: 0;
+}
+
+.mode-toggle {
+  flex: none;
+  width: 250rpx;
+  display: flex;
+  box-sizing: border-box;
   padding: 6rpx;
   background: #e7eeea;
   border-radius: 14rpx;
@@ -672,7 +691,6 @@ page {
 
 .mode-option {
   flex: 1;
-  height: 64rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -872,4 +890,671 @@ page {
 
 .detail-pane .product-list {
   padding-bottom: 20rpx;
+}
+
+/* ===== 2026-10：同步桌面端统计口径，并按移动端主从列表重新排版 ===== */
+.top-scroll {
+  padding-bottom: 12rpx;
+  background: #f7faf8;
+}
+
+.summary-grid {
+  margin-top: 14rpx;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0;
+  overflow: hidden;
+  background: #fff;
+  border: 1rpx solid #dfe8e3;
+  border-radius: 16rpx;
+  box-shadow: 0 6rpx 20rpx rgba(28, 67, 47, 0.035);
+}
+
+.summary-card {
+  min-height: 116rpx;
+  padding: 16rpx 12rpx;
+  border: 0;
+  border-right: 1rpx solid #e1e9e5;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.summary-card:last-child {
+  border-right: 0;
+}
+
+.summary-card.profit-card {
+  background: #f2faf6;
+}
+
+.summary-card text {
+  font-size: 18rpx;
+}
+
+.summary-card strong,
+.summary-card strong.money {
+  margin-top: 7rpx;
+  font-size: 27rpx;
+  line-height: 34rpx;
+}
+
+.summary-card small {
+  margin-top: 6rpx;
+  overflow: hidden;
+  font-size: 16rpx;
+  line-height: 22rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.summary-card .negative,
+.negative {
+  color: #c43e48 !important;
+}
+
+.data-note {
+  margin: 12rpx 4rpx 0;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 4rpx 14rpx;
+  font-size: 17rpx;
+}
+
+.analysis-body {
+  padding: 0 14rpx calc(18rpx + env(safe-area-inset-bottom));
+  gap: 0;
+}
+
+.tree-pane {
+  width: 218rpx;
+  background: #f2f5f3;
+  border-radius: 16rpx 0 0 16rpx;
+}
+
+.detail-pane {
+  border-left: 0;
+  border-radius: 0 16rpx 16rpx 0;
+}
+
+.tree-category {
+  padding: 16rpx 12rpx;
+}
+
+.tree-category.open {
+  background: #eef8f3;
+  box-shadow: inset 4rpx 0 0 #12a060;
+}
+
+.tree-category-main {
+  position: relative;
+  align-items: center;
+  gap: 9rpx;
+}
+
+.tree-category-main .caret {
+  width: 16rpx;
+  font-size: 21rpx;
+  text-align: center;
+}
+
+.tree-category-visual {
+  width: 58rpx;
+  height: 58rpx;
+  flex: none;
+  overflow: hidden;
+  background: #e6f5ed;
+  border-radius: 50%;
+}
+
+.tree-category-visual image {
+  width: 100%;
+  height: 100%;
+}
+
+.tree-category-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #15985b;
+  font-size: 23rpx;
+  font-weight: 800;
+}
+
+.tree-category-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.tree-category-copy strong,
+.tree-category-copy text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tree-category-copy strong {
+  color: #24322b;
+  font-size: 24rpx;
+}
+
+.tree-category-copy text {
+  margin-top: 5rpx;
+  color: #42534a;
+  font-size: 19rpx;
+  font-weight: 700;
+}
+
+.tree-category-meta {
+  margin: 8rpx 0 0 83rpx;
+  justify-content: flex-start;
+  font-size: 19rpx;
+}
+
+.tree-category > .bar-track {
+  margin: 8rpx 0 0 83rpx;
+}
+
+.tree-children {
+  padding: 6rpx 8rpx 14rpx 24rpx;
+  background: #f7faf8;
+}
+
+.tree-child {
+  padding: 13rpx 10rpx;
+  margin-top: 7rpx;
+  border-width: 1rpx;
+  border-radius: 10rpx;
+}
+
+.tree-child-main {
+  align-items: flex-start;
+  flex-direction: column;
+  gap: 5rpx;
+}
+
+.tree-child-main strong {
+  width: 100%;
+  font-size: 22rpx;
+}
+
+.tree-child-main text {
+  font-size: 19rpx;
+}
+
+.tree-child-meta {
+  margin-top: 5rpx;
+  font-size: 17rpx;
+}
+
+.detail-head {
+  min-height: 76rpx;
+  padding: 14rpx 18rpx;
+}
+
+.detail-head > view {
+  min-width: 0;
+}
+
+.detail-head strong,
+.detail-head text {
+  display: block;
+}
+
+.detail-head strong {
+  overflow: hidden;
+  font-size: 27rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail-head view > text {
+  margin-top: 4rpx;
+  color: #839089;
+  font-size: 18rpx;
+}
+
+.detail-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border-bottom: 1rpx solid #e7eeea;
+  background: #f8fbf9;
+}
+
+.detail-kpis > view {
+  min-width: 0;
+  padding: 12rpx 10rpx;
+  border-right: 1rpx solid #e2eae6;
+}
+
+.detail-kpis > view:last-child {
+  border-right: 0;
+}
+
+.detail-kpis text,
+.detail-kpis strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.detail-kpis text {
+  color: #829089;
+  font-size: 17rpx;
+}
+
+.detail-kpis strong {
+  margin-top: 5rpx;
+  color: #087f4c;
+  font-size: 22rpx;
+}
+
+.detail-pane .product-search {
+  height: 62rpx;
+  margin: 12rpx 14rpx;
+  padding: 0 14rpx;
+}
+
+.detail-pane .product-search input {
+  font-size: 21rpx;
+}
+
+.product-row {
+  padding: 20rpx 18rpx;
+  border-top: 1rpx solid #e7edea;
+  background: #fff;
+}
+
+.product-row:active {
+  background: #f0f9f4;
+}
+
+.product-image {
+  width: 82rpx;
+  height: 82rpx;
+  border-radius: 13rpx;
+}
+
+.product-title {
+  justify-content: flex-start;
+  gap: 13rpx;
+}
+
+.product-title view strong {
+  font-size: 28rpx;
+}
+
+.product-title view text {
+  font-size: 20rpx;
+}
+
+.row-arrow {
+  width: 40rpx;
+  height: 40rpx;
+  margin-left: auto;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1rpx solid #cfe1d7;
+  border-radius: 10rpx;
+  background: #f7fbf9;
+  font-size: 34rpx;
+  line-height: 1;
+}
+
+.product-metrics {
+  margin-top: 17rpx;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  border-top: 1rpx solid #edf1ef;
+  border-bottom: 1rpx solid #edf1ef;
+}
+
+.product-metrics view {
+  padding: 13rpx 9rpx;
+  background: transparent;
+  border-right: 1rpx solid #edf1ef;
+  border-radius: 0;
+}
+
+.product-metrics view:last-child {
+  border-right: 0;
+}
+
+.product-metrics text {
+  font-size: 17rpx;
+}
+
+.product-metrics strong,
+.product-metrics strong.money {
+  margin-top: 5rpx;
+  font-size: 24rpx;
+}
+
+.product-metrics strong.profit {
+  color: #087f4c;
+}
+
+.product-secondary {
+  margin-top: 12rpx;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7rpx 14rpx;
+  color: #65736c;
+  font-size: 19rpx;
+}
+
+.product-secondary text {
+  position: relative;
+}
+
+.product-secondary text:not(:last-child)::after {
+  position: absolute;
+  right: -9rpx;
+  color: #c9d3ce;
+  content: '·';
+}
+
+.top-customer {
+  margin-top: 9rpx;
+  overflow: hidden;
+  color: #75827b;
+  font-size: 18rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drawer {
+  height: 78vh;
+}
+
+.drawer-share-title {
+  margin: 0 20rpx 12rpx;
+  padding: 17rpx 20rpx;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border: 1rpx solid #dfe8e3;
+  border-radius: 15rpx;
+}
+
+.drawer-share-title strong {
+  color: #213029;
+  font-size: 32rpx;
+}
+
+.drawer-share-title text {
+  padding: 5rpx 13rpx;
+  color: #087f4c;
+  font-size: 20rpx;
+  font-weight: 800;
+  background: #e9f6ef;
+  border-radius: 18rpx;
+}
+
+.drawer-customer-head > view {
+  flex: none;
+  text-align: right;
+}
+
+.drawer-customer-head > view text,
+.drawer-customer-head > view small {
+  display: block;
+}
+
+.drawer-customer-head > view text {
+  color: #087f4c;
+  font-size: 25rpx;
+  font-weight: 800;
+}
+
+.drawer-customer-head > view small {
+  margin-top: 4rpx;
+  color: #7b8881;
+  font-size: 18rpx;
+}
+
+.drawer-customer-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13rpx 18rpx;
+}
+
+.drawer-customer-meta view {
+  min-width: 0;
+}
+
+.drawer-customer-meta view text,
+.drawer-customer-meta view strong {
+  display: block;
+}
+
+.drawer-customer-meta view text {
+  color: #7d8983;
+  font-size: 21rpx;
+}
+
+.drawer-customer-meta view strong {
+  margin-top: 5rpx;
+  overflow: hidden;
+  color: #405049;
+  font-size: 25rpx;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ===== 真机可读性：主体贴合可视区，统计与明细统一放大 ===== */
+.top-scroll {
+  width: 100%;
+  flex: none;
+  box-sizing: border-box;
+}
+
+.mode-toggle {
+  width: 270rpx;
+}
+
+.mode-option {
+  font-size: 28rpx;
+}
+
+.summary-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10rpx;
+  overflow: visible;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.summary-card,
+.summary-card:last-child {
+  min-height: 122rpx;
+  padding: 17rpx 18rpx;
+  border: 1rpx solid #dfe8e3;
+  border-radius: 14rpx;
+}
+
+.summary-card text {
+  font-size: 22rpx;
+}
+
+.summary-card strong,
+.summary-card strong.money {
+  margin-top: 7rpx;
+  font-size: 32rpx;
+  line-height: 39rpx;
+}
+
+.summary-card small {
+  margin-top: 7rpx;
+  font-size: 20rpx;
+  line-height: 26rpx;
+}
+
+.data-note {
+  font-size: 20rpx;
+  line-height: 29rpx;
+}
+
+.analysis-body {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.tree-pane,
+.detail-pane {
+  min-height: 0;
+}
+
+.tree-category-main .caret {
+  font-size: 25rpx;
+}
+
+.tree-category-placeholder {
+  font-size: 26rpx;
+}
+
+.tree-category-copy strong {
+  font-size: 27rpx;
+  line-height: 34rpx;
+}
+
+.tree-category-copy text {
+  font-size: 22rpx;
+  line-height: 29rpx;
+}
+
+.tree-category-meta {
+  font-size: 22rpx;
+}
+
+.tree-child-main strong {
+  font-size: 25rpx;
+  line-height: 32rpx;
+}
+
+.tree-child-main text {
+  font-size: 22rpx;
+  line-height: 29rpx;
+}
+
+.tree-child-meta {
+  font-size: 20rpx;
+  line-height: 27rpx;
+}
+
+.tree-loading,
+.tree-empty,
+.tree-loadmore {
+  font-size: 23rpx;
+}
+
+.detail-head strong {
+  font-size: 30rpx;
+  line-height: 38rpx;
+}
+
+.detail-head view > text,
+.detail-head > text {
+  font-size: 22rpx;
+}
+
+.detail-kpis text {
+  font-size: 20rpx;
+}
+
+.detail-kpis strong {
+  font-size: 25rpx;
+  line-height: 32rpx;
+}
+
+.detail-pane .product-search {
+  height: 70rpx;
+}
+
+.detail-pane .product-search input {
+  font-size: 24rpx;
+}
+
+.product-title view strong {
+  font-size: 31rpx;
+  line-height: 39rpx;
+}
+
+.product-title view text {
+  font-size: 23rpx;
+}
+
+.product-metrics text {
+  font-size: 20rpx;
+  line-height: 27rpx;
+}
+
+.product-metrics strong,
+.product-metrics strong.money {
+  font-size: 27rpx;
+  line-height: 34rpx;
+}
+
+.product-secondary {
+  font-size: 22rpx;
+  line-height: 29rpx;
+}
+
+.top-customer {
+  font-size: 21rpx;
+  line-height: 29rpx;
+}
+
+.panel-empty,
+.drawer-state {
+  font-size: 25rpx;
+}
+
+.drawer-heading .drawer-eyebrow {
+  font-size: 22rpx;
+}
+
+.drawer-heading strong {
+  font-size: 36rpx;
+}
+
+.drawer-product-copy > text:last-child,
+.drawer-heading view:first-child > text:last-child {
+  font-size: 24rpx;
+}
+
+.drawer-share-title strong {
+  font-size: 34rpx;
+}
+
+.drawer-share-title text {
+  font-size: 22rpx;
+}
+
+.drawer-customer-head strong {
+  font-size: 29rpx;
+}
+
+.drawer-customer-head > view text {
+  font-size: 28rpx;
+}
+
+.drawer-customer-head > view small {
+  font-size: 21rpx;
+}
+
+.drawer-customer-meta view text {
+  font-size: 23rpx;
+}
+
+.drawer-customer-meta view strong {
+  font-size: 27rpx;
 }

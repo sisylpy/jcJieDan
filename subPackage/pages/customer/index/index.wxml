@@ -168,7 +168,7 @@
     </view>
   </view>
  
-  <view class="flex-column" wx:if="{{disInfo.nxDistributerBusinessTypeId  !== '12'}}">
+  <view class="flex-column">
     <view class="flex-row-between p-20">
       <view class="flex-row p-20" bind:tap="requestSubscribeMessage">
         <image src="../../../../images/date.png" class="icon"></image>
@@ -245,5 +245,4 @@
 
 
 </view>
-
 

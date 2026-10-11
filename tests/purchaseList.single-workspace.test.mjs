@@ -29,12 +29,14 @@ test('备货页只保留未采购工作区，不再包含订货中视图和状�
   assert.doesNotMatch(templateSource, /wx:if="\{\{tabIndex/);
 });
 
-test('备货页顶部按钮带采购身份打开精彩订货工作台', () => {
+test('备货页顶部按钮带一次性注册凭证打开精彩订货工作台', () => {
   assert.match(templateSource, /aria-label="打开精彩订货"/);
   assert.match(templateSource, /bindtap="openPurchaseApp"/);
   assert.match(pageSource, /appId:\s*PURCHASE_APP_ID/);
   assert.match(pageSource, /pages\/workbenchV2\/workbenchV2\?nxDisId=/);
-  assert.match(pageSource, /'&nxDisPurUserId='/);
+  assert.match(pageSource, /jrdhinvite\/owner-entry/);
+  assert.match(pageSource, /'&inviteToken='/);
+  assert.doesNotMatch(pageSource, /nxDisPurUserId/);
   assert.match(pageSource, /'&from=nx'/);
   assert.match(pageSource, /envVersion:\s*'trial'/);
 });

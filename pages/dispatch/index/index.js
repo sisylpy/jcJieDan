@@ -135,7 +135,7 @@ Page({
     var userInfo = this.data.userInfo || {}
     if (userInfo.nxDiuAdmin == 0) {
       wx.navigateTo({
-        url: '../../../subPackage/pages/management/homePage/homePage'
+        url: '../../../subPackage-home/pages/management/homePage/homePage'
       })
       return
     }

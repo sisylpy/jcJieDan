@@ -135,7 +135,7 @@ Page({
         disId: userInfo.nxDiuDistributerId,
         deviceId: userInfo.nxDiuPrintDeviceId,
         disInfo: userInfo.nxDistributerEntity,
-        businessTypeId: userInfo.nxDistributerEntity.nxDistributerBusinessTypeId,
+        shelfMode: userInfo.nxDistributerEntity.nxDistributerShelfMode,
       })
     }
     var depInfo = wx.getStorageSync('depItem');
@@ -891,7 +891,7 @@ Page({
           '&gbDepFatherId=' + (this.data.gbDepFatherId || -1) +
           '&gbDisId=' + (this.data.gbDisId || -1) +
           '&depSettleType=' + this.data.depSettleType +
-          '&beforeId=-1' + '&businessTypeId=' + this.data.businessTypeId,
+          '&beforeId=-1' + '&shelfMode=' + this.data.shelfMode,
       })
     }
   },
@@ -956,7 +956,7 @@ Page({
             '&gbDepFatherId=' + (this.data.gbDepFatherId || -1) +
             '&gbDisId=' + (this.data.gbDisId || -1) +
             '&depSettleType=' + this.data.depSettleType +
-            '&beforeId=-1' + '&businessTypeId=' + this.data.businessTypeId,
+            '&beforeId=-1' + '&shelfMode=' + this.data.shelfMode,
         })
       }
     }
@@ -2441,7 +2441,7 @@ Page({
       }
       load.showLoading("保存数据中");
       var weightPromise;
-      if (that.data.disInfo.nxDistributerBusinessTypeId > 2) {
+      if (that.data.disInfo.nxDistributerShelfMode) {
         weightPromise = giveOrderWeightListForStockShelfGoods(arr);
       } else {
         weightPromise = giveOrderWeightListForStockAndFinish(arr);

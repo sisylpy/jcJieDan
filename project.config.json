@@ -85,7 +85,12 @@
         "type": "glob"
       }
     ],
-    "include": []
+    "include": [
+      {
+        "type": "file",
+        "value": "skills/delivery-skill/SKILL.md"
+      }
+    ]
   },
   "setting": {
     "coverView": true,

@@ -68,7 +68,6 @@
     
       "pages/shelf/settlePage/settlePage",
 
-      "pages/management/homePage/homePage",
       "pages/management/dispatchPerformance/dispatchPerformance",
       "pages/management/dispatchPerformanceDetail/dispatchPerformanceDetail",
       "pages/management/purchaseManagement/index/index",
@@ -268,6 +267,15 @@
       "pages/supplier/supplierBills/supplierBills",
       "pages/supplier/myPurchaseDetail/myPurchaseDetail"
     ]
+    }, {
+      "root": "subPackage-home/",
+      "pages": [
+        "pages/management/homePage/homePage"
+      ]
+    }, {
+      "root": "skills/",
+      "independent": true,
+      "pages": []
     }],
   "preloadRule": {
     "pages/order/index/index": {
@@ -334,5 +342,14 @@
       "provider": "wx3e17776051baf153"
     }
   },
-  "lazyCodeLoading": "requiredComponents"
+  "lazyCodeLoading": "requiredComponents",
+  "agent": {
+    "skills": [
+      {
+        "name": "delivery",
+        "description": "精彩接单老客户查询：今日配送客户、客户订单、对账",
+        "path": "skills/delivery-skill"
+      }
+    ]
+  }
 }

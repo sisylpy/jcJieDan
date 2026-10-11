@@ -1,0 +1,86 @@
+{
+  "apis": [
+    {
+      "name": "getTodayDeliveryCustomers",
+      "description": "获取今日有待打印/配送单的老客户清单。调用前置：老板端已登录。适用于'今天有哪些客户要送货'。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "total": { "type": "number", "description": "客户数" },
+          "customers": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "depFatherId": { "type": "number" },
+                "name": { "type": "string" },
+                "subDepartmentCount": { "type": "number" },
+                "requiresPrintModeChoice": { "type": "boolean" }
+              }
+            }
+          }
+        }
+      },
+      "_meta": { "ui": { "componentPath": "components/delivery-info/index" } }
+    },
+    {
+      "name": "getCustomerOrders",
+      "description": "查询指定老客户今日的订单明细。调用前置：已知 depFatherId。适用于'XX 客户今天订了什么'。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "depFatherId": { "type": "number", "description": "客户父部门 ID，来自 getTodayDeliveryCustomers 返回" }
+        },
+        "required": ["depFatherId"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "orderCount": { "type": "number" },
+          "totalAmount": { "type": "number" },
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "goodsName": { "type": "string" },
+                "standard": { "type": "string" },
+                "quantity": { "type": "string" },
+                "weight": { "type": "string" },
+                "price": { "type": "string" },
+                "subtotal": { "type": "string" }
+              }
+            }
+          }
+        }
+      },
+      "_meta": { "ui": { "componentPath": "components/delivery-info/index" } }
+    },
+    {
+      "name": "getCustomerBill",
+      "description": "查询指定老客户的对账/账单。调用前置：已知 depFatherId。适用于'XX 欠多少'/'XX 对账'。",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "depFatherId": { "type": "number", "description": "客户父部门 ID" }
+        },
+        "required": ["depFatherId"]
+      },
+      "outputSchema": {
+        "type": "object",
+        "properties": {
+          "billCount": { "type": "number" },
+          "unsettledAmount": { "type": "number" }
+        }
+      },
+      "_meta": { "ui": { "componentPath": "components/delivery-info/index" } }
+    }
+  ],
+  "components": [
+    { "path": "components/delivery-info/index", "relatedPage": "" }
+  ]
+}

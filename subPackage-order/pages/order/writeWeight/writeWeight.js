@@ -638,7 +638,7 @@ Page({
     }
     console.log("varrneneelelel" , arrNeed.length);
     if (arrNeed.length > 0) {
-      load.showLoading("保存数据中");  if(this.data.disInfo.nxDistributerBusinessTypeId > 2){
+      load.showLoading("保存数据中");  if(this.data.disInfo.nxDistributerShelfMode){
         giveOrderWeightListForStockShelfGoods(arrNeed).then(res => {
           load.hideLoading();
           if (res.result.code == 0) {

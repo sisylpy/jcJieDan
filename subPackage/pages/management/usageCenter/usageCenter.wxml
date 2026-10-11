@@ -9,7 +9,6 @@
       <view><text>累计消费</text><text>{{account.consumedQuantity}}</text></view>
       <view><text>到期失效</text><text>{{account.expiredQuantity || 0}}</text></view>
     </view>
-    <button class="quota-button" bindtap="requestMoreQuota">增加订单处理额度</button>
     <text class="balance-tip">一条订单商品行首次完成履约时消费 1 条；打印、补打和语音识别不消费此额度。</text>
   </view>
 
