@@ -13,7 +13,16 @@ const operatingCapability = require('./operatingCapability.js')
 // 未授权时不发起 overview/exceptions 请求，避免 403 与“采购业务加载失败”。
 function canUseProfessionalPurchase() {
   const snapshot = wx.getStorageSync('operatingCapability') || null
-  const disInfo = (app.globalData && (app.globalData.disInfo || app.globalData.distributerInfo)) || null
+  // globalData.disInfo / globalData.distributerInfo 在本项目中从未被赋值，
+  // 只读它会让 disInfo 恒为 null，isExplicit 恒为 false，从而永远退回 legacy 编号判断
+  // 并误报“当前经营模式未开放专业采购”。以本地缓存的 disInfo 为准，
+  // 与 homePage / shelf 等其他页面保持同一数据来源。
+  const globalData = app.globalData || {}
+  const userInfo = wx.getStorageSync('userInfo') || {}
+  const disInfo = globalData.disInfo || globalData.distributerInfo
+    || wx.getStorageSync('disInfo')
+    || userInfo.nxDistributerEntity
+    || null
   return operatingCapability.canUseProfessionalPurchase(disInfo, snapshot)
 }
 
