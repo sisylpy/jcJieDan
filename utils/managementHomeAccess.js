@@ -3,7 +3,8 @@ const operatingCapability = require('./operatingCapability.js')
 const PLAN_NAMES = {
   BASIC: '基础出货版',
   SHELF: '货架经营版',
-  SALES_GROWTH: '销售增长版'
+  SALES_GROWTH: '销售增长版',
+  PLATFORM_PARTNER: '平台协作版'
 }
 
 const STATUS_NAMES = {
