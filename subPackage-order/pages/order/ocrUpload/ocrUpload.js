@@ -399,7 +399,7 @@ Page({
       const base64 = await this.imageToBase64(image.path);
       
       // 调用异步接口上传图片
-      await this.callTencentOCR(base64, {
+      await this.callQwenOCR(base64, {
         depId: this.data.depId,
         depFatherId: this.data.depFatherId
       });
@@ -524,7 +524,10 @@ Page({
         filePath: filePath,
         encoding: 'base64',
         success: (res) => {
-          resolve(res.data);
+          const normalizedPath = String(filePath || '').split('?')[0].toLowerCase();
+          const mimeType = normalizedPath.endsWith('.png') ? 'image/png'
+            : (normalizedPath.endsWith('.webp') ? 'image/webp' : 'image/jpeg');
+          resolve(`data:${mimeType};base64,${res.data}`);
         },
         fail: (err) => {
           reject(err);
@@ -535,21 +538,18 @@ Page({
 
 
   /**
-   * 调用腾讯云 OCR API
-   * 优先尝试调用后端 API，如果后端没有提供，则尝试直接调用腾讯云（需要实现签名）
+   * 调用后端千问视觉异步识别 API
    * @param {String} imageBase64 - 图片的 Base64 编码
    * @param {Object} taskInfo - 可选的任务信息，包含 depId, depFatherId 等（用于执行 pending 任务时传递正确的部门信息）
    */
 
-  callTencentOCR: async function (imageBase64, taskInfo = null) {
+  callQwenOCR: async function (imageBase64, taskInfo = null) {
     // ⚠️ 重要：优先使用任务信息中的 depId 和 depFatherId，避免使用当前页面的 depId（可能是已完成任务的部门）
     const depId = taskInfo?.depId || this.data.depId;
     const depFatherId = taskInfo?.depFatherId || this.data.depFatherId;
     // 调用异步接口上传图片
     return recognizeOrderAsync({
       ImageBase64: imageBase64,
-      Action: 'GeneralAccurateOCR', // OCR 接口名称
-      Version: '2018-11-19', // OCR 接口版本
       depId: depId,
       disId: this.data.disId,
       depFatherId: depFatherId,

@@ -819,8 +819,6 @@ JSON格式：
       const base64 = await this._ocrImageToBase64(imagePath);
       const res = await recognizeOrderAsync({
         ImageBase64: base64,
-        Action: 'GeneralAccurateOCR',
-        Version: '2018-11-19',
         depId: params.depId,
         disId: params.disId,
         depFatherId: params.depFatherId,
@@ -892,7 +890,12 @@ JSON格式：
       wx.getFileSystemManager().readFile({
         filePath,
         encoding: 'base64',
-        success: res => resolve(res.data),
+        success: res => {
+          const normalizedPath = String(filePath || '').split('?')[0].toLowerCase();
+          const mimeType = normalizedPath.endsWith('.png') ? 'image/png'
+            : (normalizedPath.endsWith('.webp') ? 'image/webp' : 'image/jpeg');
+          resolve(`data:${mimeType};base64,${res.data}`);
+        },
         fail: reject
       });
     });
