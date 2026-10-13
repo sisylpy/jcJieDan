@@ -66,6 +66,39 @@
           </view>
         </view>
       </block>
+
+      <!-- 协作供货商（第四种出货方式，仅平台型配送商且具备协作伙伴能力时开放） -->
+      <block wx:if="{{fulfillmentUiMode == 'partner' && canUsePartnerCollaboration}}">
+        <view class="flex-column p-20 with-tb-padding">
+          <text class="text-secondary">协作供货伙伴:</text>
+          <view class="flex-row-wrap mt-10">
+            <view wx:for="{{partnerList}}" wx:key="nxDistributerId"
+                  class="mr-20 mb-10 {{partnerDisId == item.nxDistributerId ? 'bg-mainColor' : 'bg-white'}}"
+                  style="padding: 10rpx 20rpx; border-radius: 8rpx;"
+                  data-id="{{item.nxDistributerId}}" bindtap="choosePartner">
+              {{item.nxDistributerShowName || item.nxDistributerName}}
+            </view>
+            <view wx:if="{{partnerList.length == 0}}" class="text-secondary">暂无协作伙伴，请先在协作伙伴中建立 offerNx 关系</view>
+          </view>
+        </view>
+        <view class="flex-row-default p-20 with-tb-padding">
+          <input class="inputAddGoods with-tb-padding" value="{{partnerGoodsKeyword}}"
+                 bindinput="inputPartnerGoodsKeyword" placeholder="输入伙伴商品名称"></input>
+          <view class="ml-20" bindtap="searchPartnerGoods">搜索</view>
+        </view>
+        <view class="flex-column p-20">
+          <view wx:for="{{partnerGoodsList}}" wx:key="nxDistributerGoodsId"
+                class="flex-row-between p-10 border-bottom"
+                data-id="{{item.nxDistributerGoodsId}}" data-name="{{item.nxDgGoodsName}}"
+                bindtap="choosePartnerGoods">
+            <text>{{item.nxDgGoodsName}}</text>
+            <text class="text-secondary">{{item.nxDgGoodsStandardname}}</text>
+          </view>
+        </view>
+        <view class="p-20 text-secondary">
+          已绑定伙伴商品：{{partnerGoodsName || '未选择'}}
+        </view>
+      </block>
     </view>
 
     <!-- 可填区域 -->

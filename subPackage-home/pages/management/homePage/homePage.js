@@ -714,7 +714,7 @@ toSalesAnalysis(){
 },
 
 toPurchaseCollaboration(){
-  if (!this.requireHomeFeature('SUPPLIER_COLLABORATION', '采购协同')) return
+  if (!this.requireHomeFeature('SUPPLIER_COLLABORATION', '采购协作')) return
   wx.navigateTo({
     url: '/subPackage/pages/management/purchaseManagement/purchaseCollaboration/purchaseCollaboration',
   })
@@ -771,7 +771,7 @@ toSmartReplenishment(){
 },
 
 toPurchaseManagement(){
-  if (!this.requireHomeFeature('PURCHASE_CORE', '采购总览')) return
+  if (!this.requireHomeFeature('PURCHASE_CORE', '采购任务')) return
   wx.navigateTo({
     url: '/subPackage/pages/management/purchaseManagement/index/index',
   })

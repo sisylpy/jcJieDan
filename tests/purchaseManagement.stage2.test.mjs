@@ -101,7 +101,7 @@ assert.doesNotMatch(overviewWxml, />经营结果</,
   'overview must not keep a second inventory-economics formula block')
 assert.doesNotMatch(overviewWxml, /管理入口|采购质量与经营|采购员管理|供应方管理/,
   'purchase overview must not duplicate management-console entries')
-assert.match(overviewWxml, /title="采购总览"/)
+assert.match(overviewWxml, /title="采购任务"/)
 assert.match(overviewWxml, /report-date-filter/)
 for (const moduleTitle of ['当前要处理', '待接收入库', '本期采购金额', '采购构成', '事项与核查']) {
   assert.match(overviewWxml, new RegExp(moduleTitle), `purchase overview missing clear module: ${moduleTitle}`)

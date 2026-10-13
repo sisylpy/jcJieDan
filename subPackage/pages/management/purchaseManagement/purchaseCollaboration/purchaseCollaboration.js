@@ -1,6 +1,10 @@
 import {
   getPurchaseSupplierV2List,
-  syncPurchaseSupplierV2
+  syncPurchaseSupplierV2,
+  nxDisGetAllOfferNxDis,
+  listCollaborationConfirmations,
+  confirmCollaborationGoodsDownload,
+  confirmCollaborationPartnerFixed
 } from '../../../../../lib/apiDistributer.js'
 
 const app = getApp()
@@ -97,17 +101,67 @@ Page({
     showTypeSheet: false,
     showSortSheet: false,
     showDataNote: false,
-    scrollTop: 0
+    scrollTop: 0,
+    // 配送商协作（offerNx）独立区块，不与外部供货商 supplier V2 混用
+    disId: 0,
+    partnerItems: [],
+    confirmItems: []
   },
 
   onLoad(options) {
     const stopDate = options.stopDate || today()
+    const disInfo = wx.getStorageSync('disInfo') || {}
     this.setData({
       navBarHeight: app.globalData.navBarHeight * app.globalData.rpxR,
       startDate: options.startDate || stopDate.slice(0, 7) + '-01',
-      stopDate
+      stopDate,
+      disId: Number(options.disId || disInfo.nxDistributerId || 0)
     })
     this.syncAndLoadSuppliers()
+    this.loadPartnerCollaboration()
+  },
+
+  /** 配送商协作：正式 offerNx 协作伙伴 + 客户配送完成后的待确认项。 */
+  loadPartnerCollaboration() {
+    const disId = this.data.disId
+    if (!disId) return
+    nxDisGetAllOfferNxDis({ nxDisId: disId }).then(res => {
+      if ((res.result || {}).code == 0) {
+        this.setData({ partnerItems: (res.result.data || []).map(item => Object.assign({}, item, {
+          partnerName: item.nxDistributerShowName || item.nxDistributerName
+        })) })
+      }
+    }).catch(() => {})
+    listCollaborationConfirmations(disId).then(res => {
+      if ((res.result || {}).code == 0) {
+        this.setData({ confirmItems: res.result.data || [] })
+      }
+    }).catch(() => {})
+  },
+
+  confirmDownload(event) {
+    const linkId = Number(event.currentTarget.dataset.linkId)
+    confirmCollaborationGoodsDownload(linkId).then(res => {
+      const body = res.result || {}
+      wx.showToast({ title: body.code == 0 ? '已下载到常用商品' : (body.msg || '下载失败'), icon: 'none' })
+      this.loadPartnerCollaboration()
+    }).catch(() => wx.showToast({ title: '下载失败', icon: 'none' }))
+  },
+
+  confirmFixPartner(event) {
+    const linkId = Number(event.currentTarget.dataset.linkId)
+    const disGoodsId = Number(event.currentTarget.dataset.disGoodsId || 0) || null
+    confirmCollaborationPartnerFixed(linkId, disGoodsId).then(res => {
+      const body = res.result || {}
+      wx.showToast({ title: body.code == 0 ? '已固定协作供货伙伴' : (body.msg || '固定失败'), icon: 'none' })
+      this.loadPartnerCollaboration()
+    }).catch(() => wx.showToast({ title: '固定失败', icon: 'none' }))
+  },
+
+  toOfferNxPartners() {
+    wx.navigateTo({
+      url: '/subPackage/pages/offerNx/offerNxDistributerList/offerNxDistributerList'
+    })
   },
 
   onShow() {

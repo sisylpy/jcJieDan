@@ -13,10 +13,10 @@ for (const title of ['客户与订单', '采购管理', '库存管理', '资金�
   assert.match(view, new RegExp(`>${title}<`), `控制台缺少“${title}”分组`)
 }
 
-assert.equal((view.match(/>采购总览</g) || []).length, 1, '采购总览按钮只能出现一次')
+assert.equal((view.match(/>采购任务</g) || []).length, 1, '采购任务按钮只能出现一次')
 assert.equal((view.match(/>采购经营</g) || []).length, 0, '控制台不再单独显示采购经营按钮')
-assert.equal((view.match(/>采购协同</g) || []).length, 1, '采购批次与供应方必须合并为一个采购协同入口')
-assert.match(view, /bindtap="toPurchaseManagement"[\s\S]*?采购总览/)
+assert.equal((view.match(/>采购协作</g) || []).length, 1, '采购批次与供应方必须合并为一个采购协作入口')
+assert.match(view, /bindtap="toPurchaseManagement"[\s\S]*?采购任务/)
 assert.doesNotMatch(view, /bindtap="toPurchasePerformance"|>采购经营</)
 assert.doesNotMatch(page, /toPurchasePerformance\s*\(/)
 assert.match(view, /purchasePendingCount/)

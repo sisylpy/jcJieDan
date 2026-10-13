@@ -1,9 +1,48 @@
 <view class="pm-page">
-  <back-navbar style="height:{{navBarHeight}}rpx" title="采购协同" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+  <back-navbar style="height:{{navBarHeight}}rpx" title="采购协作" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
   <scroll-view scroll-y class="supplier-scroll" style="padding-top:{{navBarHeight}}rpx" scroll-top="{{scrollTop}}"
     bindscroll="rememberScroll" bindscrolltolower="more">
     <view class="supplier-body">
       <report-date-filter label="{{dateLabel}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bindselect="toDatePage"></report-date-filter>
+
+      <!-- 配送商协作（offerNx）：与普通外部供货商分开，不混用 supplier V2 -->
+      <view class="page-heading">
+        <view>
+          <text class="page-title">配送商协作</text>
+          <text class="page-caption">协作伙伴关系与配送完成后的确认，独立于外部供货商管理</text>
+        </view>
+        <text class="supplier-total" bindtap="toOfferNxPartners">协作伙伴管理›</text>
+      </view>
+
+      <view wx:if="{{partnerItems.length}}" class="supplier-card">
+        <view class="flex-row-between p-20 border-bottom" wx:for="{{partnerItems}}" wx:key="nxDistributerId">
+          <text>{{item.partnerName}}</text>
+          <text class="text-secondary">账单 {{item.itemData.billCount||0}} 笔</text>
+        </view>
+      </view>
+      <view wx:else class="state-panel">
+        <text class="state-copy">暂无协作伙伴，可先到协作伙伴管理建立 offerNx 关系。</text>
+      </view>
+
+      <view class="page-heading" wx:if="{{confirmItems.length}}">
+        <view>
+          <text class="page-title">配送完成待确认</text>
+          <text class="page-caption">可独立决定是否下载商品、是否固定为默认协作供货伙伴</text>
+        </view>
+      </view>
+      <view class="supplier-card" wx:for="{{confirmItems}}" wx:key="linkId">
+        <view class="p-20 border-bottom">
+          <text>{{item.goodsName}}　{{item.quantity}}{{item.standard}}</text>
+        </view>
+        <view class="flex-row-between p-20">
+          <text class="text-secondary">下载商品：{{item.goodsDownloaded ? '已下载' : '未下载'}}</text>
+          <text class="data-note-link" wx:if="{{!item.goodsDownloaded}}" data-link-id="{{item.linkId}}" bindtap="confirmDownload">下载到常用商品</text>
+        </view>
+        <view class="flex-row-between p-20">
+          <text class="text-secondary">固定伙伴：{{item.partnerFixed ? '已固定' : '未固定'}}</text>
+          <text class="data-note-link" wx:if="{{!item.partnerFixed}}" data-link-id="{{item.linkId}}" data-dis-goods-id="{{item.supplierDisGoodsId}}" bindtap="confirmFixPartner">固定为默认供货伙伴</text>
+        </view>
+      </view>
 
       <view class="page-heading">
         <view>

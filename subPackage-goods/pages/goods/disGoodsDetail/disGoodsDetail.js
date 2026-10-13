@@ -12,9 +12,13 @@ import {
   disGetGoodsTierPriceList,
   disSaveGoodsTierPrices,
   disDeleteGoodsTierPrice,
-  disUpdateGoodsTierPriceStatus
-
+  disUpdateGoodsTierPriceStatus,
+  nxDisGetAllOfferNxDis,
+  disGetPartnerBinding,
+  savePartnerBindingGoods,
+  queryPartnerDisGoodsByQuickSearch
 } from '../../../../lib/apiDistributer'
+const operatingCapability = require('../../../../utils/operatingCapability')
 
 Page({
 
@@ -65,6 +69,14 @@ Page({
     { value: 'OUTER_PACKAGE', label: '按大包装计价' },
   ],
   tierPriceUnitTypeIndex: 0,
+  // 协作供货商（第四种出货方式）
+  canUsePartnerCollaboration: false,
+  partnerList: [],
+  partnerDisId: null,
+  partnerGoodsKeyword: '',
+  partnerGoodsList: [],
+  partnerGoodsName: '',
+  partnerBinding: null,
   tierRuleId: null,
   saleRule: {
     saleUnit: '',
@@ -126,11 +138,97 @@ Page({
       if (disInfo.nxDistributerProfessionalPurchaseMode) {
         items.push({ name: fulfillmentUi.MODE_AUTO, value: '自动订货' });
       }
+      // 协作供货商只对具备协作伙伴能力的平台型配送商开放
+      var snapshot = wx.getStorageSync('operatingCapabilitySnapshot');
+      if (operatingCapability.canUsePartnerCollaboration &&
+        operatingCapability.canUsePartnerCollaboration(disInfo, snapshot)) {
+        items.push({ name: fulfillmentUi.MODE_PARTNER, value: '协作供货商' });
+      }
       this.setData({
         disInfo: disInfo,
         items: items,
+        canUsePartnerCollaboration: operatingCapability.canUsePartnerCollaboration
+          ? operatingCapability.canUsePartnerCollaboration(disInfo, snapshot) : false,
       })
     }
+    this._loadPartnerBinding();
+  },
+
+  /** 读取该商品已固定的协作供货伙伴绑定，用于出货方式回显。 */
+  _loadPartnerBinding() {
+    var goodsId = this.data.goods && this.data.goods.nxDistributerGoodsId;
+    if (!goodsId) return;
+    disGetPartnerBinding(goodsId).then(res => {
+      if (res.result.code == 0 && res.result.data) {
+        var binding = res.result.data;
+        var goods = Object.assign({}, this.data.goods || {}, { nxPartnerBinding: binding });
+        this.setData({
+          goods: goods,
+          partnerBinding: binding,
+          partnerDisId: binding.partnerDistributerId,
+          partnerGoodsName: binding.partnerGoodsName || '',
+          fulfillmentUiMode: fulfillmentUi.resolveMode(goods)
+        });
+      }
+    }).catch(() => {});
+  },
+
+  /** 选择协作伙伴后搜索该伙伴名下的商品。 */
+  choosePartner(e) {
+    var partnerDisId = Number(e.currentTarget.dataset.id);
+    this.setData({
+      partnerDisId: partnerDisId,
+      partnerGoodsList: [],
+      partnerGoodsKeyword: ''
+    });
+  },
+
+  inputPartnerGoodsKeyword(e) {
+    this.setData({ partnerGoodsKeyword: e.detail.value });
+  },
+
+  searchPartnerGoods() {
+    var keyword = (this.data.partnerGoodsKeyword || '').trim();
+    var partnerDisId = this.data.partnerDisId;
+    if (!partnerDisId) {
+      wx.showToast({ title: '请先选择协作伙伴', icon: 'none' });
+      return;
+    }
+    if (!keyword) {
+      wx.showToast({ title: '请输入伙伴商品名称', icon: 'none' });
+      return;
+    }
+    queryPartnerDisGoodsByQuickSearch(keyword, this.data.disId, partnerDisId).then(res => {
+      if (res.result.code == 0) {
+        this.setData({ partnerGoodsList: res.result.data || [] });
+      }
+    }).catch(() => {});
+  },
+
+  choosePartnerGoods(e) {
+    var goodsId = Number(e.currentTarget.dataset.id);
+    var goodsName = e.currentTarget.dataset.name || '';
+    var binding = {
+      partnerDistributerId: this.data.partnerDisId,
+      partnerDisGoodsId: goodsId
+    };
+    var goods = Object.assign({}, this.data.goods || {}, { nxPartnerBinding: binding });
+    this.setData({
+      goods: goods,
+      partnerBinding: binding,
+      partnerGoodsName: goodsName
+    });
+  },
+
+  /** 出货方式切到协作供货商时加载协作伙伴列表。 */
+  loadPartnerListIfNeeded(mode) {
+    if (mode !== fulfillmentUi.MODE_PARTNER) return;
+    if (this.data.partnerList && this.data.partnerList.length > 0) return;
+    nxDisGetAllOfferNxDis({ nxDisId: this.data.disId }).then(res => {
+      if (res.result.code == 0) {
+        this.setData({ partnerList: res.result.data || [] });
+      }
+    }).catch(() => {});
   },
 
   /**
@@ -177,6 +275,7 @@ Page({
           goods: goods,
           fulfillmentUiMode: fulfillmentUi.resolveMode(goods),
         })
+        this._loadPartnerBinding();
       }else{
         load.hideLoading();
         wx.showToast({
@@ -202,6 +301,7 @@ Page({
       fulfillmentUiMode: mode,
       goods: fulfillmentUi.applyMode(this.data.goods, mode),
     })
+    this.loadPartnerListIfNeeded(mode);
   },
 
   // 价格策略选择（仅作字段保存，不接入计价逻辑）
@@ -705,19 +805,30 @@ Page({
     var savePromise = activeTab === 1 ? disUpdateBuyingPrice(goods) : disGoodsUpdate(goods);
     savePromise.then(res => {
       if (res.result.code == 0) {
+        // 协作供货商必须同时绑定具体伙伴和伙伴商品，商品保存成功后再落绑定
+        if (activeTab === 0 && this.data.fulfillmentUiMode === fulfillmentUi.MODE_PARTNER) {
+          var binding = this.data.partnerBinding;
+          if (!binding || !binding.partnerDistributerId || !binding.partnerDisGoodsId) {
+            load.hideLoading();
+            wx.showToast({ title: '请选择协作供货伙伴和伙伴商品', icon: 'none' });
+            return;
+          }
+          savePartnerBindingGoods(goods.nxDistributerGoodsId,
+            binding.partnerDistributerId, binding.partnerDisGoodsId).then(bindRes => {
+            load.hideLoading();
+            if (bindRes.result.code != 0) {
+              wx.showToast({ title: bindRes.result.msg || '协作伙伴绑定失败', icon: 'none' });
+              return;
+            }
+            this._finishSave();
+          }).catch(() => {
+            load.hideLoading();
+            wx.showToast({ title: '协作伙伴绑定失败', icon: 'none' });
+          });
+          return;
+        }
         load.hideLoading();
-
-        // 更新所有相关页面的数据
-        this._updateAllPages();
-
-        // 设置刷新标识，通知商品列表页面刷新
-        wx.setStorageSync('goodsNeedRefresh', true);
-
-        wx.navigateBack({
-          delta: 1,
-
-          
-        })
+        this._finishSave();
       } else {
         load.hideLoading();
         wx.showToast({
@@ -727,6 +838,18 @@ Page({
       }
     })
 
+  },
+
+  _finishSave() {
+    // 更新所有相关页面的数据
+    this._updateAllPages();
+
+    // 设置刷新标识，通知商品列表页面刷新
+    wx.setStorageSync('goodsNeedRefresh', true);
+
+    wx.navigateBack({
+      delta: 1
+    })
   },
 
   // 更新所有相关页面的数据

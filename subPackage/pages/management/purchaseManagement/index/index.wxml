@@ -23,7 +23,7 @@
 </template>
 
 <view class="pm-page">
-  <back-navbar style="height:{{navBarHeight}}rpx" title="采购总览" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
+  <back-navbar style="height:{{navBarHeight}}rpx" title="采购任务" avatar="/images/back-gray.png" bindnavbuttontap="toBack"></back-navbar>
   <scroll-view scroll-y class="pm-body overview-body" style="padding-top:{{navBarHeight}}rpx">
     <view class="date-card">
       <report-date-filter label="{{dateLabel}}" start-date="{{startDate}}" stop-date="{{stopDate}}" bindselect="toDatePage"></report-date-filter>
