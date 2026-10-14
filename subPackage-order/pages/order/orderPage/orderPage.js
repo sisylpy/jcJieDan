@@ -266,10 +266,16 @@ Page({
     return state ? !!state.locked : false;
   },
 
+  _collaborationLockText(state) {
+    if (!state || !state.locked) return '';
+    return state.counterpartOutbound ? '协作方已出库' : '本方已出库';
+  },
+
   _decorateCollaborationState(order) {
     if (!order) return order;
     order._isCollaborationOrder = this._isCollaborationOrder(order);
     order._collaborationDemandLocked = this._isCollaborationDemandLocked(order);
+    order._collaborationLockText = this._collaborationLockText(this._collaborationStateOf(order));
     return order;
   },
 
@@ -310,12 +316,14 @@ Page({
   },
 
   _applyCollaborationStates(data, states) {
+    var page = this;
     var decorate = function (order) {
       if (!order) return order;
       var state = states[String(order.nxDepartmentOrdersId)];
       if (state) {
         order._isCollaborationOrder = !!state.isCollaboration;
         order._collaborationDemandLocked = !!state.locked;
+        order._collaborationLockText = page._collaborationLockText(state);
       }
       return order;
     };

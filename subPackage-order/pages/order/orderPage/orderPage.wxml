@@ -188,7 +188,7 @@
                   <text class="mr-20" wx:if="{{order.nxDoPrintStandard && order.nxDoPrintStandard !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsStandardname !== order.nxDoPrintStandard}}">({{order.nxDoPrintStandard}})</text>
 
                   <text class="">订:{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
-                  <text wx:if="{{order._collaborationDemandLocked}}" class="collaboration-lock-tag">协作方已出库</text>
+                  <text wx:if="{{order._collaborationDemandLocked}}" class="collaboration-lock-tag">{{order._collaborationLockText}}</text>
                   <text class="text-danger font-sl" wx:if="{{order.nxDoRemark !== null  && order.nxDoRemark.length > 0}}">({{order.nxDoRemark}})</text>
                 </view>
 
@@ -253,7 +253,7 @@
                     <text class="font-sl text-danger">(未完成)</text>
                     <text class="mr-20 ">{{order.nxDoGoodsName}}</text>
                     <text class="">订:{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
-                    <text wx:if="{{order._collaborationDemandLocked}}" class="collaboration-lock-tag">协作方已出库</text>
+                    <text wx:if="{{order._collaborationDemandLocked}}" class="collaboration-lock-tag">{{order._collaborationLockText}}</text>
                     <text class="text-danger font-sl" wx:if="{{order.nxDoRemark !== null  && order.nxDoRemark.length > 0}}">({{order.nxDoRemark}})</text>
                   </view>
                 </view>
@@ -309,7 +309,7 @@
                  
                   <text class="mr-20" wx:if="{{order.nxDoPrintStandard && order.nxDoPrintStandard !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsStandardname !== order.nxDoPrintStandard}}">({{order.nxDoPrintStandard}})</text>
                     <text class="">订:{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
-                    <text wx:if="{{order._collaborationDemandLocked}}" class="collaboration-lock-tag">协作方已出库</text>
+                    <text wx:if="{{order._collaborationDemandLocked}}" class="collaboration-lock-tag">{{order._collaborationLockText}}</text>
                     <text class="text-danger font-sl" wx:if="{{order.nxDoRemark !== null  && order.nxDoRemark.length > 0}}">({{order.nxDoRemark}})</text>
                   </view>
                   <view wx:if="{{order._hasCustomerStandards}}" class="customer-standard-line">
@@ -383,7 +383,7 @@
                       <text class="font-sl text-danger">(未完成)</text>
                       <text class="mr-20">{{order.nxDoGoodsName}}</text>
                       <text class="">订:{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
-                      <text wx:if="{{order._collaborationDemandLocked}}" class="collaboration-lock-tag">协作方已出库</text>
+                      <text wx:if="{{order._collaborationDemandLocked}}" class="collaboration-lock-tag">{{order._collaborationLockText}}</text>
                       <text class="text-danger font-sl" wx:if="{{order.nxDoRemark !== null  && order.nxDoRemark.length > 0}}">({{order.nxDoRemark}})</text>
                     </view>
                   </view>
