@@ -188,6 +188,7 @@
                   <text class="mr-20" wx:if="{{order.nxDoPrintStandard && order.nxDoPrintStandard !== 'null' && order.nxDistributerGoodsEntity.nxDgGoodsStandardname !== order.nxDoPrintStandard}}">({{order.nxDoPrintStandard}})</text>
 
                   <text class="">订:{{order.nxDoQuantity}}{{order.nxDoStandard}}</text>
+                  <text wx:if="{{order._supplyLabel}}" style="margin-left:10rpx;color:#e6a23c;font-size:24rpx;">[{{order._supplyLabel}}]</text>
                   <text wx:if="{{order._collaborationDemandLocked}}" class="collaboration-lock-tag">{{order._collaborationLockText}}</text>
                   <text class="text-danger font-sl" wx:if="{{order.nxDoRemark !== null  && order.nxDoRemark.length > 0}}">({{order.nxDoRemark}})</text>
                 </view>

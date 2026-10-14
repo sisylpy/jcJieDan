@@ -5,6 +5,7 @@ import {
   
   queryDisGoodsAndNxGoodsByQuickSearch,
   disUpdateBuyingPrice,
+  disGetPartnerBindingList,
  
 } from '../../../../lib/apiDistributer'
 
@@ -112,31 +113,110 @@ Page({
 
   },
 
+  /** 固定供货关系（含伙伴名称）只取一次，用于搜索结果的供货标记与去重。 */
+  _loadPartnerBindings() {
+    var page = this;
+    if (page._partnerBindings) {
+      return Promise.resolve(page._partnerBindings);
+    }
+    return new Promise(function (resolve) {
+      disGetPartnerBindingList(page.data.disId).then(function (res) {
+        var body = (res && res.result) ? res.result : {};
+        if (body.code != 0) {
+          page._partnerBindings = { bindings: [], names: {} };
+          resolve(page._partnerBindings);
+          return;
+        }
+        page._partnerBindings = { bindings: body.data || [], names: body.partnerNames || {} };
+        resolve(page._partnerBindings);
+      }).catch(function () {
+        page._partnerBindings = { bindings: [], names: {} };
+        resolve(page._partnerBindings);
+      });
+    });
+  },
+
+  /**
+   * 按固定绑定关系标注供货方并去重：
+   * 本方商品已固定到伙伴的具体商品时，该伙伴商品不再单独列出，只在自有商品名后显示「X供货」；
+   * 未绑定的伙伴商品保留，仍可用于临时协作订货。不按商品名称判断，不删除任何商品记录。
+   */
+  _decorateSupplierLabels(list, bindings, names) {
+    var disId = this.data.disId;
+    var partnerGoodsToOwn = {};
+    var ownBinding = {};
+    (bindings || []).forEach(function (b) {
+      if (!b) return;
+      if (b.disGoodsId != null) {
+        ownBinding[String(b.disGoodsId)] = {
+          partnerDisId: b.partnerDistributerId,
+          name: names[String(b.partnerDistributerId)] || ''
+        };
+      }
+      if (b.partnerDisGoodsId != null && b.disGoodsId != null) {
+        partnerGoodsToOwn[String(b.partnerDisGoodsId)] = b.disGoodsId;
+      }
+    });
+    var ownIdInResult = {};
+    (list || []).forEach(function (g) {
+      if (g && String(g.nxDgDistributerId) === String(disId)) {
+        ownIdInResult[String(g.nxDistributerGoodsId)] = true;
+      }
+    });
+    var result = [];
+    (list || []).forEach(function (g) {
+      if (!g) return;
+      var gid = String(g.nxDistributerGoodsId);
+      var isOwn = String(g.nxDgDistributerId) === String(disId);
+      if (!isOwn) {
+        var ownId = partnerGoodsToOwn[gid];
+        if (ownId != null && ownIdInResult[String(ownId)]) return;
+        g._supplyLabel = '';
+        result.push(g);
+        return;
+      }
+      var bind = ownBinding[gid];
+      if (bind && bind.name) {
+        var goodsName = g.nxDgGoodsName || '';
+        // 历史商品名若已带 [李] 前缀，避免重复出现两个标签（不修改数据库商品名）
+        g._supplyLabel = goodsName.indexOf('[' + bind.name + ']') >= 0 ? '' : (bind.name + '供货');
+      } else if (g.nxJrdhSupplierEntity) {
+        var sname = g.nxJrdhSupplierEntity.nxJrdhsSupplierName
+          || (g.nxJrdhSupplierEntity.jrdhUserEntity && g.nxJrdhSupplierEntity.jrdhUserEntity.nxJrdhWxNickName)
+          || '';
+        g._supplyLabel = sname ? ('普通供货商:' + sname) : '普通供货商';
+      } else {
+        g._supplyLabel = '';
+      }
+      result.push(g);
+    });
+    return result;
+  },
+
   _searchGoods() {
     var data = {
       disId: this.data.disId,
       searchStr: this.data.searchStr
     }
     load.showLoading("商品搜索中")
+    var page = this;
     queryDisGoodsAndNxGoodsByQuickSearch(data).then(res => {
       load.hideLoading();
       console.log(res.result.data);
       if (res.result.code == 0) {
-        this.setData({
-          strArr: res.result.data.disArr,
-          nxArr: res.result.data.nxArr,
+        page._loadPartnerBindings().then(function (info) {
+          var disArr = page._decorateSupplierLabels(
+            res.result.data.disArr || [], info.bindings, info.names);
+          var depTabCount = "tabsSearch[0].amount";
+          var disTabCount = "tabsSearch[1].amount";
+          page.setData({
+            [depTabCount]: disArr.length,
+            [disTabCount]: (res.result.data.nxArr || []).length,
+            strArr: disArr,
+            nxArr: res.result.data.nxArr,
+            itemIndexSearch: 0,
+          })
         })
-        var depTabCount = "tabsSearch[0].amount";
-        var disTabCount = "tabsSearch[1].amount";
-        this.setData({
-        
-          [depTabCount]:  res.result.data.disArr.length,
-          [disTabCount] : res.result.data.nxArr.length,
-          strArr: res.result.data.disArr,
-          nxArr: res.result.data.nxArr,
-          itemIndexSearch: 0,
-        })
-
       }
     })
 

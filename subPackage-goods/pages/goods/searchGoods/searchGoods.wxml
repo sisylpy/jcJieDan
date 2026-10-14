@@ -66,6 +66,7 @@
               <view class="goods-name-wrap">
                 <text class="brand" wx:if="{{sons.nxDgGoodsBrand !== null && sons.nxDgGoodsBrand.length > 0}}">{{sons.nxDgGoodsBrand}}</text>
                 <text class="goods-name font-sl">{{sons.nxDgGoodsName}}</text>
+                <text wx:if="{{sons._supplyLabel}}" style="margin-left:10rpx;color:#e6a23c;font-size:24rpx;">[{{sons._supplyLabel}}]</text>
                 <text class="goods-detail font-xs">{{sons.nxDgGoodsDetail !== null ? sons.nxDgGoodsDetail : ''}}</text>
               </view>
               <image src="/images/arrow-right-3.png" mode="aspectFill" class="arrow-icon" />

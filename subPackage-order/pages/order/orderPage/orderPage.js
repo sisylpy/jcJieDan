@@ -276,11 +276,35 @@ Page({
     return '本方已出库';
   },
 
+  /**
+   * 供货关系标签：以本笔订单的实际供货关系为准（协作 link 或普通 supplier），
+   * 不读取商品当前的供货商设置，避免历史订单被改显示；也不依赖商品名中的 [李] 前缀。
+   */
+  _supplyLabelFor(order, state) {
+    if (state && state.isCollaboration) {
+      var name = state.counterpartName;
+      if (!name) return '';
+      var goodsName = (order && order.nxDoGoodsName) || '';
+      if (goodsName.indexOf('[' + name + ']') >= 0) return '';
+      return name + '供货';
+    }
+    var goods = order && order.nxDistributerGoodsEntity;
+    if (goods && goods.nxJrdhSupplierEntity) {
+      var sname = goods.nxJrdhSupplierEntity.nxJrdhsSupplierName
+        || (goods.nxJrdhSupplierEntity.jrdhUserEntity
+            && goods.nxJrdhSupplierEntity.jrdhUserEntity.nxJrdhWxNickName)
+        || '';
+      return sname ? ('普通供货商:' + sname) : '普通供货商';
+    }
+    return '';
+  },
+
   _decorateCollaborationState(order) {
     if (!order) return order;
     order._isCollaborationOrder = this._isCollaborationOrder(order);
     order._collaborationDemandLocked = this._isCollaborationDemandLocked(order);
     order._collaborationLockText = this._collaborationLockText(this._collaborationStateOf(order));
+    order._supplyLabel = this._supplyLabelFor(order, this._collaborationStateOf(order));
     return order;
   },
 
@@ -354,6 +378,7 @@ Page({
         order._collaborationDemandLocked = !!state.locked;
         order._collaborationLockText = page._collaborationLockText(state);
       }
+      order._supplyLabel = page._supplyLabelFor(order, state);
       return order;
     };
     if (!data || !data.arr) return;
