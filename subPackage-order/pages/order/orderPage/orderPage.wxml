@@ -665,7 +665,7 @@
       <text class="text-danger">送货失败</text>
     </view>
 
-    <view class="flex flex-row p-30 border-bottom" catchtap="cancleOutOrder" hover-class="hover" wx:if="{{applyItem.nxDoPurchaseStatus == 4}}">
+    <view class="flex flex-row p-30 border-bottom" catchtap="cancleOutOrder" hover-class="hover" wx:if="{{applyItem.nxDoPurchaseStatus >= 4}}">
       <image src="../../../../images/edit-main.png" class="icon mr-20 ml-20"></image>
       <text class="">重新出库</text>
     </view>

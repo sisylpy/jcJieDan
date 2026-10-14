@@ -266,9 +266,14 @@ Page({
     return state ? !!state.locked : false;
   },
 
+  /**
+   * 双方出库状态各自独立：本方与协作方分别表达，另一方出库不会写成本方已出库。
+   */
   _collaborationLockText(state) {
     if (!state || !state.locked) return '';
-    return state.counterpartOutbound ? '协作方已出库' : '本方已出库';
+    if (state.ownOutbound && state.counterpartOutbound) return '双方已出库';
+    if (state.counterpartOutbound) return '协作方已出库';
+    return '本方已出库';
   },
 
   _decorateCollaborationState(order) {
@@ -297,6 +302,23 @@ Page({
     return ids;
   },
 
+  _findOrderById(data, orderId) {
+    if (!data || !data.arr || orderId == null) return null;
+    var found = null;
+    if (this.data.depHasSubs > 0) {
+      (data.arr || []).forEach(function (dep) {
+        (dep.depOrders || []).forEach(function (order) {
+          if (order && String(order.nxDepartmentOrdersId) === String(orderId)) found = order;
+        });
+      });
+    } else {
+      (data.arr || []).forEach(function (order) {
+        if (order && String(order.nxDepartmentOrdersId) === String(orderId)) found = order;
+      });
+    }
+    return found;
+  },
+
   /** 拉取后端协作状态并回填到已归一化的订单上，随后刷新列表。 */
   _loadCollaborationStates(data) {
     var page = this;
@@ -308,9 +330,16 @@ Page({
         var states = res.result.data || {};
         page._collaborationStateMap = states;
         page._applyCollaborationStates(data, states);
-        page.setData(page.data.depHasSubs > 0
+        var patch = page.data.depHasSubs > 0
           ? { depArr: data.arr }
-          : { applyArr: data.arr });
+          : { applyArr: data.arr };
+        // 操作面板读的是 applyItem，协作状态回填后需同步刷新，避免锁定/重新出库入口显示不一致。
+        var applyItem = page.data.applyItem;
+        if (applyItem && applyItem.nxDepartmentOrdersId != null) {
+          var matched = page._findOrderById(data, applyItem.nxDepartmentOrdersId);
+          if (matched) patch.applyItem = matched;
+        }
+        page.setData(patch);
       })
       .catch(function () {});
   },
