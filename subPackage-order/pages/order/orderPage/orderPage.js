@@ -35,7 +35,7 @@ import { resolveNxDoCostPriceLevel } from '../../../../lib/retailPriceLevel'
 import {
   disSaveStandard,
   disDeleteStandard,
-
+  queryCollaborationOrderStates
 } from '../../../../lib/apiDistributer'
 
 
@@ -237,21 +237,33 @@ Page({
       var platformCount = data.arr.filter(function (o) { return o.isPlatformOrder === 1; }).length;
       console.log('[platformOrder] 平台行:', platformCount, '/', data.arr.length);
     }
-    return this._decorateJczbBatchGroups(data);
+    var result = this._decorateJczbBatchGroups(data);
+    this._loadCollaborationStates(result);
+    return result;
   },
 
+  _collaborationStateOf(order) {
+    if (!order || order.nxDepartmentOrdersId == null) return null;
+    var map = this._collaborationStateMap;
+    return map ? map[String(order.nxDepartmentOrdersId)] : null;
+  },
+
+  /**
+   * 是否协作订单以 nx_order_collaboration_link 精确关联为准（后端下发），
+   * 不按商品归属或商品名称猜测；状态未加载时不显示协作标记，避免误判。
+   */
   _isCollaborationOrder(order) {
-    var goods = order && order.nxDistributerGoodsEntity;
-    var ownerId = goods && goods.nxDgDistributerId;
-    return ownerId != null
-      && this.data.nxDisId != null
-      && String(ownerId) !== String(this.data.nxDisId);
+    var state = this._collaborationStateOf(order);
+    return state ? !!state.isCollaboration : false;
   },
 
+  /**
+   * 锁定判定统一以后端为准：双方任一方真正出库（采购状态 >= 完成分拣）才锁定。
+   * 仅称重、备货或采购完成都不算出库，不得因界面上的出货数量错误锁定。
+   */
   _isCollaborationDemandLocked(order) {
-    if (!this._isCollaborationOrder(order)) return false;
-    var purchaseStatus = Number(order && order.nxDoPurchaseStatus);
-    return Number.isFinite(purchaseStatus) && purchaseStatus >= 1;
+    var state = this._collaborationStateOf(order);
+    return state ? !!state.locked : false;
   },
 
   _decorateCollaborationState(order) {
@@ -259,6 +271,62 @@ Page({
     order._isCollaborationOrder = this._isCollaborationOrder(order);
     order._collaborationDemandLocked = this._isCollaborationDemandLocked(order);
     return order;
+  },
+
+  _collectOrderIds(data) {
+    var ids = [];
+    if (!data || !data.arr) return ids;
+    var push = function (order) {
+      if (order && order.nxDepartmentOrdersId != null) {
+        ids.push(order.nxDepartmentOrdersId);
+      }
+    };
+    if (this.data.depHasSubs > 0) {
+      (data.arr || []).forEach(function (dep) {
+        (dep.depOrders || []).forEach(push);
+      });
+    } else {
+      (data.arr || []).forEach(push);
+    }
+    return ids;
+  },
+
+  /** 拉取后端协作状态并回填到已归一化的订单上，随后刷新列表。 */
+  _loadCollaborationStates(data) {
+    var page = this;
+    var orderIds = this._collectOrderIds(data);
+    if (!orderIds.length) return;
+    queryCollaborationOrderStates(this.data.nxDisId, orderIds)
+      .then(function (res) {
+        if (!res || !res.result || res.result.code != 0) return;
+        var states = res.result.data || {};
+        page._collaborationStateMap = states;
+        page._applyCollaborationStates(data, states);
+        page.setData(page.data.depHasSubs > 0
+          ? { depArr: data.arr }
+          : { applyArr: data.arr });
+      })
+      .catch(function () {});
+  },
+
+  _applyCollaborationStates(data, states) {
+    var decorate = function (order) {
+      if (!order) return order;
+      var state = states[String(order.nxDepartmentOrdersId)];
+      if (state) {
+        order._isCollaborationOrder = !!state.isCollaboration;
+        order._collaborationDemandLocked = !!state.locked;
+      }
+      return order;
+    };
+    if (!data || !data.arr) return;
+    if (this.data.depHasSubs > 0) {
+      (data.arr || []).forEach(function (dep) {
+        dep.depOrders = (dep.depOrders || []).map(decorate);
+      });
+    } else {
+      data.arr = (data.arr || []).map(decorate);
+    }
   },
 
   _showCollaborationDemandLockedToast() {
