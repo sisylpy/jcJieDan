@@ -13,6 +13,8 @@ import {
   disUpdateBuyingPrice,
 } from '../../../../lib/apiDistributer'
 
+import { loadPartnerBindings, decorateSupplierLabels } from '../../../../lib/collaborationGoodsDisplay'
+
 
 const tabBarHeight = 50; // 根据实际情况调整
 const viewBarHeight = 60;
@@ -316,21 +318,28 @@ Page({
       if (res.result.code == 0) {
         console.log("商品 API 成功，数据:", res.result.page);
         console.log("商品列表长度:", res.result.page.is.list ? res.result.page.is.list.length : 0);
-        this.setData({
-          goodsList: res.result.page.is.list,
-          currentPage: this.data.currentPage + 1,
-          totalPage: res.result.page.is.totalPage,
-          totalCount: res.result.page.is.totalCount,
-        })
-        console.log("商品数据设置完成，商品数量:", this.data.goodsList.length);
+        var page = this;
+        var applyGoodsList = function (list) {
+          page.setData({
+            goodsList: list,
+            currentPage: page.data.currentPage + 1,
+            totalPage: res.result.page.is.totalPage,
+            totalCount: res.result.page.is.totalCount,
+          })
+          console.log("商品数据设置完成，商品数量:", page.data.goodsList.length);
+          wx.nextTick(() => {
+            page.updateFixedContentHeight();
+          });
+        };
+        // 已固定供货伙伴的伙伴商品不再重复列出，只在本方商品名后显示「X供货」
+        loadPartnerBindings(page.data.disId).then(function (info) {
+          applyGoodsList(decorateSupplierLabels(
+            res.result.page.is.list || [], page.data.disId, info.bindings, info.names));
+        });
         // that.getTabBar().setData({
         //   stockCount: res.result.page.stockCount,
         //   purCount: res.result.page.purCount,
         //   })
-
-        wx.nextTick(() => {
-          this.updateFixedContentHeight();
-        });
 
       } else {
         console.log("商品 API 失败:", res.result.msg);

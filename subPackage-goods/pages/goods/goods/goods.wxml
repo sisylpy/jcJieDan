@@ -107,6 +107,7 @@
                     <text
                       class=" {{sons.nxDgGoodsBrand !== null && sons.nxDgGoodsBrand.length > 0 ? 'brand' : ''}}">{{sons.nxDgGoodsBrand !== null && sons.nxDgGoodsBrand.length > 0 ? sons.nxDgGoodsBrand : ''}}</text>
                     <text class="font-md">{{sons.nxDgGoodsName}}</text>
+                    <text wx:if="{{sons._supplyLabel}}" style="margin-left:10rpx;color:#e6a23c;font-size:24rpx;">[{{sons._supplyLabel}}]</text>
                     <text class="">{{sons.nxDgGoodsDetail !== null ? sons.nxDgGoodsDetail : ''}}</text>
                     <block wx:if="{{sons.nxDistributerAliasEntities.length > 0}}">
                       <text wx:for="{{sons.nxDistributerAliasEntities}}"
